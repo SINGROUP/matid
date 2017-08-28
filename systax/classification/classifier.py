@@ -11,8 +11,8 @@ from sklearn.cluster import DBSCAN
 import spglib
 
 from systax.exceptions import ClassificationError
-from systax.components import SurfaceComponent, AtomComponent, MoleculeComponent
-from systax.classifications import Surface, Atom, Molecule, Crystal
+from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent
+from systax.classification.classifications import Surface, Atom, Molecule, Crystal
 from systax.data.element_data import get_covalent_radii
 from systax.core.system import System
 
@@ -114,7 +114,8 @@ class Classifier(object):
                             molecule_comps.append(MoleculeComponent(cluster, system[cluster]))
 
             # Bulk structures
-            # if n_vacuum == 0:
+            if n_vacuum == 0:
+                crystal_comps.append(CrystalComponent(np.arange(len(system)), system.copy()))
 
         # elif n_periodic == 2:
 

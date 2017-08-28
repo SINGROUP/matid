@@ -13,8 +13,8 @@ from ase.visualize import view
 import ase.build
 
 from systax import Classifier
-from systax.classifications import Atom, Molecule, Crystal
-from systax.material3danalyzer import Material3DAnalyzer
+from systax.classification import Atom, Molecule, Crystal
+from systax import Material3DAnalyzer
 
 
 class AtomTests(unittest.TestCase):
@@ -72,7 +72,7 @@ class Material3DTests(unittest.TestCase):
             latticeconstant=5.430710)
         classifier = Classifier()
         clas = classifier.classify(si)
-        print(clas)
+        self.assertIsInstance(clas, Crystal)
 
 
 class Material3DAnalyserTests(unittest.TestCase):
@@ -87,20 +87,20 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         # Apply some noise
         si.rattle(stdev=0.05, seed=42)
-        si.translate([1, 1, 1])
+        si.translate([1, 2, 1])
         cell = si.get_cell()
         a = cell[0, :]
         a *= 1.04
         cell[0, :] = a
         si.set_cell(cell)
+        print(si.get_cell())
 
         analyzer = Material3DAnalyzer(si)
         space_group_number = analyzer.get_spacegroup_number()
-        space_group_international_short = analyzer.get_spacegroup_international_short()
+        space_group_int = analyzer.get_spacegroup_international_short()
         hall_symbol = analyzer.get_hall_symbol()
         hall_number = analyzer.get_hall_number()
 
-        ideal_system = analyzer.get_idealized_system()
         conv_system = analyzer.get_conventional_system()
         prim_system = analyzer.get_primitive_system()
 
@@ -112,31 +112,41 @@ class Material3DAnalyserTests(unittest.TestCase):
         transformation_matrix = analyzer.get_transformation_matrix()
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
-        wyckoff_idealized = analyzer.get_wyckoff_letters_idealized()
-        # equivalent_original = analyzer.get_equivalent_atoms_original()
-        # wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
-        # equivalent_conv = analyzer.get_equivalent_atoms_conventional()
+        wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
 
+        equivalent_original = analyzer.get_equivalent_atoms_original()
+        equivalent_conv = analyzer.get_equivalent_atoms_conventional()
+
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+        print(lattice_fit)
+
+        # print(wyckoff_original)
+        # print(wyckoff_conv)
+
+        # view(si)
         # view(conv_system)
-        view(ideal_system)
+        # view(ideal_system)
         # view(prim)
 
-        # self.assertEqual(space_group_number, 227)
-        # self.assertEqual(space_group_international_short, "Fd-3m")
-        # self.assertEqual(hall_symbol, "F 4d 2 3 -1d")
-        # self.assertEqual(hall_number, 525)
-        # self.assertEqual(point_group, "m-3m")
-        # self.assertEqual(choice, "1")
-        # self.assertTrue(np.array_equal(equivalent_original, [0, 0, 0, 0, 0, 0, 0, 0]))
-        # self.assertTrue(np.array_equal(wyckoff_original, ["a", "a", "a", "a", "a", "a", "a", "a"]))
+        self.assertEqual(space_group_number, 227)
+        self.assertEqual(space_group_int, "Fd-3m")
+        self.assertEqual(hall_symbol, "F 4d 2 3 -1d")
+        self.assertEqual(hall_number, 525)
+        self.assertEqual(point_group, "m-3m")
+        self.assertEqual(choice, "1")
+        self.assertTrue(np.array_equal(equivalent_conv, [0, 0, 0, 0, 0, 0, 0, 0]))
+        self.assertTrue(np.array_equal(wyckoff_conv, ["a", "a", "a", "a", "a", "a", "a", "a"]))
 
-        # # Check that the volumes are scaled with the number of atoms
-        # n_atoms_orig = len(si)
-        # volume_orig = si.get_volume()
-        # n_atoms_conv = len(conv_system)
-        # volume_conv = conv_system.get_volume()
-        # n_atoms_prim = len(prim_system)
-        # volume_prim = prim_system.get_volume()
+        # Check that the volumes are scaled with the number of atoms
+        n_atoms_orig = len(si)
+        volume_orig = si.get_volume()
+        n_atoms_conv = len(conv_system)
+        volume_conv = conv_system.get_volume()
+        n_atoms_prim = len(prim_system)
+        volume_prim = prim_system.get_volume()
+
+        print(volume_orig/n_atoms_orig)
+        print(volume_conv/n_atoms_conv)
 
         # self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_prim/n_atoms_prim, atol=1e-8))
         # self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_conv/n_atoms_conv, atol=1e-8))

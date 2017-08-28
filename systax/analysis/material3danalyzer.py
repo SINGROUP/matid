@@ -6,7 +6,7 @@ from systax.utils.segfault_protect import segfault_protect
 from systax.data.constants import SPGLIB_PRECISION, WYCKOFF_LETTERS
 from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS
 from systax.exceptions import CellNormalizationError, SystaxError
-from systax.core import System
+from systax.core.system import System
 
 
 class Material3DAnalyzer(object):
@@ -25,11 +25,14 @@ class Material3DAnalyzer(object):
         else:
             self.spglib_precision = spglib_precision
 
-        self._symmetry_dataset = None
-        self._conventional_system = None
-        self._idealized_system = None
-        self._spglib_idealized_system = None
-        self._primitive_system = None
+        self.reset()
+        # self._symmetry_dataset = None
+        # self._conventional_system = None
+        # self._idealized_system = None
+        # self._spglib_idealized_system = None
+        # self._primitive_system = None
+        # self._idealized_wyckoff_letters = None
+        # self._idealized_equivalent_atoms = None
 
     def set_system(self, system):
         """Sets a new system for analysis.
@@ -43,6 +46,11 @@ class Material3DAnalyzer(object):
         self._symmetry_dataset = None
         self._conventional_system = None
         self._primitive_system = None
+        self._spglib_conventional_system = None
+        self._spglib_wyckoff_letters = None
+        self._spglib_equivalent_atoms = None
+        self._conventional_wyckoff_letters = None
+        self._conventional_equivalent_atoms = None
 
     def get_spacegroup_number(self):
         """
@@ -96,35 +104,18 @@ class Material3DAnalyzer(object):
 
         return value
 
-    def get_conventional_system(self):
-        """Used to get the conventional representation of this system. This
-        conventional cell represents a good approximation of how the given
-        original system would look like in the conventional cell of the given
-        material.
-
-
-        Returns:
-            System: The conventional system.
-        """
-        if self._conventional_system is not None:
-            return self._conventional_system
-
-        desc = self._system_to_spglib_description(self.system)
-        conv_desc = spglib.standardize_cell(
-            desc,
-            to_primitive=False,
-            no_idealize=True,
-            symprec=self.spglib_precision)
-        conv_sys = self._spglib_description_to_system(conv_desc)
-
-        self._conventional_system = conv_sys
-        return conv_sys
+    # def get_conventional_lattice_parameters(self):
 
     def get_primitive_system(self):
-        """Used to get the primitive representation of this system.
+        """Returns an primitive description for this system. This description
+        uses a primitive lattice where positions of the atoms, and the cell
+        basis vectors are idealized to follow the symmetries that were found
+        with the given precision. This means that e.g. the volume, angles
+        between basis vectors and basis vector lengths may have deviations from
+        the the original system.
 
         Returns:
-            System: The primitive system
+            System: The primitive system.
         """
         if self._primitive_system is not None:
             return self._primitive_system
@@ -133,23 +124,22 @@ class Material3DAnalyzer(object):
         prim_desc = spglib.standardize_cell(
             desc,
             to_primitive=True,
-            no_idealize=True,
+            no_idealize=False,
             symprec=self.spglib_precision)
         prim_sys = self._spglib_description_to_system(prim_desc)
 
         self._primitive_system = prim_sys
         return prim_sys
 
-    def get_idealized_system(self):
-        """Returns an idealized description for this material. This idealized
+    def get_conventional_system(self):
+        """Returns an conventional description for this system. This
         description uses a conventional lattice where positions of the atoms,
         and the cell basis vectors are idealized to follow the symmetries that
         were found with the given precision. This means that e.g. the volume,
         angles between basis vectors and basis vector lengths may have
-        deviations from the the
-        original system.
+        deviations from the the original system.
 
-        The following conventions are used to form idealized system:
+        The following conventions are used to form the conventional system:
 
             - If there are multiple origins available for the space group, the
               one with the lowest Hall number is returned.
@@ -163,25 +153,53 @@ class Material3DAnalyzer(object):
               https://atztogo.github.io/spglib/definition.html#conventions-of-standardized-unit-cell
 
         Returns:
-            System: The idealized system.
+            System: The conventional system.
         """
-        if self._idealized_system is not None:
-            return self._idealized_system
+        if self._conventional_system is not None:
+            return self._conventional_system
 
-        spglib_ideal_sys = self._get_spglib_idealized_system()
+        spglib_conv_sys = self._get_spglib_conventional_system()
 
         # Find a proper rigid transformation that produces the best combination
         # of atomic species in the Wyckoff positions.
         space_group = self.get_spacegroup_number()
-        wyckoff_letters = self._get_spglib_wyckoff_letters()
-        ideal_sys = self._find_wyckoff_ground_state(
+        wyckoff_letters, equivalent_atoms = \
+            self._get_spglib_wyckoff_letters_and_equivalent_atoms()
+        ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
             space_group,
             wyckoff_letters,
-            spglib_ideal_sys
+            spglib_conv_sys
         )
 
-        self._idealized_system = ideal_sys
+        self._conventional_system = ideal_sys
+        self._conventional_wyckoff_letters = ideal_wyckoff
+        self._conventional_equivalent_atoms = equivalent_atoms
         return ideal_sys
+
+    def get_conventional_lattice_fit(self):
+        """Used to get a 3x3 matrix representing a fit of the original
+        simulation cell to the conventional cell. This lattice can be e.g. used
+        to calculate the lattice parameters or the volume of the original
+        system in the lattice of the conventional system. The order of the cell
+        basis vectors is the same as in the cell returned by
+        get_conventional_system().get_cell().
+
+        Returns:
+            np.ndarray: The lattice basis vectors as a matrix.
+        """
+        if self._conventional_system is not None:
+            return self._conventional_system.get_cell()
+
+        desc = self._system_to_spglib_description(self.system)
+        conv_desc = spglib.standardize_cell(
+            desc,
+            to_primitive=False,
+            no_idealize=True,
+            symprec=self.spglib_precision)
+        conv_sys = self._spglib_description_to_system(conv_desc)
+
+        self._conventional_system = conv_sys
+        return conv_sys.get_cell()
 
     def get_origin_shift(self):
         """The origin shift s that is needed to transform points in the
@@ -268,16 +286,6 @@ class Material3DAnalyzer(object):
 
         return value
 
-    def get_wyckoff_letters_idealized(self):
-        """
-        Returns:
-            list of str: Wyckoff letters for the atoms in the original system.
-        """
-        ideal_sys = self.get_idealized_system()
-        letters = ideal_sys.get_wyckoff_letters()
-
-        return letters
-
     def get_equivalent_atoms_original(self):
         """
         Returns:
@@ -289,15 +297,36 @@ class Material3DAnalyzer(object):
 
         return value
 
-    def _get_spglib_idealized_system(self):
+    def get_wyckoff_letters_conventional(self):
+        """Get the Wyckoff letters of the atoms in the conventional system.
+
+        Returns:
+            list of str: Wyckoff letters.
+        """
+        if self._conventional_wyckoff_letters is None:
+            self.get_conventional_system()
+        return self._conventional_wyckoff_letters
+
+    def get_equivalent_atoms_conventional(self):
+        """List of equivalent atoms in the idealized system.
+
+        Returns:
+            list of int: A list that maps each atom into a symmetry equivalent
+                set.
+        """
+        if self._spglib_equivalent_atoms is None:
+            self._get_spglib_wyckoff_letters_and_equivalent_atoms()
+        return self._spglib_equivalent_atoms
+
+    def _get_spglib_conventional_system(self):
         """Returns an idealized description for this material as defined by
         spglib.
 
         Returns:
             System: The idealized system as defined by spglib.
         """
-        if self._spglib_idealized_system is not None:
-            return self._spglib_idealized_system
+        if self._spglib_conventional_system is not None:
+            return self._spglib_conventional_system
 
         desc = self._system_to_spglib_description(self.system)
         ideal_desc = spglib.standardize_cell(
@@ -307,10 +336,10 @@ class Material3DAnalyzer(object):
             symprec=self.spglib_precision)
         ideal_sys = self._spglib_description_to_system(ideal_desc)
 
-        self._spglib_idealized_system = ideal_sys
+        self._spglib_conventional_system = ideal_sys
         return ideal_sys
 
-    def _get_spglib_wyckoff_letters(self):
+    def _get_spglib_wyckoff_letters_and_equivalent_atoms(self):
         """Return a list of Wyckoff letters for the atoms in the standardized
         cell defined by spglib. Note that these Wyckoff letters may not be the
         same as the ones given by get_idealized_system().
@@ -319,8 +348,12 @@ class Material3DAnalyzer(object):
             list of str: List of Wyckoff letters for the atoms in the
             conventional system.
         """
+        if self._spglib_wyckoff_letters is not None and \
+           self._spglib_equivalent_atoms is not None:
+            return self._spglib_wyckoff_letters, self._spglib_equivalent_atoms
+
         # conv_sys = self.get_conventional_system()
-        conv_sys = self._get_spglib_idealized_system()
+        conv_sys = self._get_spglib_conventional_system()
         conv_pos = conv_sys.get_scaled_positions()
         conv_num = conv_sys.get_atomic_numbers()
 
@@ -377,7 +410,10 @@ class Material3DAnalyzer(object):
             norm_wyckoff_letters[i_pos] = wyckoff_letters[index]
             norm_equivalent_atoms[i_pos] = equivalent_atoms[index]
 
-        return norm_wyckoff_letters
+        self._spglib_wyckoff_letters = norm_wyckoff_letters
+        self._spglib_equivalent_atoms = norm_equivalent_atoms
+
+        return norm_wyckoff_letters, norm_equivalent_atoms
 
     def _system_to_spglib_description(self, system):
         """Transforms the System object into a tuple used by spglib.
@@ -600,7 +636,7 @@ class Material3DAnalyzer(object):
         new_system = system.copy()
         if best_transform_i == -1:
             new_system.set_wyckoff_letters(old_wyckoff_letters)
-            return new_system
+            return new_system, old_wyckoff_letters
         else:
             best_transform = transform_list[best_transform_i]["transformation"]
 
@@ -621,7 +657,7 @@ class Material3DAnalyzer(object):
             wrapped_pos = self._get_wrapped_positions(transformed_positions)
             new_system.set_scaled_positions(wrapped_pos)
 
-            return new_system
+            return new_system, systems[best_transform_i]
 
     def _get_wrapped_positions(self, scaled_pos, precision=1E-5):
         """Wrap the given relative positions so that each element in the array
