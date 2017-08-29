@@ -93,7 +93,6 @@ class Material3DAnalyserTests(unittest.TestCase):
         a *= 1.04
         cell[0, :] = a
         si.set_cell(cell)
-        print(si.get_cell())
 
         analyzer = Material3DAnalyzer(si)
         space_group_number = analyzer.get_spacegroup_number()
@@ -118,15 +117,10 @@ class Material3DAnalyserTests(unittest.TestCase):
         equivalent_conv = analyzer.get_equivalent_atoms_conventional()
 
         lattice_fit = analyzer.get_conventional_lattice_fit()
-        print(lattice_fit)
-
-        # print(wyckoff_original)
-        # print(wyckoff_conv)
 
         # view(si)
         # view(conv_system)
-        # view(ideal_system)
-        # view(prim)
+        # view(prim_system)
 
         self.assertEqual(space_group_number, 227)
         self.assertEqual(space_group_int, "Fd-3m")
@@ -136,20 +130,152 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertEqual(choice, "1")
         self.assertTrue(np.array_equal(equivalent_conv, [0, 0, 0, 0, 0, 0, 0, 0]))
         self.assertTrue(np.array_equal(wyckoff_conv, ["a", "a", "a", "a", "a", "a", "a", "a"]))
+        self.assertTrue(np.array_equal(equivalent_original, [0, 0, 0, 0, 0, 0, 0, 0]))
+        self.assertTrue(np.array_equal(wyckoff_original, ["a", "a", "a", "a", "a", "a", "a", "a"]))
 
-        # Check that the volumes are scaled with the number of atoms
+        # Check that the lattice fit gets the volume and lattice vectors right
         n_atoms_orig = len(si)
         volume_orig = si.get_volume()
         n_atoms_conv = len(conv_system)
-        volume_conv = conv_system.get_volume()
-        n_atoms_prim = len(prim_system)
-        volume_prim = prim_system.get_volume()
+        volume_conv = np.linalg.det(lattice_fit)
 
-        print(volume_orig/n_atoms_orig)
-        print(volume_conv/n_atoms_conv)
+        self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_conv/n_atoms_conv, atol=1e-8))
 
-        # self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_prim/n_atoms_prim, atol=1e-8))
+    def test_nacl_primitive(self):
+        cell = np.array(
+            [
+                [0, 2.8201, 2.8201],
+                [2.8201, 0, 2.8201],
+                [2.8201, 2.8201, 0]
+            ]
+        )
+        cell[0, :] *= 1.05
+        nacl = Atoms(
+            symbols=["Na", "Cl"],
+            scaled_positions=np.array([
+                [0, 0, 0],
+                [0.5, 0.5, 0.5]
+            ]),
+            cell=cell,
+        )
+
+        analyzer = Material3DAnalyzer(nacl)
+        space_group_number = analyzer.get_spacegroup_number()
+        space_group_int = analyzer.get_spacegroup_international_short()
+        hall_symbol = analyzer.get_hall_symbol()
+        hall_number = analyzer.get_hall_number()
+
+        conv_system = analyzer.get_conventional_system()
+        prim_system = analyzer.get_primitive_system()
+
+        translations = analyzer.get_translations()
+        rotations = analyzer.get_rotations()
+        origin_shift = analyzer.get_origin_shift()
+        choice = analyzer.get_choice()
+        point_group = analyzer.get_point_group()
+        transformation_matrix = analyzer.get_transformation_matrix()
+
+        wyckoff_original = analyzer.get_wyckoff_letters_original()
+        wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
+
+        equivalent_original = analyzer.get_equivalent_atoms_original()
+        equivalent_conv = analyzer.get_equivalent_atoms_conventional()
+
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+
+        # view(nacl)
+        # view(conv_system)
+        # view(prim_system)
+
+        self.assertEqual(space_group_number, 225)
+        self.assertEqual(space_group_int, "Fm-3m")
+        self.assertEqual(hall_symbol, "-F 4 2 3")
+        self.assertEqual(hall_number, 523)
+        self.assertEqual(point_group, "m-3m")
+        self.assertEqual(choice, "")
+        self.assertTrue(np.array_equal(equivalent_conv, [0, 1, 0, 1, 0, 1, 0, 1]))
+        self.assertTrue(np.array_equal(wyckoff_conv, ["a", "b", "a", "b", "a", "b", "a", "b"]))
+        self.assertTrue(np.array_equal(equivalent_original, [0, 1]))
+        self.assertTrue(np.array_equal(wyckoff_original, ["a", "b"]))
+
+        # Check that the lattice fit gets the volume right
+        n_atoms_orig = len(nacl)
+        volume_orig = nacl.get_volume()
+        n_atoms_conv = len(conv_system)
+        volume_conv = np.linalg.det(lattice_fit)
+
+        self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_conv/n_atoms_conv, atol=1e-8))
+
+    def test_bcc(self):
+        from ase.lattice.cubic import BodyCenteredCubic
+        bcc = BodyCenteredCubic(
+            directions=[[1, 0, 0], [0, 1, 0], [1, 1, 1]],
+            size=(1, 1, 1),
+            symbol='Cu',
+            pbc=True,
+            latticeconstant=4.0)
+
+        analyzer = Material3DAnalyzer(bcc)
+        space_group_number = analyzer.get_spacegroup_number()
+        space_group_int = analyzer.get_spacegroup_international_short()
+        hall_symbol = analyzer.get_hall_symbol()
+        hall_number = analyzer.get_hall_number()
+
+        conv_system = analyzer.get_conventional_system()
+        prim_system = analyzer.get_primitive_system()
+
+        translations = analyzer.get_translations()
+        rotations = analyzer.get_rotations()
+        origin_shift = analyzer.get_origin_shift()
+        choice = analyzer.get_choice()
+        point_group = analyzer.get_point_group()
+        transformation_matrix = analyzer.get_transformation_matrix()
+
+        wyckoff_original = analyzer.get_wyckoff_letters_original()
+        wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
+
+        equivalent_original = analyzer.get_equivalent_atoms_original()
+        equivalent_conv = analyzer.get_equivalent_atoms_conventional()
+
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+
+        # view(nacl)
+        # view(conv_system)
+        # view(prim_system)
+
+        # self.assertEqual(space_group_number, 225)
+        # self.assertEqual(space_group_int, "Fm-3m")
+        # self.assertEqual(hall_symbol, "-F 4 2 3")
+        # self.assertEqual(hall_number, 523)
+        # self.assertEqual(point_group, "m-3m")
+        # self.assertEqual(choice, "")
+        # self.assertTrue(np.array_equal(equivalent_conv, [0, 1, 0, 1, 0, 1, 0, 1]))
+        # self.assertTrue(np.array_equal(wyckoff_conv, ["a", "b", "a", "b", "a", "b", "a", "b"]))
+        # self.assertTrue(np.array_equal(equivalent_original, [0, 1]))
+        # self.assertTrue(np.array_equal(wyckoff_original, ["a", "b"]))
+
+        # # Check that the lattice fit gets the volume right
+        # n_atoms_orig = len(nacl)
+        # volume_orig = nacl.get_volume()
+        # n_atoms_conv = len(conv_system)
+        # volume_conv = np.linalg.det(lattice_fit)
+
         # self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_conv/n_atoms_conv, atol=1e-8))
+
+    def test_unsymmetric(self):
+        np.random.seed(seed=42)
+        positions = 10*np.random.rand(10, 3)
+        atoms = Atoms(
+            positions=positions,
+            symbols=["C"]*10,
+            cell=[10, 10, 10]
+        )
+        analyzer = Material3DAnalyzer(atoms)
+        space_group_number = analyzer.get_spacegroup_number()
+        conv_system = analyzer.get_conventional_system()
+        prim_system = analyzer.get_primitive_system()
+
+        view(prim_system)
 
 
 class BCCTests(unittest.TestCase):
@@ -303,8 +429,17 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
+    import time
     alltests = unittest.TestSuite(suites)
-    result = unittest.TextTestRunner(verbosity=0).run(alltests)
+
+    times = []
+    for i in range(1):
+        start = time.time()
+        result = unittest.TextTestRunner(verbosity=0).run(alltests)
+        end = time.time()
+        elapsed = end - start
+        times.append(elapsed)
+    print(np.array(times).mean())
 
     # We need to return a non-zero exit code for the gitlab CI to detect errors
     sys.exit(not result.wasSuccessful())

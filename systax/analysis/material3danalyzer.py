@@ -4,9 +4,12 @@ import numpy as np
 
 from systax.utils.segfault_protect import segfault_protect
 from systax.data.constants import SPGLIB_PRECISION, WYCKOFF_LETTERS
-from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS
+from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, SPACE_GROUP_INFO
 from systax.exceptions import CellNormalizationError, SystaxError
-from systax.core.system import System
+
+from ase import Atoms
+
+from fractions import Fraction
 
 
 class Material3DAnalyzer(object):
@@ -15,7 +18,7 @@ class Material3DAnalyzer(object):
     def __init__(self, system, spglib_precision=None):
         """
         Args:
-            system (System): The system to inspect.
+            system (ASE.Atoms): The system to inspect.
             spglib_precision (float): The tolerance for the symmetry detection
                 done by spglib.
         """
@@ -26,13 +29,6 @@ class Material3DAnalyzer(object):
             self.spglib_precision = spglib_precision
 
         self.reset()
-        # self._symmetry_dataset = None
-        # self._conventional_system = None
-        # self._idealized_system = None
-        # self._spglib_idealized_system = None
-        # self._primitive_system = None
-        # self._idealized_wyckoff_letters = None
-        # self._idealized_equivalent_atoms = None
 
     def set_system(self, system):
         """Sets a new system for analysis.
@@ -51,6 +47,7 @@ class Material3DAnalyzer(object):
         self._spglib_equivalent_atoms = None
         self._conventional_wyckoff_letters = None
         self._conventional_equivalent_atoms = None
+        self._best_transform = None
 
     def get_spacegroup_number(self):
         """
@@ -104,8 +101,6 @@ class Material3DAnalyzer(object):
 
         return value
 
-    # def get_conventional_lattice_parameters(self):
-
     def get_primitive_system(self):
         """Returns an primitive description for this system. This description
         uses a primitive lattice where positions of the atoms, and the cell
@@ -115,21 +110,86 @@ class Material3DAnalyzer(object):
         the the original system.
 
         Returns:
-            System: The primitive system.
+            ASE.Atoms: The primitive system.
         """
         if self._primitive_system is not None:
             return self._primitive_system
 
-        desc = self._system_to_spglib_description(self.system)
-        prim_desc = spglib.standardize_cell(
-            desc,
-            to_primitive=True,
-            no_idealize=False,
-            symprec=self.spglib_precision)
-        prim_sys = self._spglib_description_to_system(prim_desc)
+        conv_sys = self.get_conventional_system()
+        centring = self.get_spacegroup_international_short()[0]
+
+        # For the primitive centering the conventional lattice is the primitive
+        # as well
+        if centring == "P":
+            self._primitive_system = conv_sys
+            return conv_sys
+
+        primitive_transformations = {
+            "A": np.array([
+                [1, 0, 0],
+                [0, 1/2, -1/2],
+                [0, 1/2, 1/2],
+            ]),
+            "C": np.array([
+                [1/2, 1/2, 0],
+                [-1/2, 1/2, 0],
+                [0, 0, 1/2],
+            ]),
+            "R": np.array([
+                [2/3, -1/3, -1/3],
+                [1/3, 1/3, -2/3],
+                [1/3, 1/3, 1/3],
+            ]),
+            "I": np.array([
+                [-1/2, 1/2, 1/2],
+                [1/2, -1/2, 1/2],
+                [1/2, 1/2, -1/2],
+            ]),
+            "F": np.array([
+                [0, 1/2, 1/2],
+                [1/2, 0, 1/2],
+                [1/2, 1/2, 0],
+            ]),
+        }
+
+        # Transform conventional cell to the primitive cell
+        transform = primitive_transformations[centring]
+        conv_cell = conv_sys.get_cell()
+        prim_cell = np.dot(transform.T, conv_cell)
+
+        # Transform all position to the basis of the primitive cell
+        conv_pos = conv_sys.get_positions()
+        prim_cell_inv = np.linalg.inv(prim_cell)
+        prim_pos = np.dot(conv_pos, prim_cell_inv)
+
+        # See which positions are inside the cell in the half-closed interval
+        conv_num = conv_sys.get_atomic_numbers()
+        inside_mask = np.all((prim_pos >= 0) & (prim_pos < 1-1e-8), axis=1)
+        inside_pos = prim_pos[inside_mask]
+        inside_num = conv_num[inside_mask]
+
+        prim_sys = Atoms(
+            scaled_positions=inside_pos,
+            symbols=inside_num,
+            cell=prim_cell
+        )
 
         self._primitive_system = prim_sys
         return prim_sys
+
+        # if self._primitive_system is not None:
+            # return self._primitive_system
+
+        # desc = self._system_to_spglib_description(self.system)
+        # prim_desc = spglib.standardize_cell(
+            # desc,
+            # to_primitive=True,
+            # no_idealize=False,
+            # symprec=self.spglib_precision)
+        # prim_sys = self._spglib_description_to_system(prim_desc)
+
+        # self._primitive_system = prim_sys
+        # return prim_sys
 
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
@@ -153,7 +213,7 @@ class Material3DAnalyzer(object):
               https://atztogo.github.io/spglib/definition.html#conventions-of-standardized-unit-cell
 
         Returns:
-            System: The conventional system.
+            ASE.Atoms: The conventional system.
         """
         if self._conventional_system is not None:
             return self._conventional_system
@@ -164,7 +224,7 @@ class Material3DAnalyzer(object):
         # of atomic species in the Wyckoff positions.
         space_group = self.get_spacegroup_number()
         wyckoff_letters, equivalent_atoms = \
-            self._get_spglib_wyckoff_letters_and_equivalent_atoms()
+            self._get_spglib_conventional_wyckoffs_and_equivalents()
         ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
             space_group,
             wyckoff_letters,
@@ -187,19 +247,37 @@ class Material3DAnalyzer(object):
         Returns:
             np.ndarray: The lattice basis vectors as a matrix.
         """
-        if self._conventional_system is not None:
-            return self._conventional_system.get_cell()
+        conv_sys = self.get_conventional_system()
+        conv_cell = self.get_conventional_system().get_cell()
+        orig_sys = self.system
+        orig_cell = orig_sys.get_cell()
+        orig_cell_inv = np.linalg.inv(orig_cell.T)
+        coeff = np.dot(conv_cell, orig_cell_inv)
 
-        desc = self._system_to_spglib_description(self.system)
-        conv_desc = spglib.standardize_cell(
-            desc,
-            to_primitive=False,
-            no_idealize=True,
-            symprec=self.spglib_precision)
-        conv_sys = self._spglib_description_to_system(conv_desc)
+        # Round the coefficients to a reasonable fractional number
+        for i in range(0, coeff.shape[0]):
+            for j in range(0, coeff.shape[0]):
+                old_value = coeff[i, j]
+                new_value = Fraction(old_value).limit_denominator(10)
+                coeff[i, j] = new_value
 
-        self._conventional_system = conv_sys
-        return conv_sys.get_cell()
+        # Remake the conventional basis vectors in the new scaled coordinates
+        new_std_lattice = np.dot(coeff, orig_cell)
+
+        # Ensure that the volume is preserved by scaling the lattice
+        # appropriately
+        vol_original = orig_sys.get_volume()
+        vol_conv = np.linalg.det(new_std_lattice)
+        n_atoms_original = len(orig_sys)
+        n_atoms_conv = len(conv_sys)
+
+        vol_per_atom_orig = vol_original/n_atoms_original
+        vol_per_atom_conv = vol_conv/n_atoms_conv
+
+        factor = vol_per_atom_orig/vol_per_atom_conv
+        new_std_lattice *= factor
+
+        return new_std_lattice
 
     def get_origin_shift(self):
         """The origin shift s that is needed to transform points in the
@@ -281,10 +359,16 @@ class Material3DAnalyzer(object):
         Returns:
             list of str: Wyckoff letters for the atoms in the original system.
         """
-        dataset = self._get_symmetry_dataset()
-        value = dataset["wyckoffs"]
+        spglib_wyckoffs = self._get_spglib_wyckoff_letters_original()
+        if self._best_transform is None:
+            self.get_conventional_system()
+        permutations = self._best_transform["permutations"]
+        new_wyckoffs = []
+        for old_wyckoff in spglib_wyckoffs:
+            new_wyckoff = permutations[old_wyckoff]
+            new_wyckoffs.append(new_wyckoff)
 
-        return value
+        return new_wyckoffs
 
     def get_equivalent_atoms_original(self):
         """
@@ -323,23 +407,31 @@ class Material3DAnalyzer(object):
         spglib.
 
         Returns:
-            System: The idealized system as defined by spglib.
+            ASE.Atoms: The idealized system as defined by spglib.
         """
         if self._spglib_conventional_system is not None:
             return self._spglib_conventional_system
 
-        desc = self._system_to_spglib_description(self.system)
-        ideal_desc = spglib.standardize_cell(
-            desc,
-            to_primitive=False,
-            no_idealize=False,
-            symprec=self.spglib_precision)
-        ideal_sys = self._spglib_description_to_system(ideal_desc)
+        dataset = self._get_symmetry_dataset()
+        cell = dataset["std_lattice"]
+        pos = dataset["std_positions"]
+        num = dataset["std_types"]
+        spg_conv_sys = self._spglib_description_to_system((cell, pos, num))
 
-        self._spglib_conventional_system = ideal_sys
-        return ideal_sys
+        self._spglib_conventional_system = spg_conv_sys
+        return spg_conv_sys
 
-    def _get_spglib_wyckoff_letters_and_equivalent_atoms(self):
+    def _get_spglib_wyckoff_letters_original(self):
+        """
+        Returns:
+            list of str: Wyckoff letters for the atoms in the original system.
+        """
+        dataset = self._get_symmetry_dataset()
+        value = dataset["wyckoffs"]
+
+        return value
+
+    def _get_spglib_conventional_wyckoffs_and_equivalents(self):
         """Return a list of Wyckoff letters for the atoms in the standardized
         cell defined by spglib. Note that these Wyckoff letters may not be the
         same as the ones given by get_idealized_system().
@@ -352,7 +444,6 @@ class Material3DAnalyzer(object):
            self._spglib_equivalent_atoms is not None:
             return self._spglib_wyckoff_letters, self._spglib_equivalent_atoms
 
-        # conv_sys = self.get_conventional_system()
         conv_sys = self._get_spglib_conventional_system()
         conv_pos = conv_sys.get_scaled_positions()
         conv_num = conv_sys.get_atomic_numbers()
@@ -361,7 +452,7 @@ class Material3DAnalyzer(object):
         orig_pos = orig_sys.get_scaled_positions()
         orig_cell = orig_sys.get_cell()
 
-        wyckoff_letters = self.get_wyckoff_letters_original()
+        wyckoff_letters = self._get_spglib_wyckoff_letters_original()
         equivalent_atoms = self.get_equivalent_atoms_original()
         origin_shift = self.get_origin_shift()
         transform = self.get_transformation_matrix()
@@ -401,8 +492,6 @@ class Material3DAnalyzer(object):
                 allowed_offset
             )
             if index is None:
-                print(wrapped_pos)
-                print(orig_pos)
                 raise SystaxError(
                     "Could not find the corresponding atom for position {} in the "
                     "original cell. Changing the precision might help."
@@ -416,7 +505,7 @@ class Material3DAnalyzer(object):
         return norm_wyckoff_letters, norm_equivalent_atoms
 
     def _system_to_spglib_description(self, system):
-        """Transforms the System object into a tuple used by spglib.
+        """Transforms the given ASE.Atoms object into a tuple used by spglib.
         """
         angstrom_cell = self.system.get_cell()
         relative_pos = self.system.get_scaled_positions()
@@ -426,9 +515,9 @@ class Material3DAnalyzer(object):
         return description
 
     def _spglib_description_to_system(self, desc):
-        """Transforms the System object into a tuple used by spglib.
+        """Transforms a tuple used by spglib into ASE.Atoms
         """
-        system = System(
+        system = Atoms(
             numbers=desc[2],
             cell=desc[0],
             scaled_positions=desc[1],
@@ -557,13 +646,23 @@ class Material3DAnalyzer(object):
             system):
         """
         """
-        transform_list = PROPER_RIGID_TRANSFORMATIONS[space_group]
+        # Get the list of available transformation
+        transform_list = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
+
+        # If no transformation found for this space group, return the same
+        # system
+        identity = {
+            "transformation": np.diagonal([4*[1]]),
+            "permutations": {x: x for x in old_wyckoff_letters},
+        }
+        if transform_list is None:
+            self._best_transform = identity
+            return system, old_wyckoff_letters
 
         # Form a mapping between transformation number and a list of wyckoff
         # letters for the atoms. The transformation with numberr -1 corresponds
         # to the original system
-        systems = {-1: old_wyckoff_letters}
-        # systems = {}
+        transformed_wyckoffs = {-1: old_wyckoff_letters}
         for i_transform, transform in enumerate(transform_list):
             permutations = transform["permutations"]
             new_wyckoff_letters = []
@@ -578,13 +677,13 @@ class Material3DAnalyzer(object):
                     new_wyckoff_letters.append(old_wyckoff_letter)
 
             if found:
-                systems[i_transform] = new_wyckoff_letters
+                transformed_wyckoffs[i_transform] = new_wyckoff_letters
 
-        # For each abailable transform, determine a mapping between a Wyckoff
+        # For each available transform, determine a mapping between a Wyckoff
         # letter and a list of atomic numbers with that Wyckoff letter
         atomic_numbers = system.get_atomic_numbers()
         mappings = {}
-        for i_transform, new_wyckoff in systems.items():
+        for i_transform, new_wyckoff in transformed_wyckoffs.items():
             i_wyckoff_to_number_map = {}
             for wyckoff_letter in WYCKOFF_LETTERS:
                 i_atomic_numbers = []
@@ -599,46 +698,56 @@ class Material3DAnalyzer(object):
         # Find which transformation produces the combination of wyckoff letters
         # and atomic numbers that is most favourable
         best_transform_i = None
+
+        searched_indices = mappings.keys()
         for letter in WYCKOFF_LETTERS:
 
             # First find out the systems with this letter
             numbers = []
-            indices = []
-            for i_system, i_mapping in mappings.items():
+            i_indices = []
+            for index in searched_indices:
+                i_mapping = mappings[index]
                 i_numbers = i_mapping.get(letter)
                 if i_numbers is not None:
                     numbers.append(i_numbers)
-                    indices.append(i_system)
+                    i_indices.append(index)
 
-            # If only one system found with this letter, then it is the best as
-            # the Wyckoff letters are enumerated in a predetermined order.
+            # If only one transformation found with this letter, then that
+            # transformation is the best
             if len(numbers) == 1:
-                best_transform_i = indices[0]
+                best_transform_i = i_indices[0]
                 break
+            # If no transformation with this letter found, move onto the next
+            # letter
+            elif len(numbers) == 0:
+                continue
 
-            # Next try to see if one of the systems has lower atomic numbers
-            # with this letter
+            # Next try to see if one of the systems has atoms with lower atomic
+            # numbers with this letter
             found = False
             numbers = np.array(numbers)
             for i_col in range(numbers.shape[1]):
                 col = numbers[:, i_col]
-                col_min_ind = np.where(col == col.min())
+                col_min_ind = np.where(col == col.min())[0]
                 if len(col_min_ind) > 1:
                     numbers = numbers[col_min_ind]
                 else:
-                    best_transform_i = col_min_ind[0]
-                    break
+                    best_transform_i = i_indices[col_min_ind[0]]
                     found = True
+                    break
             if found:
                 break
+            else:
+                searched_indices = col_min_ind
 
         # Apply the best transform
         new_system = system.copy()
         if best_transform_i == -1:
-            new_system.set_wyckoff_letters(old_wyckoff_letters)
+            self._best_transform = identity
             return new_system, old_wyckoff_letters
         else:
-            best_transform = transform_list[best_transform_i]["transformation"]
+            self._best_transform = transform_list[best_transform_i]
+            transformation_matrix = self._best_transform["transformation"]
 
             # Create the homogeneus coordinates
             n_pos = len(system)
@@ -646,18 +755,18 @@ class Material3DAnalyzer(object):
             old_pos[:, 3] = 1
             old_pos[:, 0:3] = system.get_scaled_positions()
 
-            # Apply transformation with the augmented 3x4 matrix that is used for
-            # homogeneous coordinates
-            transformed_positions = np.dot(old_pos, best_transform.T)
+            # Apply transformation with the augmented 3x4 matrix that is used
+            # for homogeneous coordinates
+            transformed_positions = np.dot(old_pos, transformation_matrix.T)
 
-            # Get rid of the extra dimension from homogeneous coordinates
+            # Get rid of the extra dimension of the homogeneous coordinates
             transformed_positions = transformed_positions[:, 0:3]
 
             # Wrap the positions to the half-closed interval [0, 1)
             wrapped_pos = self._get_wrapped_positions(transformed_positions)
             new_system.set_scaled_positions(wrapped_pos)
 
-            return new_system, systems[best_transform_i]
+            return new_system, transformed_wyckoffs[best_transform_i]
 
     def _get_wrapped_positions(self, scaled_pos, precision=1E-5):
         """Wrap the given relative positions so that each element in the array
