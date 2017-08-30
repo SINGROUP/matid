@@ -1,12 +1,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import systax.geometry
+from systax.exceptions import SystaxError
 from systax.analysis.analyzer import Analyzer
 
 __metaclass__ = type
 
 
-class Material3DAnalyzer(Analyzer):
-    """Class for analyzing 3D materials.
+class Material2DAnalyzer(Analyzer):
+    """Class for analyzing 2D materials.
     """
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
@@ -37,6 +39,13 @@ class Material3DAnalyzer(Analyzer):
 
         spglib_conv_sys = self._get_spglib_conventional_system()
 
+        # Determine if the structure is flat. This will affect the
+        # transformation that are allowed when finding the Wyckoff positions
+        is_flat = False
+        thickness = self.get_thickness()
+        if thickness < 0.5*self.spglib_precision:
+            is_flat = True
+
         # Find a proper rigid transformation that produces the best combination
         # of atomic species in the Wyckoff positions.
         space_group = self.get_space_group_number()
@@ -45,10 +54,33 @@ class Material3DAnalyzer(Analyzer):
         ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
             space_group,
             wyckoff_letters,
-            spglib_conv_sys
+            spglib_conv_sys,
+            is_flat=is_flat
         )
 
         self._conventional_system = ideal_sys
         self._conventional_wyckoff_letters = ideal_wyckoff
         self._conventional_equivalent_atoms = equivalent_atoms
         return ideal_sys
+
+    def get_thickness(self):
+        """Used to calculate the thickness of the 2D material.
+        """
+        gaps = self._get_vacuum_gaps()
+        if gaps.sum() != 1:
+            raise SystaxError(
+                "Found more than one dimension with a vacuum gap for a 2D "
+                "material."
+            )
+        orig_pos = self.system.get_positions()
+        gap_coordinates = orig_pos[:, gaps]
+        bottom_i, top_i = systax.geometry.get_biggest_gap_indices(gap_coordinates)
+
+        # Calculate height
+        bottom_pos = gap_coordinates[bottom_i]
+        top_pos = gap_coordinates[top_i]
+        height = top_pos - bottom_pos
+        if height < 0:
+            height += 1
+
+        return height

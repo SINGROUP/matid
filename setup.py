@@ -18,8 +18,8 @@ if __name__ == "__main__":
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Developers',
-            'Topic :: Scientific/Engineering :: Physics'
-            'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)'
+            'Topic :: Scientific/Engineering :: Physics',
+            'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
             'Programming Language :: Python :: 2',
             'Programming Language :: Python :: 2.6',
             'Programming Language :: Python :: 2.7',
