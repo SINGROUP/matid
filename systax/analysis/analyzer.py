@@ -62,7 +62,10 @@ class Analyzer(ABC):
         self._spglib_equivalent_atoms = None
         self._conventional_wyckoff_letters = None
         self._conventional_equivalent_atoms = None
+        self._primitive_wyckoff_letters = None
+        self._primitive_equivalent_atoms = None
         self._best_transform = None
+        self._conventional_lattice_fit = None
 
     def get_space_group_number(self):
         """
@@ -183,6 +186,13 @@ class Analyzer(ABC):
         inside_pos = prim_pos[inside_mask]
         inside_num = conv_num[inside_mask]
 
+        # Store the wyckoff letters and equivalent atoms
+        conv_wyckoff = self.get_wyckoff_letters_conventional()
+        conv_equiv = self.get_equivalent_atoms_conventional()
+
+        self._primitive_wyckoff_letters = conv_wyckoff[inside_mask]
+        self._primitive_equivalent_atoms = conv_equiv[inside_mask]
+
         prim_sys = Atoms(
             scaled_positions=inside_pos,
             symbols=inside_num,
@@ -222,6 +232,9 @@ class Analyzer(ABC):
         Returns:
             np.ndarray: The lattice basis vectors as a matrix.
         """
+        if self._conventional_lattice_fit is not None:
+            return self._conventional_lattice_fit
+
         conv_sys = self.get_conventional_system()
         conv_cell = self.get_conventional_system().get_cell()
         orig_sys = self.system
@@ -251,6 +264,8 @@ class Analyzer(ABC):
 
         factor = vol_per_atom_orig/vol_per_atom_conv
         new_std_lattice *= factor
+
+        self._conventional_lattice_fit = new_std_lattice
 
         return new_std_lattice
 
@@ -377,6 +392,54 @@ class Analyzer(ABC):
             self._get_spglib_wyckoff_letters_and_equivalent_atoms()
         return self._spglib_equivalent_atoms
 
+    def get_wyckoff_letters_primitive(self):
+        """Get the Wyckoff letters of the atoms in the primitive system.
+
+        Returns:
+            list of str: Wyckoff letters.
+        """
+        if self._primitive_wyckoff_letters is None:
+            self.get_primitive_system()
+        return self._primitive_wyckoff_letters
+
+    def get_equivalent_atoms_primitive(self):
+        """List of equivalent atoms in the primitive system.
+
+        Returns:
+            list of int: A list that maps each atom into a symmetry equivalent
+                set.
+        """
+        if self._primitive_equivalent_atoms is None:
+            self.get_primitive_system()
+        return self._primitive_equivalent_atoms
+
+    def get_symmetry_dataset(self):
+        """Calculates the symmetry dataset with spglib for the given system.
+        """
+        if self._symmetry_dataset is not None:
+            return self._symmetry_dataset
+
+        description = self._system_to_spglib_description(self.system)
+        # Spglib has been observed to cause segmentation faults when fed with
+        # invalid data, so run in separate process to catch those cases
+        try:
+            symmetry_dataset = segfault_protect(
+                spglib.get_symmetry_dataset,
+                description,
+                self.spglib_precision)
+        except RuntimeError:
+            raise CellNormalizationError(
+                "Segfault in spglib when finding symmetry dataset. Please check "
+                " the given cell, scaled positions and atomic numbers."
+            )
+        if symmetry_dataset is None:
+            raise CellNormalizationError(
+                'Spglib error when finding symmetry dataset.')
+
+        self._symmetry_dataset = symmetry_dataset
+
+        return symmetry_dataset
+
     def _get_spglib_conventional_system(self):
         """Returns an idealized description for this material as defined by
         spglib.
@@ -499,33 +562,6 @@ class Analyzer(ABC):
         )
 
         return system
-
-    def get_symmetry_dataset(self):
-        """Calculates the symmetry dataset with spglib for the given system.
-        """
-        if self._symmetry_dataset is not None:
-            return self._symmetry_dataset
-
-        description = self._system_to_spglib_description(self.system)
-        # Spglib has been observed to cause segmentation faults when fed with
-        # invalid data, so run in separate process to catch those cases
-        try:
-            symmetry_dataset = segfault_protect(
-                spglib.get_symmetry_dataset,
-                description,
-                self.spglib_precision)
-        except RuntimeError:
-            raise CellNormalizationError(
-                "Segfault in spglib when finding symmetry dataset. Please check "
-                " the given cell, scaled positions and atomic numbers."
-            )
-        if symmetry_dataset is None:
-            raise CellNormalizationError(
-                'Spglib error when finding symmetry dataset.')
-
-        self._symmetry_dataset = symmetry_dataset
-
-        return symmetry_dataset
 
     def _wrap_positions(self, positions, precision=1E-5, copy=True):
         """Wrap positions so that each element in the array is within the
@@ -672,7 +708,7 @@ class Analyzer(ABC):
                     new_wyckoff_letters.append(old_wyckoff_letter)
 
             if found:
-                transformed_wyckoffs[i_transform] = new_wyckoff_letters
+                transformed_wyckoffs[i_transform] = np.array(new_wyckoff_letters)
 
         # For each available transform, determine a mapping between a Wyckoff
         # letter and a list of atomic numbers with that Wyckoff letter

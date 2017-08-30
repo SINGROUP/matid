@@ -96,8 +96,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         si.set_cell(cell)
 
         analyzer = Material3DAnalyzer(si)
-        space_group_number = analyzer.get_spacegroup_number()
-        space_group_int = analyzer.get_spacegroup_international_short()
+        space_group_number = analyzer.get_space_group_number()
+        space_group_int = analyzer.get_space_group_international_short()
         hall_symbol = analyzer.get_hall_symbol()
         hall_number = analyzer.get_hall_number()
 
@@ -113,6 +113,9 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
+
+        prim_wyckoff = analyzer.get_wyckoff_letters_primitive()
+        prim_equiv = analyzer.get_equivalent_atoms_primitive()
 
         equivalent_original = analyzer.get_equivalent_atoms_original()
         equivalent_conv = analyzer.get_equivalent_atoms_conventional()
@@ -133,6 +136,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertTrue(np.array_equal(wyckoff_conv, ["a", "a", "a", "a", "a", "a", "a", "a"]))
         self.assertTrue(np.array_equal(equivalent_original, [0, 0, 0, 0, 0, 0, 0, 0]))
         self.assertTrue(np.array_equal(wyckoff_original, ["a", "a", "a", "a", "a", "a", "a", "a"]))
+        self.assertTrue(np.array_equal(prim_wyckoff, ["a", "a"]))
+        self.assertTrue(np.array_equal(prim_equiv, [0, 0]))
 
         # Check that the lattice fit gets the volume and lattice vectors right
         n_atoms_orig = len(si)
@@ -161,8 +166,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         )
 
         analyzer = Material3DAnalyzer(nacl)
-        space_group_number = analyzer.get_spacegroup_number()
-        space_group_int = analyzer.get_spacegroup_international_short()
+        space_group_number = analyzer.get_space_group_number()
+        space_group_int = analyzer.get_space_group_international_short()
         hall_symbol = analyzer.get_hall_symbol()
         hall_number = analyzer.get_hall_number()
 
@@ -178,6 +183,9 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
+
+        prim_wyckoff = analyzer.get_wyckoff_letters_primitive()
+        prim_equiv = analyzer.get_equivalent_atoms_primitive()
 
         equivalent_original = analyzer.get_equivalent_atoms_original()
         equivalent_conv = analyzer.get_equivalent_atoms_conventional()
@@ -199,6 +207,9 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertTrue(np.array_equal(equivalent_original, [0, 1]))
         self.assertTrue(np.array_equal(wyckoff_original, ["a", "b"]))
 
+        self.assertTrue(np.array_equal(prim_equiv, [0, 1]))
+        self.assertTrue(np.array_equal(prim_wyckoff, ["a", "b"]))
+
         # Check that the lattice fit gets the volume right
         n_atoms_orig = len(nacl)
         volume_orig = nacl.get_volume()
@@ -217,8 +228,8 @@ class Material3DAnalyserTests(unittest.TestCase):
             latticeconstant=4.0)
 
         analyzer = Material3DAnalyzer(bcc)
-        space_group_number = analyzer.get_spacegroup_number()
-        space_group_int = analyzer.get_spacegroup_international_short()
+        space_group_number = analyzer.get_space_group_number()
+        space_group_int = analyzer.get_space_group_international_short()
         hall_symbol = analyzer.get_hall_symbol()
         hall_number = analyzer.get_hall_number()
 
@@ -234,6 +245,9 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
+
+        prim_wyckoff = analyzer.get_wyckoff_letters_primitive()
+        prim_equiv = analyzer.get_equivalent_atoms_primitive()
 
         equivalent_original = analyzer.get_equivalent_atoms_original()
         equivalent_conv = analyzer.get_equivalent_atoms_conventional()
@@ -272,7 +286,7 @@ class Material3DAnalyserTests(unittest.TestCase):
             cell=[10, 10, 10]
         )
         analyzer = Material3DAnalyzer(atoms)
-        space_group_number = analyzer.get_spacegroup_number()
+        space_group_number = analyzer.get_space_group_number()
         conv_system = analyzer.get_conventional_system()
         prim_system = analyzer.get_primitive_system()
 
