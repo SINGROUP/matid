@@ -26,7 +26,7 @@ class System(Atoms):
             wyckoff_letters=None,
             equivalent_atoms=None):
 
-        super().__init__(
+        super(System, self).__init__(
             symbols,
             positions,
             numbers,
