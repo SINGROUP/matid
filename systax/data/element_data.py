@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 """Used to store data related to atomic elements. Also has some conversion
 utilities related to the data.
 """

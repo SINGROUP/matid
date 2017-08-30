@@ -1,3 +1,6 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+__metaclass__ = type
+
 import spglib
 
 import numpy as np
@@ -12,7 +15,7 @@ from ase import Atoms
 from fractions import Fraction
 
 
-class Material3DAnalyzer(object):
+class Material3DAnalyzer():
     """Class for analyzing 3D materials.
     """
     def __init__(self, system, spglib_precision=None):
@@ -90,7 +93,7 @@ class Material3DAnalyzer(object):
         return value
 
     def get_point_group(self):
-        """Symbol of the crystallographic point group in the Hermann–Mauguin
+        """Symbol of the crystallographic point group in the Hermann-Mauguin
         notation.
 
         Returns:

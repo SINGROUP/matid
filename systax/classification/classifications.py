@@ -1,4 +1,8 @@
-class Classification(object):
+from __future__ import absolute_import, division, print_function, unicode_literals
+__metaclass__ = type
+
+
+class Classification():
 
     def __init__(self, surfaces=None, atoms=None, molecules=None, crystals=None):
         self.surfaces = surfaces

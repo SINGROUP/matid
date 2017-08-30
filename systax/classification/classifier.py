@@ -1,3 +1,7 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+__metaclass__ = type
+
+
 import itertools
 
 import numpy as np
@@ -21,7 +25,7 @@ class SystemCache(dict):
     pass
 
 
-class Classifier(object):
+class Classifier():
     """A class that is used to analyze the contents of an atomistic system and
     separate the consituent atoms into different components along with some
     meaningful additional information.

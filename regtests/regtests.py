@@ -2,6 +2,7 @@
 Defines a set of regressions tests that should be run succesfully before
 anything is pushed to the central repository.
 """
+from __future__ import absolute_import, division, print_function, unicode_literals
 import unittest
 import sys
 
@@ -275,7 +276,7 @@ class Material3DAnalyserTests(unittest.TestCase):
         conv_system = analyzer.get_conventional_system()
         prim_system = analyzer.get_primitive_system()
 
-        view(prim_system)
+        # view(prim_system)
 
 
 class BCCTests(unittest.TestCase):

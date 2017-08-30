@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 ALPHABET_POSITIONS = {
     "a": 1,
     "b": 2,
