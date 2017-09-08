@@ -57,3 +57,7 @@ class Material1DComponent(Component):
 
 class Material2DComponent(Component):
     pass
+
+
+class UnknownComponent(Component):
+    pass

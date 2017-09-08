@@ -4,11 +4,25 @@ __metaclass__ = type
 
 class Classification():
 
-    def __init__(self, surfaces=None, atoms=None, molecules=None, crystals=None):
+    def __init__(
+            self,
+            surfaces=None,
+            atoms=None,
+            molecules=None,
+            crystals=None,
+            material1d=None,
+            material2d=None,
+            unknowns=None,
+            vacuum_dir=None
+            ):
         self.surfaces = surfaces
         self.atoms = atoms
         self.molecules = molecules
         self.crystals = crystals
+        self.material1d = material1d
+        self.material2d = material2d
+        self.unknowns = unknowns
+        self.vacuum_dir = vacuum_dir
 
 
 class Atom(Classification):

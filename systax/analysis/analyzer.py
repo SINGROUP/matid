@@ -783,7 +783,7 @@ class Analyzer(ABC):
                 index2 = searched_indices[i+1]
                 wyckoffs1 = transformed_wyckoffs[index1]
                 wyckoffs2 = transformed_wyckoffs[index2]
-                if wyckoffs1 != wyckoffs2:
+                if not np.array_equal(wyckoffs1, wyckoffs2):
                     raise SystaxError("Could not successfully decide best Wyckoff positions.")
             best_transform_i = searched_indices[0]
 

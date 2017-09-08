@@ -15,10 +15,10 @@ from sklearn.cluster import DBSCAN
 import spglib
 
 from systax.exceptions import ClassificationError
-from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent
-from systax.classification.classifications import Surface, Atom, Molecule, Crystal
+from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, UnknownComponent
+from systax.classification.classifications import Surface, Atom, Molecule, Crystal, Material1D, Material2D, Unknown
 from systax.data.element_data import get_covalent_radii
-from systax.core.system import System
+from systax.geometry import geometry
 
 
 class SystemCache(dict):
@@ -36,7 +36,8 @@ class Classifier():
             pos_tol=0.5,
             angle_tol=15,
             n_seeds=2,
-            n_repetitions=2):
+            n_repetitions=2,
+            ):
         self.max_dist = max_dist
         self.pos_tol = pos_tol
         self.angle_tol = angle_tol
@@ -45,11 +46,6 @@ class Classifier():
         self._repeated_system = None
         self._analyzed = False
         self._orthogonal_dir = None
-
-        # self.surfaces = []
-        # self.crystals = []
-        # self.atoms = []
-        # self.molecules = []
         self.decisions = {}
 
     def classify(self, system):
@@ -63,18 +59,36 @@ class Classifier():
               from anisotropic
             - Find out the directions with a vacuum gap
         """
-        if isinstance(system, Atoms):
-            system = System.from_atoms(system)
         self.system = system
         surface_comps = []
         atom_comps = []
         molecule_comps = []
         crystal_comps = []
+        unknown_comps = []
+        material1d_comps = []
+        material2d_comps = []
 
         # Run a high level analysis to determine the system type
         periodicity = system.get_pbc()
         n_periodic = np.sum(periodicity)
-        # view(extended_system)
+
+        # Calculate a ratio of occupied space/cell volume. This ratio can
+        # already be used to separate most bulk materials avoiding more
+        # costly operations.
+        try:
+            cell_volume = system.get_volume()
+        # If vectors are zero, volume not defined
+        except ValueError:
+            pass
+        else:
+            if cell_volume != 0:
+                atomic_numbers = system.get_atomic_numbers()
+                radii = covalent_radii[atomic_numbers]
+                occupied_volume = np.sum(4.0/3.0*np.pi*radii**3)
+                ratio = occupied_volume/cell_volume
+                if ratio >= 0.3 and n_periodic == 3:
+                    crystal_comps.append(AtomComponent(range(len(system)), system))
+                    return Crystal(crystals=crystal_comps)
 
         if n_periodic == 0:
 
@@ -84,7 +98,7 @@ class Classifier():
                 atom_comps.append(AtomComponent([0], system))
             # Check if the the system has one or multiple components
             else:
-                clusters = self.get_clusters(system)
+                clusters = geometry.get_clusters(system)
                 for cluster in clusters:
                     n_atoms_cluster = len(cluster)
                     if n_atoms_cluster == 1:
@@ -95,10 +109,17 @@ class Classifier():
         # If the system has at least one periodic dimension, check the periodic
         # directions for a vacuum gap.
         else:
-            vacuum_dir = self.find_vacuum_directions(system)
+
+            # Find out the the eigenvectors and eigenvalues of the inertia
+            # tensor for an extended version of this system.
+            # extended_system = geometry.get_extended_system(system, 15)
+            # eigval, eigvec = geometry.get_moments_of_inertia(extended_system)
+            # print(eigval)
+            # print(eigvec)
+            vacuum_dir = geometry.find_vacuum_directions(system)
             n_vacuum = np.sum(vacuum_dir)
 
-            # If all directions have a vacuum seaprating the copies, the system
+            # If all directions have a vacuum separating the copies, the system
             # represents a finite structure.
             if n_vacuum == 3:
 
@@ -109,7 +130,7 @@ class Classifier():
 
                 # Check if the the system has one or multiple components.
                 else:
-                    clusters = self.get_clusters(system)
+                    clusters = geometry.get_clusters(system)
                     for cluster in clusters:
                         n_atoms_cluster = len(cluster)
                         if n_atoms_cluster == 1:
@@ -117,58 +138,122 @@ class Classifier():
                         elif n_atoms_cluster > 1:
                             molecule_comps.append(MoleculeComponent(cluster, system[cluster]))
 
+            # 1D structures
+            if n_vacuum == 2:
+
+                # Check if the the system has one or multiple components when
+                # multiplied once in the periodic dimension
+                repetitions = np.invert(vacuum_dir).astype(int)+1
+                ext_sys1d = system.repeat(repetitions)
+                clusters = geometry.get_clusters(ext_sys1d)
+                n_clusters = len(clusters)
+
+                # Find out the dimensions of the system
+                is_small = True
+                dimensions = geometry.get_dimensions(system, vacuum_dir)
+                for i, has_vacuum in enumerate(vacuum_dir):
+                    if has_vacuum:
+                        dimension = dimensions[i]
+                        if dimension > 15:
+                            is_small = False
+
+                if n_clusters == 1 and is_small:
+                    material1d_comps.append(Material1DComponent(np.arange(len(system)), system.copy()))
+                else:
+                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+
+            # 2D structures
+            if n_vacuum == 1:
+                # Check if the the system has one or multiple components when
+                # multiplied once in the two periodic dimensions
+                repetitions = np.invert(vacuum_dir).astype(int)+1
+                ext_sys2d = system.repeat(repetitions)
+                clusters = geometry.get_clusters(ext_sys2d)
+                n_clusters = len(clusters)
+
+                # Find out the dimensions of the system
+                is_small = True
+                dimensions = geometry.get_dimensions(system, vacuum_dir)
+                dim_2d_threshold = 3 * 2 * max(covalent_radii[system.get_atomic_numbers()])
+                for i, has_vacuum in enumerate(vacuum_dir):
+                    if has_vacuum:
+                        dimension = dimensions[i]
+                        if dimension > dim_2d_threshold:
+                            is_small = False
+
+                if n_clusters == 1 and is_small:
+                    material2d_comps.append(Material2DComponent(np.arange(len(system)), system.copy()))
+                else:
+                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+
             # Bulk structures
             if n_vacuum == 0:
                 crystal_comps.append(CrystalComponent(np.arange(len(system)), system.copy()))
-
-        # elif n_periodic == 2:
-
-        # elif n_periodic == 3:
-
-            # # Find directions with a vacuum gap
-            # vacuum_dir = self.find_vacuum_directions(system)
-            # n_vacuum = np.sum(vacuum_dir)
-
-            # if n_vacuum == 3:
-
-                # # Check if system has only one atom
-                # n_atoms = len(system)
-                # if n_atoms == 1:
-                    # atom_comps.append(AtomComponent([0], system))
-
-                # # Check if the the system has one or multiple components.
-                # else:
-                    # clusters = self.get_clusters(system)
-                    # for cluster in clusters:
-                        # n_atoms_cluster = len(cluster)
-                        # if n_atoms_cluster == 1:
-                            # atom_comps.append(AtomComponent(cluster, system[cluster]))
-                        # elif n_atoms_cluster > 1:
-                            # molecule_comps.append(MoleculeComponent(cluster, system[cluster]))
 
         # Return a classification for this system.
         n_molecules = len(molecule_comps)
         n_atoms = len(atom_comps)
         n_crystals = len(crystal_comps)
         n_surfaces = len(surface_comps)
+        n_material1d = len(material1d_comps)
+        n_material2d = len(material2d_comps)
+        n_unknown = len(unknown_comps)
+
         if (n_atoms == 1) and \
            (n_molecules == 0) and \
            (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
            (n_surfaces == 0):
-
             return Atom(atoms=atom_comps)
 
         elif (n_atoms == 0) and \
-                (n_molecules == 1) and \
-                (n_crystals == 0) and \
-                (n_surfaces == 0):
+           (n_molecules == 1) and \
+           (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 0):
             return Molecule(molecules=molecule_comps)
 
         elif (n_atoms == 0) and \
-                (n_molecules == 0) and \
-                (n_crystals == 1) and \
-                (n_surfaces == 0):
+           (n_molecules == 0) and \
+           (n_crystals == 0) and \
+           (n_material1d == 1) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 0):
+            return Material1D(material1d=material1d_comps, vacuum_dir=vacuum_dir)
+
+        elif (n_atoms == 0) and \
+           (n_molecules == 0) and \
+           (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 1) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 0):
+            return Material2D(material2d=material2d_comps, vacuum_dir=vacuum_dir)
+
+        elif (n_atoms == 0) and \
+           (n_molecules == 0) and \
+           (n_crystals == 1) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 0):
             return Crystal(crystals=crystal_comps)
+
+        else:
+            return Unknown(
+                atoms=atom_comps,
+                molecules=molecule_comps,
+                crystals=crystal_comps,
+                material1d=material1d_comps,
+                material2d=material2d_comps,
+                unknowns=unknown_comps,
+                surfaces=surface_comps
+            )
 
             # occupied_ratio = self.get_space_filling(system)
             # if occupied_ratio >= 0.7:
@@ -179,7 +264,7 @@ class Classifier():
             # n_clusters = len(clusters)
 
         # Find the different clusters
-        # cluster_indices = self.get_clusters(system)
+        # cluster_indices = geometry.get_clusters(system)
 
         # # Run the surface detection on each cluster (we do not initially know
         # # which one is the surface.
@@ -215,7 +300,7 @@ class Classifier():
 
             # # Find clusters
             # misc_orig_indices = np.array(misc_orig_indices)
-            # cluster_indices = self.get_clusters(misc_system)
+            # cluster_indices = geometry.get_clusters(misc_system)
 
             # # Categorize clusters as molecules or atoms
             # # atoms = []
@@ -246,24 +331,6 @@ class Classifier():
         """
         """
 
-    def get_extended_system(self, system, target_size):
-        """Replicate the system in different directions to reach a suitable
-        system size for getting the moments of inertia.
-
-        Args:
-            system (ase.Atoms): The original system.
-            target_size (float): The target size for the extended system.
-
-        Returns:
-            ase.Atoms: The extended system.
-        """
-        cell = system.get_cell()
-        sizes = np.linalg.norm(cell, axis=1)
-        repetitions = np.maximum(np.round(sizes/target_size), 1).astype(int)
-        extended_system = system.repeat(repetitions)
-
-        return extended_system
-
     def get_space_filling(self, system):
         """Calculates the ratio of vacuum to filled space by assuming covalent
         radii for the atoms.
@@ -283,131 +350,6 @@ class Classifier():
         ratio = occupied_volume/cell_volume
 
         return ratio
-
-    def get_inertia_tensor(self, system, weight=True):
-        """Calculates geometric inertia tensor, i.e., inertia tensor but with
-        all masses are set to 1.
-
-        I_ij = sum_k m_k (delta_ij * r_k^2 - x_ki * x_kj)
-        with r_k^2 = x_k1^2 + x_k2^2 x_k3^2
-
-        Args:
-            system(ASE Atoms): Atomic system.
-
-        Returns:
-            (np.ndarray, np.ndarray): The eigenvalues and eigenvectors of the
-            geometric inertia tensor.
-        """
-        # Move the origin to the geometric center
-        positions = system.get_positions()
-        centroid = self.get_center_of_mass(system, weight)
-        pos_shifted = positions - centroid
-
-        # Calculate the geometric inertia tensor
-        if weight:
-            weights = system.get_masses()
-        else:
-            weights = np.ones((len(system)))
-        x = pos_shifted[:, 0]
-        y = pos_shifted[:, 1]
-        z = pos_shifted[:, 2]
-        I11 = np.sum(weights*(y**2 + z**2))
-        I22 = np.sum(weights*(x**2 + z**2))
-        I33 = np.sum(weights*(x**2 + y**2))
-        I12 = np.sum(-weights * x * y)
-        I13 = np.sum(-weights * x * z)
-        I23 = np.sum(-weights * y * z)
-
-        I = np.array([
-            [I11, I12, I13],
-            [I12, I22, I23],
-            [I13, I23, I33]])
-
-        val, vec = system.get_moments_of_inertia(vectors=True)
-        evals, evecs = np.linalg.eigh(I)
-
-        return evals, evecs
-
-    def find_vacuum_directions(self, system, threshold=7.0):
-        """Searches for vacuum gaps that are separating the periodic copies.
-
-        TODO: Implement a n^2 search that allows the detection of more complex
-        vacuum boundaries.
-
-        Returns:
-            np.ndarray: An array with a boolean for each lattice basis
-            direction indicating if there is enough vacuum to separate the
-            copies in that direction.
-        """
-        rel_pos = system.get_scaled_positions()
-        pbc = system.get_pbc()
-
-        # Find the maximum vacuum gap for all basis vectors
-        gaps = np.empty(3, dtype=bool)
-        for axis in range(3):
-            if not pbc[axis]:
-                gaps[axis] = True
-                continue
-            comp = rel_pos[:, axis]
-            ind = np.sort(comp)
-            ind_rolled = np.roll(ind, 1, axis=0)
-            distances = ind - ind_rolled
-
-            # The first distance is from first to last, so it needs to be
-            # wrapped around
-            distances[0] += 1
-
-            # Find maximum gap in cartesian coordinates
-            max_gap = np.max(distances)
-            basis = system.get_cell()[axis, :]
-            max_gap_cartesian = np.linalg.norm(max_gap*basis)
-            has_vacuum_gap = max_gap_cartesian >= threshold
-            gaps[axis] = has_vacuum_gap
-
-        return gaps
-
-    def get_center_of_mass(self, system, weight=True):
-        """
-        """
-        positions = system.get_positions()
-        if weight:
-            weights = system.get_masses()
-        else:
-            weights = np.ones((len(system)))
-        cm = np.dot(weights, positions/weights.sum())
-
-        return cm
-
-    def get_clusters(self, system):
-        """
-        """
-        if len(system) == 1:
-            return np.array([[0]])
-
-        # Calculate distance matrix with radii taken into account
-        distance_matrix = system.get_all_distances(mic=True)
-
-        # Remove the radii from distances
-        for i, i_number in enumerate(system.get_atomic_numbers()):
-            for j, j_number in enumerate(system.get_atomic_numbers()):
-                i_radii = covalent_radii[i_number]
-                j_radii = covalent_radii[j_number]
-                new_value = distance_matrix[i, j] - i_radii - j_radii
-                distance_matrix[i, j] = max(new_value, 0)
-
-        # Detect clusters
-        db = DBSCAN(eps=1.3, min_samples=1, metric='precomputed', n_jobs=-1)
-        db.fit(distance_matrix)
-        clusters = db.labels_
-
-        # Make a list of the different clusters
-        idx_sort = np.argsort(clusters)
-        sorted_records_array = clusters[idx_sort]
-        vals, idx_start, count = np.unique(sorted_records_array, return_counts=True,
-                                        return_index=True)
-        cluster_indices = np.split(idx_sort, idx_start[1:])
-
-        return cluster_indices
 
     def _find_surfaces(self, system, orig_indices):
         """

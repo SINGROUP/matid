@@ -12,9 +12,10 @@ from ase import Atoms
 from ase.build import bcc100, add_adsorbate, molecule
 from ase.visualize import view
 import ase.build
+from ase.build import nanotube
 
 from systax import Classifier
-from systax.classification import Atom, Molecule, Crystal
+from systax.classification import Atom, Molecule, Crystal, Material1D, Material2D, Unknown
 from systax import Material3DAnalyzer
 
 
@@ -60,6 +61,148 @@ class MoleculeTests(unittest.TestCase):
         classifier = Classifier()
         clas = classifier.classify(h2o)
         self.assertIsInstance(clas, Molecule)
+
+
+class Material1DTests(unittest.TestCase):
+    """Tests detection of bulk 3D materials.
+    """
+    def test_nanotube_full_pbc(self):
+        tube = nanotube(6, 0, length=1)
+        tube.set_pbc([True, True, True])
+        cell = tube.get_cell()
+        cell[0][0] = 20
+        cell[1][1] = 20
+        tube.set_cell(cell)
+        tube.center()
+
+        classifier = Classifier()
+        clas = classifier.classify(tube)
+        self.assertIsInstance(clas, Material1D)
+
+    def test_nanotube_partial_pbc(self):
+        tube = nanotube(6, 0, length=1)
+        tube.set_pbc([False, False, True])
+        cell = tube.get_cell()
+        cell[0][0] = 6
+        cell[1][1] = 6
+        tube.set_cell(cell)
+        tube.center()
+
+        classifier = Classifier()
+        clas = classifier.classify(tube)
+        self.assertIsInstance(clas, Material1D)
+
+    def test_nanotube_full_pbc_shaken(self):
+        tube = nanotube(6, 0, length=1)
+        tube.set_pbc([True, True, True])
+        cell = tube.get_cell()
+        cell[0][0] = 20
+        cell[1][1] = 20
+        tube.set_cell(cell)
+        tube.rattle(0.1, seed=42)
+        tube.center()
+
+        classifier = Classifier()
+        clas = classifier.classify(tube)
+        self.assertIsInstance(clas, Material1D)
+
+    def test_nanotube_too_big(self):
+        """Test that too big 1D structures are classifed as unknown.
+        """
+        tube = nanotube(20, 0, length=1)
+        tube.set_pbc([True, True, True])
+        cell = tube.get_cell()
+        cell[0][0] = 40
+        cell[1][1] = 40
+        tube.set_cell(cell)
+        tube.center()
+
+        classifier = Classifier()
+        clas = classifier.classify(tube)
+        self.assertIsInstance(clas, Unknown)
+
+
+class Material2DTests(unittest.TestCase):
+    """Tests detection of bulk 3D materials.
+    """
+    def test_graphene_full_pbc(self):
+
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [
+                    2.4595121467478055,
+                    0.0,
+                    0.0
+                ],
+                [
+                    -1.2297560733739028,
+                    2.13,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    20.0
+                ]
+            )),
+            scaled_positions=np.array((
+                [
+                    0.3333333333333333,
+                    0.6666666666666666,
+                    0.5
+                ],
+                [
+                    0.6666666666666667,
+                    0.33333333333333337,
+                    0.5
+                ]
+            )),
+            pbc=True
+        )
+
+        classifier = Classifier()
+        clas = classifier.classify(graphene)
+        self.assertIsInstance(clas, Material2D)
+
+    def test_graphene_partial_pbc(self):
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [
+                    2.4595121467478055,
+                    0.0,
+                    0.0
+                ],
+                [
+                    -1.2297560733739028,
+                    2.13,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            )),
+            scaled_positions=np.array((
+                [
+                    0.3333333333333333,
+                    0.6666666666666666,
+                    0.5
+                ],
+                [
+                    0.6666666666666667,
+                    0.33333333333333337,
+                    0.5
+                ]
+            )),
+            pbc=[True, True, False]
+        )
+
+        classifier = Classifier()
+        clas = classifier.classify(graphene)
+        self.assertIsInstance(clas, Material2D)
 
 
 class Material3DTests(unittest.TestCase):
@@ -440,8 +583,10 @@ if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     import time
