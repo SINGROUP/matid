@@ -19,6 +19,7 @@ from systax.classification.components import SurfaceComponent, AtomComponent, Mo
 from systax.classification.classifications import Surface, Atom, Molecule, Crystal, Material1D, Material2D, Unknown
 from systax.data.element_data import get_covalent_radii
 from systax.geometry import geometry
+from systax.analysis.material3danalyzer import Material3DAnalyzer
 
 
 class SystemCache(dict):
@@ -164,27 +165,64 @@ class Classifier():
 
             # 2D structures
             if n_vacuum == 1:
-                # Check if the the system has one or multiple components when
-                # multiplied once in the two periodic dimensions
-                repetitions = np.invert(vacuum_dir).astype(int)+1
-                ext_sys2d = system.repeat(repetitions)
-                clusters = geometry.get_clusters(ext_sys2d)
-                n_clusters = len(clusters)
 
-                # Find out the dimensions of the system
-                is_small = True
-                dimensions = geometry.get_dimensions(system, vacuum_dir)
-                dim_2d_threshold = 3 * 2 * max(covalent_radii[system.get_atomic_numbers()])
-                for i, has_vacuum in enumerate(vacuum_dir):
-                    if has_vacuum:
-                        dimension = dimensions[i]
-                        if dimension > dim_2d_threshold:
-                            is_small = False
+                # Find out whether there is one or more repetitions of a unit
+                # cell in the direction orthogonal to the surface. If only one
+                # repetition found, the structure is categorized as a 2D
+                # material. If more are found, the material is a surface.
 
-                if n_clusters == 1 and is_small:
-                    material2d_comps.append(Material2DComponent(np.arange(len(system)), system.copy()))
-                else:
-                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+                # Find the different clusters
+                cluster_indices = geometry.get_clusters(system)
+
+                # Run the surface detection on each cluster (we do not initially know
+                # which one is the surface.
+                i_surface_comps = []
+                for indices in cluster_indices:
+                    cluster_system = self.system[indices]
+                    i_surf = self._find_surfaces(cluster_system, indices)
+
+                    surface_indices = []
+                    for surface in i_surf:
+                        i_surf_ind = surface.indices
+                        surface_indices.extend(i_surf_ind)
+                        i_surface_comps.append(surface)
+
+                    indices = set(indices)
+                    surface_indices = set(surface_indices)
+                    i_misc_ind = indices - surface_indices
+                    if i_misc_ind:
+                        unknown_comps.append(UnknownComponent(list(i_misc_ind), system[list(i_misc_ind)]))
+
+                # Check that surface components are continuous are chemically
+                # connected, and check if they have one or more layers
+                for comp in i_surface_comps:
+
+                    # Check if the the system has one or multiple components when
+                    # multiplied once in the two periodic dimensions
+                    repetitions = np.invert(vacuum_dir).astype(int)+1
+                    ext_sys2d = system.repeat(repetitions)
+                    clusters = geometry.get_clusters(ext_sys2d)
+                    n_clusters = len(clusters)
+
+                    if n_clusters == 1:
+                        # Check how many layers are stacked in the direction
+                        # orthogonal to the surface
+                        if comp.n_layers == 1:
+                            material2d_comps.append(Material2DComponent(comp.indices, comp.atoms))
+                        elif comp.n_layers > 1:
+                            surface_comps.append(comp)
+                    else:
+                        unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+
+                    # Find out the dimensions of the system
+                    # is_small = True
+                    # dimensions = geometry.get_dimensions(system, vacuum_dir)
+                    # dim_2d_threshold = 3 * 2 * max(covalent_radii[system.get_atomic_numbers()])
+                    # for i, has_vacuum in enumerate(vacuum_dir):
+                        # if has_vacuum:
+                            # dimension = dimensions[i]
+                            # if dimension > dim_2d_threshold:
+                                # is_small = False
 
             # Bulk structures
             if n_vacuum == 0:
@@ -237,6 +275,15 @@ class Classifier():
 
         elif (n_atoms == 0) and \
            (n_molecules == 0) and \
+           (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 1):
+            return Surface(surfaces=surface_comps, vacuum_dir=vacuum_dir)
+
+        elif (n_atoms == 0) and \
+           (n_molecules == 0) and \
            (n_crystals == 1) and \
            (n_material1d == 0) and \
            (n_material2d == 0) and \
@@ -254,66 +301,6 @@ class Classifier():
                 unknowns=unknown_comps,
                 surfaces=surface_comps
             )
-
-            # occupied_ratio = self.get_space_filling(system)
-            # if occupied_ratio >= 0.7:
-                # self.crystals.append(Crystal())
-
-            # extended_system = self.get_extended_system(system, 15)
-            # moments, axes = self.get_inertia_tensor(extended_system, weight=False)
-            # n_clusters = len(clusters)
-
-        # Find the different clusters
-        # cluster_indices = geometry.get_clusters(system)
-
-        # # Run the surface detection on each cluster (we do not initially know
-        # # which one is the surface.
-        # # system = self._get_repeated_system()
-        # misc_indices = []
-        # for indices in cluster_indices:
-            # cluster_system = self.system[indices]
-            # i_surf = self._find_surfaces(cluster_system, indices)
-
-            # surface_indices = []
-            # for surface in i_surf:
-                # i_surf_ind = surface.indices
-                # surface_indices.extend(i_surf_ind)
-
-            # indices = set(indices)
-            # surface_indices = set(surface_indices)
-            # i_misc_ind = indices - surface_indices
-            # if i_misc_ind:
-                # misc_indices.append(list(i_misc_ind))
-
-            # surfaces.extend(i_surf)
-
-        # # Create a combined system for all the atoms that were not categorized
-        # # yet.
-        # if len(misc_indices) != 0:
-            # misc_system = Atoms()
-            # misc_orig_indices = []
-            # misc_system.set_cell(system.get_cell())
-            # for misc_ind in misc_indices:
-                # i_misc_sys = system[misc_ind]
-                # misc_orig_indices.extend(misc_ind)
-                # misc_system += i_misc_sys
-
-            # # Find clusters
-            # misc_orig_indices = np.array(misc_orig_indices)
-            # cluster_indices = geometry.get_clusters(misc_system)
-
-            # # Categorize clusters as molecules or atoms
-            # # atoms = []
-            # # molecules = []
-            # for cluster in cluster_indices:
-                # n_atoms_clust = len(cluster)
-                # orig_indices = misc_orig_indices[cluster]
-                # if n_atoms_clust == 1:
-                    # atom = Atom(orig_indices, system[orig_indices])
-                    # self.atoms.append(atom)
-                # elif n_atoms_clust > 1:
-                    # molecule = Molecule(orig_indices, system[orig_indices])
-                    # self.molecules.append(molecule)
 
     def handle_pbc_0(self, system):
         """
@@ -385,34 +372,18 @@ class Classifier():
         # Find the atoms within the found cell
         cell_pos, cell_numbers = self._find_cell_atoms(system, seed_index, cell_basis_vectors)
 
-        # print(cell_basis_vectors)
-        # print(cell_pos)
-        # print(cell_numbers)
-
-        # Find the standardized cell
-        material = (cell_basis_vectors, cell_pos, cell_numbers)
-        # The symprec in spglib is a diameter, thus the factor 2
-        symmetry_dataset = spglib.get_symmetry_dataset(material, symprec=2*self.pos_tol)
-        if symmetry_dataset is None:
-            raise ClassificationError("Error in finding the symmetry dataset of a cell with SPGLIB.")
-
         # Get the normalized system
-        # print(cell_basis_vectors)
-        # print(cell_pos)
-        normalizer = CellNormalizer()
-        bulk_system = normalizer.normalize(
-            symmetry_dataset,
-            cell_pos,
-            cell_basis_vectors,
-            2*self.pos_tol)
-
-        # print(symmetry_dataset["std_positions"])
-        # print(symmetry_dataset["std_lattice"])
+        planar_comp = Atoms(
+            cell=cell_basis_vectors,
+            scaled_positions=cell_pos,
+            symbols=cell_numbers
+        )
+        bulk_analyzer = Material3DAnalyzer(planar_comp, spglib_precision=2*self.pos_tol)
 
         # Find the adsorbate by looking at translational symmetry. Everything
         # else that does not belong to the surface unit cell is considered an
         # adsorbate.
-        surface_indices = self._find_adsorbent(system, seed_index, cell_pos, cell_numbers, cell_basis_vectors)
+        surface_indices, n_layers = self._find_adsorbent(system, seed_index, cell_pos, cell_numbers, cell_basis_vectors)
 
         # Find the original indices for the surface
         surface_atoms = system[surface_indices]
@@ -423,8 +394,8 @@ class Classifier():
         surface = SurfaceComponent(
             orig_surface_indices,
             surface_atoms,
-            bulk_system,
-            symmetry_dataset
+            bulk_analyzer,
+            n_layers=n_layers
         )
 
         return [surface]
@@ -564,7 +535,30 @@ class Classifier():
 
         self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, cell_basis, cell_pos, cell_numbers)
 
-        return indices
+        # Find how many times the unit cell is repeated in the direction
+        # orthogonal to the surface
+        ortho_dir, ortho_ind = self._find_orthogonal_direction(cell_basis)
+        n_layers = 0
+        for multiplier in (1, -1):
+            done = False
+            # print(multiplier)
+            i = 0
+            start = np.array((0, 0, 0))
+            start[ortho_ind] = 1
+            while not done:
+                i_pos = start*i*multiplier
+                i_cell = cells.get(tuple(i_pos))
+                # print(i_cell)
+                # print(i_pos)
+                if i_cell is None:
+                    done = True
+                else:
+                    i += 1
+            n_layers += i
+
+        # print(n_layers)
+
+        return indices, n_layers
 
     def _find_possible_spans(self, syscache, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -739,8 +733,6 @@ class Classifier():
 
         where the vectors e are the possible unit vectors
         """
-        # print(spans)
-
         # Get all triplets of spans (combinations)
         span_indices = range(len(spans))
         indices = np.array(list(itertools.combinations(span_indices, 3)))
@@ -836,7 +828,7 @@ class Classifier():
             self._repeated_system = repeated
         return self._repeated_system
 
-    def _find_orthogonal_direction(self):
+    def _find_orthogonal_direction(self, vectors):
         """Used to find the unit vector that is orthogonal to the surface.
 
         Returns:
@@ -873,13 +865,13 @@ class Classifier():
             orthogonal_dir = vec[-1]
 
             # Find out the cell direction that corresponds to the orthogonal one
-            cell = repeated.get_cell()
-            dots = np.abs(np.dot(orthogonal_dir, cell.T))
+            # cell = repeated.get_cell()
+            dots = np.abs(np.dot(orthogonal_dir, vectors.T))
             orthogonal_vector_index = np.argmax(dots)
-            orthogonal_vector = cell[orthogonal_vector_index]
-            self._orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
+            orthogonal_vector = vectors[orthogonal_vector_index]
+            orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
 
-        return self._orthogonal_dir
+        return orthogonal_dir, orthogonal_vector_index
 
     def _find_seed_points(self, system):
         """Used to find the given number of seed points where the symmetry
@@ -892,7 +884,7 @@ class Classifier():
         # from ase.visualize import view
         # view(system)
 
-        orthogonal_dir = self._find_orthogonal_direction()
+        orthogonal_dir, _ = self._find_orthogonal_direction(self.system.get_cell())
 
         # Determine the "width" of the system in the orthogonal direction
         positions = system.get_positions()

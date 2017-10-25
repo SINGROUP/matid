@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from systax.analysis.analyzer import Analyzer
+from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
 
 __metaclass__ = type
 
 
-class Material3DAnalyzer(Analyzer):
+class Material3DAnalyzer(SymmetryAnalyzer):
     """Class for analyzing 3D materials.
     """
     def get_conventional_system(self):
@@ -41,7 +41,7 @@ class Material3DAnalyzer(Analyzer):
         # of atomic species in the Wyckoff positions.
         space_group = self.get_space_group_number()
         wyckoff_letters, equivalent_atoms = \
-            self._get_spglib_conventional_wyckoffs_and_equivalents()
+            self._get_spglib_wyckoffs_and_equivalents_conventional()
         ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
             space_group,
             wyckoff_letters,

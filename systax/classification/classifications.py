@@ -13,7 +13,8 @@ class Classification():
             material1d=None,
             material2d=None,
             unknowns=None,
-            vacuum_dir=None
+            vacuum_dir=None,
+            analyzer=None
             ):
         self.surfaces = surfaces
         self.atoms = atoms
@@ -23,6 +24,7 @@ class Classification():
         self.material2d = material2d
         self.unknowns = unknowns
         self.vacuum_dir = vacuum_dir
+        self.analyzer = analyzer
 
 
 class Atom(Classification):

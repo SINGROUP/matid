@@ -2,12 +2,12 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import systax.geometry
 from systax.exceptions import SystaxError
-from systax.analysis.analyzer import Analyzer
+from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
 
 __metaclass__ = type
 
 
-class Material2DAnalyzer(Analyzer):
+class Material2DAnalyzer(SymmetryAnalyzer):
     """Class for analyzing 2D materials.
     """
     def get_conventional_system(self):

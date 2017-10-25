@@ -15,7 +15,7 @@ import ase.build
 from ase.build import nanotube
 
 from systax import Classifier
-from systax.classification import Atom, Molecule, Crystal, Material1D, Material2D, Unknown
+from systax.classification import Atom, Molecule, Crystal, Material1D, Material2D, Unknown, Surface, AdsorptionSystem
 from systax import Material3DAnalyzer
 
 
@@ -243,16 +243,18 @@ class Material3DAnalyserTests(unittest.TestCase):
         space_group_int = analyzer.get_space_group_international_short()
         hall_symbol = analyzer.get_hall_symbol()
         hall_number = analyzer.get_hall_number()
+        crystal_system = analyzer.get_crystal_system()
+        bravais_lattice = analyzer.get_bravais_lattice()
 
         conv_system = analyzer.get_conventional_system()
         prim_system = analyzer.get_primitive_system()
 
         translations = analyzer.get_translations()
         rotations = analyzer.get_rotations()
-        origin_shift = analyzer.get_origin_shift()
+        # origin_shift = analyzer.get_origin_shift()
         choice = analyzer.get_choice()
         point_group = analyzer.get_point_group()
-        transformation_matrix = analyzer.get_transformation_matrix()
+        # transformation_matrix = analyzer.get_transformation_matrix()
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
@@ -264,6 +266,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         equivalent_conv = analyzer.get_equivalent_atoms_conventional()
 
         lattice_fit = analyzer.get_conventional_lattice_fit()
+        chiral = analyzer.get_is_chiral()
+        self.assertEqual(chiral, False)
 
         # view(si)
         # view(conv_system)
@@ -274,6 +278,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertEqual(hall_symbol, "F 4d 2 3 -1d")
         self.assertEqual(hall_number, 525)
         self.assertEqual(point_group, "m-3m")
+        self.assertEqual(crystal_system, "cubic")
+        self.assertEqual(bravais_lattice, "cF")
         self.assertEqual(choice, "1")
         self.assertTrue(np.array_equal(equivalent_conv, [0, 0, 0, 0, 0, 0, 0, 0]))
         self.assertTrue(np.array_equal(wyckoff_conv, ["a", "a", "a", "a", "a", "a", "a", "a"]))
@@ -319,10 +325,12 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         translations = analyzer.get_translations()
         rotations = analyzer.get_rotations()
-        origin_shift = analyzer.get_origin_shift()
+        # origin_shift = analyzer.get_origin_shift()
         choice = analyzer.get_choice()
         point_group = analyzer.get_point_group()
-        transformation_matrix = analyzer.get_transformation_matrix()
+        crystal_system = analyzer.get_crystal_system()
+        bravais_lattice = analyzer.get_bravais_lattice()
+        # transformation_matrix = analyzer.get_transformation_matrix()
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
@@ -344,6 +352,8 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertEqual(hall_symbol, "-F 4 2 3")
         self.assertEqual(hall_number, 523)
         self.assertEqual(point_group, "m-3m")
+        self.assertEqual(crystal_system, "cubic")
+        self.assertEqual(bravais_lattice, "cF")
         self.assertEqual(choice, "")
         self.assertTrue(np.array_equal(equivalent_conv, [0, 1, 0, 1, 0, 1, 0, 1]))
         self.assertTrue(np.array_equal(wyckoff_conv, ["a", "b", "a", "b", "a", "b", "a", "b"]))
@@ -381,10 +391,10 @@ class Material3DAnalyserTests(unittest.TestCase):
 
         translations = analyzer.get_translations()
         rotations = analyzer.get_rotations()
-        origin_shift = analyzer.get_origin_shift()
+        # origin_shift = analyzer.get_origin_shift()
         choice = analyzer.get_choice()
         point_group = analyzer.get_point_group()
-        transformation_matrix = analyzer.get_transformation_matrix()
+        # transformation_matrix = analyzer.get_transformation_matrix()
 
         wyckoff_original = analyzer.get_wyckoff_letters_original()
         wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
@@ -446,24 +456,26 @@ class BCCTests(unittest.TestCase):
         view(system)
 
         classifier = Classifier()
-        classifier.classify(system)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
         # Test surface info
-        surfaces = classifier.surfaces
-        surface = surfaces[0]
-        bulk_system = surface.get_normalized_cell()
-        pos = bulk_system.relative_pos
-        numbers = bulk_system.numbers
-        cell = bulk_system.lattice.matrix
-        wyckoffs = bulk_system.wyckoff_letters
-        space_group = surface.symmetry_dataset["number"]
+        # surfaces = classifier.surfaces
+        surface = classification.surfaces[0]
+        analyzer = surface.bulk_analyzer
+        bulk_system = analyzer.get_conventional_system()
+        pos = bulk_system.get_scaled_positions()
+        numbers = bulk_system.get_atomic_numbers()
+        cell = bulk_system.get_cell()
+        space_group = analyzer.get_symmetry_dataset()["number"]
+        wyckoffs = analyzer.get_wyckoff_letters_conventional()
         surf_ind = set(surface.indices)
         expected_surf_ind = set(range(len(system)))
 
         cell_expected = np.array([[2.87, 0.0, 0.0], [0.0, 2.87, 0.0], [0.0, 0.0, 2.87]])
         pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
-        self.assertEqual(len(surfaces), 1)
+        self.assertEqual(len(classification.surfaces), 1)
         self.assertEqual(surf_ind, expected_surf_ind)
         self.assertEqual(space_group, 229)
         self.assertTrue(np.array_equal(numbers, [26, 26]))
@@ -471,123 +483,123 @@ class BCCTests(unittest.TestCase):
         self.assertTrue(np.array_equal(pos, pos_expected))
         self.assertTrue(np.allclose(cell, cell_expected))
 
-    def test_adsorbate(self):
+    # def test_adsorbate(self):
 
-        # Create an Fe 100 surface with a benzene adsorbate as an ASE Atoms
-        # object
-        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        mol = ase.build.molecule("C6H6")
-        add_adsorbate(system, mol, height=2, offset=(2, 2.5))
-        view(system)
+        # # Create an Fe 100 surface with a benzene adsorbate as an ASE Atoms
+        # # object
+        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        # mol = ase.build.molecule("C6H6")
+        # add_adsorbate(system, mol, height=2, offset=(2, 2.5))
+        # view(system)
 
-        classifier = Classifier()
-        classifier.classify(system)
+        # classifier = Classifier()
+        # classifier.classify(system)
 
-        # Test surface info
-        surfaces = classifier.surfaces
-        surface = surfaces[0]
-        bulk_system = surface.get_normalized_cell()
-        pos = bulk_system.relative_pos
-        numbers = bulk_system.numbers
-        cell = bulk_system.lattice.matrix
-        wyckoffs = bulk_system.wyckoff_letters
-        space_group = surface.symmetry_dataset["number"]
-        exp_mol_ind = set((27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38))
-        exp_surf_ind = set(range(len(system))) - exp_mol_ind
-        surf_ind = set(surface.indices)
-        cell_expected = np.array([[2.87, 0.0, 0.0], [0.0, 2.87, 0.0], [0.0, 0.0, 2.87]])
-        pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        self.assertEqual(len(surfaces), 1)
-        self.assertEqual(surf_ind, exp_surf_ind)
-        self.assertEqual(space_group, 229)
-        self.assertTrue(np.array_equal(numbers, [26, 26]))
-        self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
-        self.assertTrue(np.array_equal(pos, pos_expected))
-        self.assertTrue(np.allclose(cell, cell_expected))
+        # # Test surface info
+        # surfaces = classifier.surfaces
+        # surface = surfaces[0]
+        # bulk_system = surface.get_normalized_cell()
+        # pos = bulk_system.relative_pos
+        # numbers = bulk_system.numbers
+        # cell = bulk_system.lattice.matrix
+        # wyckoffs = bulk_system.wyckoff_letters
+        # space_group = surface.symmetry_dataset["number"]
+        # exp_mol_ind = set((27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38))
+        # exp_surf_ind = set(range(len(system))) - exp_mol_ind
+        # surf_ind = set(surface.indices)
+        # cell_expected = np.array([[2.87, 0.0, 0.0], [0.0, 2.87, 0.0], [0.0, 0.0, 2.87]])
+        # pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        # self.assertEqual(len(surfaces), 1)
+        # self.assertEqual(surf_ind, exp_surf_ind)
+        # self.assertEqual(space_group, 229)
+        # self.assertTrue(np.array_equal(numbers, [26, 26]))
+        # self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
+        # self.assertTrue(np.array_equal(pos, pos_expected))
+        # self.assertTrue(np.allclose(cell, cell_expected))
 
-        # Test molecule info
-        molecules = classifier.molecules
-        molecule = molecules[0]
-        mol_ind = set(molecule.indices)
-        self.assertEqual(len(molecules), 1)
-        self.assertEqual(mol_ind, exp_mol_ind)
+        # # Test molecule info
+        # molecules = classifier.molecules
+        # molecule = molecules[0]
+        # mol_ind = set(molecule.indices)
+        # self.assertEqual(len(molecules), 1)
+        # self.assertEqual(mol_ind, exp_mol_ind)
 
-    def test_imperfect_surface(self):
+    # def test_imperfect_surface(self):
 
-        # Create an Fe 100 surface as an ASE Atoms object
-        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        system.rattle(stdev=0.1, seed=42)
-        view(system)
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        # system.rattle(stdev=0.1, seed=42)
+        # view(system)
 
-        classifier = Classifier()
-        classifier.classify(system)
+        # classifier = Classifier()
+        # classifier.classify(system)
 
-        # Test surface info
-        surfaces = classifier.surfaces
-        surface = surfaces[0]
-        bulk_system = surface.get_normalized_cell()
-        pos = bulk_system.relative_pos
-        numbers = bulk_system.numbers
-        wyckoffs = bulk_system.wyckoff_letters
-        space_group = surface.symmetry_dataset["number"]
-        surf_ind = set(surface.indices)
-        expected_surf_ind = set(range(len(system)))
+        # # Test surface info
+        # surfaces = classifier.surfaces
+        # surface = surfaces[0]
+        # bulk_system = surface.get_normalized_cell()
+        # pos = bulk_system.relative_pos
+        # numbers = bulk_system.numbers
+        # wyckoffs = bulk_system.wyckoff_letters
+        # space_group = surface.symmetry_dataset["number"]
+        # surf_ind = set(surface.indices)
+        # expected_surf_ind = set(range(len(system)))
 
-        pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        # pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
-        self.assertEqual(len(surfaces), 1)
-        self.assertEqual(surf_ind, expected_surf_ind)
-        self.assertEqual(space_group, 229)
-        self.assertTrue(np.array_equal(numbers, [26, 26]))
-        self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
-        self.assertTrue(np.array_equal(pos, pos_expected))
+        # self.assertEqual(len(surfaces), 1)
+        # self.assertEqual(surf_ind, expected_surf_ind)
+        # self.assertEqual(space_group, 229)
+        # self.assertTrue(np.array_equal(numbers, [26, 26]))
+        # self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
+        # self.assertTrue(np.array_equal(pos, pos_expected))
 
-    def test_curved_surface(self):
+    # def test_curved_surface(self):
 
-        # Create an Fe 100 surface as an ASE Atoms object
-        system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
-        # system.rattle(stdev=0.0005, seed=42)
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+        # # system.rattle(stdev=0.0005, seed=42)
 
-        # Bulge the surface
-        cell_width = np.linalg.norm(system.get_cell()[0, :])
-        for atom in system:
-            pos = atom.position
-            distortion_z = np.sin(pos[0]/cell_width*2*np.pi)
-            pos += np.array((0, 0, distortion_z))
-        view(system)
+        # # Bulge the surface
+        # cell_width = np.linalg.norm(system.get_cell()[0, :])
+        # for atom in system:
+            # pos = atom.position
+            # distortion_z = np.sin(pos[0]/cell_width*2*np.pi)
+            # pos += np.array((0, 0, distortion_z))
+        # view(system)
 
-        classifier = Classifier()
-        classifier.classify(system)
+        # classifier = Classifier()
+        # classifier.classify(system)
 
-        # Test surface info
-        surfaces = classifier.surfaces
-        surface = surfaces[0]
-        bulk_system = surface.get_normalized_cell()
-        pos = bulk_system.relative_pos
-        numbers = bulk_system.numbers
-        wyckoffs = bulk_system.wyckoff_letters
-        space_group = surface.symmetry_dataset["number"]
-        surf_ind = set(surface.indices)
-        expected_surf_ind = set(range(len(system)))
+        # # Test surface info
+        # surfaces = classifier.surfaces
+        # surface = surfaces[0]
+        # bulk_system = surface.get_normalized_cell()
+        # pos = bulk_system.relative_pos
+        # numbers = bulk_system.numbers
+        # wyckoffs = bulk_system.wyckoff_letters
+        # space_group = surface.symmetry_dataset["number"]
+        # surf_ind = set(surface.indices)
+        # expected_surf_ind = set(range(len(system)))
 
-        pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
+        # pos_expected = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
 
-        self.assertEqual(len(surfaces), 1)
-        self.assertEqual(surf_ind, expected_surf_ind)
-        self.assertEqual(space_group, 229)
-        self.assertTrue(np.array_equal(numbers, [26, 26]))
-        self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
-        self.assertTrue(np.array_equal(pos, pos_expected))
+        # self.assertEqual(len(surfaces), 1)
+        # self.assertEqual(surf_ind, expected_surf_ind)
+        # self.assertEqual(space_group, 229)
+        # self.assertTrue(np.array_equal(numbers, [26, 26]))
+        # self.assertTrue(np.array_equal(wyckoffs, ["a", "a"]))
+        # self.assertTrue(np.array_equal(pos, pos_expected))
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     import time
     alltests = unittest.TestSuite(suites)

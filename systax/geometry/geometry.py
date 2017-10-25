@@ -252,6 +252,48 @@ def get_wrapped_positions(scaled_pos, precision=1E-5):
     return scaled_pos
 
 
+def get_distance_matrix(system, wrap_distances=False):
+    """Calculates the distance matrix. If wrap_distances=True, calculates
+    the matrix using periodic distances
+    """
+
+    if wrap_distances:
+        rel_pos = system.get_scaled_positions()
+        cell = system.get_cell()
+        disp_tensor = get_displacement_tensor(rel_pos)
+        indices = np.where(disp_tensor > 0.5)
+        disp_tensor[indices] = 1 - disp_tensor[indices]
+        indices = np.where(disp_tensor < -0.5)
+        disp_tensor[indices] = disp_tensor[indices] + 1
+        disp_tensor = np.dot(disp_tensor, cell)
+    else:
+        pos = system.get_positions()
+        disp_tensor = get_displacement_tensor(pos)
+    distance_matrix = np.linalg.norm(disp_tensor, axis=2)
+
+    return distance_matrix
+
+
+def get_displacement_tensor(positions):
+    """Given an array of positions, calculates the 3D displacement tensor
+    between the positions.
+
+    The displacement tensor is a matrix where the entry A[i, j, :] is the
+    vector positions[i] - positions[j]
+
+    Args:
+        positions(np.ndarray): 2D array of positions
+
+    Returns:
+        np.ndarray: 3D displacement tensor
+    """
+    # Add new axes so that broadcasting works nicely
+    disp_tensor = positions[:, None, :] - positions[None, :, :]
+
+    displacement_tensor = disp_tensor
+    return displacement_tensor
+
+
 # def get_displacement_tensor(self, system):
     # """A matrix where the entry A[i, j, :] is the vector
     # self.cartesian_pos[i] - self.cartesian_pos[j].

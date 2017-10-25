@@ -107,6 +107,23 @@ class System(Atoms):
         cartesian_positions = scaled_positions.dot(self.get_cell().T)
         return cartesian_positions
 
+    def translate(self, translation, relative=False):
+        """Translates the positions by the given translation.
+
+        Args:
+            translation (1x3 numpy.array): The translation to apply.
+            relative (bool): True if given translation is relative to cell
+                vectors.
+        """
+        if relative:
+            rel_pos = self.get_scaled_positions()
+            rel_pos += translation
+            self.set_scaled_positions(rel_pos)
+        else:
+            cart_pos = self.get_positions()
+            cart_pos += translation
+            self.set_positions(cart_pos)
+
     def get_wyckoff_letters(self):
         """Returns a list of Wyckoff letters for the atoms in the system. This
         information is only available is explicitly set.

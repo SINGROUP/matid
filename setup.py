@@ -6,7 +6,7 @@ with open("README.md", "r") as fin:
 
 if __name__ == "__main__":
     setup(name="systax",
-        version="0.0.2",
+        version="0.0.4",
         description=(
             "Systax is a python package for the analysis and classification of "
             "atomistic systems."
