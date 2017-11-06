@@ -18,8 +18,11 @@ from systax.exceptions import ClassificationError
 from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, UnknownComponent
 from systax.classification.classifications import Surface, Atom, Molecule, Crystal, Material1D, Material2D, Unknown
 from systax.data.element_data import get_covalent_radii
-from systax.geometry import geometry
+import systax.geometry
 from systax.analysis.material3danalyzer import Material3DAnalyzer
+from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
+from systax.symmetry import check_if_crystal
+from systax.core.system import System
 
 
 class SystemCache(dict):
@@ -33,17 +36,29 @@ class Classifier():
     """
     def __init__(
             self,
-            max_dist=3,
+            max_cell_size=3,
             pos_tol=0.5,
-            angle_tol=15,
             n_seeds=2,
-            n_repetitions=2,
+            crystallinity_threshold=0.1,
+            connectivity_crystal=1.9
             ):
-        self.max_dist = max_dist
+        """
+        Args:
+            max_cell_size(float): The maximum cell size
+            pos_tol(float): The position tolerance in angstroms for finding translationally
+                repeated units.
+            n_seeds(int): The number of seed positions to check.
+            crystallinity_threshold(float): The threshold of number of symmetry
+                operations per atoms in primitive cell that is required for
+                crystals.
+            connectivity_crystal(float): A parameter that controls the
+                connectivity that is required for the atoms of a crystal.
+        """
+        self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
-        self.angle_tol = angle_tol
         self.n_seeds = 1
-        self.n_repetitions = n_repetitions
+        self.crystallinity_threshold = crystallinity_threshold
+        self.connectivity_crystal = connectivity_crystal
         self._repeated_system = None
         self._analyzed = False
         self._orthogonal_dir = None
@@ -53,12 +68,8 @@ class Classifier():
         """A function that analyzes the system and breaks it into different
         components.
 
-        The component detection works like this:
-
-            - Calculate the space filling to separate bulk systems.
-            - Calculate the moments of inertia to separate isotropic systems
-              from anisotropic
-            - Find out the directions with a vacuum gap
+        Args:
+            system(ASE.Atoms or System): Atomic system to classify.
         """
         self.system = system
         surface_comps = []
@@ -99,7 +110,7 @@ class Classifier():
                 atom_comps.append(AtomComponent([0], system))
             # Check if the the system has one or multiple components
             else:
-                clusters = geometry.get_clusters(system)
+                clusters = systax.geometry.get_clusters(system)
                 for cluster in clusters:
                     n_atoms_cluster = len(cluster)
                     if n_atoms_cluster == 1:
@@ -117,7 +128,7 @@ class Classifier():
             # eigval, eigvec = geometry.get_moments_of_inertia(extended_system)
             # print(eigval)
             # print(eigvec)
-            vacuum_dir = geometry.find_vacuum_directions(system)
+            vacuum_dir = systax.geometry.find_vacuum_directions(system)
             n_vacuum = np.sum(vacuum_dir)
 
             # If all directions have a vacuum separating the copies, the system
@@ -131,7 +142,7 @@ class Classifier():
 
                 # Check if the the system has one or multiple components.
                 else:
-                    clusters = geometry.get_clusters(system)
+                    clusters = systax.geometry.get_clusters(system)
                     for cluster in clusters:
                         n_atoms_cluster = len(cluster)
                         if n_atoms_cluster == 1:
@@ -146,12 +157,12 @@ class Classifier():
                 # multiplied once in the periodic dimension
                 repetitions = np.invert(vacuum_dir).astype(int)+1
                 ext_sys1d = system.repeat(repetitions)
-                clusters = geometry.get_clusters(ext_sys1d)
+                clusters = systax.geometry.get_clusters(ext_sys1d)
                 n_clusters = len(clusters)
 
                 # Find out the dimensions of the system
                 is_small = True
-                dimensions = geometry.get_dimensions(system, vacuum_dir)
+                dimensions = systax.geometry.get_dimensions(system, vacuum_dir)
                 for i, has_vacuum in enumerate(vacuum_dir):
                     if has_vacuum:
                         dimension = dimensions[i]
@@ -172,14 +183,14 @@ class Classifier():
                 # material. If more are found, the material is a surface.
 
                 # Find the different clusters
-                cluster_indices = geometry.get_clusters(system)
+                cluster_indices = systax.geometry.get_clusters(system)
 
                 # Run the surface detection on each cluster (we do not initially know
                 # which one is the surface.
                 i_surface_comps = []
                 for indices in cluster_indices:
                     cluster_system = self.system[indices]
-                    i_surf = self._find_surfaces(cluster_system, indices)
+                    i_surf = self._find_surfaces(cluster_system, indices, vacuum_dir)
 
                     surface_indices = []
                     for surface in i_surf:
@@ -201,7 +212,7 @@ class Classifier():
                     # multiplied once in the two periodic dimensions
                     repetitions = np.invert(vacuum_dir).astype(int)+1
                     ext_sys2d = system.repeat(repetitions)
-                    clusters = geometry.get_clusters(ext_sys2d)
+                    clusters = systax.geometry.get_clusters(ext_sys2d)
                     n_clusters = len(clusters)
 
                     if n_clusters == 1:
@@ -226,7 +237,24 @@ class Classifier():
 
             # Bulk structures
             if n_vacuum == 0:
-                crystal_comps.append(CrystalComponent(np.arange(len(system)), system.copy()))
+
+                # Check the number of symmetries
+                analyzer = Material3DAnalyzer(system)
+                is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
+
+                # Check the number of clusters
+                repetitions = [2, 2, 2]
+                ext_sys3d = system.repeat(repetitions)
+                clusters = systax.geometry.get_clusters(ext_sys3d, self.connectivity_crystal)
+                n_clusters = len(clusters)
+
+                if is_crystal and n_clusters == 1:
+                    crystal_comps.append(CrystalComponent(
+                        np.arange(len(system)),
+                        system.copy(),
+                        analyzer))
+                else:
+                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
 
         # Return a classification for this system.
         n_molecules = len(molecule_comps)
@@ -338,9 +366,10 @@ class Classifier():
 
         return ratio
 
-    def _find_surfaces(self, system, orig_indices):
+    def _find_surfaces(self, system, orig_indices, vacuum_dir):
         """
         """
+        # view(system)
         # Find the seed points
         seed_points = self._find_seed_points(system)
 
@@ -356,49 +385,165 @@ class Classifier():
 
         # Find possible bases for each seed point
         cell_basis_vectors = None
+        surfaces = []
         for seed_index in seed_points:
             possible_spans = self._find_possible_spans(syscache, seed_index)
-            if len(possible_spans) >= 3:
-                valid_spans = self._find_valid_spans(syscache, seed_index, possible_spans)
-                if len(valid_spans) >= 3:
-                    lin_ind_spans = self._find_optimal_span(syscache, valid_spans)
-                    if len(lin_ind_spans) == 3:
-                        cell_basis_vectors = lin_ind_spans
-                        break
+            valid_spans = self._find_valid_spans(syscache, seed_index, possible_spans, vacuum_dir)
+            lin_ind_spans = self._find_optimal_span(syscache, valid_spans)
+            cell_basis_vectors = lin_ind_spans
 
-        if cell_basis_vectors is None:
-            return []
+            n_spans = len(cell_basis_vectors)
+            if cell_basis_vectors is None or n_spans == 0:
+                return []
 
-        # Find the atoms within the found cell
-        cell_pos, cell_numbers = self._find_cell_atoms(system, seed_index, cell_basis_vectors)
+            # Find the atoms within the found cell
+            if n_spans == 3:
+                trans_sys = self._find_cell_atoms_3d(system, seed_index, cell_basis_vectors)
+            elif n_spans == 2:
+                trans_sys, seed_position = self._find_cell_atoms_2d(syscache, seed_index, cell_basis_vectors)
 
-        # Get the normalized system
-        planar_comp = Atoms(
-            cell=cell_basis_vectors,
-            scaled_positions=cell_pos,
-            symbols=cell_numbers
-        )
-        bulk_analyzer = Material3DAnalyzer(planar_comp, spglib_precision=2*self.pos_tol)
+            # Find the adsorbate by looking at translational symmetry. Everything
+            # else that does not belong to the surface unit cell is considered an
+            # adsorbate.
+            surface_indices, n_layers = self._find_surface(system, seed_index, trans_sys)
 
-        # Find the adsorbate by looking at translational symmetry. Everything
-        # else that does not belong to the surface unit cell is considered an
-        # adsorbate.
-        surface_indices, n_layers = self._find_adsorbent(system, seed_index, cell_pos, cell_numbers, cell_basis_vectors)
+            # Find the original indices for the surface
+            surface_atoms = system[surface_indices]
+            orig_surface_indices = []
+            for index in list(surface_indices):
+                orig_surface_indices.append(orig_indices[index])
 
-        # Find the original indices for the surface
-        surface_atoms = system[surface_indices]
-        orig_surface_indices = []
-        for index in list(surface_indices):
-            orig_surface_indices.append(orig_indices[index])
+            bulk_analyzer = Material3DAnalyzer(trans_sys, spglib_precision=2*self.pos_tol)
+            surface = SurfaceComponent(
+                orig_surface_indices,
+                surface_atoms,
+                bulk_analyzer,
+                n_layers=n_layers
+            )
+            surfaces.append(surface)
 
-        surface = SurfaceComponent(
-            orig_surface_indices,
-            surface_atoms,
-            bulk_analyzer,
-            n_layers=n_layers
-        )
+        return surfaces
 
-        return [surface]
+    def _find_surf_rec(
+            self,
+            system,
+            collection,
+            number_to_index_map,
+            number_to_pos_map,
+            seed_index,
+            seed_pos,
+            seed_atomic_number,
+            unit_cell,
+            searched_coords,
+            index):
+
+        # Check if this cell has already been searched
+        if index in searched_coords:
+            return
+        else:
+            searched_coords.add(index)
+
+        # Transform positions to the new cell basis
+        cell_basis = unit_cell.get_cell()
+        positions = system.get_positions()
+        atomic_numbers = system.get_atomic_numbers()
+        pos_shifted = positions - seed_pos
+        basis_inverse = np.linalg.inv(cell_basis.T)
+        vec_new = np.dot(pos_shifted, basis_inverse.T)
+
+        # For each atom in the basis, find corresponding atom if possible
+        cell_pos = unit_cell.get_scaled_positions()
+        cell_numbers = unit_cell.get_atomic_numbers()
+        new_pos = []
+        new_num = []
+        new_indices = []
+        for i_pos, pos in enumerate(cell_pos):
+            disp_tensor = vec_new - pos[np.newaxis, :]
+            disp_tensor_cartesian = np.dot(disp_tensor, cell_basis.T)
+            dist = np.linalg.norm(disp_tensor_cartesian, axis=1)
+            # The tolerance is double here to take into account the possibility
+            # that two neighboring cells might be offset from the original cell
+            # in opposite directions
+            index, = np.where(dist <= self.pos_tol)
+            if len(index) != 0:
+                new_indices.append(index[0])
+                new_pos.append(vec_new[index[0]])
+                new_num.append(atomic_numbers[index[0]])
+        new_pos = np.array(new_pos)
+        new_num = np.array(new_num)
+
+        # If the seed atom was not found for this cell, end the search
+        if seed_index is None:
+            return
+
+        # Create the new LinkedUnit and add it to the collection representing
+        # the surface
+        new_unit = LinkedUnit(index, seed_index, seed_pos, cell_basis, new_indices)
+        collection.add_unit(new_unit, index)
+
+        # Find the the indices and position of the seed atoms of neighbouring
+        # units.
+        new_seed_indices = []
+        new_seed_pos = []
+        multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
+        possible_seed_pos = number_to_pos_map[seed_atomic_number]
+        possible_seed_indices = number_to_index_map[seed_atomic_number]
+        for multiplier in multipliers:
+            disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
+            seed_guess = seed_pos + disloc
+            i_seed_disp = possible_seed_pos - seed_guess
+            i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
+            index = np.where(i_seed_dist <= 2*self.pos_tol)
+            index = index[0]
+            new_seed_indices.append(index)
+            if len(index) != 0:
+                i_seed_pos = possible_seed_pos[index[0]]
+            else:
+                i_seed_pos = seed_guess
+            new_seed_pos.append(i_seed_pos)
+
+        # Update the cell for this seed point. This adds more noise to the cell
+        # basis vectors but allows us to track curved lattices. The indices 22,
+        # 16, and 14 are the indices for the [1,0,0], [0,1,0] and [0, 0, 1]
+        # multipliers.
+        i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
+        i_cell = i_cell - seed_pos
+
+        # Use the newly found indices to track down new indices with an updated
+        # cell.
+        for i_seed, multiplier in enumerate(multipliers):
+            i_seed_pos = new_seed_pos[i_seed]
+            i_seed_index = new_seed_indices[i_seed]
+
+            n_indices = len(i_seed_index)
+            # if n_indices > 1:
+                # raise ValueError("Too many options when searching for an atom.")
+            if n_indices == 0:
+                i_seed_index = None
+            else:
+                i_seed_index = possible_seed_indices[i_seed_index[0]]
+
+            a = multiplier[0]
+            b = multiplier[1]
+            c = multiplier[2]
+
+            new_cell = Atoms(
+                cell=i_cell,
+                scaled_positions=cell_pos,
+                symbols=cell_numbers
+            )
+            self._find_surf_rec(
+                system,
+                collection,
+                number_to_index_map,
+                number_to_pos_map,
+                i_seed_index,
+                i_seed_pos,
+                seed_atomic_number,
+                new_cell,
+                searched_coords,
+                (a, b, c)
+            )
 
     def _find_surface_recursively(
             self,
@@ -413,9 +558,7 @@ class Classifier():
             seed_index,
             seed_pos,
             seed_number,
-            cell_basis,
-            cell_pos,
-            cell_numbers):
+            unit_cell):
         """A recursive function for traversing the surface and gathering
         indices of the surface atoms.
         """
@@ -426,6 +569,9 @@ class Classifier():
             cells[(i, j, k)] = True
 
         # Transform positions to the cell basis
+        cell_basis = unit_cell.get_cell()
+        cell_pos = unit_cell.get_scaled_positions()
+        cell_numbers = unit_cell.get_atomic_numbers()
         positions = system.get_positions()
         pos_shifted = positions - seed_pos
         basis_inverse = np.linalg.inv(cell_basis.T)
@@ -460,7 +606,7 @@ class Classifier():
         # seed_element = atomic_numbers[seed_index]
         # identical_elem_mask = (atomic_numbers == seed_element)
         # seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
-        # distance_mask = (seed_span_lengths < 2*self.max_dist)
+        # distance_mask = (seed_span_lengths < 2*self.max_cell_size)
         # combined_mask = (distance_mask) & (identical_elem_mask)
         # spans = seed_spans[combined_mask]
 
@@ -509,14 +655,16 @@ class Classifier():
             b = j + multiplier[1]
             c = k + multiplier[2]
 
-            self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, a, b, c, system, i_seed_index, i_seed_pos, seed_number, i_cell, cell_pos, cell_numbers)
+            new_cell = Atoms(
+                cell=i_cell,
+                scaled_positions=cell_pos,
+                symbols=cell_numbers
+            )
+            self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, a, b, c, system, i_seed_index, i_seed_pos, seed_number, new_cell)
 
-    def _find_adsorbent(self, system, seed_index, cell_pos, cell_numbers, cell_basis):
+    def _find_surface(self, system, seed_index, surface_unit):
+        """Used to find the atoms belonging to a surface.
         """
-        """
-        # from ase.visualize import view
-        # view(system)
-
         positions = system.get_positions()
         atomic_numbers = system.get_atomic_numbers()
         seed_pos = positions[seed_index][np.newaxis, :]
@@ -533,10 +681,25 @@ class Classifier():
             number_to_index_map[number] = number_indices
             number_to_pos_map[number] = positions[number_indices]
 
-        self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, cell_basis, cell_pos, cell_numbers)
+        # searched_coords = set()
+        # collection = LinkedUnitCollection(system)
+        # self._find_surf_rec(
+            # system,
+            # collection,
+            # number_to_index_map,
+            # number_to_pos_map,
+            # seed_index,
+            # seed_pos,
+            # seed_number,
+            # surface_unit,
+            # searched_coords,
+            # (0, 0, 0))
+
+        self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, surface_unit)
 
         # Find how many times the unit cell is repeated in the direction
         # orthogonal to the surface
+        cell_basis = surface_unit.get_cell()
         ortho_dir, ortho_ind = self._find_orthogonal_direction(cell_basis)
         n_layers = 0
         for multiplier in (1, -1):
@@ -570,39 +733,35 @@ class Classifier():
         seed_spans = disp_tensor[:, seed_index]
         atomic_numbers = system.get_atomic_numbers()
 
-        # Remove notion to to self
-        seed_spans = np.delete(seed_spans, (seed_index), axis=0)
-        atomic_numbers = np.delete(atomic_numbers, (seed_index), axis=0)
-
         # Find indices of atoms that are identical to seed atom
         seed_element = atomic_numbers[seed_index]
         identical_elem_mask = (atomic_numbers == seed_element)
 
         # Only keep spans that are smaller than the maximum vector length
         seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
-        distance_mask = (seed_span_lengths < self.max_dist)
+        distance_mask = (seed_span_lengths < self.max_cell_size)
+        syscache["neighbour_mask"] = distance_mask
 
         # Form a combined mask and filter spans with it
         combined_mask = (distance_mask) & (identical_elem_mask)
+        combined_mask[seed_index] = False  # Ignore self
         spans = seed_spans[combined_mask]
 
         return spans
 
-    def _find_valid_spans(self, syscache, seed_index, possible_spans):
+    def _find_valid_spans(self, syscache, seed_index, possible_spans, vacuum_dir):
         """Check which spans in the given list actually are translational bases
         on the surface.
 
         In order to be a valid span, there has to be at least one repetition of
         this span for all atoms that are nearby the seed atom.
         """
-        # Find atoms that are nearby the seed atom.
         system = syscache["system"]
         disp_tensor = syscache["disp_tensor"]
         positions = syscache["positions"]
+        numbers = system.get_atomic_numbers()
 
-        # from ase.visualize import view
-        # view(system)
-
+        # Find atoms that are nearby the seed atom.
         span_lengths = np.linalg.norm(possible_spans, axis=1)
         max_span_len = np.max(span_lengths)
         seed_pos = positions[seed_index]
@@ -611,6 +770,33 @@ class Classifier():
         neighbour_indices, = np.where(seed_dist < max_span_len)
         neighbour_pos = positions[neighbour_indices]
 
+        # Find how many of the neighbouring atoms have a periodic copy in the
+        # found directions
+        neighbour_mask = syscache["neighbour_mask"]
+        neighbour_pos = positions[neighbour_mask]
+        neighbour_num = numbers[neighbour_mask]
+        span_valids = np.empty((len(possible_spans)), dtype=int)
+        for i_span, span in enumerate(possible_spans):
+            add_pos = neighbour_pos + span
+            sub_pos = neighbour_pos - span
+            add_indices = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
+            sub_indices = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
+
+            n_valids = 0
+            for i_ind in range(len(add_indices)):
+                i_add = add_indices[i_ind]
+                i_sub = sub_indices[i_ind]
+                if i_add is not None and i_sub is not None:
+                    n_valids += 1
+            span_valids[i_span] = n_valids
+
+        # Keep spans that have at least one repetition in both directions
+        valid_spans = []
+        for i, n in enumerate(span_valids):
+            if n > 0:
+                valid_spans.append(possible_spans[i])
+        possible_spans = np.array(valid_spans)
+
         # Ensure that only neighbors that are within the "region" defined by
         # the possible spans are included in the test. Neighbor atoms outside
         # the possible spans might already include e.g. adsorbate atoms.
@@ -618,8 +804,7 @@ class Classifier():
         span_dots = np.inner(spans_norm, spans_norm)
         combos = []
 
-        # For each span find the two other spans that are closests, and not
-        # already taken
+        # Form triplests of spans that are most orthogonal.
         n_spans = len(possible_spans)
         for i_span in range(n_spans):
             dots = span_dots[i_span, :]
@@ -638,85 +823,113 @@ class Classifier():
                     break
 
         # Find the neighbors that are within the cells defined by the span combinations
-        true_neighbor_indices = []
-        shifted_neighbor_pos = neighbour_pos-seed_pos
-        for i_combo, combo in enumerate(combos):
-            cell = possible_spans[np.array(combo)]
-            try:
-                inv_cell = np.linalg.inv(cell.T)
-            except np.linalg.linalg.LinAlgError:
-                continue
-            neigh_pos_combo = np.dot(shifted_neighbor_pos, inv_cell.T)
+        # true_neighbor_indices = []
+        # shifted_neighbor_pos = neighbour_pos-seed_pos
+        # for i_combo, combo in enumerate(combos):
+            # cell = possible_spans[np.array(combo)]
+            # try:
+                # inv_cell = np.linalg.inv(cell.T)
+            # except np.linalg.linalg.LinAlgError:
+                # continue
+            # neigh_pos_combo = np.dot(shifted_neighbor_pos, inv_cell.T)
 
-            for i_pos, pos in enumerate(neigh_pos_combo):
-                x = 0 <= pos[0] <= 1
-                y = 0 <= pos[1] <= 1
-                z = 0 <= pos[2] <= 1
-                if x and y and z:
-                    true_neighbor_indices.append(neighbour_indices[i_pos])
+            # for i_pos, pos in enumerate(neigh_pos_combo):
+                # x = 0 <= pos[0] <= 1
+                # y = 0 <= pos[1] <= 1
+                # z = 0 <= pos[2] <= 1
+                # if x and y and z:
+                    # true_neighbor_indices.append(neighbour_indices[i_pos])
 
-        true_neighbor_indices = set(true_neighbor_indices)
-        true_neighbor_indices.discard(seed_index)
-        neighbour_indices = list(true_neighbor_indices)
-        neighbour_pos = positions[neighbour_indices]
+        # true_neighbor_indices = set(true_neighbor_indices)
+        # true_neighbor_indices.discard(seed_index)
+        # neighbour_indices = list(true_neighbor_indices)
+        # neighbour_pos = positions[neighbour_indices]
 
-        # Calculate the positions that come from adding or subtracting a
-        # possible span
-        added = neighbour_pos[:, np.newaxis, :] + possible_spans[np.newaxis, :, :]
-        subtr = neighbour_pos[:, np.newaxis, :] - possible_spans[np.newaxis, :, :]
+        # # Calculate the positions that come from adding or subtracting a
+        # # possible span
+        # added = neighbour_pos[:, np.newaxis, :] + possible_spans[np.newaxis, :, :]
+        # subtr = neighbour_pos[:, np.newaxis, :] - possible_spans[np.newaxis, :, :]
 
-        # Check if a matching atom was found in either the added or subtracted
-        # case with some tolerance. We need to take into account the periodic
-        # boundary conditions when comparing distances. This is done by
-        # checking if there is a closer mirror image.
-        added_displ = added[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
-        subtr_displ = subtr[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
+        # # Check if a matching atom was found in either the added or subtracted
+        # # case with some tolerance. We need to take into account the periodic
+        # # boundary conditions when comparing distances. This is done by
+        # # checking if there is a closer mirror image.
+        # added_displ = added[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
+        # subtr_displ = subtr[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
 
-        # Take periodicity into account by wrapping coordinate elements that are
-        # bigger than 0.5 or smaller than -0.5
-        cell = system.get_cell()
-        inverse_cell = np.linalg.inv(cell)
+        # # Take periodicity into account by wrapping coordinate elements that are
+        # # bigger than 0.5 or smaller than -0.5
+        # cell = system.get_cell()
+        # inverse_cell = np.linalg.inv(cell)
 
-        rel_added_displ = np.dot(added_displ, inverse_cell.T)
-        indices = np.where(rel_added_displ > 0.5)
-        rel_added_displ[indices] = 1 - rel_added_displ[indices]
-        indices = np.where(rel_added_displ < -0.5)
-        rel_added_displ[indices] = rel_added_displ[indices] + 1
-        added_displ = np.dot(rel_added_displ, cell.T)
+        # rel_added_displ = np.dot(added_displ, inverse_cell.T)
+        # indices = np.where(rel_added_displ > 0.5)
+        # rel_added_displ[indices] = 1 - rel_added_displ[indices]
+        # indices = np.where(rel_added_displ < -0.5)
+        # rel_added_displ[indices] = rel_added_displ[indices] + 1
+        # added_displ = np.dot(rel_added_displ, cell.T)
 
-        rel_subtr_displ = np.dot(subtr_displ, inverse_cell.T)
-        indices = np.where(rel_subtr_displ > 0.5)
-        rel_subtr_displ[indices] = 1 - rel_subtr_displ[indices]
-        indices = np.where(rel_subtr_displ < -0.5)
-        rel_subtr_displ[indices] = rel_subtr_displ[indices] + 1
-        subtr_displ = np.dot(rel_subtr_displ, cell.T)
+        # rel_subtr_displ = np.dot(subtr_displ, inverse_cell.T)
+        # indices = np.where(rel_subtr_displ > 0.5)
+        # rel_subtr_displ[indices] = 1 - rel_subtr_displ[indices]
+        # indices = np.where(rel_subtr_displ < -0.5)
+        # rel_subtr_displ[indices] = rel_subtr_displ[indices] + 1
+        # subtr_displ = np.dot(rel_subtr_displ, cell.T)
 
-        added_dist = np.linalg.norm(added_displ, axis=3)
-        subtr_dist = np.linalg.norm(subtr_displ, axis=3)
+        # added_dist = np.linalg.norm(added_displ, axis=3)
+        # subtr_dist = np.linalg.norm(subtr_displ, axis=3)
 
-        # For every neighbor, and every span, there should be one atom that
-        # matches either the added or subtracted span if the span is to be
-        # valid
-        a_neigh_ind, a_span_ind, _ = np.where(added_dist < 2*self.pos_tol)
-        s_neigh_ind, s_span_ind, _ = np.where(subtr_dist < 2*self.pos_tol)
-        neighbor_valid_ind = np.concatenate((a_neigh_ind, s_neigh_ind))
-        span_valid_ind = np.concatenate((a_span_ind, s_span_ind))
+        # # For every neighbor, and every span, there should be one atom that
+        # # matches either the added or subtracted span if the span is to be
+        # # valid. In a perfect lattice we would require that both an added and
+        # # subtracted positions would contain an atom, but here we relax this a
+        # # bit and require that at least one neighbour has both.
+        # a_neigh_ind, a_span_ind, _ = np.where(added_dist < 2*self.pos_tol)
+        # s_neigh_ind, s_span_ind, _ = np.where(subtr_dist < 2*self.pos_tol)
+        # neighbor_valid_ind = np.concatenate((a_neigh_ind, s_neigh_ind))
+        # span_valid_ind = np.concatenate((a_span_ind, s_span_ind))
+        # syscache["valid_neighbour_indices"] = neighbor_valid_ind
 
-        # Go through the spans and see which ones have a match for every
-        # neighbor
-        valid_spans = []
-        valid_span_indices = []
-        neighbor_index_set = set(range(len(neighbour_indices)))
-        for span_index in range(len(possible_spans)):
-            indices = np.where(span_valid_ind == span_index)
-            i_neighbor_ind = neighbor_valid_ind[indices]
-            i_neighbor_ind_set = set(i_neighbor_ind.tolist())
-            if i_neighbor_ind_set == neighbor_index_set:
-                valid_span_indices.append(span_index)
+        # # print(a_neigh_ind)
+        # # print(s_neigh_ind)
+        # # print(span_valid_ind)
+
+        # # Go through the spans and see which ones have a match for every
+        # # neighbor
+        # valid_spans = []
+        # valid_span_indices = []
+        # neighbor_index_set = set(range(len(neighbour_indices)))
+        # for span_index in range(len(possible_spans)):
+            # indices = np.where(span_valid_ind == span_index)
+            # i_neighbor_ind = neighbor_valid_ind[indices]
+            # i_neighbor_ind_set = set(i_neighbor_ind.tolist())
+            # if len(i_neighbor_ind_set) != 0 and i_neighbor_ind_set == neighbor_index_set:
+                # valid_span_indices.append(span_index)
 
         valid_spans = possible_spans[valid_span_indices]
         valid_spans_length = span_lengths[valid_span_indices]
         valid_spans_dot = span_dots[valid_span_indices]
+
+        # Add the spans that come from the periodicity
+        periodic_spans = system.get_cell()[~vacuum_dir]
+        periodic_spans_length = np.linalg.norm(periodic_spans, axis=1)
+
+        # Form the new dot product matrix that is extended by the dot products
+        # with the cell vectors.
+        periodic_spans_valid_dot = np.inner(periodic_spans, valid_spans)
+        periodic_spans_self_dot = np.inner(periodic_spans, periodic_spans)
+        n_val = len(valid_spans)
+        n_per = len(periodic_spans)
+        n_tot = n_val + n_per
+        new_dot_matrix = np.empty((n_tot, n_tot))
+        new_dot_matrix[0:n_val, 0:n_val] = valid_spans_dot
+        new_dot_matrix[n_val:, n_val:] = periodic_spans_self_dot
+        new_dot_matrix[n_val:, 0:n_val] = periodic_spans_valid_dot
+        new_dot_matrix[:n_val, n_val:] = periodic_spans_valid_dot.T
+        valid_spans_dot = new_dot_matrix
+        valid_spans = np.concatenate((valid_spans, periodic_spans))
+        valid_spans_length = np.concatenate((valid_spans_length, periodic_spans_length))
+
         syscache["valid_spans"] = valid_spans
         syscache["valid_spans_length"] = valid_spans_length
         syscache["valid_spans_dot"] = valid_spans_dot
@@ -733,96 +946,165 @@ class Classifier():
 
         where the vectors e are the possible unit vectors
         """
-        # Get all triplets of spans (combinations)
-        span_indices = range(len(spans))
-        indices = np.array(list(itertools.combinations(span_indices, 3)))
+        n_spans = len(spans)
+        if n_spans > 3:
 
-        # Calculate the 3D array of combined span weights for every triplet
-        norms = syscache["valid_spans_length"]
-        norm1 = norms[indices[:, 0]]
-        norm2 = norms[indices[:, 1]]
-        norm3 = norms[indices[:, 2]]
-        norm_vector = norm1 + norm2 + norm3
-        # print(norm_vector.shape)
+            # Get  triplets of spans (combinations)
+            span_indices = range(len(spans))
+            indices = np.array(list(itertools.combinations(span_indices, 3)))
 
-        # Calculate the orthogonality tensor from the dot products
-        dots = syscache["valid_spans_dot"]
-        dot1 = np.abs(dots[indices[:, -1], indices[:, 1]])
-        dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
-        dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
-        ortho_vector = dot1 + dot2 + dot3
-        # print(ortho_vector.shape)
+            # Calculate the 3D array of combined span weights for every triplet
+            norms = syscache["valid_spans_length"]
+            norm1 = norms[indices[:, 0]]
+            norm2 = norms[indices[:, 1]]
+            norm3 = norms[indices[:, 2]]
+            norm_vector = norm1 + norm2 + norm3
+            # print(norm_vector.shape)
 
-        # Create a combination of the norm tensor and the dots tensor with a
-        # possible weighting
-        norm_weight = 1
-        ortho_weight = 1
-        sum_vector = norm_weight*norm_vector + ortho_weight*ortho_vector
+            # Calculate the orthogonality tensor from the dot products
+            dots = syscache["valid_spans_dot"]
+            dot1 = np.abs(dots[indices[:, -1], indices[:, 1]])
+            dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
+            dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
+            ortho_vector = dot1 + dot2 + dot3
+            # print(ortho_vector.shape)
 
-        # Sort the triplets by value
-        i = indices[:, 0]
-        j = indices[:, 1]
-        k = indices[:, 2]
-        idx = sum_vector.argsort()
-        indices = np.dstack((i[idx], j[idx], k[idx]))
+            # Create a combination of the norm tensor and the dots tensor with a
+            # possible weighting
+            norm_weight = 1
+            ortho_weight = 1
+            sum_vector = norm_weight*norm_vector + ortho_weight*ortho_vector
 
-        # a = indices[0, 0, :]
-        # b = indices[0, 1, :]
-        # print(a)
-        # print(b)
-        # print(spans[a])
-        # print(spans[b])
+            # Sort the triplets by value
+            i = indices[:, 0]
+            j = indices[:, 1]
+            k = indices[:, 2]
+            idx = sum_vector.argsort()
+            indices = np.dstack((i[idx], j[idx], k[idx]))
 
-        # a = indices[0, 0, :]
-        # length = norm_vector[idx[0]]
-        # ortho = ortho_vector[idx[0]]
-        # print(ortho)
-        # print(length)
-        # print(a)
-        # print(spans[a])
-        # print(ortho_vector[a])
+            # Use the span with lowest score
+            cell = spans[indices[0, 0, :]]
+        else:
+            cell = spans
 
-        # Use the span with lowest score
-        cell = spans[indices[0, 0, :]]
+        # Choose linearly independent vectors
+        n_spans = len(cell)
+        if n_spans == 3:
+            lens = np.linalg.norm(cell, axis=1)
+            norm_cell = cell/lens
+            vol = np.linalg.det(norm_cell)
+            if vol < 0.1:
+                cell = cell[0:1, :]
 
         return cell
 
-    def _find_cell_atoms(self, system, seed_index, cell_basis_vectors):
+    def _find_cell_atoms_3d(self, system, seed_index, cell_basis_vectors):
         """Finds the atoms that are within the cell defined by the seed atom
         and the basis vectors.
 
         Args:
         Returns:
+            ASE.Atoms: System representing the found cell.
 
         """
         # Find the atoms within the found cell
-        new_basis_inverse = np.linalg.inv(cell_basis_vectors.T)
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
         seed_pos = positions[seed_index]
-        vec_new = np.dot(positions - seed_pos, new_basis_inverse.T)
+        indices = systax.geometry.positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
+        cell_pos = positions[indices]
+        cell_numbers = numbers[indices]
 
-        cell_pos = []
-        cell_numbers = []
-        a_prec, b_prec, c_prec = self.pos_tol/np.linalg.norm(cell_basis_vectors, axis=1)
+        trans_sys = Atoms(
+            cell=cell_basis_vectors,
+            positions=cell_pos,
+            symbols=cell_numbers
+        )
 
-        # If no positions are defined, find the atoms within the cell
-        for i_pos, pos in enumerate(vec_new):
-            x = 0 - a_prec <= pos[0] < 1 - a_prec
-            y = 0 - b_prec <= pos[1] < 1 - b_prec
-            z = 0 - c_prec <= pos[2] < 1 - c_prec
-            if x and y and z:
-                cell_pos.append(pos)
-                cell_numbers.append(numbers[i_pos])
+        return trans_sys
 
-        return np.array(cell_pos), np.array(cell_numbers)
+    def _find_cell_atoms_2d(self, syscache, seed_index, cell_basis_vectors):
+        """
+        Args:
+        Returns:
+            ASE.Atoms: System representing the found cell.
+            np.ndarray: Position of the seed atom in the new cell.
+        """
+        # Find the atoms that are repeated with the cell
+        sys = syscache["system"]
+        pos = sys.get_positions()
+        num = sys.get_atomic_numbers()
+        seed_pos = pos[seed_index]
+        # neighbour_mask = syscache["neighbour_mask"]
+        # neighbour_indices = np.where(neighbour_mask)
+        # valids = syscache["valid_neighbour_indices"]
+
+        # Create test basis that is used to find atoms that follow the
+        # translation
+        a = cell_basis_vectors[0]
+        b = cell_basis_vectors[1]
+        c = np.cross(a, b)
+        c = 2*self.max_cell_size*c/np.linalg.norm(c)
+        test_basis = np.array((a, b, c))
+        origin = seed_pos-0.5*c
+
+        # Convert positions to this basis
+        indices, rel_cell_pos = systax.geometry.positions_within_basis(
+            sys,
+            test_basis,
+            origin,
+            self.pos_tol,
+            [True, True, False]
+        )
+
+        # testi = Atoms(
+            # cell=test_basis,
+            # scaled_positions=rel_cell_pos,
+            # symbols=num[indices]
+        # )
+        # view(testi)
+
+        # Determine the real cell by getting the maximum and minimum heights of
+        # the cell and centering to minimum
+        c_comp = rel_cell_pos[:, 2]
+        max_index = np.argmax(c_comp)
+        min_index = np.argmin(c_comp)
+        pos_min = rel_cell_pos[min_index]
+        pos_max = rel_cell_pos[max_index]
+        new_c = pos_max - pos_min
+        new_c_cart = systax.geometry.to_cartesian(test_basis, new_c)
+        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min)
+        cart_cell_pos = systax.geometry.to_cartesian(test_basis, rel_cell_pos)
+
+        # Create a system for the found cell
+        new_basis = test_basis
+        new_basis[2, :] = new_c_cart
+        c_offset = np.array([0, 0, pos_min_cart[2]])
+        if np.linalg.norm(new_c_cart) >= 0.1:
+            new_pos = systax.geometry.change_basis(
+                cart_cell_pos,
+                new_basis,
+                offset=c_offset)
+        else:
+            new_pos = cart_cell_pos - c_offset
+
+        new_num = num[indices]
+        new_sys = Atoms(
+            cell=new_basis,
+            positions=new_pos,
+            symbols=new_num
+        )
+
+        seed_pos = -new_c
+
+        return new_sys, seed_pos
 
     def _get_repeated_system(self):
         """
         """
         if self._repeated_system is None:
             cell = self.system.get_cell()
-            multiplier = np.ceil(self.max_dist/np.linalg.norm(cell, axis=1)
+            multiplier = np.ceil(self.max_cell_size/np.linalg.norm(cell, axis=1)
                 ).astype(int)
             repeated = self.system.repeat(multiplier)
             self._repeated_system = repeated

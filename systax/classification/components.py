@@ -30,7 +30,9 @@ class AtomComponent(Component):
 
 
 class CrystalComponent(Component):
-    pass
+    def __init__(self, indices, atoms, analyzer=None):
+        super().__init__(indices, atoms)
+        self.analyzer = SurfaceAnalyzer(component=self)
 
 
 class Material1DComponent(Component):

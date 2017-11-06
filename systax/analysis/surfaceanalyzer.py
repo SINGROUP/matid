@@ -27,3 +27,9 @@ class SurfaceAnalyzer(Analyzer):
     def get_thickness(self):
         """
         """
+
+    def get_top_indices(self):
+        """Get the indices of the top surfaces. The top surface is determined
+        by:
+            vector a is the first
+        """
