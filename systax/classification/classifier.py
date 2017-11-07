@@ -10,10 +10,6 @@ from ase.data import covalent_radii
 from ase import Atoms
 from ase.visualize import view
 
-from sklearn.cluster import DBSCAN
-
-import spglib
-
 from systax.exceptions import ClassificationError
 from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, UnknownComponent
 from systax.classification.classifications import Surface, Atom, Molecule, Crystal, Material1D, Material2D, Unknown
@@ -387,7 +383,7 @@ class Classifier():
             if n_spans == 3:
                 trans_sys = self._find_cell_atoms_3d(system, seed_index, best_basis)
             elif n_spans == 2:
-                trans_sys, seed_position = self._find_cell_atoms_2d(seed_index, best_basis)
+                trans_sys, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
 
             # Find the adsorbate by looking at translational symmetry. Everything
             # else that does not belong to the surface unit cell is considered an
@@ -410,6 +406,466 @@ class Classifier():
             surfaces.append(surface)
 
         return surfaces
+
+    def _find_possible_bases(self, system, seed_index):
+        """Finds all the possible vectors that might span a cell.
+        """
+        # Calculate a displacement tensor that takes into account the
+        # periodicity of the system
+        pos = system.get_positions()
+        pbc = system.get_pbc()
+        cell = system.get_cell()
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos, pbc, cell)
+
+        # If the search radius exceeds beyond the periodic boundaries, extend the system
+        # Get the vectors that span from the seed to all other atoms
+        # disp_tensor = syscache["disp_tensor"]
+        seed_spans = disp_tensor[:, seed_index]
+        atomic_numbers = system.get_atomic_numbers()
+
+        # Find indices of atoms that are identical to seed atom
+        seed_element = atomic_numbers[seed_index]
+        identical_elem_mask = (atomic_numbers == seed_element)
+
+        # Only keep spans that are smaller than the maximum vector length
+        seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
+        distance_mask = (seed_span_lengths < self.max_cell_size)
+        # syscache["neighbour_mask"] = distance_mask
+
+        # Form a combined mask and filter spans with it
+        combined_mask = (distance_mask) & (identical_elem_mask)
+        combined_mask[seed_index] = False  # Ignore self
+        bases = seed_spans[combined_mask]
+
+        return bases, distance_mask
+
+    def _find_best_basis(self, system, seed_index, possible_spans, neighbour_mask, vacuum_dir):
+        """Check which spans in the given list actually are translational bases
+        on the surface.
+
+        In order to be a valid span, there has to be at least one repetition of
+        this span for all atoms that are nearby the seed atom.
+        """
+        # system = syscache["system"]
+        # disp_tensor = syscache["disp_tensor"]
+        positions = system.get_positions()
+        numbers = system.get_atomic_numbers()
+
+        # Find how many of the neighbouring atoms have a periodic copy in the
+        # found directions
+        neighbour_pos = positions[neighbour_mask]
+        neighbour_num = numbers[neighbour_mask]
+        one_direction = np.empty((len(possible_spans)), dtype=int)
+        two_directions = np.empty((len(possible_spans)), dtype=int)
+        for i_span, span in enumerate(possible_spans):
+            add_pos = neighbour_pos + span
+            sub_pos = neighbour_pos - span
+            add_indices = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
+            sub_indices = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
+
+            n_one = 0
+            n_two = 0
+            for i_ind in range(len(add_indices)):
+                i_add = add_indices[i_ind]
+                i_sub = sub_indices[i_ind]
+                if i_add is not None and i_sub is not None:
+                    n_two += 1
+                if i_add is not None or i_sub is not None:
+                    n_one += 1
+            one_direction[i_span] = n_one
+            two_directions[i_span] = n_two
+
+        # Get the spans that come from the periodicity if they are smaller than
+        # the maximum cell size
+        periodic_spans = system.get_cell()[~vacuum_dir]
+        periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
+        periodic_spans = periodic_spans[periodic_span_lengths < self.max_cell_size]
+        n_neighbours = len(neighbour_pos)
+        n_periodic_spans = len(periodic_spans)
+        if n_periodic_spans != 0:
+            periodic_ones = n_neighbours*np.ones((n_periodic_spans))
+            periodic_twos = n_neighbours*np.ones((n_neighbours))
+            possible_spans = np.concatenate((possible_spans, periodic_spans), axis=0)
+            one_direction = np.concatenate((one_direction, periodic_ones), axis=0)
+            two_directions = np.concatenate((two_directions, periodic_twos), axis=0)
+
+        # Find the directions with most one-directional matches
+        span_lengths = np.linalg.norm(possible_spans, axis=1)
+        normed_spans = possible_spans/span_lengths[:, np.newaxis]
+        dots = np.inner(possible_spans, possible_spans)
+        max_valid_neighbours = np.max(one_direction)
+        max_span_indices = np.where(one_direction == max_valid_neighbours)
+        v2 = normed_spans[max_span_indices]
+
+        # Find the dimensionality of the space spanned by this set of vectors
+        # print(v2)
+        n_dim = self._find_space_dim(v2)
+
+        # Find best valid combination of spans by looking at the number of
+        # neighbours that are periodically repeated by the spans, the
+        # orthogonality of the spans and the length of the spans
+        span_indices = list(range(len(possible_spans)))
+        combos = np.array(list(itertools.combinations(span_indices, n_dim)))
+
+        # First sort by the number of periodic neighbours that are generated.
+        # This way we first choose spans that create most periodic neighbours.
+        periodicity_scores = np.zeros(len(combos))
+        for i_dim in range(n_dim):
+            i_combos = combos[:, i_dim]
+            i_scores = two_directions[i_combos]
+            periodicity_scores += i_scores
+        periodicity_indices = np.argsort(-periodicity_scores)
+
+        # print(two_directions)
+        # print(periodicity_scores)
+
+        # Iterate over the combos until a linearly independent combo is found
+        # and stalemates have been resolved by checking the orthogonality and
+        # vector lengths
+        best_periodicity_score = 0
+        best_score = float('inf')
+        best_combo = None
+        for index in periodicity_indices:
+
+            combo = combos[index]
+            i_per_score = periodicity_scores[index]
+
+            # Check that the combination is linearly independent
+            area_threshold = 0.1
+            volume_threshold = 0.1
+            if n_dim == 2:
+                i = combo[0]
+                j = combo[1]
+                a_norm = normed_spans[i]
+                b_norm = normed_spans[j]
+                orthogonality = np.linalg.norm(np.cross(a_norm, b_norm))
+                if orthogonality < area_threshold:
+                    continue
+                else:
+                    ortho_score = abs(dots[i, j])
+                    norm_score = span_lengths[i] + span_lengths[j]
+                    i_score = ortho_score + norm_score
+
+            elif n_dim == 3:
+                i = combo[0]
+                j = combo[1]
+                k = combo[2]
+                a_norm = normed_spans[i]
+                b_norm = normed_spans[j]
+                c_norm = normed_spans[k]
+                orthogonality = np.dot(np.cross(a_norm, b_norm), c_norm)
+                if orthogonality < volume_threshold:
+                    continue
+                else:
+                    ortho_score = abs(dots[i, j]) + abs(dots[j, k]) + abs(dots[i, k])
+                    norm_score = span_lengths[i] + span_lengths[j] + span_lengths[k]
+                    i_score = ortho_score + norm_score
+
+            # print(i_per_score)
+            # print(i_score)
+
+            if i_per_score >= best_periodicity_score:
+                best_periodicity_score = i_per_score
+                if i_score < best_score:
+                    best_score = i_score
+                    best_combo = combo
+            else:
+                if best_combo is not None:
+                    break
+
+        best_spans = possible_spans[best_combo]
+
+        return best_spans
+
+    def _find_space_dim(self, normed_spans):
+        """Used to get the dimensionality of the space that is span by a set of
+        vectors.
+        """
+        # Get  triplets of spans (combinations)
+        span_indices = range(len(normed_spans))
+        indices = np.array(list(itertools.combinations(span_indices, 3)))
+
+        # Calculate the orthogonality tensor from the dot products of the
+        # normalized spans
+        dots = np.inner(normed_spans, normed_spans)
+        dot1 = np.abs(dots[indices[:, 0], indices[:, 1]])
+        dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
+        dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
+        ortho_vector = dot1 + dot2 + dot3
+
+        # Sort the triplets by value
+        i = indices[:, 0]
+        j = indices[:, 1]
+        k = indices[:, 2]
+        idx = ortho_vector.argsort()
+        indices = np.dstack((i[idx], j[idx], k[idx]))
+
+        # Get the triplet span with lowest score
+        cell = normed_spans[indices[0, 0, :]]
+
+        # Check the dimensionality of this set
+        a = cell[0, :]
+        b = cell[1, :]
+        c = cell[2, :]
+        triple_product = np.dot(np.cross(a, b), c)
+
+        dim = 3
+        area_limit = 0.1
+        volume_limit = 0.1
+        if triple_product < volume_limit:
+            dim = 2
+            cross1 = np.linalg.norm(np.cross(a, b))
+            cross2 = np.linalg.norm(np.cross(a, c))
+            cross3 = np.linalg.norm(np.cross(b, c))
+
+            if cross1 < area_limit and cross2 < area_limit and cross3 < area_limit:
+                dim = 1
+
+        return dim
+
+    def _find_cell_atoms_3d(self, system, seed_index, cell_basis_vectors):
+        """Finds the atoms that are within the cell defined by the seed atom
+        and the basis vectors.
+
+        Args:
+        Returns:
+            ASE.Atoms: System representing the found cell.
+
+        """
+        # Find the atoms within the found cell
+        positions = system.get_positions()
+        numbers = system.get_atomic_numbers()
+        seed_pos = positions[seed_index]
+        indices = systax.geometry.positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
+        cell_pos = positions[indices]
+        cell_numbers = numbers[indices]
+
+        trans_sys = Atoms(
+            cell=cell_basis_vectors,
+            positions=cell_pos,
+            symbols=cell_numbers
+        )
+
+        return trans_sys
+
+    def _find_cell_atoms_2d(self, system, seed_index, cell_basis_vectors):
+        """
+        Args:
+        Returns:
+            ASE.Atoms: System representing the found cell.
+            np.ndarray: Position of the seed atom in the new cell.
+        """
+        # Find the atoms that are repeated with the cell
+        pos = system.get_positions()
+        num = system.get_atomic_numbers()
+        seed_pos = pos[seed_index]
+
+        # Create test basis that is used to find atoms that follow the
+        # translation
+        a = cell_basis_vectors[0]
+        b = cell_basis_vectors[1]
+        c = np.cross(a, b)
+        c = 2*self.max_cell_size*c/np.linalg.norm(c)
+        test_basis = np.array((a, b, c))
+        origin = seed_pos-0.5*c
+
+        # Convert positions to this basis
+        indices, rel_cell_pos = systax.geometry.positions_within_basis(
+            system,
+            test_basis,
+            origin,
+            self.pos_tol,
+            [True, True, False]
+        )
+
+        # testi = Atoms(
+            # cell=test_basis,
+            # scaled_positions=rel_cell_pos,
+            # symbols=num[indices]
+        # )
+        # view(testi)
+
+        # Determine the real cell by getting the maximum and minimum heights of
+        # the cell and centering to minimum
+        c_comp = rel_cell_pos[:, 2]
+        max_index = np.argmax(c_comp)
+        min_index = np.argmin(c_comp)
+        pos_min = rel_cell_pos[min_index]
+        pos_max = rel_cell_pos[max_index]
+        new_c = pos_max - pos_min
+        new_c_cart = systax.geometry.to_cartesian(test_basis, new_c)
+        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min)
+        cart_cell_pos = systax.geometry.to_cartesian(test_basis, rel_cell_pos)
+
+        # Create a system for the found cell
+        new_basis = test_basis
+        new_basis[2, :] = new_c_cart
+        c_offset = np.array([0, 0, pos_min_cart[2]])
+        if np.linalg.norm(new_c_cart) >= 0.1:
+            new_pos = systax.geometry.change_basis(
+                cart_cell_pos,
+                new_basis,
+                offset=c_offset)
+        else:
+            new_pos = cart_cell_pos - c_offset
+
+        new_num = num[indices]
+        new_sys = Atoms(
+            cell=new_basis,
+            positions=new_pos,
+            symbols=new_num
+        )
+
+        seed_pos = -new_c
+
+        return new_sys, seed_pos
+
+    def _find_orthogonal_direction(self, system, vectors):
+        """Used to find the unit vector that is orthogonal to the surface.
+
+        Returns:
+            The lattice vector in the original lattice that is
+            orthogonal to the surface.
+
+        Raises:
+            ValueError: If the given system could not be identified as a
+            surface.
+        """
+        # If necessary repeat the system in order to distinguish the surface
+        # better
+        if self._orthogonal_dir is None:
+            repeated = systax.geometry.get_extended_system(system, 15)
+
+            # Get the eigenvalues and eigenvectors of the moment of inertia tensor
+            val, vec = repeated.get_moments_of_inertia(vectors=True)
+            sorted_indices = np.argsort(val)
+            val = val[sorted_indices]
+            vec = vec[sorted_indices]
+
+            # If the moment of inertia is not significantly bigger in one
+            # direction, then the system cannot be described as a surface.
+            moment_limit = 1.5
+            if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
+                raise ValueError(
+                    "The given system could not be identified as a surface. Make"
+                    " sure that you provide a surface system with a sufficient"
+                    " vacuum gap between the layers (at least ~8 angstroms of vacuum"
+                    " between layers.)"
+                )
+
+            # The biggest component is the orhogonal one
+            orthogonal_dir = vec[-1]
+
+            # Find out the cell direction that corresponds to the orthogonal one
+            # cell = repeated.get_cell()
+            dots = np.abs(np.dot(orthogonal_dir, vectors.T))
+            orthogonal_vector_index = np.argmax(dots)
+            orthogonal_vector = vectors[orthogonal_vector_index]
+            orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
+
+        return orthogonal_dir, orthogonal_vector_index
+
+    def _find_seed_points(self, system):
+        """Used to find the given number of seed points where the symmetry
+        search is started.
+
+        The search is initiated from the middle of the system, and then
+        additional seed points are added the direction orthogonal to the
+        surface.
+        """
+        # from ase.visualize import view
+        # view(system)
+
+        orthogonal_dir, _ = self._find_orthogonal_direction(system, system.get_cell())
+
+        # Determine the "width" of the system in the orthogonal direction
+        positions = system.get_positions()
+        components = np.dot(positions, orthogonal_dir)
+        min_index = np.argmin(components)
+        max_index = np.argmax(components)
+        min_value = components[min_index]
+        max_value = components[max_index]
+        seed_range = np.linspace(min_value, max_value, 2*self.n_seeds-1)
+
+        # Pick the initial surface position from the middle
+        positions = system.get_positions()
+        middle = np.mean(positions, axis=0)
+        distances = np.linalg.norm(positions - middle, axis=1)
+        init_seed_index = np.argmin(distances)
+        init_seed_pos = positions[init_seed_index]
+        ortho_init_comp = np.dot(init_seed_pos, orthogonal_dir)
+        init_seed_pos = init_seed_pos - ortho_init_comp*orthogonal_dir
+
+        # Find the seed atom closest to each seed point
+        seed_indices = np.zeros(2*self.n_seeds-1, dtype=int)
+        for i_point, point in enumerate(seed_range):
+            seed_pos = init_seed_pos + point*orthogonal_dir
+            distances = np.linalg.norm(positions - seed_pos, axis=1)
+            seed_index = np.argmin(distances)
+            seed_indices[i_point] = seed_index
+
+        return seed_indices
+
+    def _find_surface(self, system, seed_index, surface_unit):
+        """Used to find the atoms belonging to a surface.
+        """
+        positions = system.get_positions()
+        atomic_numbers = system.get_atomic_numbers()
+        seed_pos = positions[seed_index][np.newaxis, :]
+        seed_number = atomic_numbers[seed_index]
+        indices = []
+        cells = {}
+
+        # Create a map between an atomic number and indices in the system
+        number_to_index_map = {}
+        number_to_pos_map = {}
+        atomic_number_set = set(atomic_numbers)
+        for number in atomic_number_set:
+            number_indices = np.where(atomic_numbers == number)[0]
+            number_to_index_map[number] = number_indices
+            number_to_pos_map[number] = positions[number_indices]
+
+        # searched_coords = set()
+        # collection = LinkedUnitCollection(system)
+        # self._find_surf_rec(
+            # system,
+            # collection,
+            # number_to_index_map,
+            # number_to_pos_map,
+            # seed_index,
+            # seed_pos,
+            # seed_number,
+            # surface_unit,
+            # searched_coords,
+            # (0, 0, 0))
+
+        self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, surface_unit)
+
+        # Find how many times the unit cell is repeated in the direction
+        # orthogonal to the surface
+        cell_basis = surface_unit.get_cell()
+        ortho_dir, ortho_ind = self._find_orthogonal_direction(system, cell_basis)
+        n_layers = 0
+        for multiplier in (1, -1):
+            done = False
+            # print(multiplier)
+            i = 0
+            start = np.array((0, 0, 0))
+            start[ortho_ind] = 1
+            while not done:
+                i_pos = start*i*multiplier
+                i_cell = cells.get(tuple(i_pos))
+                # print(i_cell)
+                # print(i_pos)
+                if i_cell is None:
+                    done = True
+                else:
+                    i += 1
+            n_layers += i
+
+        # print(n_layers)
+
+        return indices, n_layers
 
     def _find_surf_rec(
             self,
@@ -649,705 +1105,64 @@ class Classifier():
             )
             self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, a, b, c, system, i_seed_index, i_seed_pos, seed_number, new_cell)
 
-    def _find_surface(self, system, seed_index, surface_unit):
-        """Used to find the atoms belonging to a surface.
-        """
-        positions = system.get_positions()
-        atomic_numbers = system.get_atomic_numbers()
-        seed_pos = positions[seed_index][np.newaxis, :]
-        seed_number = atomic_numbers[seed_index]
-        indices = []
-        cells = {}
+    # def _find_optimal_span(self, syscache, spans):
+        # """There might be more than three valid spans that were found, so this
+        # function is used to select three.
 
-        # Create a map between an atomic number and indices in the system
-        number_to_index_map = {}
-        number_to_pos_map = {}
-        atomic_number_set = set(atomic_numbers)
-        for number in atomic_number_set:
-            number_indices = np.where(atomic_numbers == number)[0]
-            number_to_index_map[number] = number_indices
-            number_to_pos_map[number] = positions[number_indices]
+        # The selection is based on the minimization of the following term:
 
-        # searched_coords = set()
-        # collection = LinkedUnitCollection(system)
-        # self._find_surf_rec(
-            # system,
-            # collection,
-            # number_to_index_map,
-            # number_to_pos_map,
-            # seed_index,
-            # seed_pos,
-            # seed_number,
-            # surface_unit,
-            # searched_coords,
-            # (0, 0, 0))
+            # \min e_i^2 + \sum_{i \neq j} \hat{e}_i \cdot \hat{e}_j
 
-        self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, surface_unit)
+        # where the vectors e are the possible unit vectors
+        # """
+        # n_spans = len(spans)
+        # if n_spans > 3:
 
-        # Find how many times the unit cell is repeated in the direction
-        # orthogonal to the surface
-        cell_basis = surface_unit.get_cell()
-        ortho_dir, ortho_ind = self._find_orthogonal_direction(cell_basis)
-        n_layers = 0
-        for multiplier in (1, -1):
-            done = False
-            # print(multiplier)
-            i = 0
-            start = np.array((0, 0, 0))
-            start[ortho_ind] = 1
-            while not done:
-                i_pos = start*i*multiplier
-                i_cell = cells.get(tuple(i_pos))
-                # print(i_cell)
-                # print(i_pos)
-                if i_cell is None:
-                    done = True
-                else:
-                    i += 1
-            n_layers += i
+            # # Get  triplets of spans (combinations)
+            # span_indices = range(len(spans))
+            # indices = np.array(list(itertools.combinations(span_indices, 3)))
 
-        # print(n_layers)
+            # # Calculate the 3D array of combined span weights for every triplet
+            # norms = syscache["valid_spans_length"]
+            # norm1 = norms[indices[:, 0]]
+            # norm2 = norms[indices[:, 1]]
+            # norm3 = norms[indices[:, 2]]
+            # norm_vector = norm1 + norm2 + norm3
+            # # print(norm_vector.shape)
 
-        return indices, n_layers
+            # # Calculate the orthogonality tensor from the dot products
+            # dots = syscache["valid_spans_dot"]
+            # dot1 = np.abs(dots[indices[:, -1], indices[:, 1]])
+            # dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
+            # dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
+            # ortho_vector = dot1 + dot2 + dot3
+            # # print(ortho_vector.shape)
 
-    def _find_possible_bases(self, system, seed_index):
-        """Finds all the possible vectors that might span a cell.
-        """
-        # Calculate a displacement tensor that takes into account the
-        # periodicity of the system
-        pos = system.get_positions()
-        pbc = system.get_pbc()
-        cell = system.get_cell()
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos, pbc, cell)
-
-        # If the search radius exceeds beyond the periodic boundaries, extend the system
-        # Get the vectors that span from the seed to all other atoms
-        # disp_tensor = syscache["disp_tensor"]
-        seed_spans = disp_tensor[:, seed_index]
-        atomic_numbers = system.get_atomic_numbers()
-
-        # Find indices of atoms that are identical to seed atom
-        seed_element = atomic_numbers[seed_index]
-        identical_elem_mask = (atomic_numbers == seed_element)
-
-        # Only keep spans that are smaller than the maximum vector length
-        seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
-        distance_mask = (seed_span_lengths < self.max_cell_size)
-        # syscache["neighbour_mask"] = distance_mask
-
-        # Form a combined mask and filter spans with it
-        combined_mask = (distance_mask) & (identical_elem_mask)
-        combined_mask[seed_index] = False  # Ignore self
-        bases = seed_spans[combined_mask]
-
-        return bases, distance_mask
-
-    def _find_best_basis(self, system, seed_index, possible_spans, neighbour_mask, vacuum_dir):
-        """Check which spans in the given list actually are translational bases
-        on the surface.
-
-        In order to be a valid span, there has to be at least one repetition of
-        this span for all atoms that are nearby the seed atom.
-        """
-        # system = syscache["system"]
-        # disp_tensor = syscache["disp_tensor"]
-        positions = system.get_positions()
-        numbers = system.get_atomic_numbers()
-        span_lengths = np.linalg.norm(possible_spans, axis=1)
-        normed_spans = possible_spans/span_lengths[:, np.newaxis]
-        dots = np.inner(possible_spans, possible_spans)
-
-        # Find how many of the neighbouring atoms have a periodic copy in the
-        # found directions
-        neighbour_pos = positions[neighbour_mask]
-        neighbour_num = numbers[neighbour_mask]
-        one_direction = np.empty((len(possible_spans)), dtype=int)
-        two_directions = np.empty((len(possible_spans)), dtype=int)
-        for i_span, span in enumerate(possible_spans):
-            add_pos = neighbour_pos + span
-            sub_pos = neighbour_pos - span
-            add_indices = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
-            sub_indices = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
-
-            n_one = 0
-            n_two = 0
-            for i_ind in range(len(add_indices)):
-                i_add = add_indices[i_ind]
-                i_sub = sub_indices[i_ind]
-                if i_add is not None and i_sub is not None:
-                    n_two += 1
-                if i_add is not None or i_sub is not None:
-                    n_one += 1
-            one_direction[i_span] = n_one
-            two_directions[i_span] = n_two
-
-        # Get the spans that come from the periodicity if they are smaller than
-        # the maximum cell size
-        periodic_spans = system.get_cell()[~vacuum_dir]
-        periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
-        periodic_spans = periodic_spans[periodic_span_lengths < self.max_cell_size]
-        n_neighbours = len(neighbour_pos)
-        n_periodic_spans = len(periodic_spans)
-        if n_periodic_spans != 0:
-            periodic_ones = n_neighbours*np.ones((n_periodic_spans))
-            periodic_twos = n_neighbours*np.ones((n_neighbours))
-            np.concatenate((possible_spans, periodic_spans), axis=0)
-            np.concatenate((one_direction, periodic_ones), axis=0)
-            np.concatenate((two_directions, periodic_twos), axis=0)
-
-        # Find the directions with most one-directional matches
-        max_valid_neighbours = np.max(one_direction)
-        max_span_indices = np.where(one_direction == max_valid_neighbours)
-        v2 = normed_spans[max_span_indices]
-
-        # Find the dimensionality of the space spanned by this set of vectors
-        n_dim = self._find_space_dim(v2)
-
-        # Find best valid combination of spans by looking at the number of
-        # neighbours that are periodically repeated by the spans, the
-        # orthogonality of the spans and the length of the spans
-        span_indices = list(range(len(possible_spans)))
-        combos = np.array(list(itertools.combinations(span_indices, n_dim)))
-
-        # First sort by the number of periodic neighbours that are generated.
-        # This way we first choose spans that create most periodic neighbours.
-        periodicity_scores = np.array(len(possible_spans))
-        for i_dim in range(n_dim):
-            periodicity_scores = two_directions[combos[:, i_dim]]
-        periodicity_indices = np.argsort(periodicity_scores)
-
-        # Iterate over the combos until a linearly independent combo is found
-        # and stalemates have been resolved by checking the orthogonality and
-        # vector lengths
-        best_periodicity_score = 0
-        best_score = 0
-        best_combo = None
-        for index in periodicity_indices:
-
-            combo = combos[index]
-            i_per_score = periodicity_scores[index]
-
-            # Check that the combination is linearly independent
-            area_threshold = 0.1
-            volume_threshold = 0.1
-            if n_dim == 2:
-                i = combo[0]
-                j = combo[1]
-                a_norm = normed_spans[i]
-                b_norm = normed_spans[j]
-                orthogonality = np.linalg.norm(np.cross(a_norm, b_norm))
-                if orthogonality < area_threshold:
-                    continue
-                else:
-                    ortho_score = dots[i, j]
-                    norm_score = span_lengths[i] + span_lengths[j]
-                    i_score = ortho_score + norm_score
-
-            elif n_dim == 3:
-                i = combo[0]
-                j = combo[1]
-                k = combo[2]
-                a_norm = normed_spans[i]
-                b_norm = normed_spans[j]
-                c_norm = normed_spans[k]
-                orthogonality = np.dot(np.cross(a_norm, b_norm), c_norm)
-                if orthogonality < volume_threshold:
-                    continue
-                else:
-                    ortho_score = dots[i, j] + dots[j, k] + dots[i, k]
-                    norm_score = span_lengths[i] + span_lengths[j] + span_lengths[k]
-                    i_score = ortho_score + norm_score
-
-            # If worse periodicity score encountered and a valid span has been
-            # found, the search is ended
-            if i_per_score >= best_periodicity_score:
-                if i_score > best_score:
-                    best_score = i_score
-                    best_combo = combo
-            elif best_combo is not None:
-                break
-
-        best_spans = possible_spans[best_combo]
-
-        return best_spans
-
-        # Find best valid 2D combination
-
-        # # Calculate the cross product of the two vectors in this combo. If
-        # # it is bigger than a threshold, this is a linearly independent
-        # # combo and it is choosen.
-        # basis_2d = np.empty((2, 3))
-        # basis_2d_score = None
-        # current_combo_score = 0
-        # for i_combo in sorted_combos:
-
-            # combo_score = total_scores[i_combo]
-            # i_a, i_b = combos_2d[i_combo]
-            # a = possible_spans[i_a]
-            # b = possible_spans[i_b]
-
-            # a_norm = a/np.linalg.norm(a)
-            # b_norm = b/np.linalg.norm(b)
-            # dot = np.dot(a_norm, b_norm)
-            # norm = a_norm + b_norm
-
-            # c = np.linalg.norm(np.cross(a_norm, b_norm))
-            # score = dot +
-
+            # # Create a combination of the norm tensor and the dots tensor with a
+            # # possible weighting
+            # norm_weight = 1
+            # ortho_weight = 1
             # sum_vector = norm_weight*norm_vector + ortho_weight*ortho_vector
 
-            # if dot > 0.1:
-                # basis_2d[0, :] = a
-                # basis_2d[1, :] = b
-                # basis_2d_score = combo_score
-                # break
-
-        # print(basis_2d)
-        # print(basis_2d_score)
-
-        # TODO: Find which produces better coverage: 2D or 3D
-
-        # Ensure that only neighbors that are within the "region" defined by
-        # the possible spans are included in the test. Neighbor atoms outside
-        # the possible spans might already include e.g. adsorbate atoms.
-        # spans_norm = possible_spans/span_lengths[:, np.newaxis]
-        # span_dots = np.inner(spans_norm, spans_norm)
-        # combos = []
-
-        # # Form triplests of spans that are most orthogonal.
-        # n_spans = len(possible_spans)
-        # for i_span in range(n_spans):
-            # dots = span_dots[i_span, :]
-            # indices = np.argsort(dots)
-
-            # # Combinations are emitted in sorted order
-            # combinations = itertools.combinations(range(-1, -n_spans, -1), 2)
-            # for i, j in combinations:
-                # closest_1 = indices[i]
-                # closest_2 = indices[j]
-                # if closest_1 == i_span or closest_2 == i_span:
-                    # continue
-                # i_combo = set((i_span, closest_1, closest_2))
-                # if i_combo not in combos:
-                    # combos.append(list(i_combo))
-                    # break
-
-        # Find the neighbors that are within the cells defined by the span combinations
-        # true_neighbor_indices = []
-        # shifted_neighbor_pos = neighbour_pos-seed_pos
-        # for i_combo, combo in enumerate(combos):
-            # cell = possible_spans[np.array(combo)]
-            # try:
-                # inv_cell = np.linalg.inv(cell.T)
-            # except np.linalg.linalg.LinAlgError:
-                # continue
-            # neigh_pos_combo = np.dot(shifted_neighbor_pos, inv_cell.T)
-
-            # for i_pos, pos in enumerate(neigh_pos_combo):
-                # x = 0 <= pos[0] <= 1
-                # y = 0 <= pos[1] <= 1
-                # z = 0 <= pos[2] <= 1
-                # if x and y and z:
-                    # true_neighbor_indices.append(neighbour_indices[i_pos])
-
-        # true_neighbor_indices = set(true_neighbor_indices)
-        # true_neighbor_indices.discard(seed_index)
-        # neighbour_indices = list(true_neighbor_indices)
-        # neighbour_pos = positions[neighbour_indices]
-
-        # # Calculate the positions that come from adding or subtracting a
-        # # possible span
-        # added = neighbour_pos[:, np.newaxis, :] + possible_spans[np.newaxis, :, :]
-        # subtr = neighbour_pos[:, np.newaxis, :] - possible_spans[np.newaxis, :, :]
-
-        # # Check if a matching atom was found in either the added or subtracted
-        # # case with some tolerance. We need to take into account the periodic
-        # # boundary conditions when comparing distances. This is done by
-        # # checking if there is a closer mirror image.
-        # added_displ = added[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
-        # subtr_displ = subtr[:, :, np.newaxis, :] - positions[np.newaxis, np.newaxis, :, :]
-
-        # # Take periodicity into account by wrapping coordinate elements that are
-        # # bigger than 0.5 or smaller than -0.5
-        # cell = system.get_cell()
-        # inverse_cell = np.linalg.inv(cell)
-
-        # rel_added_displ = np.dot(added_displ, inverse_cell.T)
-        # indices = np.where(rel_added_displ > 0.5)
-        # rel_added_displ[indices] = 1 - rel_added_displ[indices]
-        # indices = np.where(rel_added_displ < -0.5)
-        # rel_added_displ[indices] = rel_added_displ[indices] + 1
-        # added_displ = np.dot(rel_added_displ, cell.T)
-
-        # rel_subtr_displ = np.dot(subtr_displ, inverse_cell.T)
-        # indices = np.where(rel_subtr_displ > 0.5)
-        # rel_subtr_displ[indices] = 1 - rel_subtr_displ[indices]
-        # indices = np.where(rel_subtr_displ < -0.5)
-        # rel_subtr_displ[indices] = rel_subtr_displ[indices] + 1
-        # subtr_displ = np.dot(rel_subtr_displ, cell.T)
-
-        # added_dist = np.linalg.norm(added_displ, axis=3)
-        # subtr_dist = np.linalg.norm(subtr_displ, axis=3)
-
-        # # For every neighbor, and every span, there should be one atom that
-        # # matches either the added or subtracted span if the span is to be
-        # # valid. In a perfect lattice we would require that both an added and
-        # # subtracted positions would contain an atom, but here we relax this a
-        # # bit and require that at least one neighbour has both.
-        # a_neigh_ind, a_span_ind, _ = np.where(added_dist < 2*self.pos_tol)
-        # s_neigh_ind, s_span_ind, _ = np.where(subtr_dist < 2*self.pos_tol)
-        # neighbor_valid_ind = np.concatenate((a_neigh_ind, s_neigh_ind))
-        # span_valid_ind = np.concatenate((a_span_ind, s_span_ind))
-        # syscache["valid_neighbour_indices"] = neighbor_valid_ind
-
-        # # print(a_neigh_ind)
-        # # print(s_neigh_ind)
-        # # print(span_valid_ind)
-
-        # # Go through the spans and see which ones have a match for every
-        # # neighbor
-        # valid_spans = []
-        # valid_span_indices = []
-        # neighbor_index_set = set(range(len(neighbour_indices)))
-        # for span_index in range(len(possible_spans)):
-            # indices = np.where(span_valid_ind == span_index)
-            # i_neighbor_ind = neighbor_valid_ind[indices]
-            # i_neighbor_ind_set = set(i_neighbor_ind.tolist())
-            # if len(i_neighbor_ind_set) != 0 and i_neighbor_ind_set == neighbor_index_set:
-                # valid_span_indices.append(span_index)
-
-        # valid_spans = possible_spans[valid_span_indices]
-        # valid_spans_length = span_lengths[valid_span_indices]
-        # valid_spans_dot = span_dots[valid_span_indices]
-
-        # # Add the spans that come from the periodicity
-        # periodic_spans = system.get_cell()[~vacuum_dir]
-        # periodic_spans_length = np.linalg.norm(periodic_spans, axis=1)
-
-        # # Form the new dot product matrix that is extended by the dot products
-        # # with the cell vectors.
-        # periodic_spans_valid_dot = np.inner(periodic_spans, valid_spans)
-        # periodic_spans_self_dot = np.inner(periodic_spans, periodic_spans)
-        # n_val = len(valid_spans)
-        # n_per = len(periodic_spans)
-        # n_tot = n_val + n_per
-        # new_dot_matrix = np.empty((n_tot, n_tot))
-        # new_dot_matrix[0:n_val, 0:n_val] = valid_spans_dot
-        # new_dot_matrix[n_val:, n_val:] = periodic_spans_self_dot
-        # new_dot_matrix[n_val:, 0:n_val] = periodic_spans_valid_dot
-        # new_dot_matrix[:n_val, n_val:] = periodic_spans_valid_dot.T
-        # valid_spans_dot = new_dot_matrix
-        # valid_spans = np.concatenate((valid_spans, periodic_spans))
-        # valid_spans_length = np.concatenate((valid_spans_length, periodic_spans_length))
-
-        # syscache["valid_spans"] = valid_spans
-        # syscache["valid_spans_length"] = valid_spans_length
-        # syscache["valid_spans_dot"] = valid_spans_dot
-
-        # return valid_spans
-
-    def _find_space_dim(self, normed_spans):
-        """Used to get the dimensionality of the space that is span by a set of
-        vectors.
-        """
-        # Get  triplets of spans (combinations)
-        span_indices = range(len(normed_spans))
-        indices = np.array(list(itertools.combinations(span_indices, 3)))
-
-        # Calculate the orthogonality tensor from the dot products of the
-        # normalized spans
-        dots = np.inner(normed_spans, normed_spans)
-        dot1 = np.abs(dots[indices[:, 0], indices[:, 1]])
-        dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
-        dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
-        ortho_vector = dot1 + dot2 + dot3
-
-        # Sort the triplets by value
-        i = indices[:, 0]
-        j = indices[:, 1]
-        k = indices[:, 2]
-        idx = ortho_vector.argsort()
-        indices = np.dstack((i[idx], j[idx], k[idx]))
-
-        # Get the triplet span with lowest score
-        cell = normed_spans[indices[0, 0, :]]
-
-        # Check the dimensionality of this set
-        a = cell[0, :]
-        b = cell[1, :]
-        c = cell[2, :]
-        triple_product = np.dot(np.cross(a, b), c)
-
-        dim = 3
-        area_limit = 0.1
-        volume_limit = 0.1
-        if triple_product < volume_limit:
-            dim = 2
-            cross1 = np.linalg.norm(np.cross(a, b))
-            cross2 = np.linalg.norm(np.cross(a, c))
-            cross3 = np.linalg.norm(np.cross(b, c))
-
-            if cross1 < area_limit and cross2 < area_limit and cross3 < area_limit:
-                dim = 1
-
-        return dim
-
-    def _find_optimal_span(self, syscache, spans):
-        """There might be more than three valid spans that were found, so this
-        function is used to select three.
-
-        The selection is based on the minimization of the following term:
-
-            \min e_i^2 + \sum_{i \neq j} \hat{e}_i \cdot \hat{e}_j
-
-        where the vectors e are the possible unit vectors
-        """
-        n_spans = len(spans)
-        if n_spans > 3:
-
-            # Get  triplets of spans (combinations)
-            span_indices = range(len(spans))
-            indices = np.array(list(itertools.combinations(span_indices, 3)))
-
-            # Calculate the 3D array of combined span weights for every triplet
-            norms = syscache["valid_spans_length"]
-            norm1 = norms[indices[:, 0]]
-            norm2 = norms[indices[:, 1]]
-            norm3 = norms[indices[:, 2]]
-            norm_vector = norm1 + norm2 + norm3
-            # print(norm_vector.shape)
-
-            # Calculate the orthogonality tensor from the dot products
-            dots = syscache["valid_spans_dot"]
-            dot1 = np.abs(dots[indices[:, -1], indices[:, 1]])
-            dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
-            dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
-            ortho_vector = dot1 + dot2 + dot3
-            # print(ortho_vector.shape)
-
-            # Create a combination of the norm tensor and the dots tensor with a
-            # possible weighting
-            norm_weight = 1
-            ortho_weight = 1
-            sum_vector = norm_weight*norm_vector + ortho_weight*ortho_vector
-
-            # Sort the triplets by value
-            i = indices[:, 0]
-            j = indices[:, 1]
-            k = indices[:, 2]
-            idx = sum_vector.argsort()
-            indices = np.dstack((i[idx], j[idx], k[idx]))
-
-            # Use the span with lowest score
-            cell = spans[indices[0, 0, :]]
-        else:
-            cell = spans
-
-        # Choose linearly independent vectors
-        n_spans = len(cell)
-        if n_spans == 3:
-            lens = np.linalg.norm(cell, axis=1)
-            norm_cell = cell/lens
-            vol = np.linalg.det(norm_cell)
-            if vol < 0.1:
-                cell = cell[0:1, :]
-
-        return cell
-
-    def _find_cell_atoms_3d(self, system, seed_index, cell_basis_vectors):
-        """Finds the atoms that are within the cell defined by the seed atom
-        and the basis vectors.
-
-        Args:
-        Returns:
-            ASE.Atoms: System representing the found cell.
-
-        """
-        # Find the atoms within the found cell
-        positions = system.get_positions()
-        numbers = system.get_atomic_numbers()
-        seed_pos = positions[seed_index]
-        indices = systax.geometry.positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
-        cell_pos = positions[indices]
-        cell_numbers = numbers[indices]
-
-        trans_sys = Atoms(
-            cell=cell_basis_vectors,
-            positions=cell_pos,
-            symbols=cell_numbers
-        )
-
-        return trans_sys
-
-    def _find_cell_atoms_2d(self, syscache, seed_index, cell_basis_vectors):
-        """
-        Args:
-        Returns:
-            ASE.Atoms: System representing the found cell.
-            np.ndarray: Position of the seed atom in the new cell.
-        """
-        # Find the atoms that are repeated with the cell
-        sys = syscache["system"]
-        pos = sys.get_positions()
-        num = sys.get_atomic_numbers()
-        seed_pos = pos[seed_index]
-        # neighbour_mask = syscache["neighbour_mask"]
-        # neighbour_indices = np.where(neighbour_mask)
-        # valids = syscache["valid_neighbour_indices"]
-
-        # Create test basis that is used to find atoms that follow the
-        # translation
-        a = cell_basis_vectors[0]
-        b = cell_basis_vectors[1]
-        c = np.cross(a, b)
-        c = 2*self.max_cell_size*c/np.linalg.norm(c)
-        test_basis = np.array((a, b, c))
-        origin = seed_pos-0.5*c
-
-        # Convert positions to this basis
-        indices, rel_cell_pos = systax.geometry.positions_within_basis(
-            sys,
-            test_basis,
-            origin,
-            self.pos_tol,
-            [True, True, False]
-        )
-
-        # testi = Atoms(
-            # cell=test_basis,
-            # scaled_positions=rel_cell_pos,
-            # symbols=num[indices]
-        # )
-        # view(testi)
-
-        # Determine the real cell by getting the maximum and minimum heights of
-        # the cell and centering to minimum
-        c_comp = rel_cell_pos[:, 2]
-        max_index = np.argmax(c_comp)
-        min_index = np.argmin(c_comp)
-        pos_min = rel_cell_pos[min_index]
-        pos_max = rel_cell_pos[max_index]
-        new_c = pos_max - pos_min
-        new_c_cart = systax.geometry.to_cartesian(test_basis, new_c)
-        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min)
-        cart_cell_pos = systax.geometry.to_cartesian(test_basis, rel_cell_pos)
-
-        # Create a system for the found cell
-        new_basis = test_basis
-        new_basis[2, :] = new_c_cart
-        c_offset = np.array([0, 0, pos_min_cart[2]])
-        if np.linalg.norm(new_c_cart) >= 0.1:
-            new_pos = systax.geometry.change_basis(
-                cart_cell_pos,
-                new_basis,
-                offset=c_offset)
-        else:
-            new_pos = cart_cell_pos - c_offset
-
-        new_num = num[indices]
-        new_sys = Atoms(
-            cell=new_basis,
-            positions=new_pos,
-            symbols=new_num
-        )
-
-        seed_pos = -new_c
-
-        return new_sys, seed_pos
-
-    def _get_repeated_system(self):
-        """
-        """
-        if self._repeated_system is None:
-            cell = self.system.get_cell()
-            multiplier = np.ceil(self.max_cell_size/np.linalg.norm(cell, axis=1)
-                ).astype(int)
-            repeated = self.system.repeat(multiplier)
-            self._repeated_system = repeated
-        return self._repeated_system
-
-    def _find_orthogonal_direction(self, vectors):
-        """Used to find the unit vector that is orthogonal to the surface.
-
-        Returns:
-            The lattice vector in the original lattice that is
-            orthogonal to the surface.
-
-        Raises:
-            ValueError: If the given system could not be identified as a
-            surface.
-        """
-        # If necessary repeat the system in order to distinguish the surface
-        # better
-        if self._orthogonal_dir is None:
-            repeated = self._get_repeated_system()
-
-            # Get the eigenvalues and eigenvectors of the moment of inertia tensor
-            val, vec = repeated.get_moments_of_inertia(vectors=True)
-            sorted_indices = np.argsort(val)
-            val = val[sorted_indices]
-            vec = vec[sorted_indices]
-
-            # If the moment of inertia is not significantly bigger in one
-            # direction, then the system cannot be described as a surface.
-            moment_limit = 1.5
-            if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
-                raise ValueError(
-                    "The given system could not be identified as a surface. Make"
-                    " sure that you provide a surface system with a sufficient"
-                    " vacuum gap between the layers (at least ~8 angstroms of vacuum"
-                    " between layers.)"
-                )
-
-            # The biggest component is the orhogonal one
-            orthogonal_dir = vec[-1]
-
-            # Find out the cell direction that corresponds to the orthogonal one
-            # cell = repeated.get_cell()
-            dots = np.abs(np.dot(orthogonal_dir, vectors.T))
-            orthogonal_vector_index = np.argmax(dots)
-            orthogonal_vector = vectors[orthogonal_vector_index]
-            orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
-
-        return orthogonal_dir, orthogonal_vector_index
-
-    def _find_seed_points(self, system):
-        """Used to find the given number of seed points where the symmetry
-        search is started.
-
-        The search is initiated from the middle of the system, and then
-        additional seed points are added the direction orthogonal to the
-        surface.
-        """
-        # from ase.visualize import view
-        # view(system)
-
-        orthogonal_dir, _ = self._find_orthogonal_direction(self.system.get_cell())
-
-        # Determine the "width" of the system in the orthogonal direction
-        positions = system.get_positions()
-        components = np.dot(positions, orthogonal_dir)
-        min_index = np.argmin(components)
-        max_index = np.argmax(components)
-        min_value = components[min_index]
-        max_value = components[max_index]
-        seed_range = np.linspace(min_value, max_value, 2*self.n_seeds-1)
-
-        # Pick the initial surface position from the middle
-        positions = system.get_positions()
-        middle = np.mean(positions, axis=0)
-        distances = np.linalg.norm(positions - middle, axis=1)
-        init_seed_index = np.argmin(distances)
-        init_seed_pos = positions[init_seed_index]
-        ortho_init_comp = np.dot(init_seed_pos, orthogonal_dir)
-        init_seed_pos = init_seed_pos - ortho_init_comp*orthogonal_dir
-
-        # Find the seed atom closest to each seed point
-        seed_indices = np.zeros(2*self.n_seeds-1, dtype=int)
-        for i_point, point in enumerate(seed_range):
-            seed_pos = init_seed_pos + point*orthogonal_dir
-            distances = np.linalg.norm(positions - seed_pos, axis=1)
-            seed_index = np.argmin(distances)
-            seed_indices[i_point] = seed_index
-
-        return seed_indices
+            # # Sort the triplets by value
+            # i = indices[:, 0]
+            # j = indices[:, 1]
+            # k = indices[:, 2]
+            # idx = sum_vector.argsort()
+            # indices = np.dstack((i[idx], j[idx], k[idx]))
+
+            # # Use the span with lowest score
+            # cell = spans[indices[0, 0, :]]
+        # else:
+            # cell = spans
+
+        # # Choose linearly independent vectors
+        # n_spans = len(cell)
+        # if n_spans == 3:
+            # lens = np.linalg.norm(cell, axis=1)
+            # norm_cell = cell/lens
+            # vol = np.linalg.det(norm_cell)
+            # if vol < 0.1:
+                # cell = cell[0:1, :]
+
+        # return cell
