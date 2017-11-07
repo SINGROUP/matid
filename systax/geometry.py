@@ -277,24 +277,78 @@ def get_distance_matrix(cell, pos1, pos2, wrap_distances=False):
     return distance_matrix
 
 
-def get_displacement_tensor(pos1, pos2):
+def get_displacement_tensor(pos1, pos2, pbc=None, cell=None):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
 
     The displacement tensor is a matrix where the entry A[i, j, :] is the
-    vector positions[i] - positions[j]
+    vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1
 
     Args:
-        positions(np.ndarray): 2D array of positions
+        pos1(np.ndarray): 2D array of positions
+        pos2(np.ndarray): 2D array of positions
+        pbc(boolean or a list of booleans): Periodicity of the axes
+        cell(np.ndarray): Cell for taking into account the periodicity
 
     Returns:
         np.ndarray: 3D displacement tensor
     """
-    # Add new axes so that broadcasting works nicely
-    disp_tensor = pos1[:, None, :] - pos2[None, :, :]
+    if pbc is not None:
+        pbc = expand_pbc(pbc)
+        if pbc.any():
+            if cell is None:
+                raise ValueError(
+                    "When using periodic boundary conditions you must provide "
+                    "the cell."
+                )
 
-    displacement_tensor = disp_tensor
-    return displacement_tensor
+    # Add new axes so that broadcasting works nicely
+    if pbc is None or not pbc.any():
+        disp_tensor = pos1[:, None, :] - pos2[None, :, :]
+    else:
+        rel_pos1 = to_scaled(cell, pos1)
+        rel_pos2 = to_scaled(cell, pos2)
+        disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
+
+        wrapped_disp_tensor = np.array(disp_tensor)
+        for i, periodic in enumerate(pbc):
+            if periodic:
+                i_disp_tensor = disp_tensor[:, :, i]
+                indices = np.where(i_disp_tensor > 0.5)
+                i_disp_tensor[indices] = i_disp_tensor[indices] - 1
+                indices = np.where(i_disp_tensor < -0.5)
+                i_disp_tensor[indices] = i_disp_tensor[indices] + 1
+                wrapped_disp_tensor[:, :, i] = i_disp_tensor
+        disp_tensor = np.dot(wrapped_disp_tensor, cell)
+
+    return disp_tensor
+
+
+def expand_pbc(pbc):
+    """Used to expand a pbc definition into a list of three booleans.
+
+    Args:
+        pbc(boolean or a list of booleans): The periodicity of the cell. This
+            can be any of the values that is also supprted by ASE, namely: a
+            boolean or a list of three booleans.
+
+    Returns:
+        np.ndarray of booleans: The periodicity expanded as an explicit list of
+        three boolean values.
+    """
+    if pbc is True:
+        new_pbc = [True, True, True]
+    elif pbc is False:
+        new_pbc = [False, False, False]
+    elif len(pbc) == 3:
+        new_pbc = pbc
+    else:
+        raise ValueError(
+            "Could not interpret the given periodic boundary conditions: '{}'"
+            .format(pbc)
+        )
+
+    return np.array(new_pbc)
 
 
 def change_basis(positions, basis, offset=None):

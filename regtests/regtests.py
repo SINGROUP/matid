@@ -19,6 +19,7 @@ from systax import Classifier
 from systax.classification import Atom, Molecule, Crystal, Material1D, Material2D, Unknown, Surface, AdsorptionSystem
 from systax import Material3DAnalyzer
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
+import systax.geometry
 
 
 class dotdict(dict):
@@ -26,6 +27,54 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+class GeometryTests(unittest.TestCase):
+    """Tests for the geometry module.
+    """
+    def test_displacement_tensor(self):
+        # Non-periodic
+        cell = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ])
+        pos1 = np.array([
+            [0, 0, 0],
+        ])
+        pos2 = np.array([
+            [1, 1, 1],
+            [0.9, 0, 0],
+        ])
+
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2)
+        expected = np.array(-pos2)
+        self.assertTrue(np.allclose(disp_tensor, expected))
+
+        # Fully periodic
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell)
+        expected = np.array([[
+            [0, 0, 0],
+            [0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
+
+        # Fully periodic, reversed direction
+        disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell)
+        expected = np.array([[
+            [0, 0, 0],
+        ], [
+            [-0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
+
+        # Periodic in one direction
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell)
+        expected = np.array([[
+            [0, -1, -1],
+            [0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
 
 
 class AtomTests(unittest.TestCase):
@@ -169,7 +218,7 @@ class Material2DTests(unittest.TestCase):
             # )),
             # pbc=True
         # )
-        # view(graphene)
+        # # view(graphene)
 
         # classifier = Classifier()
         # clas = classifier.classify(graphene)
@@ -533,14 +582,14 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-    # def test_perfect_surface(self):
+    def test_perfect_surface(self):
 
-        # # Create an Fe 100 surface as an ASE Atoms object
-        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        # # view(system)
+        # Create an Fe 100 surface as an ASE Atoms object
+        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
         # # Test surface info
@@ -612,12 +661,12 @@ class SurfaceTests(unittest.TestCase):
         # self.assertEqual(len(molecules), 1)
         # self.assertEqual(mol_ind, exp_mol_ind)
 
-    def test_imperfect_surface(self):
+    # def test_imperfect_surface(self):
 
-        # Create an Fe 100 surface as an ASE Atoms object
-        system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
-        system.rattle(stdev=0.15, seed=42)
-        view(system)
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+        # system.rattle(stdev=0.15, seed=42)
+        # view(system)
 
         # classifier = Classifier()
         # classifier.classify(system)
@@ -682,6 +731,7 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
