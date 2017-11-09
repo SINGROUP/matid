@@ -183,41 +183,45 @@ class Classifier():
 
                 # Run the surface detection on each cluster (we do not initially know
                 # which one is the surface.
-                i_surface_comps = []
+                total_regions = []
                 for indices in cluster_indices:
                     cluster_system = self.system[indices]
-                    i_surf = self._find_surfaces(cluster_system, indices, vacuum_dir)
+                    i_regions = self._find_periodic_regions(cluster_system, indices, vacuum_dir)
 
                     surface_indices = []
-                    for surface in i_surf:
-                        i_surf_ind = surface.indices
-                        surface_indices.extend(i_surf_ind)
-                        i_surface_comps.append(surface)
+                    for i_region in i_regions:
+
+                        i_orig_surface_indices, i_unit_collection, i_bulk_analyzer, i_region_atoms = i_region
+                        if len(i_orig_surface_indices) != 0:
+                            total_regions.append(i_region)
 
                     indices = set(indices)
-                    surface_indices = set(surface_indices)
+                    surface_indices = set(i_orig_surface_indices)
                     i_misc_ind = indices - surface_indices
                     if i_misc_ind:
                         unknown_comps.append(UnknownComponent(list(i_misc_ind), system[list(i_misc_ind)]))
 
                 # Check that surface components are continuous are chemically
                 # connected, and check if they have one or more layers
-                for comp in i_surface_comps:
+                for i_region in total_regions:
+
+                    i_orig_indices, i_unit_collection, i_bulk_analyzer, i_atoms = i_region
 
                     # Check if the the system has one or multiple components when
                     # multiplied once in the two periodic dimensions
                     repetitions = np.invert(vacuum_dir).astype(int)+1
-                    ext_sys2d = system.repeat(repetitions)
+                    ext_sys2d = i_atoms.repeat(repetitions)
                     clusters = systax.geometry.get_clusters(ext_sys2d)
                     n_clusters = len(clusters)
 
                     if n_clusters == 1:
                         # Check how many layers are stacked in the direction
                         # orthogonal to the surface
-                        if comp.n_layers == 1:
-                            material2d_comps.append(Material2DComponent(comp.indices, comp.atoms))
-                        elif comp.n_layers > 1:
-                            surface_comps.append(comp)
+                        n_layers = i_unit_collection.get_number_of_layers()
+                        if n_layers == 1:
+                            material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms))
+                        elif n_layers > 1:
+                            surface_comps.append(SurfaceComponent(i_orig_indices, i_atoms, i_bulk_analyzer, i_unit_collection))
                     else:
                         unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
 
@@ -362,18 +366,18 @@ class Classifier():
 
         return ratio
 
-    def _find_surfaces(self, system, orig_indices, vacuum_dir):
+    def _find_periodic_regions(self, system, orig_indices, vacuum_dir):
         """
         """
         # Find the seed points
         seed_points = self._find_seed_points(system)
 
         # Find possible bases for each seed point
-        surfaces = []
+        regions = []
         for seed_index in seed_points:
             possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
             best_basis = self._find_best_basis(system, seed_index, possible_spans, neighbour_mask, vacuum_dir)
-            print(best_basis)
+            # print(best_basis)
 
             n_spans = len(best_basis)
             if best_basis is None or n_spans == 0:
@@ -382,30 +386,34 @@ class Classifier():
             # Find the atoms within the found cell
             if n_spans == 3:
                 trans_sys = self._find_cell_atoms_3d(system, seed_index, best_basis)
+                periodic_indices = [0, 1, 2]
             elif n_spans == 2:
                 trans_sys, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
+                periodic_indices = [0, 1]
 
-            # Find the adsorbate by looking at translational symmetry. Everything
-            # else that does not belong to the surface unit cell is considered an
-            # adsorbate.
-            surface_indices, n_layers = self._find_surface(system, seed_index, trans_sys)
+            # print(trans_sys)
+            # print(seed_position)
+
+            # Find a region that is spanned by the found unit cell
+            unit_collection = self._find_periodic_region(
+                system,
+                seed_index,
+                trans_sys,
+                seed_position,
+                periodic_indices)
+
+            rec = unit_collection.recreate_valid()
+            view(rec)
 
             # Find the original indices for the surface
-            surface_atoms = system[surface_indices]
-            orig_surface_indices = []
-            for index in list(surface_indices):
-                orig_surface_indices.append(orig_indices[index])
-
+            # surface_atoms = system[surface_indices]
+            orig_indices = orig_indices[region_indices]
+            region_atoms = system[region_indices]
             bulk_analyzer = Material3DAnalyzer(trans_sys, spglib_precision=2*self.pos_tol)
-            surface = SurfaceComponent(
-                orig_surface_indices,
-                surface_atoms,
-                bulk_analyzer,
-                n_layers=n_layers
-            )
-            surfaces.append(surface)
+            i_region = (orig_indices, unit_collection, bulk_analyzer, region_atoms)
+            regions.append(i_region)
 
-        return surfaces
+        return regions
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -636,7 +644,7 @@ class Classifier():
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
         seed_pos = positions[seed_index]
-        indices = systax.geometry.positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
+        indices = systax.geometry.get_positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
         cell_pos = positions[indices]
         cell_numbers = numbers[indices]
 
@@ -649,8 +657,19 @@ class Classifier():
         return trans_sys
 
     def _find_cell_atoms_2d(self, system, seed_index, cell_basis_vectors):
-        """
+        """Used to find a cell for 2D materials. The best basis that is found
+        only contains two basis vector directions that have been deduced from
+        translational symmetry. The third cell vector is determined by this
+        function by looking at which atoms fullfill the periodic repetition in
+        the neighbourhood of the seed atom and in the direction orthogonal to
+        the found two vectors.
+
         Args:
+            system(ASE.Atoms): Original system
+            seed_index(int): Index of the seed atom in system
+            cell_basis_vectors(np.ndarray): Two cell basis vectors that span
+                the 2D system
+
         Returns:
             ASE.Atoms: System representing the found cell.
             np.ndarray: Position of the seed atom in the new cell.
@@ -665,60 +684,73 @@ class Classifier():
         a = cell_basis_vectors[0]
         b = cell_basis_vectors[1]
         c = np.cross(a, b)
-        c = 2*self.max_cell_size*c/np.linalg.norm(c)
-        test_basis = np.array((a, b, c))
-        origin = seed_pos-0.5*c
+        c_norm = c/np.linalg.norm(c)
+        c_test = 2*self.max_cell_size*c_norm
+        test_basis = np.array((a, b, c_test))
+        origin = seed_pos-0.5*c_test
 
         # Convert positions to this basis
-        indices, rel_cell_pos = systax.geometry.positions_within_basis(
+        indices, cell_pos_rel = systax.geometry.get_positions_within_basis(
             system,
             test_basis,
             origin,
             self.pos_tol,
             [True, True, False]
         )
+        seed_basis_index = np.where(indices == seed_index)[0][0]
+        cell_pos_cart = systax.geometry.to_cartesian(test_basis, cell_pos_rel)
+        seed_basis_pos_cart = np.array(cell_pos_cart[seed_basis_index])
 
-        # testi = Atoms(
+        # View system
+        # new_num = num[indices]
+        # test_sys = Atoms(
             # cell=test_basis,
             # scaled_positions=rel_cell_pos,
-            # symbols=num[indices]
+            # symbols=new_num
         # )
-        # view(testi)
+        # view(test_sys)
 
-        # Determine the real cell by getting the maximum and minimum heights of
-        # the cell and centering to minimum
-        c_comp = rel_cell_pos[:, 2]
+        # TODO: Add a function that checks that periodic copies are not allowed
+        # in the same cell, or that atoms just outside the edge of the cell are
+        # not missed
+
+        # TODO: For each atom in the cell, test that after subtraction and addition
+        # in the lattice basis directions there is an identical copy
+
+        # Determine the real cell thickness by getting the maximum and minimum
+        # heights of the cell
+        c_comp = cell_pos_rel[:, 2]
         max_index = np.argmax(c_comp)
         min_index = np.argmin(c_comp)
-        pos_min = rel_cell_pos[min_index]
-        pos_max = rel_cell_pos[max_index]
-        new_c = pos_max - pos_min
-        new_c_cart = systax.geometry.to_cartesian(test_basis, new_c)
-        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min)
-        cart_cell_pos = systax.geometry.to_cartesian(test_basis, rel_cell_pos)
+        pos_min_rel = np.array([0, 0, c_comp[min_index]])
+        pos_max_rel = np.array([0, 0, c_comp[max_index]])
+        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min_rel)
+        pos_max_cart = systax.geometry.to_cartesian(test_basis, pos_max_rel)
+        c_new_cart = pos_max_cart-pos_min_cart
 
-        # Create a system for the found cell
-        new_basis = test_basis
-        new_basis[2, :] = new_c_cart
-        c_offset = np.array([0, 0, pos_min_cart[2]])
-        if np.linalg.norm(new_c_cart) >= 0.1:
-            new_pos = systax.geometry.change_basis(
-                cart_cell_pos,
-                new_basis,
-                offset=c_offset)
-        else:
-            new_pos = cart_cell_pos - c_offset
+        # We demand a minimum size for the c-vector even if the system seems to
+        # be purely 2-dimensional. This is done because the 3D-space cannot be
+        # searched properly if one dimension is flat.
+        c_size = np.linalg.norm(c_new_cart)
+        min_size = 2*self.pos_tol
+        offset_cart = np.array([0, 0, min_size - c_size])/2
+        if c_size < min_size:
+            c_new_cart = min_size*c_norm
+        new_basis = np.array(test_basis)
+        new_basis[2, :] = c_new_cart
+        total_offset_cart = offset_cart - pos_min_cart
 
+        # Create translated system
         new_num = num[indices]
+        seed_basis_pos_cart += total_offset_cart
         new_sys = Atoms(
             cell=new_basis,
-            positions=new_pos,
+            positions=cell_pos_cart + total_offset_cart,
             symbols=new_num
         )
+        # view(new_sys)
 
-        seed_pos = -new_c
-
-        return new_sys, seed_pos
+        return new_sys, seed_basis_pos_cart
 
     def _find_orthogonal_direction(self, system, vectors):
         """Used to find the unit vector that is orthogonal to the surface.
@@ -806,15 +838,27 @@ class Classifier():
 
         return seed_indices
 
-    def _find_surface(self, system, seed_index, surface_unit):
-        """Used to find the atoms belonging to a surface.
+    def _find_periodic_region(self, system, seed_index, unit_cell, seed_position, periodic_indices):
+        """Used to find atoms that are generated by a given unit cell and a
+        given origin.
+
+        Args:
+            system(ASE.Atoms): Original system from which the periodic
+                region is searched
+            seed_index(int): Index of the atom from which the search is started
+            unit_cell(ASE.Atoms): Repeating unit from which the searched region
+                is composed of
+            seed_position(np.ndarray): Cartesian position of the seed atom with
+                respect to the unit cell origin.
+            periodic_indices(sequence of int): Indices of the basis vectors
+                that are periodic
+            flat_indices(sequence of int): Indices of the basis vectors
+                that are nearly zero vectors.
         """
         positions = system.get_positions()
         atomic_numbers = system.get_atomic_numbers()
-        seed_pos = positions[seed_index][np.newaxis, :]
+        seed_pos = positions[seed_index]
         seed_number = atomic_numbers[seed_index]
-        indices = []
-        cells = {}
 
         # Create a map between an atomic number and indices in the system
         number_to_index_map = {}
@@ -825,49 +869,26 @@ class Classifier():
             number_to_index_map[number] = number_indices
             number_to_pos_map[number] = positions[number_indices]
 
-        # searched_coords = set()
-        # collection = LinkedUnitCollection(system)
-        # self._find_surf_rec(
-            # system,
-            # collection,
-            # number_to_index_map,
-            # number_to_pos_map,
-            # seed_index,
-            # seed_pos,
-            # seed_number,
-            # surface_unit,
-            # searched_coords,
-            # (0, 0, 0))
+        searched_coords = set()
+        collection = LinkedUnitCollection(system)
 
-        self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, 0, 0, 0, system, seed_index, seed_pos, seed_number, surface_unit)
+        self._find_region_rec(
+            system,
+            collection,
+            number_to_index_map,
+            number_to_pos_map,
+            seed_index,
+            seed_pos,
+            seed_number,
+            unit_cell,
+            seed_position,
+            searched_coords,
+            (0, 0, 0),
+            periodic_indices)
 
-        # Find how many times the unit cell is repeated in the direction
-        # orthogonal to the surface
-        cell_basis = surface_unit.get_cell()
-        ortho_dir, ortho_ind = self._find_orthogonal_direction(system, cell_basis)
-        n_layers = 0
-        for multiplier in (1, -1):
-            done = False
-            # print(multiplier)
-            i = 0
-            start = np.array((0, 0, 0))
-            start[ortho_ind] = 1
-            while not done:
-                i_pos = start*i*multiplier
-                i_cell = cells.get(tuple(i_pos))
-                # print(i_cell)
-                # print(i_pos)
-                if i_cell is None:
-                    done = True
-                else:
-                    i += 1
-            n_layers += i
+        return collection
 
-        # print(n_layers)
-
-        return indices, n_layers
-
-    def _find_surf_rec(
+    def _find_region_rec(
             self,
             system,
             collection,
@@ -877,52 +898,39 @@ class Classifier():
             seed_pos,
             seed_atomic_number,
             unit_cell,
+            seed_offset,
             searched_coords,
-            index):
-
+            index,
+            periodic_indices):
+        """
+        Args:
+            periodic_indices(sequence of int): The indices of the basis vectors
+                that are periodic
+            flat_indices(sequence of int): The indices of the basis vectors
+                that are zero or almost zero.
+        """
         # Check if this cell has already been searched
         if index in searched_coords:
             return
         else:
             searched_coords.add(index)
 
-        # Transform positions to the new cell basis
-        cell_basis = unit_cell.get_cell()
-        positions = system.get_positions()
-        atomic_numbers = system.get_atomic_numbers()
-        pos_shifted = positions - seed_pos
-        basis_inverse = np.linalg.inv(cell_basis.T)
-        vec_new = np.dot(pos_shifted, basis_inverse.T)
-
-        # For each atom in the basis, find corresponding atom if possible
         cell_pos = unit_cell.get_scaled_positions()
-        cell_numbers = unit_cell.get_atomic_numbers()
-        new_pos = []
-        new_num = []
-        new_indices = []
-        for i_pos, pos in enumerate(cell_pos):
-            disp_tensor = vec_new - pos[np.newaxis, :]
-            disp_tensor_cartesian = np.dot(disp_tensor, cell_basis.T)
-            dist = np.linalg.norm(disp_tensor_cartesian, axis=1)
-            # The tolerance is double here to take into account the possibility
-            # that two neighboring cells might be offset from the original cell
-            # in opposite directions
-            index, = np.where(dist <= self.pos_tol)
-            if len(index) != 0:
-                new_indices.append(index[0])
-                new_pos.append(vec_new[index[0]])
-                new_num.append(atomic_numbers[index[0]])
-        new_pos = np.array(new_pos)
-        new_num = np.array(new_num)
+        cell_num = unit_cell.get_atomic_numbers()
+
+        # Find atoms within the cell
+        cell_basis = unit_cell.get_cell()
+        all_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
+            system,
+            cell_basis,
+            seed_pos-seed_offset,
+            self.pos_tol/2.0)
+
+        # print(all_indices)
 
         # If the seed atom was not found for this cell, end the search
         if seed_index is None:
             return
-
-        # Create the new LinkedUnit and add it to the collection representing
-        # the surface
-        new_unit = LinkedUnit(index, seed_index, seed_pos, cell_basis, new_indices)
-        collection.add_unit(new_unit, index)
 
         # Find the the indices and position of the seed atoms of neighbouring
         # units.
@@ -931,16 +939,17 @@ class Classifier():
         multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
         possible_seed_pos = number_to_pos_map[seed_atomic_number]
         possible_seed_indices = number_to_index_map[seed_atomic_number]
-        for multiplier in multipliers:
+        for it, multiplier in enumerate(multipliers):
             disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
             seed_guess = seed_pos + disloc
             i_seed_disp = possible_seed_pos - seed_guess
             i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
-            index = np.where(i_seed_dist <= 2*self.pos_tol)
-            index = index[0]
-            new_seed_indices.append(index)
-            if len(index) != 0:
-                i_seed_pos = possible_seed_pos[index[0]]
+            i_index = np.where(i_seed_dist <= self.pos_tol)
+            i_index = i_index[0]
+            new_seed_indices.append(i_index)
+
+            if len(i_index) != 0:
+                i_seed_pos = possible_seed_pos[i_index[0]]
             else:
                 i_seed_pos = seed_guess
             new_seed_pos.append(i_seed_pos)
@@ -951,6 +960,26 @@ class Classifier():
         # multipliers.
         i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
         i_cell = i_cell - seed_pos
+
+        if len(all_indices) != 0:
+            new_sys = Atoms(
+                cell=cell_basis,
+                scaled_positions=test_pos_rel,
+                symbols=system.get_atomic_numbers()[all_indices]
+            )
+
+            # Find the atom indices that match the atoms in the unit cell
+            matches = systax.geometry.get_matches(
+                new_sys,
+                unit_cell.get_positions(),
+                cell_num,
+                self.pos_tol)
+            # print(matches)
+
+            # Create the new LinkedUnit and add it to the collection representing
+            # the surface
+            new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, all_indices, matches)
+            collection[index] = new_unit
 
         # Use the newly found indices to track down new indices with an updated
         # cell.
@@ -966,16 +995,17 @@ class Classifier():
             else:
                 i_seed_index = possible_seed_indices[i_seed_index[0]]
 
-            a = multiplier[0]
-            b = multiplier[1]
-            c = multiplier[2]
+            a = multiplier[0] + index[0]
+            b = multiplier[1] + index[1]
+            c = multiplier[2] + index[2]
 
+            # Update the cell shape
             new_cell = Atoms(
                 cell=i_cell,
                 scaled_positions=cell_pos,
-                symbols=cell_numbers
+                symbols=cell_num
             )
-            self._find_surf_rec(
+            self._find_region_rec(
                 system,
                 collection,
                 number_to_index_map,
@@ -984,126 +1014,255 @@ class Classifier():
                 i_seed_pos,
                 seed_atomic_number,
                 new_cell,
+                seed_offset,
                 searched_coords,
-                (a, b, c)
+                (a, b, c),
+                periodic_indices
             )
 
-    def _find_surface_recursively(
-            self,
-            number_to_index_map,
-            number_to_pos_map,
-            indices,
-            cells,
-            i,
-            j,
-            k,
-            system,
-            seed_index,
-            seed_pos,
-            seed_number,
-            unit_cell):
-        """A recursive function for traversing the surface and gathering
-        indices of the surface atoms.
-        """
-        # Check if this cell has already been searched
-        if (i, j, k) in cells:
-            return
-        else:
-            cells[(i, j, k)] = True
+    # def _find_surf_rec(
+            # self,
+            # periodic_indices,
+            # system,
+            # collection,
+            # number_to_index_map,
+            # number_to_pos_map,
+            # seed_index,
+            # seed_pos,
+            # seed_atomic_number,
+            # unit_cell,
+            # searched_coords,
+            # index):
+        # """
+        # Args:
+            # periodic_indices(sequence of int): The indices of the basis vectors
+            # that are periodic
+        # """
 
-        # Transform positions to the cell basis
-        cell_basis = unit_cell.get_cell()
-        cell_pos = unit_cell.get_scaled_positions()
-        cell_numbers = unit_cell.get_atomic_numbers()
-        positions = system.get_positions()
-        pos_shifted = positions - seed_pos
-        basis_inverse = np.linalg.inv(cell_basis.T)
-        vec_new = np.dot(pos_shifted, basis_inverse.T)
+        # # Check if this cell has already been searched
+        # if index in searched_coords:
+            # return
+        # else:
+            # searched_coords.add(index)
 
-        # For each atom in the basis, find corresponding atom if possible
-        new_indices = []
-        for i_pos, pos in enumerate(cell_pos):
-            # i_number = cell_numbers[i_pos]
-            # possible_pos = number_to_pos_map[i_number]
-            disp_tensor = vec_new - pos[np.newaxis, :]
-            disp_tensor_cartesian = np.dot(disp_tensor, cell_basis.T)
-            dist = np.linalg.norm(disp_tensor_cartesian, axis=1)
-            # The tolerance is double here to take into account the possibility
-            # that two neighboring cells might be offset from the original cell
-            # in opposite directions
-            index, = np.where(dist <= self.pos_tol)
-            if len(index) != 0:
-                new_indices.append(index[0])
-
-        # Add the newly found indices
-        if len(new_indices) != 0:
-            indices.extend(new_indices)
-
-        # If the seed atom was not found for this cell, end the search
-        if seed_index is None:
-            return
-
-        # Get the vectors that span from the seed to all other atoms
+        # # Transform positions to the new cell basis
+        # cell_basis = unit_cell.get_cell()
+        # positions = system.get_positions()
         # atomic_numbers = system.get_atomic_numbers()
-        # atomic_numbers = np.delete(atomic_numbers, (seed_index), axis=0)
-        # seed_element = atomic_numbers[seed_index]
-        # identical_elem_mask = (atomic_numbers == seed_element)
-        # seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
-        # distance_mask = (seed_span_lengths < 2*self.max_cell_size)
-        # combined_mask = (distance_mask) & (identical_elem_mask)
-        # spans = seed_spans[combined_mask]
+        # pos_shifted = positions - seed_pos
+        # basis_inverse = np.linalg.inv(cell_basis.T)
+        # vec_new = np.dot(pos_shifted, basis_inverse.T)
 
-        # Find the new seed indices and positions
-        new_seed_indices = []
-        new_seed_pos = []
-        multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
-        possible_seed_pos = number_to_pos_map[seed_number]
-        possible_seed_indices = number_to_index_map[seed_number]
-        for multiplier in multipliers:
-            disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
-            seed_guess = seed_pos + disloc
-            i_seed_disp = possible_seed_pos - seed_guess
-            i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
-            index = np.where(i_seed_dist <= 2*self.pos_tol)
-            index = index[0]
-            new_seed_indices.append(index)
-            if len(index) != 0:
-                i_seed_pos = possible_seed_pos[index[0]]
-            else:
-                i_seed_pos = seed_guess
-            new_seed_pos.append(i_seed_pos)
+        # # For each atom in the basis, find corresponding atom if possible
+        # cell_pos = unit_cell.get_scaled_positions()
+        # cell_numbers = unit_cell.get_atomic_numbers()
+        # new_pos = []
+        # new_num = []
+        # new_indices = []
+        # for i_pos, pos in enumerate(cell_pos):
+            # disp_tensor = vec_new - pos[np.newaxis, :]
+            # disp_tensor_cartesian = np.dot(disp_tensor, cell_basis.T)
+            # dist = np.linalg.norm(disp_tensor_cartesian, axis=1)
+            # # The tolerance is double here to take into account the possibility
+            # # that two neighboring cells might be offset from the original cell
+            # # in opposite directions
+            # index, = np.where(dist <= self.pos_tol)
+            # if len(index) != 0:
+                # new_indices.append(index[0])
+                # new_pos.append(vec_new[index[0]])
+                # new_num.append(atomic_numbers[index[0]])
+        # new_pos = np.array(new_pos)
+        # new_num = np.array(new_num)
 
-        # Update the cell for this seed point. This adds more noise to the cell
-        # basis vectors but allows us to track curved lattices. The indices 22,
-        # 16, and 14 are the indices for the [1,0,0], [0,1,0] and [0, 0, 1]
-        # multipliers.
-        i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
-        i_cell = i_cell - seed_pos
+        # # If the seed atom was not found for this cell, end the search
+        # if seed_index is None:
+            # return
 
-        # Use the newly found indices to track down new indices with an updated
-        # cell.
-        for i_seed, multiplier in enumerate(multipliers):
-            i_seed_pos = new_seed_pos[i_seed]
-            i_seed_index = new_seed_indices[i_seed]
+        # # Create the new LinkedUnit and add it to the collection representing
+        # # the surface
+        # new_unit = LinkedUnit(index, seed_index, seed_pos, cell_basis, new_indices)
+        # collection.add_unit(new_unit, index)
 
-            n_indices = len(i_seed_index)
-            # if n_indices > 1:
-                # raise ValueError("Too many options when searching for an atom.")
-            if n_indices == 0:
-                i_seed_index = None
-            else:
-                i_seed_index = possible_seed_indices[i_seed_index[0]]
+        # # Find the the indices and position of the seed atoms of neighbouring
+        # # units.
+        # new_seed_indices = []
+        # new_seed_pos = []
+        # multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
+        # possible_seed_pos = number_to_pos_map[seed_atomic_number]
+        # possible_seed_indices = number_to_index_map[seed_atomic_number]
+        # for multiplier in multipliers:
+            # disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
+            # seed_guess = seed_pos + disloc
+            # i_seed_disp = possible_seed_pos - seed_guess
+            # i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
+            # index = np.where(i_seed_dist <= 2*self.pos_tol)
+            # index = index[0]
+            # new_seed_indices.append(index)
+            # if len(index) != 0:
+                # i_seed_pos = possible_seed_pos[index[0]]
+            # else:
+                # i_seed_pos = seed_guess
+            # new_seed_pos.append(i_seed_pos)
 
-            a = i + multiplier[0]
-            b = j + multiplier[1]
-            c = k + multiplier[2]
+        # # Update the cell for this seed point. This adds more noise to the cell
+        # # basis vectors but allows us to track curved lattices. The indices 22,
+        # # 16, and 14 are the indices for the [1,0,0], [0,1,0] and [0, 0, 1]
+        # # multipliers.
+        # i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
+        # i_cell = i_cell - seed_pos
 
-            new_cell = Atoms(
-                cell=i_cell,
-                scaled_positions=cell_pos,
-                symbols=cell_numbers
-            )
-            self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, a, b, c, system, i_seed_index, i_seed_pos, seed_number, new_cell)
+        # # Use the newly found indices to track down new indices with an updated
+        # # cell.
+        # for i_seed, multiplier in enumerate(multipliers):
+            # i_seed_pos = new_seed_pos[i_seed]
+            # i_seed_index = new_seed_indices[i_seed]
+
+            # n_indices = len(i_seed_index)
+            # # if n_indices > 1:
+                # # raise ValueError("Too many options when searching for an atom.")
+            # if n_indices == 0:
+                # i_seed_index = None
+            # else:
+                # i_seed_index = possible_seed_indices[i_seed_index[0]]
+
+            # a = multiplier[0]
+            # b = multiplier[1]
+            # c = multiplier[2]
+
+            # new_cell = Atoms(
+                # cell=i_cell,
+                # scaled_positions=cell_pos,
+                # symbols=cell_numbers
+            # )
+            # self._find_surf_rec(
+                # system,
+                # collection,
+                # number_to_index_map,
+                # number_to_pos_map,
+                # i_seed_index,
+                # i_seed_pos,
+                # seed_atomic_number,
+                # new_cell,
+                # searched_coords,
+                # (a, b, c)
+            # )
+
+    # def _find_surface_recursively(
+            # self,
+            # number_to_index_map,
+            # number_to_pos_map,
+            # indices,
+            # cells,
+            # i,
+            # j,
+            # k,
+            # system,
+            # seed_index,
+            # seed_pos,
+            # seed_number,
+            # unit_cell):
+        # """A recursive function for traversing the surface and gathering
+        # indices of the surface atoms.
+        # """
+        # # Check if this cell has already been searched
+        # if (i, j, k) in cells:
+            # return
+        # else:
+            # cells[(i, j, k)] = True
+
+        # # Transform positions to the cell basis
+        # cell_basis = unit_cell.get_cell()
+        # cell_pos = unit_cell.get_scaled_positions()
+        # cell_numbers = unit_cell.get_atomic_numbers()
+        # positions = system.get_positions()
+        # pos_shifted = positions - seed_pos
+        # basis_inverse = np.linalg.inv(cell_basis.T)
+        # vec_new = np.dot(pos_shifted, basis_inverse.T)
+
+        # # For each atom in the basis, find corresponding atom if possible
+        # new_indices = []
+        # for i_pos, pos in enumerate(cell_pos):
+            # # i_number = cell_numbers[i_pos]
+            # # possible_pos = number_to_pos_map[i_number]
+            # disp_tensor = vec_new - pos[np.newaxis, :]
+            # disp_tensor_cartesian = np.dot(disp_tensor, cell_basis.T)
+            # dist = np.linalg.norm(disp_tensor_cartesian, axis=1)
+            # # The tolerance is double here to take into account the possibility
+            # # that two neighboring cells might be offset from the original cell
+            # # in opposite directions
+            # index, = np.where(dist <= self.pos_tol)
+            # if len(index) != 0:
+                # new_indices.append(index[0])
+
+        # # Add the newly found indices
+        # if len(new_indices) != 0:
+            # indices.extend(new_indices)
+
+        # # If the seed atom was not found for this cell, end the search
+        # if seed_index is None:
+            # return
+
+        # # Get the vectors that span from the seed to all other atoms
+        # # atomic_numbers = system.get_atomic_numbers()
+        # # atomic_numbers = np.delete(atomic_numbers, (seed_index), axis=0)
+        # # seed_element = atomic_numbers[seed_index]
+        # # identical_elem_mask = (atomic_numbers == seed_element)
+        # # seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
+        # # distance_mask = (seed_span_lengths < 2*self.max_cell_size)
+        # # combined_mask = (distance_mask) & (identical_elem_mask)
+        # # spans = seed_spans[combined_mask]
+
+        # # Find the new seed indices and positions
+        # new_seed_indices = []
+        # new_seed_pos = []
+        # multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
+        # possible_seed_pos = number_to_pos_map[seed_number]
+        # possible_seed_indices = number_to_index_map[seed_number]
+        # for multiplier in multipliers:
+            # disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
+            # seed_guess = seed_pos + disloc
+            # i_seed_disp = possible_seed_pos - seed_guess
+            # i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
+            # index = np.where(i_seed_dist <= 2*self.pos_tol)
+            # index = index[0]
+            # new_seed_indices.append(index)
+            # if len(index) != 0:
+                # i_seed_pos = possible_seed_pos[index[0]]
+            # else:
+                # i_seed_pos = seed_guess
+            # new_seed_pos.append(i_seed_pos)
+
+        # # Update the cell for this seed point. This adds more noise to the cell
+        # # basis vectors but allows us to track curved lattices. The indices 22,
+        # # 16, and 14 are the indices for the [1,0,0], [0,1,0] and [0, 0, 1]
+        # # multipliers.
+        # i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
+        # i_cell = i_cell - seed_pos
+
+        # # Use the newly found indices to track down new indices with an updated
+        # # cell.
+        # for i_seed, multiplier in enumerate(multipliers):
+            # i_seed_pos = new_seed_pos[i_seed]
+            # i_seed_index = new_seed_indices[i_seed]
+
+            # n_indices = len(i_seed_index)
+            # # if n_indices > 1:
+                # # raise ValueError("Too many options when searching for an atom.")
+            # if n_indices == 0:
+                # i_seed_index = None
+            # else:
+                # i_seed_index = possible_seed_indices[i_seed_index[0]]
+
+            # a = i + multiplier[0]
+            # b = j + multiplier[1]
+            # c = k + multiplier[2]
+
+            # new_cell = Atoms(
+                # cell=i_cell,
+                # scaled_positions=cell_pos,
+                # symbols=cell_numbers
+            # )
+            # self._find_surface_recursively(number_to_index_map, number_to_pos_map, indices, cells, a, b, c, system, i_seed_index, i_seed_pos, seed_number, new_cell)
 
     # def _find_optimal_span(self, syscache, spans):
         # """There might be more than three valid spans that were found, so this

@@ -76,6 +76,64 @@ class GeometryTests(unittest.TestCase):
         ]])
         self.assertTrue(np.allclose(disp_tensor, expected))
 
+    def test_to_cartesian(self):
+        # Inside, unwrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [1, 1, 1],
+            [0.5, 0.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [2, 3, 1],
+            [1, 1.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
+
+        # Outside, unwrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [2, 2, 2],
+            [0.5, 1.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [4, 6, 2],
+            [1, 3.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
+
+        # Outside, wrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [2, 2, 2],
+            [0.5, 1.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 1.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
+
 
 class AtomTests(unittest.TestCase):
     """Tests for detecting an Atom.
@@ -183,48 +241,8 @@ class Material1DTests(unittest.TestCase):
 class Material2DTests(unittest.TestCase):
     """Tests detection of bulk 3D materials.
     """
-    def test_graphene_primitive(self):
+    # def test_graphene_primitive(self):
 
-        graphene = Atoms(
-            symbols=[6, 6],
-            cell=np.array((
-                [
-                    2.4595121467478055,
-                    0.0,
-                    0.0
-                ],
-                [
-                    -1.2297560733739028,
-                    2.13,
-                    0.0
-                ],
-                [
-                    0.0,
-                    0.0,
-                    20.0
-                ]
-            )),
-            scaled_positions=np.array((
-                [
-                    0.3333333333333333,
-                    0.6666666666666666,
-                    0.5
-                ],
-                [
-                    0.6666666666666667,
-                    0.33333333333333337,
-                    0.5
-                ]
-            )),
-            pbc=True
-        )
-        # view(graphene)
-
-        classifier = Classifier()
-        clas = classifier.classify(graphene)
-        # self.assertIsInstance(clas, Material2D)
-
-    # def test_graphene_supercell(self):
         # graphene = Atoms(
             # symbols=[6, 6],
             # cell=np.array((
@@ -258,12 +276,52 @@ class Material2DTests(unittest.TestCase):
             # )),
             # pbc=True
         # )
-
-        # graphene = graphene.repeat([5, 5, 1])
         # # view(graphene)
 
         # classifier = Classifier()
         # clas = classifier.classify(graphene)
+        # self.assertIsInstance(clas, Material2D)
+
+    def test_graphene_supercell(self):
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [
+                    2.4595121467478055,
+                    0.0,
+                    0.0
+                ],
+                [
+                    -1.2297560733739028,
+                    2.13,
+                    0.0
+                ],
+                [
+                    0.0,
+                    0.0,
+                    20.0
+                ]
+            )),
+            scaled_positions=np.array((
+                [
+                    0.3333333333333333,
+                    0.6666666666666666,
+                    0.5
+                ],
+                [
+                    0.6666666666666667,
+                    0.33333333333333337,
+                    0.5
+                ]
+            )),
+            pbc=True
+        )
+
+        graphene = graphene.repeat([5, 5, 1])
+        # view(graphene)
+
+        classifier = Classifier()
+        clas = classifier.classify(graphene)
         # self.assertIsInstance(clas, Material2D)
 
     # def test_graphene_partial_pbc(self):
@@ -735,10 +793,10 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     alltests = unittest.TestSuite(suites)

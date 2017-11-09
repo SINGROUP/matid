@@ -14,11 +14,11 @@ class Component():
 
 class SurfaceComponent(Component):
 
-    def __init__(self, indices, atoms, bulk_analyzer, n_layers):
+    def __init__(self, indices, atoms, bulk_analyzer, unit_collection):
         super().__init__(indices, atoms)
         self.bulk_analyzer = bulk_analyzer
         self.analyzer = SurfaceAnalyzer(component=self)
-        self.n_layers = n_layers
+        self.unit_collection = unit_collection
 
 
 class MoleculeComponent(Component):

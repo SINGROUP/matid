@@ -352,13 +352,16 @@ def expand_pbc(pbc):
 
 
 def change_basis(positions, basis, offset=None):
-    """Used to perform a change of basis.
+    """Transform the given cartesian coordinates to a basis that is defined by
+    the given basis and origin offset.
 
     Args:
-        positions(np.ndarray): The positions in cartesian corodinates.
-        basis(np.ndarray): The basis to which to transform.
+        positions(np.ndarray): Positions in cartesian coordinates.
+        basis(np.ndarray): Basis to which to transform.
         offset(np.ndarray): Offset of the origins. A vector from the old basis
             origin to the new basis origin.
+    Returns:
+        np.ndarray: Relative positions in the new basis
     """
 
     if offset is not None:
@@ -369,8 +372,9 @@ def change_basis(positions, basis, offset=None):
     return pos_prime
 
 
-def positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True]):
+def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True]):
     """Used to return the indices of positions that are inside a certain basis.
+    Also takes periodic boundaries into account.
 
     Args:
         system(ASE.Atoms): System from which the positions are searched.
@@ -419,9 +423,6 @@ def positions_within_basis(system, basis, origin, tolerance, mask=[True, True, T
     indices = []
     a_prec, b_prec, c_prec = tolerance/np.linalg.norm(basis, axis=1)
     orig_basis = system.get_cell()
-    # print(orig_basis)
-    # print(origin)
-    # print("=====")
     cell_pos = []
     for i_dir in directions:
 
@@ -480,7 +481,7 @@ def get_matches(system, positions, numbers, tolerance):
     return matches
 
 
-def to_scaled(cell, positions, wrap=False, pbc=[False, False, False]):
+def to_scaled(cell, positions, wrap=False, pbc=False):
     """Used to transform a set of positions to the basis defined by the
     cell of this system.
 
@@ -493,6 +494,7 @@ def to_scaled(cell, positions, wrap=False, pbc=[False, False, False]):
     Returns:
         numpy.ndarray: The scaled positions
     """
+    pbc = expand_pbc(pbc)
     fractional = np.linalg.solve(
         cell.T,
         positions.T).T
@@ -500,14 +502,12 @@ def to_scaled(cell, positions, wrap=False, pbc=[False, False, False]):
     if wrap:
         for i, periodic in enumerate(pbc):
             if periodic:
-                # Yes, we need to do it twice.
-                fractional[:, i] %= 1.0
                 fractional[:, i] %= 1.0
 
     return fractional
 
 
-def to_cartesian(cell, scaled_positions, wrap=False, pbc=[False, False, False]):
+def to_cartesian(cell, scaled_positions, wrap=False, pbc=False):
     """Used to transofrm a set of relative positions to the cartesian basis
     defined by the cell of this system.
 
@@ -520,14 +520,13 @@ def to_cartesian(cell, scaled_positions, wrap=False, pbc=[False, False, False]):
     Returns:
         numpy.ndarray: The cartesian positions
     """
+    pbc = expand_pbc(pbc)
     if wrap:
         for i, periodic in enumerate(pbc):
             if periodic:
-                # Yes, we need to do it twice.
-                scaled_positions[:, i] %= 1.0
                 scaled_positions[:, i] %= 1.0
 
-    cartesian_positions = scaled_positions.dot(cell.T)
+    cartesian_positions = np.dot(scaled_positions, cell)
     return cartesian_positions
 
 
