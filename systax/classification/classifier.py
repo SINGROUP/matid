@@ -32,6 +32,7 @@ class Classifier():
     """
     def __init__(
             self,
+            seed_algorithm="cm",
             max_cell_size=3,
             pos_tol=0.5,
             n_seeds=2,
@@ -40,6 +41,8 @@ class Classifier():
             ):
         """
         Args:
+            seed_algorithm(str): Algorithm for finding unit cells. The options are:
+                -"cm": One seed point at atom nearest to center of mass.
             max_cell_size(float): The maximum cell size
             pos_tol(float): The position tolerance in angstroms for finding translationally
                 repeated units.
@@ -50,6 +53,7 @@ class Classifier():
             connectivity_crystal(float): A parameter that controls the
                 connectivity that is required for the atoms of a crystal.
         """
+        self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
         self.n_seeds = 1
@@ -367,17 +371,33 @@ class Classifier():
         return ratio
 
     def _find_periodic_regions(self, system, orig_indices, vacuum_dir):
-        """
+        """Tries to find the periodic regions, like surfaces, in an atomic
+        system.
+
+        Args:
+            system(ase.Atoms): The system from which to find the periodic
+                regions.
+            orig_indices(sequence of int): The original indices of the given system in the
+                oiginal system
+            vacuum_dir()
         """
         # Find the seed points
+        # if self.seed_algorithm == "cm":
+            # seed_points = [self._find_seed_cm(system)]
         seed_points = self._find_seed_points(system)
 
         # Find possible bases for each seed point
         regions = []
+
         for seed_index in seed_points:
             possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
-            best_basis = self._find_best_basis(system, seed_index, possible_spans, neighbour_mask, vacuum_dir)
-            # print(best_basis)
+            best_basis = self._find_best_basis(
+                system,
+                seed_index,
+                possible_spans,
+                neighbour_mask,
+                vacuum_dir
+            )
 
             n_spans = len(best_basis)
             if best_basis is None or n_spans == 0:
@@ -402,18 +422,50 @@ class Classifier():
                 seed_position,
                 periodic_indices)
 
-            rec = unit_collection.recreate_valid()
-            view(rec)
+            i_indices = unit_collection.get_indices()
+            # print(i_indices)
 
-            # Find the original indices for the surface
-            # surface_atoms = system[surface_indices]
-            orig_indices = orig_indices[region_indices]
-            region_atoms = system[region_indices]
-            bulk_analyzer = Material3DAnalyzer(trans_sys, spglib_precision=2*self.pos_tol)
-            i_region = (orig_indices, unit_collection, bulk_analyzer, region_atoms)
-            regions.append(i_region)
+            # rec = unit_collection.recreate_valid()
+            # view(rec)
+            regions.append((i_indices, unit_collection, trans_sys))
 
-        return regions
+        # Combine regions that are identical. The algorithm used here is
+        # suboptimal but there are not so many regions here to compare.
+        n_regions = len(regions)
+        similarity = np.zeros((n_regions, n_regions))
+        intersection_threshold = 0.9
+        for i in range(n_regions):
+            for j in range(n_regions):
+                if j > i:
+                    i_ind = set(regions[i][0])
+                    j_ind = set(regions[j][0])
+                    l_total = len(i_ind.union(j_ind))
+                    l_intersection = i_ind.intersection(j_ind)
+                    l_sim = l_intersection/l_total
+                    similarity[i, j] = l_sim
+
+        # Return only dissimilar regions
+        dissimilar = []
+        initial = set(range(n_regions))
+        for i in range(n_regions):
+            for j in initial:
+                if j >= i:
+                    l_sim = similarity[i, j]
+                    if l_sim >= intersection_threshold:
+                        initial.remove(i)
+                    dissimilar.append(j)
+
+        # See if the found cell is OK
+        region_tuples = []
+        for i_region in dissimilar:
+            l_ind, l_coll, l_cell = regions[i_region]
+            l_analyzer = Material3DAnalyzer(l_cell, spglib_precision=2*self.pos_tol)
+            l_orig_indices = orig_indices[l_ind]
+            l_atoms = system[l_ind]
+            region_tuple = (l_orig_indices, l_coll, l_analyzer, l_atoms)
+            region_tuples.append(region_tuple)
+
+        return region_tuples
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -837,6 +889,17 @@ class Classifier():
             seed_indices[i_point] = seed_index
 
         return seed_indices
+
+    def _find_seed_cm(self, system):
+        """Finds the index of the seed point closest to the center of mass of
+        the system.
+        """
+        cm = system.get_center_of_mass()
+        positions = system.get_positions()
+        distances = systax.geometry.get_distance_matrix(system.get_cell(), cm, positions)
+        min_index = np.argmin(distances)
+
+        return min_index
 
     def _find_periodic_region(self, system, seed_index, unit_cell, seed_position, periodic_indices):
         """Used to find atoms that are generated by a given unit cell and a

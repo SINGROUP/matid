@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import itertools
-
 import numpy as np
 
 from ase import Atoms
@@ -10,8 +8,16 @@ from ase import Atoms
 class LinkedUnitCollection(dict):
     """Represents a collection of similar cells that are connected in 3D space
     to form a structure, e.g. a surface.
+
+    Essentially this is a special flavor of a regular dictionary: the keys can
+    only be a sequence of three integers, and the values should be LinkedUnits.
     """
     def __init__(self, system):
+        """
+        Args:
+            system(ase.Atoms): A reference to the system from which this
+            LinkedUniCollection is gathered.
+        """
         self.system = system
         dict.__init__(self)
 
@@ -54,13 +60,35 @@ class LinkedUnitCollection(dict):
 
         return recreated_system
 
-    # def get_all_indices(self):
+    def get_indices(self):
+        """Returns all the indices in of the LinedUnits in this collection as a
+        single list.
+
+        Returns:
+            np.ndarray: Indices of the atoms in the original system that belong
+            to this collection of LinkedUnits.
+        """
+        indices = []
+        for unit in self.values():
+            i_indices = unit.all_indices
+            indices.extend(i_indices)
+
+        return np.array(indices)
+
+    # def get_layer_statistics(self):
+        # """Returns all the indices in of the LinedUnits in this collection as a
+        # single list.
+
+        # Returns:
+            # np.ndarray: Indices of the atoms in the original system that belong
+            # to this collection of LinkedUnits.
+        # """
         # indices = []
         # for unit in self.values():
             # i_indices = unit.all_indices
             # indices.extend(i_indices)
 
-        # return recreated_system
+        # return np.array(indices)
 
     # def add_unit(self, new_unit, coordinate):
 

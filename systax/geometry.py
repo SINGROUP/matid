@@ -302,6 +302,16 @@ def get_displacement_tensor(pos1, pos2, pbc=None, cell=None):
                     "the cell."
                 )
 
+    # Make 1D into 2D
+    shape1 = pos1.shape
+    shape2 = pos2.shape
+    if len(shape1) == 1:
+        n_cols1 = len(pos1)
+        pos1 = np.reshape(pos1, (-1, n_cols1))
+    if len(shape2) == 1:
+        n_cols2 = len(pos2)
+        pos2 = np.reshape(pos2, (-1, n_cols2))
+
     # Add new axes so that broadcasting works nicely
     if pbc is None or not pbc.any():
         disp_tensor = pos1[:, None, :] - pos2[None, :, :]

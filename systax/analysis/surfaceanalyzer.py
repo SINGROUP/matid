@@ -1,7 +1,7 @@
-from systax.analysis.periodicanalyzer import PeriodicAnalyzer
+from systax.analysis.analyzer import Analyzer
 
 
-class SurfaceAnalyzer(PeriodicAnalyzer):
+class SurfaceAnalyzer(Analyzer):
     """Used to analyze properties of surfaces.
     """
 
