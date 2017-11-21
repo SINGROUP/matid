@@ -1,24 +1,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from systax.analysis.surfaceanalyzer import SurfaceAnalyzer
+# from systax.analysis.class2danalyzer import Class2DAnalyzer
+# from systax.analysis.class3danalyzer import Class3DAnalyzer
 
 __metaclass__ = type
 
 
 class Component():
 
-    def __init__(self, indices, atoms):
+    def __init__(self, indices, atoms, unit_collection=None, analyzer=None):
         self.indices = indices
         self.atoms = atoms
-
-
-class SurfaceComponent(Component):
-
-    def __init__(self, indices, atoms, bulk_analyzer, unit_collection):
-        super().__init__(indices, atoms)
-        self.bulk_analyzer = bulk_analyzer
-        self.analyzer = SurfaceAnalyzer(component=self)
-        self.unit_collection = unit_collection
+        self.analyzer = analyzer
+        self.unit_collection = None
 
 
 class MoleculeComponent(Component):
@@ -30,16 +24,26 @@ class AtomComponent(Component):
 
 
 class CrystalComponent(Component):
-    def __init__(self, indices, atoms, analyzer=None):
-        super().__init__(indices, atoms)
-        self.analyzer = SurfaceAnalyzer(component=self)
+    pass
 
 
 class Material1DComponent(Component):
     pass
 
 
+class SurfaceComponent(Component):
+    pass
+
+
+class SurfacePristineComponent(Component):
+    pass
+
+
 class Material2DComponent(Component):
+    pass
+
+
+class Material2DPristineComponent(Component):
     pass
 
 

@@ -21,14 +21,14 @@ from ase import Atoms
 class SymmetryAnalyzer(Analyzer):
     """A base class for analyzers that deal with 3D symmetry.
     """
-    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None):
+    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None, unitcollection=None, unit_cell=None):
         """
         Args:
             system (ASE.Atoms): The system to inspect.
             spglib_precision (float): The tolerance for the symmetry detection
                 done by spglib.
         """
-        super(SymmetryAnalyzer, self).__init__(system, spglib_precision=None, vacuum_gaps=None)
+        super(SymmetryAnalyzer, self).__init__(system, spglib_precision, vacuum_gaps, unitcollection, unit_cell)
 
     def reset(self):
         """Used to reset all the cached values.

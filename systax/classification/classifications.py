@@ -6,63 +6,120 @@ class Classification():
 
     def __init__(
             self,
-            surfaces=None,
+            surface=None,
+            surface_prist=None,
             atoms=None,
             molecules=None,
             crystals=None,
             material1d=None,
             material2d=None,
+            material2d_prist=None,
             unknowns=None,
             vacuum_dir=None,
             analyzer=None
             ):
-        self.surfaces = surfaces
+        self.surface = surface
+        self.surface_prist = surface_prist
         self.atoms = atoms
         self.molecules = molecules
         self.crystals = crystals
         self.material1d = material1d
         self.material2d = material2d
+        self.material2d_prist = material2d_prist
         self.unknowns = unknowns
         self.vacuum_dir = vacuum_dir
         self.analyzer = analyzer
 
 
-class Atom(Classification):
+class Defected():
+    """Structures with any kind of defect.
+    """
+
+
+class Adsorption():
+    """Structures that represent adsorption.
+    """
+
+
+#===============================================================================
+# 0D Structures
+class Class0D(Classification):
     """
     """
 
 
-class Molecule(Classification):
+class Atom(Class0D):
     """
     """
 
 
-class Surface(Classification):
+class Molecule(Class0D):
     """
     """
 
 
-class Crystal(Classification):
+#===============================================================================
+# 1D Structures
+class Class1D(Classification):
     """
     """
 
 
-class Material1D(Classification):
+class Material1D(Class1D):
     """
     """
 
 
-class Material2D(Classification):
+#===============================================================================
+# 2D Structures
+class Class2D(Classification):
     """
     """
 
 
-class AdsorptionSystem(Classification):
+class Surface(Class2D):
     """
     """
 
 
-class MultiComponent(Classification):
+class SurfacePristine(Surface):
+    """
+    """
+
+
+class SurfaceAdsorption(Surface, Adsorption):
+    """
+    """
+
+
+class Material2D(Class2D):
+    """
+    """
+
+
+class Material2DPristine(Material2D):
+    """Consists of one Material2D component without defects or adsorbents.
+    """
+
+
+class Material2DAdsorption(Material2D, Adsorption):
+    """
+    """
+
+
+#===============================================================================
+# 3D Structures
+class Class3D(Classification):
+    """
+    """
+
+
+class Crystal(Class3D):
+    """
+    """
+
+
+class CrystalPristine(Crystal):
     """
     """
 

@@ -1,14 +1,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import systax.geometry
-from systax.exceptions import SystaxError
 from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
+from systax.core.system import System
 
 __metaclass__ = type
 
 
-class Material2DAnalyzer(SymmetryAnalyzer):
-    """Class for analyzing 2D materials.
+class Class3DAnalyzer(SymmetryAnalyzer):
+    """Class for analyzing 3D structures.
     """
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
@@ -39,48 +38,21 @@ class Material2DAnalyzer(SymmetryAnalyzer):
 
         spglib_conv_sys = self._get_spglib_conventional_system()
 
-        # Determine if the structure is flat. This will affect the
-        # transformation that are allowed when finding the Wyckoff positions
-        is_flat = False
-        thickness = self.get_thickness()
-        if thickness < 0.5*self.spglib_precision:
-            is_flat = True
-
         # Find a proper rigid transformation that produces the best combination
         # of atomic species in the Wyckoff positions.
         space_group = self.get_space_group_number()
         wyckoff_letters, equivalent_atoms = \
-            self._get_spglib_conventional_wyckoffs_and_equivalents()
+            self._get_spglib_wyckoffs_and_equivalents_conventional()
         ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
             space_group,
             wyckoff_letters,
-            spglib_conv_sys,
-            is_flat=is_flat
+            spglib_conv_sys
         )
+        ideal_sys = System.from_atoms(ideal_sys)
+        ideal_sys.set_equivalent_atoms(equivalent_atoms)
+        ideal_sys.set_wyckoff_letters(ideal_wyckoff)
 
         self._conventional_system = ideal_sys
         self._conventional_wyckoff_letters = ideal_wyckoff
         self._conventional_equivalent_atoms = equivalent_atoms
         return ideal_sys
-
-    def get_thickness(self):
-        """Used to calculate the thickness of the 2D material.
-        """
-        gaps = self._get_vacuum_gaps()
-        if gaps.sum() != 1:
-            raise SystaxError(
-                "Found more than one dimension with a vacuum gap for a 2D "
-                "material."
-            )
-        orig_pos = self.system.get_positions()
-        gap_coordinates = orig_pos[:, gaps]
-        bottom_i, top_i = systax.geometry.get_biggest_gap_indices(gap_coordinates)
-
-        # Calculate height
-        bottom_pos = gap_coordinates[bottom_i]
-        top_pos = gap_coordinates[top_i]
-        height = top_pos - bottom_pos
-        if height < 0:
-            height += 1
-
-        return height

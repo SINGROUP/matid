@@ -11,11 +11,12 @@ from ase import Atoms
 from ase.visualize import view
 
 from systax.exceptions import ClassificationError
-from systax.classification.components import SurfaceComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, UnknownComponent
-from systax.classification.classifications import Surface, Atom, Molecule, Crystal, Material1D, Material2D, Unknown
+from systax.classification.components import SurfaceComponent, SurfacePristineComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, Material2DPristineComponent, UnknownComponent
+from systax.classification.classifications import Surface, SurfacePristine, Atom, Molecule, Crystal, Material1D, Material2D, Material2DPristine, Unknown
 from systax.data.element_data import get_covalent_radii
 import systax.geometry
-from systax.analysis.material3danalyzer import Material3DAnalyzer
+from systax.analysis.class3danalyzer import Class3DAnalyzer
+from systax.analysis.class2danalyzer import Class2DAnalyzer
 from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
 from systax.symmetry import check_if_crystal
 from systax.core.system import System
@@ -37,7 +38,9 @@ class Classifier():
             pos_tol=0.5,
             n_seeds=2,
             crystallinity_threshold=0.1,
-            connectivity_crystal=1.9
+            connectivity_crystal=1.9,
+            thickness_2d=6,
+            layers_2d=1
             ):
         """
         Args:
@@ -59,6 +62,8 @@ class Classifier():
         self.n_seeds = 1
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
+        self.thickness_2d = thickness_2d
+        self.layers_2d = layers_2d
         self._repeated_system = None
         self._analyzed = False
         self._orthogonal_dir = None
@@ -73,12 +78,14 @@ class Classifier():
         """
         self.system = system
         surface_comps = []
+        surface_prist_comps = []
         atom_comps = []
         molecule_comps = []
         crystal_comps = []
         unknown_comps = []
         material1d_comps = []
         material2d_comps = []
+        material2d_prist_comps = []
 
         # Run a high level analysis to determine the system type
         periodicity = system.get_pbc()
@@ -177,39 +184,29 @@ class Classifier():
             # 2D structures
             if n_vacuum == 1:
 
-                # Find out whether there is one or more repetitions of a unit
-                # cell in the direction orthogonal to the surface. If only one
-                # repetition found, the structure is categorized as a 2D
-                # material. If more are found, the material is a surface.
-
-                # Find the different clusters
-                cluster_indices = systax.geometry.get_clusters(system)
-
-                # Run the surface detection on each cluster (we do not initially know
-                # which one is the surface.
+                # Run the surface detection on the whole system.
                 total_regions = []
-                for indices in cluster_indices:
-                    cluster_system = self.system[indices]
-                    i_regions = self._find_periodic_regions(cluster_system, indices, vacuum_dir)
+                indices = list(range(len(system)))
+                i_regions = self._find_periodic_regions(system, vacuum_dir)
 
-                    surface_indices = []
-                    for i_region in i_regions:
+                surface_indices = []
+                for i_region in i_regions:
 
-                        i_orig_surface_indices, i_unit_collection, i_bulk_analyzer, i_region_atoms = i_region
-                        if len(i_orig_surface_indices) != 0:
-                            total_regions.append(i_region)
+                    i_indices, i_unit_collection, i_region_atoms, i_cell = i_region
+                    if len(i_indices) != 0:
+                        total_regions.append(i_region)
 
-                    indices = set(indices)
-                    surface_indices = set(i_orig_surface_indices)
-                    i_misc_ind = indices - surface_indices
-                    if i_misc_ind:
-                        unknown_comps.append(UnknownComponent(list(i_misc_ind), system[list(i_misc_ind)]))
+                indices = set(indices)
+                surface_indices = set(i_indices)
+                i_misc_ind = indices - surface_indices
+                if i_misc_ind:
+                    unknown_comps.append(UnknownComponent(list(i_misc_ind), system[list(i_misc_ind)]))
 
                 # Check that surface components are continuous are chemically
                 # connected, and check if they have one or more layers
                 for i_region in total_regions:
 
-                    i_orig_indices, i_unit_collection, i_bulk_analyzer, i_atoms = i_region
+                    i_orig_indices, i_unit_collection, i_atoms, i_cell = i_region
 
                     # Check if the the system has one or multiple components when
                     # multiplied once in the two periodic dimensions
@@ -219,31 +216,31 @@ class Classifier():
                     n_clusters = len(clusters)
 
                     if n_clusters == 1:
-                        # Check how many layers are stacked in the direction
-                        # orthogonal to the surface
-                        n_layers = i_unit_collection.get_number_of_layers()
-                        if n_layers == 1:
-                            material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms))
-                        elif n_layers > 1:
-                            surface_comps.append(SurfaceComponent(i_orig_indices, i_atoms, i_bulk_analyzer, i_unit_collection))
+                        # Check the number of layers, the thickness and the
+                        # pristinity
+                        analyzer_2d = Class2DAnalyzer(i_atoms, vacuum_gaps=vacuum_dir, unitcollection=i_unit_collection, unit_cell=i_cell)
+                        is_pristine = analyzer_2d.is_pristine()
+                        layer_mean, layer_std = analyzer_2d.get_layer_statistics()
+                        thickness = analyzer_2d.get_thickness()
+
+                        if layer_mean == self.layers_2d and layer_std == 0.0 and thickness < self.thickness_2d:
+                            if is_pristine:
+                                material2d_prist_comps.append(Material2DPristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                            else:
+                                material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                        elif layer_mean > self.layers_2d:
+                            if is_pristine:
+                                surface_prist_comps.append(SurfacePristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                            else:
+                                surface_comps.append(SurfaceComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                     else:
                         unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
-
-                    # Find out the dimensions of the system
-                    # is_small = True
-                    # dimensions = geometry.get_dimensions(system, vacuum_dir)
-                    # dim_2d_threshold = 3 * 2 * max(covalent_radii[system.get_atomic_numbers()])
-                    # for i, has_vacuum in enumerate(vacuum_dir):
-                        # if has_vacuum:
-                            # dimension = dimensions[i]
-                            # if dimension > dim_2d_threshold:
-                                # is_small = False
 
             # Bulk structures
             if n_vacuum == 0:
 
                 # Check the number of symmetries
-                analyzer = Material3DAnalyzer(system)
+                analyzer = Class3DAnalyzer(system)
                 is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
 
                 # Check the number of clusters
@@ -265,8 +262,10 @@ class Classifier():
         n_atoms = len(atom_comps)
         n_crystals = len(crystal_comps)
         n_surfaces = len(surface_comps)
+        n_surfaces_prist = len(surface_prist_comps)
         n_material1d = len(material1d_comps)
         n_material2d = len(material2d_comps)
+        n_material2d_prist = len(material2d_prist_comps)
         n_unknown = len(unknown_comps)
 
         if (n_atoms == 1) and \
@@ -275,7 +274,9 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Atom(atoms=atom_comps)
 
         elif (n_atoms == 0) and \
@@ -284,7 +285,9 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Molecule(molecules=molecule_comps)
 
         elif (n_atoms == 0) and \
@@ -293,7 +296,9 @@ class Classifier():
            (n_material1d == 1) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Material1D(material1d=material1d_comps, vacuum_dir=vacuum_dir)
 
         elif (n_atoms == 0) and \
@@ -302,7 +307,9 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 1) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Material2D(material2d=material2d_comps, vacuum_dir=vacuum_dir)
 
         elif (n_atoms == 0) and \
@@ -311,8 +318,32 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 1):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 1) and \
+           (n_surfaces_prist == 0):
+            return Material2DPristine(material2d_prist=material2d_prist_comps, vacuum_dir=vacuum_dir)
+
+        elif (n_atoms == 0) and \
+           (n_molecules == 0) and \
+           (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 1) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Surface(surfaces=surface_comps, vacuum_dir=vacuum_dir)
+
+        elif (n_atoms == 0) and \
+           (n_molecules == 0) and \
+           (n_crystals == 0) and \
+           (n_material1d == 0) and \
+           (n_material2d == 0) and \
+           (n_unknown == 0) and \
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 1):
+            return SurfacePristine(surface_pristine=surface_prist_comps, vacuum_dir=vacuum_dir)
 
         elif (n_atoms == 0) and \
            (n_molecules == 0) and \
@@ -320,7 +351,9 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0):
+           (n_surfaces == 0) and \
+           (n_material2d_prist == 0) and \
+           (n_surfaces_prist == 0):
             return Crystal(crystals=crystal_comps)
 
         else:
@@ -370,7 +403,7 @@ class Classifier():
 
         return ratio
 
-    def _find_periodic_regions(self, system, orig_indices, vacuum_dir):
+    def _find_periodic_regions(self, system, vacuum_dir):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
 
@@ -405,10 +438,10 @@ class Classifier():
 
             # Find the atoms within the found cell
             if n_spans == 3:
-                trans_sys = self._find_cell_atoms_3d(system, seed_index, best_basis)
+                proto_cell = self._find_cell_atoms_3d(system, seed_index, best_basis)
                 periodic_indices = [0, 1, 2]
             elif n_spans == 2:
-                trans_sys, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
+                proto_cell, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
                 periodic_indices = [0, 1]
 
             # print(trans_sys)
@@ -418,7 +451,7 @@ class Classifier():
             unit_collection = self._find_periodic_region(
                 system,
                 seed_index,
-                trans_sys,
+                proto_cell,
                 seed_position,
                 periodic_indices)
 
@@ -427,7 +460,7 @@ class Classifier():
 
             # rec = unit_collection.recreate_valid()
             # view(rec)
-            regions.append((i_indices, unit_collection, trans_sys))
+            regions.append((i_indices, unit_collection, proto_cell))
 
         # Combine regions that are identical. The algorithm used here is
         # suboptimal but there are not so many regions here to compare.
@@ -459,10 +492,8 @@ class Classifier():
         region_tuples = []
         for i_region in dissimilar:
             l_ind, l_coll, l_cell = regions[i_region]
-            l_analyzer = Material3DAnalyzer(l_cell, spglib_precision=2*self.pos_tol)
-            l_orig_indices = orig_indices[l_ind]
             l_atoms = system[l_ind]
-            region_tuple = (l_orig_indices, l_coll, l_analyzer, l_atoms)
+            region_tuple = (l_ind, l_coll, l_atoms, l_cell)
             region_tuples.append(region_tuple)
 
         return region_tuples
@@ -935,6 +966,8 @@ class Classifier():
         searched_coords = set()
         collection = LinkedUnitCollection(system)
 
+        # view(system)
+
         self._find_region_rec(
             system,
             collection,
@@ -1043,6 +1076,10 @@ class Classifier():
             # the surface
             new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, all_indices, matches)
             collection[index] = new_unit
+            # print("==========")
+            # print(index)
+            # print(i_cell)
+            # print(all_indices)
 
         # Use the newly found indices to track down new indices with an updated
         # cell.

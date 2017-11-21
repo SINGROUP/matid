@@ -16,8 +16,8 @@ from ase.build import nanotube
 import ase.lattice.hexagonal
 
 from systax import Classifier
-from systax.classification import Atom, Molecule, Crystal, Material1D, Material2D, Unknown, Surface, AdsorptionSystem
-from systax import Material3DAnalyzer
+from systax.classification import Atom, Molecule, Crystal, Material1D, Material2DPristine, Unknown, Surface, SurfaceAdsorption
+from systax import Class3DAnalyzer
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
 import systax.geometry
 
@@ -239,129 +239,42 @@ class Material1DTests(unittest.TestCase):
 
 
 class Material2DTests(unittest.TestCase):
-    """Tests detection of bulk 3D materials.
+    """Tests detection of 2D structures.
     """
-    # def test_graphene_primitive(self):
+    graphene = Atoms(
+        symbols=[6, 6],
+        cell=np.array((
+            [2.4595121467478055, 0.0, 0.0],
+            [-1.2297560733739028, 2.13, 0.0],
+            [0.0, 0.0, 20.0]
+        )),
+        scaled_positions=np.array((
+            [0.3333333333333333, 0.6666666666666666, 0.5],
+            [0.6666666666666667, 0.33333333333333337, 0.5]
+        )),
+        pbc=True
+    )
 
-        # graphene = Atoms(
-            # symbols=[6, 6],
-            # cell=np.array((
-                # [
-                    # 2.4595121467478055,
-                    # 0.0,
-                    # 0.0
-                # ],
-                # [
-                    # -1.2297560733739028,
-                    # 2.13,
-                    # 0.0
-                # ],
-                # [
-                    # 0.0,
-                    # 0.0,
-                    # 20.0
-                # ]
-            # )),
-            # scaled_positions=np.array((
-                # [
-                    # 0.3333333333333333,
-                    # 0.6666666666666666,
-                    # 0.5
-                # ],
-                # [
-                    # 0.6666666666666667,
-                    # 0.33333333333333337,
-                    # 0.5
-                # ]
-            # )),
-            # pbc=True
-        # )
-        # # view(graphene)
-
-        # classifier = Classifier()
-        # clas = classifier.classify(graphene)
-        # self.assertIsInstance(clas, Material2D)
+    def test_graphene_primitive(self):
+        sys = Material2DTests.graphene
+        # view(sys)
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
 
     def test_graphene_supercell(self):
-        graphene = Atoms(
-            symbols=[6, 6],
-            cell=np.array((
-                [
-                    2.4595121467478055,
-                    0.0,
-                    0.0
-                ],
-                [
-                    -1.2297560733739028,
-                    2.13,
-                    0.0
-                ],
-                [
-                    0.0,
-                    0.0,
-                    20.0
-                ]
-            )),
-            scaled_positions=np.array((
-                [
-                    0.3333333333333333,
-                    0.6666666666666666,
-                    0.5
-                ],
-                [
-                    0.6666666666666667,
-                    0.33333333333333337,
-                    0.5
-                ]
-            )),
-            pbc=True
-        )
-
-        graphene = graphene.repeat([5, 5, 1])
-        # view(graphene)
-
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        # view(sys)
         classifier = Classifier()
-        clas = classifier.classify(graphene)
-        # self.assertIsInstance(clas, Material2D)
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
 
-    # def test_graphene_partial_pbc(self):
-        # graphene = Atoms(
-            # symbols=[6, 6],
-            # cell=np.array((
-                # [
-                    # 2.4595121467478055,
-                    # 0.0,
-                    # 0.0
-                # ],
-                # [
-                    # -1.2297560733739028,
-                    # 2.13,
-                    # 0.0
-                # ],
-                # [
-                    # 0.0,
-                    # 0.0,
-                    # 1.0
-                # ]
-            # )),
-            # scaled_positions=np.array((
-                # [
-                    # 0.3333333333333333,
-                    # 0.6666666666666666,
-                    # 0.5
-                # ],
-                # [
-                    # 0.6666666666666667,
-                    # 0.33333333333333337,
-                    # 0.5
-                # ]
-            # )),
-            # pbc=[True, True, False]
-        # )
-
-        # classifier = Classifier()
-        # clas = classifier.classify(graphene)
-        # self.assertIsInstance(clas, Material2D)
+    def test_graphene_partial_pbc(self):
+        sys = Material2DTests.graphene.copy()
+        sys.set_pbc([True, True, False])
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
 
 
 class Material3DTests(unittest.TestCase):

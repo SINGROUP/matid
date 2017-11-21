@@ -558,6 +558,65 @@ def translate(system, translation, relative=False):
         system.set_positions(cart_pos)
 
 
+def get_surface_normal_direction(system):
+    """Used to estimate a normal vector for a 2D like structure.
+
+    Args:
+        system (ase.Atoms): The system to examine.
+
+    Returns:
+        np.ndarray: The estimated surface normal vector
+    """
+    repeated = get_extended_system(system, 15)
+    # vectors = system.get_cell()
+
+    # Get the eigenvalues and eigenvectors of the moment of inertia tensor
+    val, vec = get_moments_of_inertia(repeated)
+    sorted_indices = np.argsort(val)
+    val = val[sorted_indices]
+    vec = vec[sorted_indices]
+
+    # If the moment of inertia is not significantly bigger in one
+    # direction, then the system cannot be described as a surface.
+    moment_limit = 1.5
+    if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
+        raise ValueError(
+            "The given system could not be identified as a surface. Make"
+            " sure that you provide a surface system with a sufficient"
+            " vacuum gap between the layers (at least ~8 angstroms of vacuum"
+            " between layers.)"
+        )
+
+    # The biggest component is the orhogonal one
+    orthogonal_dir = vec[-1]
+
+    return orthogonal_dir
+
+    # Find out the cell direction that corresponds to the orthogonal one
+    # cell = repeated.get_cell()
+    # dots = np.abs(np.dot(orthogonal_dir, vectors.T))
+    # orthogonal_vector_index = np.argmax(dots)
+    # orthogonal_vector = vectors[orthogonal_vector_index]
+    # orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
+
+    return orthogonal_dir
+
+
+def get_closest_direction(vec, directions, normalized=False):
+    """Used to return the direction that is most parallel to a given one.
+
+    Args:
+
+    Returns:
+    """
+    if not normalized:
+        directions = directions/np.linalg.norm(directions, axis=1)
+    dots = np.abs(np.dot(vec, directions.T))
+    index = np.argmax(dots)
+
+    return index
+
+
 # def get_displacement_tensor(self, system):
     # """A matrix where the entry A[i, j, :] is the vector
     # self.cartesian_pos[i] - self.cartesian_pos[j].
