@@ -45,8 +45,9 @@ class LinkedUnitCollection(dict):
         dict.__setitem__(self, key, value)
 
     def recreate_valid(self):
-        """Used to recreate a new Atoms object from the components that are
-        linked to this unit.
+        """Used to recreate a new Atoms object, where each atom is created from
+        a single unit cell. Atoms that were found not to belong to the periodic
+        unit cell are not included.
         """
         recreated_system = Atoms(
             cell=self.system.get_cell(),
@@ -54,7 +55,9 @@ class LinkedUnitCollection(dict):
         )
         for unit in self.values():
             i_all_indices = np.array(unit.all_indices)
+            # print(i_all_indices)
             i_valid_indices = np.array([x for x in unit.basis_indices if x is not None])
+            # print(i_valid_indices)
             i_atoms = self.system[i_all_indices[i_valid_indices]]
             recreated_system += i_atoms
 

@@ -255,26 +255,51 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
-    def test_graphene_primitive(self):
-        sys = Material2DTests.graphene
-        # view(sys)
-        classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Material2DPristine)
+    # def test_graphene_primitive(self):
+        # sys = Material2DTests.graphene
+        # # view(sys)
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Material2DPristine)
 
-    def test_graphene_supercell(self):
-        sys = Material2DTests.graphene.repeat([5, 5, 1])
-        # view(sys)
-        classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Material2DPristine)
+    # def test_graphene_supercell(self):
+        # sys = Material2DTests.graphene.repeat([5, 5, 1])
+        # # view(sys)
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Material2DPristine)
 
-    def test_graphene_partial_pbc(self):
-        sys = Material2DTests.graphene.copy()
-        sys.set_pbc([True, True, False])
-        classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Material2DPristine)
+    # def test_graphene_partial_pbc(self):
+        # sys = Material2DTests.graphene.copy()
+        # sys.set_pbc([True, True, False])
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Material2DPristine)
+
+    # def test_graphene_defect(self):
+        # """Test graphene with a point defect.
+        # """
+        # sys = Material2DTests.graphene.repeat([5, 5, 1])
+        # del sys[24]
+        # # view(sys)
+        # sys.set_pbc([True, True, False])
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Unknown)
+
+    def test_graphene_shaken(self):
+        """Test graphene that has randomly oriented but uniform length
+        dislocations.
+        """
+        # Run multiple times with random displacements
+        np.random.seed(42)
+        for i in range(10):
+            sys = Material2DTests.graphene.repeat([5, 5, 1])
+            systax.geometry.make_random_displacement(sys, 0.2)
+            # view(sys)
+            classifier = Classifier()
+            clas = classifier.classify(sys)
+            self.assertIsInstance(clas, Material2DPristine)
 
 
 class Material3DTests(unittest.TestCase):

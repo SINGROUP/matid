@@ -6,8 +6,8 @@ class Classification():
 
     def __init__(
             self,
-            surface=None,
-            surface_prist=None,
+            surfaces=None,
+            surfaces_prist=None,
             atoms=None,
             molecules=None,
             crystals=None,
@@ -18,8 +18,8 @@ class Classification():
             vacuum_dir=None,
             analyzer=None
             ):
-        self.surface = surface
-        self.surface_prist = surface_prist
+        self.surfaces = surfaces
+        self.surfaces_prist = surfaces_prist
         self.atoms = atoms
         self.molecules = molecules
         self.crystals = crystals

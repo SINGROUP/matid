@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 from ase.data import covalent_radii
+from systax.data.element_data import get_covalent_radii
 
 from sklearn.cluster import DBSCAN
 
@@ -104,6 +105,40 @@ def get_center_of_mass(system, weight=True):
     cm = np.dot(weights, positions/weights.sum())
 
     return cm
+
+
+def get_space_filling(system):
+    """Calculates the ratio of vacuum to filled space by assuming covalent
+    radii for the atoms.
+
+    Args:
+        system(ASE.Atoms): Atomic system.
+
+    Returns:
+        float: The ratio of occupied volume to the cell volume.
+    """
+    cell_volume = system.get_volume()
+    atomic_numbers = system.get_atomic_numbers()
+    occupied_volume = 0
+    radii = get_covalent_radii(atomic_numbers)
+    volumes = 4.0/3.0*np.pi*radii**3
+    occupied_volume = np.sum(volumes)
+    ratio = occupied_volume/cell_volume
+
+    return ratio
+
+
+def make_random_displacement(system, delta):
+    """Dislocate every atom in the given system in a random direction but by
+    the same amount.
+    """
+    pos = system.get_positions()
+    n_atoms = len(system)
+    disloc = np.random.random((n_atoms, 3))
+    disloc /= np.linalg.norm(disloc, axis=1)[:, None]
+    disloc *= delta
+    new_pos = pos + disloc
+    system.set_positions(new_pos)
 
 
 def get_extended_system(system, target_size):
@@ -404,29 +439,26 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     # Transform positions into the new basis
     cart_pos = system.get_positions()
 
-    # See if the new positions extend beyound the boundaries
-    # rel_pos = system.get_scaled_positions()
+    # See if the new positions extend beyound the boundaries. The original
+    # simulation cell is always convex, so we can just check the corners of
+    # unit cell defined by the basis
     max_a = origin + basis[0, :]
     max_b = origin + basis[1, :]
+    max_c = origin + basis[1, :]
     max_ab = origin + basis[0, :] + basis[1, :]
+    max_ac = origin + basis[0, :] + basis[2, :]
+    max_bc = origin + basis[1, :] + basis[2, :]
+    max_abc = origin + basis[0, :] + basis[1, :] + basis[2, :]
+    vectors = np.array((max_a, max_b, max_c, max_ab, max_ac, max_bc, max_abc))
     cell = system.get_cell()
-    rel_max_a = to_scaled(cell, max_a)
-    rel_max_b = to_scaled(cell, max_b)
-    rel_max_ab = to_scaled(cell, max_ab)
+    rel_vectors = to_scaled(cell, vectors, wrap=False, pbc=system.get_pbc())
 
     directions = set()
     directions.add((0, 0, 0))
-    for i_vec in [rel_max_a, rel_max_b, rel_max_ab]:
-
-        a_max = i_vec[0]
-        b_max = i_vec[1]
-
-        if a_max >= 1 and b_max >= 1:
-            directions.add((1, 1, 0))
-        elif a_max >= 1 and 0 <= b_max < 1:
-            directions.add((1, 0, 0))
-        elif b_max >= 1 and 0 <= a_max < 1:
-            directions.add((0, 1, 0))
+    for vec in rel_vectors:
+        i_direction = tuple(np.floor(vec))
+        if i_direction != (0, 0, 0):
+            directions.add(i_direction)
 
     # If the new cell is overflowing beyound the boundaries of the original
     # system, we have to also check the periodic copies.

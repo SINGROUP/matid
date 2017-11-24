@@ -177,10 +177,11 @@ class Class2DAnalyzer(SymmetryAnalyzer):
             # print(y_ok)
             # print(z_ok)
 
+        # print(len(self.unitcollection))
         # Check that each unit contains only the basis
         for unit in self.unitcollection.values():
-            n_basis_indices = len(unit.basis_indices)
-            n_all_indices = len(unit.all_indices)
-            if n_basis_indices != n_all_indices:
-                return False
+            basis_indices = unit.basis_indices
+            for value in basis_indices:
+                if value is None:
+                    return False
         return True
