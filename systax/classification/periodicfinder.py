@@ -551,6 +551,10 @@ class PeriodicFinder():
         else:
             searched_coords.add(index)
 
+        # If the seed atom was not found for this cell, end the search
+        if seed_index is None:
+            return
+
         cell_pos = unit_cell.get_scaled_positions()
         cell_num = unit_cell.get_atomic_numbers()
 
@@ -562,16 +566,46 @@ class PeriodicFinder():
             seed_pos-seed_offset,
             self.pos_tol/2.0)
 
-        # print(all_indices)
+        # if len(all_indices) != 2:
+            # print("==============")
+            # print(test_pos_rel)
+            # print(seed_index)
+            # print(cell_basis)
+            # test = Atoms(
+                # cell=cell_basis,
+                # scaled_positions=test_pos_rel,
+                # symbols=system.get_atomic_numbers()[all_indices]
+            # )
+            # view(test)
 
-        # If the seed atom was not found for this cell, end the search
-        if seed_index is None:
-            return
-
-        # Find the the indices and position of the seed atoms of neighbouring
-        # units.
+        # Create new LinkedUnit for the cell and its contents.
         new_seed_indices = []
         new_seed_pos = []
+        if len(all_indices) != 0:
+            new_sys = Atoms(
+                cell=cell_basis,
+                scaled_positions=test_pos_rel,
+                symbols=system.get_atomic_numbers()[all_indices]
+            )
+            # view(new_sys)
+
+            # Find the atom indices that match the atoms in the unit cell
+            matches = systax.geometry.get_matches(
+                new_sys,
+                unit_cell.get_positions(),
+                cell_num,
+                self.pos_tol)
+            # if None in matches:
+                # print(index)
+                # print(new_sys.get_positions())
+                # print(unit_cell.get_positions())
+                # view(new_sys)
+                # print(matches)
+
+            # Create the new LinkedUnit and add it to the collection representing
+            # the surface
+            new_unit = LinkedUnit(index, seed_index, seed_pos, cell_basis, all_indices, matches)
+            collection[index] = new_unit
 
         # Here we decide the directions to which the search is extended. The
         # directions depend on the directions that were found to be periodic
@@ -603,48 +637,26 @@ class PeriodicFinder():
                 i_seed_pos = seed_guess
             new_seed_pos.append(i_seed_pos)
 
+        # new_seed_indices = np.array(new_seed_indices)
+        # indw = [x[0] if len(x) > 0 else None for x in new_seed_indices]
+        # print(indw)
+
+        # print(new_seed_indices)
+        # view(system[new_seed_indices])
+
         # Update the cell for this seed point. This adds more noise to the cell
-        # basis vectors but allows us to track curved lattices. The indices 22,
-        # 16, and 14 are the indices for the [1,0,0], [0,1,0] and [0, 0, 1]
-        # multipliers.
+        # basis vectors but allows us to better track curved and malformed
+        # lattices.
         if n_periodic_dim == 3:
+            # The indices 22, 16, and 14 are the indices for the [1,0,0],
+            # [0,1,0] and [0, 0, 1] multipliers.
             i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
             i_cell = i_cell - seed_pos
         elif n_periodic_dim == 2:
+            # The indices 6 and 4 are the indices for the [1,0,0],
+            # and [0,1,0] multipliers.
             i_cell = np.array(cell_basis)
             i_cell[periodic_indices, :] = (new_seed_pos[6]-seed_pos, new_seed_pos[4]-seed_pos)
-
-        if len(all_indices) != 0:
-            new_sys = Atoms(
-                cell=cell_basis,
-                scaled_positions=test_pos_rel,
-                symbols=system.get_atomic_numbers()[all_indices]
-            )
-            # view(new_sys)
-
-            # Find the atom indices that match the atoms in the unit cell
-            matches = systax.geometry.get_matches(
-                new_sys,
-                unit_cell.get_positions(),
-                cell_num,
-                self.pos_tol)
-            if None in matches:
-                print(new_sys.get_positions())
-                print(unit_cell.get_positions())
-                view(new_sys)
-                print(matches)
-
-            # Create the new LinkedUnit and add it to the collection representing
-            # the surface
-            for match in matches:
-                if match is not None:
-                    new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, all_indices, matches)
-                    collection[index] = new_unit
-                    break
-            # print("==========")
-            # print(index)
-            # print(i_cell)
-            # print(all_indices)
 
         # Use the newly found indices to track down new indices with an updated
         # cell.
@@ -653,16 +665,10 @@ class PeriodicFinder():
             i_seed_index = new_seed_indices[i_seed]
 
             n_indices = len(i_seed_index)
-            # if n_indices > 1:
-                # raise ValueError("Too many options when searching for an atom.")
             if n_indices == 0:
                 i_seed_index = None
             else:
                 i_seed_index = possible_seed_indices[i_seed_index[0]]
-
-            a = multiplier[0] + index[0]
-            b = multiplier[1] + index[1]
-            c = multiplier[2] + index[2]
 
             # Update the cell shape
             new_cell = Atoms(
@@ -670,6 +676,8 @@ class PeriodicFinder():
                 scaled_positions=cell_pos,
                 symbols=cell_num
             )
+
+            # Recursively call this same function for a new cell
             self._find_region_rec(
                 system,
                 collection,
@@ -681,6 +689,6 @@ class PeriodicFinder():
                 new_cell,
                 seed_offset,
                 searched_coords,
-                (a, b, c),
+                tuple(multiplier + index),
                 periodic_indices
             )
