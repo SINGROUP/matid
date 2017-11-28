@@ -74,9 +74,7 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_indices()
-            # print(i_indices)
             rec = unit_collection.recreate_valid()
-            # print(len(unit_collection))
             # view(rec)
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
@@ -320,8 +318,8 @@ class PeriodicFinder():
         triple_product = np.dot(np.cross(a, b), c)
 
         dim = 3
-        area_limit = 0.1
-        volume_limit = 0.1
+        area_limit = 0.2
+        volume_limit = 0.2
         if triple_product < volume_limit:
             dim = 2
             cross1 = np.linalg.norm(np.cross(a, b))
@@ -390,8 +388,6 @@ class PeriodicFinder():
         c_test = 2*self.max_cell_size*c_norm
         test_basis = np.array((a, b, c_test))
         origin = seed_pos-0.5*c_test
-        # print(origin)
-        # print(test_basis)
 
         # Convert positions to this basis
         indices, cell_pos_rel = systax.geometry.get_positions_within_basis(
@@ -404,10 +400,6 @@ class PeriodicFinder():
         seed_basis_index = np.where(indices == seed_index)[0][0]
         cell_pos_cart = systax.geometry.to_cartesian(test_basis, cell_pos_rel)
         seed_basis_pos_cart = np.array(cell_pos_cart[seed_basis_index])
-        # print(cell_pos_cart)
-        # print(origin)
-        # print(test_basis)
-        # print(cell_pos_cart)
 
         # View system
         # new_num = num[indices]
@@ -539,10 +531,24 @@ class PeriodicFinder():
             periodic_indices):
         """
         Args:
+            system(ASE.Atoms): The original system from which the periodic
+                region is searched.
+            collection(LinkedUnitCollection): Container for LinkedUnits that
+                belong to a found region.
+            number_to_index_map(dict): Connects atomic number to indices in the
+                original system.
+            number_to_pos_map(dict): Connects atomic number to positions in the
+                original system.
+            seed_index(int): Index of the seed atom in the original system.
+            seed_pos(np.ndarray): Position of the seed atom in cartesian coordinates.
+            seed_atomic_number(int): Atomic number of the seed atom.
+            unit_cell(ASE.Atoms): The current guess for the unit cell.
+            seed_offset(np.ndrray): Cartesian offset of the seed atom from the unit cell
+                origin.
+            searched_coords(set): Set of 3D indices that have been searched.
+            index(tuple): The 3D coordinate of this unit cell.
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
-            flat_indices(sequence of int): The indices of the basis vectors
-                that are zero or almost zero.
         """
         # Check if this cell has already been searched
         # print(periodic_indices)
@@ -557,118 +563,111 @@ class PeriodicFinder():
 
         cell_pos = unit_cell.get_scaled_positions()
         cell_num = unit_cell.get_atomic_numbers()
+        old_basis = unit_cell.get_cell()
+
+        # Here we decide the new seed points where the search is extended. The
+        # directions depend on the directions that were found to be periodic
+        # for the seed atom.
+        n_periodic_dim = len(periodic_indices)
+        multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=n_periodic_dim)))
+        if n_periodic_dim == 2:
+            multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
+            multis[:, periodic_indices] = multipliers
+            multipliers = multis
+
+        new_seed_indices = []
+        new_seed_pos = []
+        new_seed_multipliers = []
+        orig_pos = system.get_positions()
+        orig_cell = system.get_cell()
+
+        # TODO: get rid of this loop by using numpy
+        i_cell = np.array(old_basis)
+        for it, multiplier in enumerate(multipliers):
+            if tuple(multiplier) == (0, 0, 0):
+                continue
+            disloc = np.sum(multiplier.T[:, np.newaxis]*old_basis, axis=0)
+            seed_guess = seed_pos + disloc
+
+            matches, factors = systax.geometry.get_matches(
+                system,
+                seed_guess,
+                [seed_atomic_number],
+                2*self.pos_tol,
+                return_factors=True)
+
+            # Save the position corresponding to a seed atom or a guess for it
+            if matches[0] is not None:
+                i_seed_pos = orig_pos[matches[0]]
+            else:
+                i_seed_pos = seed_guess
+
+            # Store the indices and positions of new valid seeds
+            # looped = np.absolute(copy_indices) > 0
+            if matches[0] is not None and (factors[0] == 0).all():
+                new_seed_indices.append(matches[0])
+                new_seed_pos.append(i_seed_pos)
+                new_seed_multipliers.append(multiplier)
+
+            # Store the cell basis vector
+            if tuple(multiplier) == (1, 0, 0):
+                factor = factors[0]
+                match = matches[0]
+                if match is None:
+                    a = disloc[0, :]
+                else:
+                    temp = i_seed_pos + np.dot(factor, orig_cell)
+                    a = temp - seed_pos
+                i_cell[0, :] = a
+            elif tuple(multiplier) == (0, 1, 0):
+                factor = factors[0]
+                match = matches[0]
+                if match is None:
+                    b = disloc[1, :]
+                else:
+                    temp = i_seed_pos + np.dot(factor, orig_cell)
+                    b = temp - seed_pos
+                i_cell[1, :] = b
+            elif tuple(multiplier) == (0, 0, 1):
+                factor = factors[0]
+                match = matches[0]
+                if match is None:
+                    c = disloc[2, :]
+                else:
+                    temp = i_seed_pos + np.dot(factor, orig_cell)
+                    c = temp - seed_pos
+                i_cell[2, :] = c
 
         # Find atoms within the cell
-        cell_basis = unit_cell.get_cell()
         all_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
             system,
-            cell_basis,
+            i_cell,
             seed_pos-seed_offset,
             self.pos_tol/2.0)
 
-        # if len(all_indices) != 2:
-            # print("==============")
-            # print(test_pos_rel)
-            # print(seed_index)
-            # print(cell_basis)
-            # test = Atoms(
-                # cell=cell_basis,
-                # scaled_positions=test_pos_rel,
-                # symbols=system.get_atomic_numbers()[all_indices]
-            # )
-            # view(test)
-
         # Create new LinkedUnit for the cell and its contents.
-        new_seed_indices = []
-        new_seed_pos = []
         if len(all_indices) != 0:
             new_sys = Atoms(
-                cell=cell_basis,
+                cell=i_cell,
                 scaled_positions=test_pos_rel,
                 symbols=system.get_atomic_numbers()[all_indices]
             )
-            # view(new_sys)
 
             # Find the atom indices that match the atoms in the unit cell
             matches = systax.geometry.get_matches(
                 new_sys,
                 unit_cell.get_positions(),
                 cell_num,
-                self.pos_tol)
-            # if None in matches:
-                # print(index)
-                # print(new_sys.get_positions())
-                # print(unit_cell.get_positions())
-                # view(new_sys)
-                # print(matches)
+                2*self.pos_tol)
 
             # Create the new LinkedUnit and add it to the collection representing
             # the surface
-            new_unit = LinkedUnit(index, seed_index, seed_pos, cell_basis, all_indices, matches)
+            new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, all_indices, matches)
             collection[index] = new_unit
-
-        # Here we decide the directions to which the search is extended. The
-        # directions depend on the directions that were found to be periodic
-        # for the seed atom.
-        n_periodic_dim = len(periodic_indices)
-        if n_periodic_dim == 3:
-            multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
-        elif n_periodic_dim == 2:
-            multis = np.array(list(itertools.product((-1, 0, 1), repeat=2)))
-            multipliers = np.zeros((multis.shape[0], multis.shape[1]+1))
-            multipliers[:, periodic_indices] = multis
-            multipliers = np.delete(multipliers, 4, 0)
-
-        possible_seed_pos = number_to_pos_map[seed_atomic_number]
-        possible_seed_indices = number_to_index_map[seed_atomic_number]
-
-        for it, multiplier in enumerate(multipliers):
-            disloc = np.sum(multiplier.T[:, np.newaxis]*cell_basis, axis=0)
-            seed_guess = seed_pos + disloc
-            i_seed_disp = possible_seed_pos - seed_guess
-            i_seed_dist = np.linalg.norm(i_seed_disp, axis=1)
-            i_index = np.where(i_seed_dist <= 2*self.pos_tol)  # multiplier of two because to neighbouring cells might be offset to opposite directions
-            i_index = i_index[0]
-            new_seed_indices.append(i_index)
-
-            if len(i_index) != 0:
-                i_seed_pos = possible_seed_pos[i_index[0]]
-            else:
-                i_seed_pos = seed_guess
-            new_seed_pos.append(i_seed_pos)
-
-        # new_seed_indices = np.array(new_seed_indices)
-        # indw = [x[0] if len(x) > 0 else None for x in new_seed_indices]
-        # print(indw)
-
-        # print(new_seed_indices)
-        # view(system[new_seed_indices])
-
-        # Update the cell for this seed point. This adds more noise to the cell
-        # basis vectors but allows us to better track curved and malformed
-        # lattices.
-        if n_periodic_dim == 3:
-            # The indices 22, 16, and 14 are the indices for the [1,0,0],
-            # [0,1,0] and [0, 0, 1] multipliers.
-            i_cell = np.vstack((new_seed_pos[22], new_seed_pos[16], new_seed_pos[14]))
-            i_cell = i_cell - seed_pos
-        elif n_periodic_dim == 2:
-            # The indices 6 and 4 are the indices for the [1,0,0],
-            # and [0,1,0] multipliers.
-            i_cell = np.array(cell_basis)
-            i_cell[periodic_indices, :] = (new_seed_pos[6]-seed_pos, new_seed_pos[4]-seed_pos)
 
         # Use the newly found indices to track down new indices with an updated
         # cell.
-        for i_seed, multiplier in enumerate(multipliers):
-            i_seed_pos = new_seed_pos[i_seed]
-            i_seed_index = new_seed_indices[i_seed]
-
-            n_indices = len(i_seed_index)
-            if n_indices == 0:
-                i_seed_index = None
-            else:
-                i_seed_index = possible_seed_indices[i_seed_index[0]]
+        for seed_index, seed_pos, multiplier in zip(new_seed_indices, new_seed_pos, new_seed_multipliers):
 
             # Update the cell shape
             new_cell = Atoms(
@@ -676,15 +675,14 @@ class PeriodicFinder():
                 scaled_positions=cell_pos,
                 symbols=cell_num
             )
-
             # Recursively call this same function for a new cell
             self._find_region_rec(
                 system,
                 collection,
                 number_to_index_map,
                 number_to_pos_map,
-                i_seed_index,
-                i_seed_pos,
+                seed_index,
+                seed_pos,
                 seed_atomic_number,
                 new_cell,
                 seed_offset,

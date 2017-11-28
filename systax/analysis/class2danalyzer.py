@@ -131,56 +131,16 @@ class Class2DAnalyzer(SymmetryAnalyzer):
         contains the same atoms in same positions. If so, then this material is
         labeled pristine.
         """
-        # Check that is there a square-like area of unit cells
-        # x_min = float("inf")
-        # x_max = float("-inf")
-        # y_min = float("inf")
-        # y_max = float("-inf")
-        # z_min = float("inf")
-        # z_max = float("-inf")
-        # for unit in self.unitcollection.values():
-            # x, y, z = unit.index
-
-            # if x < x_min:
-                # x_min = x
-            # elif x > x_max:
-                # x_max = x
-
-            # if y < y_min:
-                # y_min = y
-            # elif y > y_max:
-                # y_max = y
-
-            # if z < z_min:
-                # z_min = z
-            # elif z > z_max:
-                # z_max = z
-
-        # # Every index should be in the collection
-        # indices = itertools.product(range(x_min, x_max+1), range(y_min, y_max+1), range(z_min, z_max+1))
-        # for coord in indices:
-            # unit = self.unitcollection.get(coord)
-            # if unit is None:
-                # print(coord)
-                # print("bug")
-                # return False
-
-        # # Every coordinate in the collection should be within a rectangular
-        # # region
-        # for unit in self.unitcollection.values():
-            # x, y, z = unit.index
-            # x_ok = x_min < x < x_max
-            # y_ok = y_min < y < y_max
-            # z_ok = z_min < z < z_max
-
-            # print(x_ok)
-            # print(y_ok)
-            # print(z_ok)
-
-        # print(len(self.unitcollection))
         # Check that each unit contains only the basis
         for unit in self.unitcollection.values():
+            all_indices = unit.all_indices
             basis_indices = unit.basis_indices
+
+            # Too many or too few atoms in the basis
+            if len(all_indices) != len(basis_indices):
+                return False
+
+            # No match found for atom in the basis
             for value in basis_indices:
                 if value is None:
                     return False

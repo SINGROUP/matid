@@ -293,13 +293,30 @@ class Material2DTests(unittest.TestCase):
         """
         # Run multiple times with random displacements
         np.random.seed(2)
-        for i in range(1):
-            sys = Material2DTests.graphene.repeat([3, 3, 1])
+        for i in range(10):
+            sys = Material2DTests.graphene.repeat([5, 5, 1])
             systax.geometry.make_random_displacement(sys, 0.2)
-            # view(sys)
             classifier = Classifier()
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, Material2DPristine)
+
+
+class SurfaceTests(unittest.TestCase):
+    """Tests detection of Surfaces.
+    """
+    graphene = Atoms(
+        symbols=[6, 6],
+        cell=np.array((
+            [2.4595121467478055, 0.0, 0.0],
+            [-1.2297560733739028, 2.13, 0.0],
+            [0.0, 0.0, 20.0]
+        )),
+        scaled_positions=np.array((
+            [0.3333333333333333, 0.6666666666666666, 0.5],
+            [0.6666666666666667, 0.33333333333333337, 0.5]
+        )),
+        pbc=True
+    )
 
 
 class Material3DTests(unittest.TestCase):
@@ -731,7 +748,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
