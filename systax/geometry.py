@@ -515,24 +515,19 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
     # Calculate displacement tensor
     disp_tensor = get_displacement_tensor(scaled_pos2, scaled_pos1)
 
-    if return_factors:
-        # Get the index of the periodic copy where each position resides
-        factors = np.floor(scaled_pos2)
-        if len(factors.shape) == 1:
-            factors = np.array([factors])
-
-        # Figure out if the matched positions is coming from the original cell or
-        # from a periodic copy
-        inside = (disp_tensor >= -0.5) & (disp_tensor <= 0.5)
-        inside = np.all(inside, axis=2)
-
-    # Calculate distance matrix
-    indices = np.where(disp_tensor > 0.5)
-    disp_tensor[indices] = 1 - disp_tensor[indices]
-    indices = np.where(disp_tensor < -0.5)
-    disp_tensor[indices] = disp_tensor[indices] + 1
+    # Calculate distance matrix and keep track of the index of the copy was
+    # found to be the closest
+    pos_indices = np.where(disp_tensor > 0.5)
+    neg_indices = np.where(disp_tensor < -0.5)
+    disp_tensor[pos_indices] = 1 - disp_tensor[pos_indices]
+    disp_tensor[neg_indices] = disp_tensor[neg_indices] + 1
     disp_tensor = np.dot(disp_tensor, cell)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
+
+    if return_factors:
+        moved = np.zeros(disp_tensor.shape)
+        moved[pos_indices] = 1
+        moved[neg_indices] = -1
 
     min_ind = np.argmin(distance_matrix, axis=1)
     matches = []
@@ -545,12 +540,8 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
         if distance <= tolerance and a_num == b_num:
             matches.append(ind)
             if return_factors:
-                ins = inside[i][ind]
-                if ins:
-                    copy_indices.append(np.array([0, 0, 0]))
-                else:
-                    factor = factors[i]
-                    copy_indices.append(factor)
+                i_move = moved[i][ind]
+                copy_indices.append(i_move)
         else:
             matches.append(None)
             if return_factors:
@@ -559,48 +550,6 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
     if return_factors:
         return matches, copy_indices
     return matches
-
-
-# def get_matches(system, positions, numbers, tolerance, return_factors=False):
-    # """Given a system and a list of cartesian positions and atomic numbers,
-    # returns a list of indices for the atoms corresponding to the given
-    # positions with some tolerance.
-
-    # Args:
-        # system(ASE.Atoms): System where to search the positions
-        # positions(np.ndarray): Positions to match in the system.
-        # tolerance(float): Maximum allowed distance that is required for a
-            # match in position.
-        # return_periodicity(boolean): Whether to return a list of 3D indices
-            # indicating in which periodic copy the match was found.
-    # """
-    # orig_cart_pos = system.get_positions()
-    # orig_num = system.get_atomic_numbers()
-    # cell = system.get_cell()
-
-    # distances = get_distance_matrix(cell, positions, orig_cart_pos, wrap_distances=True)
-    # factors = np.floor(to_scaled(cell, positions, wrap=False))
-
-    # min_ind = np.argmin(distances, axis=1)
-    # matches = []
-    # match_factors = []
-
-    # for i, ind in enumerate(min_ind):
-        # distance = distances[i, ind]
-        # a_num = orig_num[ind]
-        # b_num = numbers[i]
-        # if distance <= tolerance and a_num == b_num:
-            # matches.append(ind)
-            # if return_factors:
-                # match_factors.append(factors[i])
-        # else:
-            # matches.append(None)
-            # if return_factors:
-                # match_factors.append(None)
-
-    # if return_factors:
-        # return matches, match_factors
-    # return matches
 
 
 def to_scaled(cell, positions, wrap=False, pbc=False):

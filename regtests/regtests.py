@@ -16,7 +16,14 @@ from ase.build import nanotube
 import ase.lattice.hexagonal
 
 from systax import Classifier
-from systax.classification import Atom, Molecule, Crystal, Material1D, Material2DPristine, Unknown, Surface, SurfaceAdsorption
+from systax.classification import \
+    Atom, \
+    Molecule, \
+    Crystal, \
+    Material1D, \
+    Material2DPristine, \
+    Unknown, \
+    SurfacePristine
 from systax import Class3DAnalyzer
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
 import systax.geometry
@@ -301,24 +308,6 @@ class Material2DTests(unittest.TestCase):
             self.assertIsInstance(clas, Material2DPristine)
 
 
-class SurfaceTests(unittest.TestCase):
-    """Tests detection of Surfaces.
-    """
-    graphene = Atoms(
-        symbols=[6, 6],
-        cell=np.array((
-            [2.4595121467478055, 0.0, 0.0],
-            [-1.2297560733739028, 2.13, 0.0],
-            [0.0, 0.0, 20.0]
-        )),
-        scaled_positions=np.array((
-            [0.3333333333333333, 0.6666666666666666, 0.5],
-            [0.6666666666666667, 0.33333333333333337, 0.5]
-        )),
-        pbc=True
-    )
-
-
 class Material3DTests(unittest.TestCase):
     """Tests detection of bulk 3D materials.
     """
@@ -561,7 +550,7 @@ class Material3DAnalyserTests(unittest.TestCase):
         self.assertEqual(n_atoms, n_atoms_wyckoff)
 
     def get_material3d_properties(self, system):
-        analyzer = Material3DAnalyzer(system)
+        analyzer = Class3DAnalyzer(system)
         data = dotdict()
 
         data.space_group_number = analyzer.get_space_group_number()
@@ -595,16 +584,24 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-    def test_perfect_surface(self):
-
-        # Create an Fe 100 surface as an ASE Atoms object
+    def test_bcc_pristine_thin_surface(self):
         system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        view(system)
-
+        # view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        self.assertIsInstance(classification, SurfacePristine)
 
+    def test_bcc_pristine_small_surface(self):
+        system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
+        view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, SurfacePristine)
+
+
+class SurfaceAnalyserTests(unittest.TestCase):
+    """Tests for analyzing surfaces.
+    """
         # # Test surface info
         # # surfaces = classifier.surfaces
         # surface = classification.surfaces[0]
@@ -744,15 +741,14 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     alltests = unittest.TestSuite(suites)

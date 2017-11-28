@@ -227,6 +227,10 @@ class Classifier():
                         layer_mean, layer_std = analyzer_2d.get_layer_statistics()
                         thickness = analyzer_2d.get_thickness()
 
+                        # print(is_pristine)
+                        # print(layer_mean)
+                        # print(layer_std)
+
                         if layer_mean == self.layers_2d and layer_std == 0.0 and thickness < self.thickness_2d:
                             if is_pristine:
                                 material2d_prist_comps.append(Material2DPristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
@@ -347,7 +351,7 @@ class Classifier():
            (n_surfaces == 0) and \
            (n_material2d_prist == 0) and \
            (n_surfaces_prist == 1):
-            return SurfacePristine(surfaces_pristine=surface_prist_comps, vacuum_dir=vacuum_dir)
+            return SurfacePristine(surfaces_prist=surface_prist_comps, vacuum_dir=vacuum_dir)
 
         elif (n_atoms == 0) and \
            (n_molecules == 0) and \

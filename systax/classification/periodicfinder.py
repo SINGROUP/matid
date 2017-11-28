@@ -58,6 +58,7 @@ class PeriodicFinder():
             if n_spans == 3:
                 proto_cell = self._find_cell_atoms_3d(system, seed_index, best_basis)
                 periodic_indices = [0, 1, 2]
+                seed_position = np.array((0, 0, 0))
             elif n_spans == 2:
                 proto_cell, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
                 periodic_indices = [0, 1]
@@ -206,7 +207,6 @@ class PeriodicFinder():
         v2 = normed_spans[max_span_indices]
 
         # Find the dimensionality of the space spanned by this set of vectors
-        # print(v2)
         n_dim = self._find_space_dim(v2)
 
         # Find best valid combination of spans by looking at the number of
@@ -315,7 +315,7 @@ class PeriodicFinder():
         a = cell[0, :]
         b = cell[1, :]
         c = cell[2, :]
-        triple_product = np.dot(np.cross(a, b), c)
+        triple_product = np.absolute(np.dot(np.cross(a, b), c))
 
         dim = 3
         area_limit = 0.2
@@ -344,17 +344,21 @@ class PeriodicFinder():
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
         seed_pos = positions[seed_index]
-        indices = systax.geometry.get_positions_within_basis(positions, cell_basis_vectors, seed_pos, self.pos_tol)
+        indices, rel_pos = systax.geometry.get_positions_within_basis(
+            system,
+            cell_basis_vectors,
+            seed_pos,
+            self.pos_tol)
         cell_pos = positions[indices]
         cell_numbers = numbers[indices]
 
-        trans_sys = Atoms(
+        proto_sys = Atoms(
             cell=cell_basis_vectors,
-            positions=cell_pos,
+            positions=cell_pos-seed_pos,
             symbols=cell_numbers
         )
 
-        return trans_sys
+        return proto_sys
 
     def _find_cell_atoms_2d(self, system, seed_index, cell_basis_vectors):
         """Used to find a cell for 2D materials. The best basis that is found
@@ -586,7 +590,8 @@ class PeriodicFinder():
         for it, multiplier in enumerate(multipliers):
             if tuple(multiplier) == (0, 0, 0):
                 continue
-            disloc = np.sum(multiplier.T[:, np.newaxis]*old_basis, axis=0)
+
+            disloc = np.dot(multiplier, old_basis)
             seed_guess = seed_pos + disloc
 
             matches, factors = systax.geometry.get_matches(
@@ -614,7 +619,7 @@ class PeriodicFinder():
                 factor = factors[0]
                 match = matches[0]
                 if match is None:
-                    a = disloc[0, :]
+                    a = disloc
                 else:
                     temp = i_seed_pos + np.dot(factor, orig_cell)
                     a = temp - seed_pos
@@ -623,7 +628,7 @@ class PeriodicFinder():
                 factor = factors[0]
                 match = matches[0]
                 if match is None:
-                    b = disloc[1, :]
+                    b = disloc
                 else:
                     temp = i_seed_pos + np.dot(factor, orig_cell)
                     b = temp - seed_pos
@@ -632,13 +637,14 @@ class PeriodicFinder():
                 factor = factors[0]
                 match = matches[0]
                 if match is None:
-                    c = disloc[2, :]
+                    c = disloc
                 else:
                     temp = i_seed_pos + np.dot(factor, orig_cell)
                     c = temp - seed_pos
                 i_cell[2, :] = c
 
         # Find atoms within the cell
+        # print(i_cell)
         all_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
             system,
             i_cell,
