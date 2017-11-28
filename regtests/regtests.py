@@ -593,10 +593,30 @@ class SurfaceTests(unittest.TestCase):
 
     def test_bcc_pristine_small_surface(self):
         system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
-        view(system)
+        # view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertIsInstance(classification, SurfacePristine)
+
+    def test_bcc_pristine_big_surface(self):
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, SurfacePristine)
+
+    def test_bcc_dislocated_big_surface(self):
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+
+        # Run multiple times with random displacements
+        np.random.seed(47)
+        for i in range(10):
+            sys = system.copy()
+            systax.geometry.make_random_displacement(sys, 0.2)
+            # view(sys)
+            classifier = Classifier()
+            clas = classifier.classify(sys)
+            self.assertIsInstance(clas, SurfacePristine)
 
 
 class SurfaceAnalyserTests(unittest.TestCase):
@@ -741,13 +761,13 @@ class SurfaceAnalyserTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 

@@ -77,6 +77,7 @@ class PeriodicFinder():
             i_indices = unit_collection.get_indices()
             rec = unit_collection.recreate_valid()
             # view(rec)
+
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
 
@@ -645,31 +646,38 @@ class PeriodicFinder():
 
         # Find atoms within the cell
         # print(i_cell)
-        all_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
+        inside_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
             system,
             i_cell,
             seed_pos-seed_offset,
             self.pos_tol/2.0)
 
         # Create new LinkedUnit for the cell and its contents.
-        if len(all_indices) != 0:
-            new_sys = Atoms(
-                cell=i_cell,
-                scaled_positions=test_pos_rel,
-                symbols=system.get_atomic_numbers()[all_indices]
-            )
+        # if len(inside_indices) != 0:
+            # new_sys = Atoms(
+                # cell=i_cell,
+                # scaled_positions=test_pos_rel,
+                # symbols=system.get_atomic_numbers()[all_indices]
+            # )
+            # if len(new_sys) != 1:
+                # view(new_sys)
 
-            # Find the atom indices that match the atoms in the unit cell
-            matches = systax.geometry.get_matches(
-                new_sys,
-                unit_cell.get_positions(),
-                cell_num,
-                2*self.pos_tol)
+        # Translate the original system to the seed position
+        match_system = system.copy()
+        match_system.translate(-seed_pos)
 
-            # Create the new LinkedUnit and add it to the collection representing
-            # the surface
-            new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, all_indices, matches)
-            collection[index] = new_unit
+        # Find the atoms that match the positions in the original basis
+        matches = systax.geometry.get_matches(
+            # new_sys,
+            match_system,
+            unit_cell.get_positions(),
+            cell_num,
+            2*self.pos_tol)
+
+        # Create the new LinkedUnit and add it to the collection representing
+        # the surface
+        new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, matches, inside_indices)
+        collection[index] = new_unit
 
         # Use the newly found indices to track down new indices with an updated
         # cell.

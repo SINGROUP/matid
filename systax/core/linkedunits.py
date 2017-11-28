@@ -54,18 +54,15 @@ class LinkedUnitCollection(dict):
             pbc=self.system.get_pbc(),
         )
         for unit in self.values():
-            i_all_indices = np.array(unit.all_indices)
-            basis_indices = unit.basis_indices
-            i_valid_indices = np.array([x for x in basis_indices if x is not None])
-            if len(i_valid_indices) != 0:
-                i_atoms = self.system[i_all_indices[i_valid_indices]]
-                recreated_system += i_atoms
+            i_valid_indices = np.array([x for x in unit.basis_indices if x is not None])
+            i_atoms = self.system[i_valid_indices]
+            recreated_system += i_atoms
 
         return recreated_system
 
-    def get_indices(self):
-        """Returns all the indices in of the LinedUnits in this collection as a
-        single list.
+    def get_basis_indices(self):
+        """Returns the indices of the atoms that were found to belong to a unit
+        cell basis in the LinkedUnits in this collection as a single list.
 
         Returns:
             np.ndarray: Indices of the atoms in the original system that belong
@@ -73,74 +70,46 @@ class LinkedUnitCollection(dict):
         """
         indices = []
         for unit in self.values():
-            i_indices = unit.all_indices
+            i_indices = [x for x in unit.basis_indices if x is not None]
             indices.extend(i_indices)
 
         return np.array(indices)
 
-    # def get_layer_statistics(self):
-        # """Returns all the indices in of the LinedUnits in this collection as a
-        # single list.
+    def get_inside_indices(self):
+        """Returns the indices of the atoms that are within the region defined
+        by the LinkedUnits in this collection as a single list.
 
-        # Returns:
-            # np.ndarray: Indices of the atoms in the original system that belong
-            # to this collection of LinkedUnits.
-        # """
-        # indices = []
-        # for unit in self.values():
-            # i_indices = unit.all_indices
-            # indices.extend(i_indices)
+        Returns:
+            np.ndarray: Indices of the atoms in the original system that belong
+            to this collection of LinkedUnits.
+        """
+        indices = []
+        for unit in self.values():
+            i_indices = unit.inside_indices
+            indices.extend(i_indices)
 
-        # return np.array(indices)
+        return np.array(indices)
 
-    # def add_unit(self, new_unit, coordinate):
+    def get_indices(self):
+        """Returns all the indices in of the LinkedUnits in this collection as a
+        single list.
 
-    # def get_surface_atoms(self):
-        # pass
+        Returns:
+            np.ndarray: Indices of the atoms in the original system that belong
+            to this collection of LinkedUnits.
+        """
+        basis_indices = set(self.get_basis_indices())
+        inside_indices = (self.get_basis_indices())
+        all_indices = basis_indices.union(inside_indices)
 
-    # def get_sizes(self):
-        # pass
-
-    # def generate_units(self):
-
-        # iterated_units = set()
-
-        # # First return the unit at the origin
-        # origin_coord = (0, 0, 0)
-        # iterated_units.add(origin_coord)
-        # yield(self.units[origin_coord])
-
-        # # Recursively iterate over the neighbours
-        # multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
-        # current_coord = np.array(origin_coord)
-        # for multiplier in multipliers:
-            # i_coord = current_coord + multiplier
-            # i_unit = self.units[tuple(i_coord)]
-            # yield i_unit
-
-            # current_coord = i_unit
-
-    # def generate_neighbors(self, unit):
-        # coord = unit.index
-        # multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
-        # for multiplier in
-
-    # def __iter__(self):
-        # return self
-
-    # def __next__(self):
-        # if self.current > self.high:
-            # raise StopIteration
-        # else:
-            # self.current += 1
-            # return self.current - 1
+        return np.array(list(all_indices))
 
 
 class LinkedUnit():
     """Represents a cell that is connected to others in 3D space to form a
     structure, e.g. a surface.
     """
-    def __init__(self, index, seed_index, seed_coordinate, cell, all_indices, basis_indices):
+    def __init__(self, index, seed_index, seed_coordinate, cell, basis_indices, inside_indices):
         """
         Args:
             index(tuple of three ints):
@@ -156,5 +125,5 @@ class LinkedUnit():
         self.seed_index = seed_index
         self.seed_coordinate = seed_coordinate
         self.cell = cell
-        self.all_indices = all_indices
         self.basis_indices = basis_indices
+        self.inside_indices = inside_indices

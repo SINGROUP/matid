@@ -131,17 +131,18 @@ class Class2DAnalyzer(SymmetryAnalyzer):
         contains the same atoms in same positions. If so, then this material is
         labeled pristine.
         """
-        # Check that each unit contains only the basis
+        basis_indices = set()
+        inside_indices = set()
+
+        # Each unit should have the same number of basis atoms
         for unit in self.unitcollection.values():
-            all_indices = unit.all_indices
-            basis_indices = unit.basis_indices
+            inside = unit.inside_indices
+            basis = unit.basis_indices
+            basis_indices.update(basis)
+            inside_indices.update(inside)
 
-            # Too many or too few atoms in the basis
-            if len(all_indices) != len(basis_indices):
-                return False
+        # Each inside index should belong to the surface
+        if basis_indices != inside_indices:
+            return False
 
-            # No match found for atom in the basis
-            for value in basis_indices:
-                if value is None:
-                    return False
         return True
