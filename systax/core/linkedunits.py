@@ -55,8 +55,9 @@ class LinkedUnitCollection(dict):
         )
         for unit in self.values():
             i_valid_indices = np.array([x for x in unit.basis_indices if x is not None])
-            i_atoms = self.system[i_valid_indices]
-            recreated_system += i_atoms
+            if len(i_valid_indices) != 0:
+                i_atoms = self.system[i_valid_indices]
+                recreated_system += i_atoms
 
         return recreated_system
 
