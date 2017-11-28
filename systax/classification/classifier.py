@@ -12,7 +12,19 @@ from ase.visualize import view
 
 from systax.exceptions import ClassificationError
 from systax.classification.components import SurfaceComponent, SurfacePristineComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, Material2DPristineComponent, UnknownComponent
-from systax.classification.classifications import Surface, SurfacePristine, Atom, Molecule, Crystal, Material1D, Material2D, Material2DPristine, Unknown
+
+from systax.classification.classifications import \
+    SurfacePristine, \
+    Atom, \
+    Molecule, \
+    CrystalPristine, \
+    Material1D, \
+    Material2DPristine, \
+    Unknown, \
+    Class0D, \
+    Class1D, \
+    Class2D, \
+    Class3D
 import systax.geometry
 from systax.analysis.class3danalyzer import Class3DAnalyzer
 from systax.analysis.class2danalyzer import Class2DAnalyzer
@@ -36,7 +48,7 @@ class Classifier():
             seed_algorithm="cm",
             max_cell_size=3,
             pos_tol=0.5,
-            n_seeds=2,
+            vacuum_threshold=7,
             crystallinity_threshold=0.1,
             connectivity_crystal=1.9,
             thickness_2d=6,
@@ -49,7 +61,8 @@ class Classifier():
             max_cell_size(float): The maximum cell size
             pos_tol(float): The position tolerance in angstroms for finding translationally
                 repeated units.
-            n_seeds(int): The number of seed positions to check.
+            vacuum_threshold(float): Amount of vacuum that is considered to
+                decouple interaction between structures.
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
@@ -59,7 +72,7 @@ class Classifier():
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
-        self.n_seeds = 1
+        self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
         self.thickness_2d = thickness_2d
@@ -86,31 +99,14 @@ class Classifier():
         material1d_comps = []
         material2d_comps = []
         material2d_prist_comps = []
+        dim_class = None
 
         # Run a high level analysis to determine the system type
         periodicity = system.get_pbc()
         n_periodic = np.sum(periodicity)
 
-        # Calculate a ratio of occupied space/cell volume. This ratio can
-        # already be used to separate most bulk materials avoiding more
-        # costly operations.
-        try:
-            cell_volume = system.get_volume()
-        # If vectors are zero, volume not defined
-        except ValueError:
-            pass
-        else:
-            if cell_volume != 0:
-                atomic_numbers = system.get_atomic_numbers()
-                radii = covalent_radii[atomic_numbers]
-                occupied_volume = np.sum(4.0/3.0*np.pi*radii**3)
-                ratio = occupied_volume/cell_volume
-                if ratio >= 0.3 and n_periodic == 3:
-                    crystal_comps.append(AtomComponent(range(len(system)), system))
-                    return Crystal(crystals=crystal_comps)
-
         if n_periodic == 0:
-
+            dim_class = Class0D
             # Check if system has only one atom
             n_atoms = len(system)
             if n_atoms == 1:
@@ -135,12 +131,14 @@ class Classifier():
             # eigval, eigvec = geometry.get_moments_of_inertia(extended_system)
             # print(eigval)
             # print(eigvec)
-            vacuum_dir = systax.geometry.find_vacuum_directions(system)
+            vacuum_dir = systax.geometry.find_vacuum_directions(system, self.vacuum_threshold)
             n_vacuum = np.sum(vacuum_dir)
 
             # If all directions have a vacuum separating the copies, the system
             # represents a finite structure.
             if n_vacuum == 3:
+
+                dim_class = Class0D
 
                 # Check if system has only one atom
                 n_atoms = len(system)
@@ -159,6 +157,8 @@ class Classifier():
 
             # 1D structures
             if n_vacuum == 2:
+
+                dim_class = Class1D
 
                 # Check if the the system has one or multiple components when
                 # multiplied once in the periodic dimension
@@ -184,6 +184,8 @@ class Classifier():
             # 2D structures
             if n_vacuum == 1:
 
+                dim_class = Class2D
+
                 # Run the surface detection on the whole system.
                 total_regions = []
                 indices = list(range(len(system)))
@@ -195,7 +197,6 @@ class Classifier():
 
                 surface_indices = set()
                 for i_region in regions:
-
                     i_indices, i_unit_collection, i_region_atoms, i_cell = i_region
                     if len(i_indices) != 0:
                         total_regions.append(i_region)
@@ -227,15 +228,14 @@ class Classifier():
                         layer_mean, layer_std = analyzer_2d.get_layer_statistics()
                         thickness = analyzer_2d.get_thickness()
 
-                        # print(is_pristine)
                         # print(layer_mean)
                         # print(layer_std)
 
                         if layer_mean == self.layers_2d and layer_std == 0.0 and thickness < self.thickness_2d:
                             if is_pristine:
                                 material2d_prist_comps.append(Material2DPristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                            # else:
-                                # material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                            else:
+                                material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                         elif layer_mean > self.layers_2d:
                             if is_pristine:
                                 surface_prist_comps.append(SurfacePristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
@@ -246,6 +246,8 @@ class Classifier():
 
             # Bulk structures
             if n_vacuum == 0:
+
+                dim_class = Class3D
 
                 # Check the number of symmetries
                 analyzer = Class3DAnalyzer(system)
@@ -313,34 +315,12 @@ class Classifier():
            (n_molecules == 0) and \
            (n_crystals == 0) and \
            (n_material1d == 0) and \
-           (n_material2d == 1) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return Material2D(material2d=material2d_comps, vacuum_dir=vacuum_dir)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
            (n_surfaces == 0) and \
            (n_material2d_prist == 1) and \
            (n_surfaces_prist == 0):
             return Material2DPristine(material2d_prist=material2d_prist_comps, vacuum_dir=vacuum_dir)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 1) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return Surface(surfaces=surface_comps, vacuum_dir=vacuum_dir)
 
         elif (n_atoms == 0) and \
            (n_molecules == 0) and \
@@ -359,18 +339,17 @@ class Classifier():
            (n_material1d == 0) and \
            (n_material2d == 0) and \
            (n_unknown == 0) and \
-           (n_surfaces == 0) and \
            (n_material2d_prist == 0) and \
            (n_surfaces_prist == 0):
-            return Crystal(crystals=crystal_comps)
+            return CrystalPristine(crystals_prist=crystal_comps)
 
         else:
-            return Unknown(
+            return dim_class(
                 atoms=atom_comps,
                 molecules=molecule_comps,
-                crystals=crystal_comps,
+                crystals_prist=crystal_comps,
                 material1d=material1d_comps,
-                material2d=material2d_comps,
+                material2d_prist=material2d_prist_comps,
+                surfaces_prist=surface_prist_comps,
                 unknowns=unknown_comps,
-                surfaces=surface_comps
             )

@@ -55,7 +55,7 @@ def get_moments_of_inertia(system, weight=True):
     return evals, evecs
 
 
-def find_vacuum_directions(system, threshold=7.0):
+def find_vacuum_directions(system, threshold):
     """Searches for vacuum gaps that are separating the periodic copies.
 
     TODO: Implement a n^2 search that allows the detection of more complex

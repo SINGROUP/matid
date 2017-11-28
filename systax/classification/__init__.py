@@ -1,11 +1,12 @@
 from systax.classification.classifications import \
+    Class0D, \
+    Class1D, \
+    Class2D, \
+    Class3D, \
     Atom, \
     Molecule, \
-    Crystal, \
+    CrystalPristine, \
     Material1D, \
-    Material2D, \
     Material2DPristine, \
     Unknown, \
-    Surface, \
-    SurfacePristine, \
-    SurfaceAdsorption
+    SurfacePristine

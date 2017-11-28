@@ -6,45 +6,32 @@ class Classification():
 
     def __init__(
             self,
-            surfaces=None,
             surfaces_prist=None,
             atoms=None,
             molecules=None,
-            crystals=None,
+            crystals_prist=None,
             material1d=None,
-            material2d=None,
             material2d_prist=None,
             unknowns=None,
             vacuum_dir=None,
             analyzer=None
             ):
-        self.surfaces = surfaces
         self.surfaces_prist = surfaces_prist
         self.atoms = atoms
         self.molecules = molecules
-        self.crystals = crystals
+        self.crystals_prist = crystals_prist
         self.material1d = material1d
-        self.material2d = material2d
         self.material2d_prist = material2d_prist
         self.unknowns = unknowns
         self.vacuum_dir = vacuum_dir
         self.analyzer = analyzer
 
 
-class Defected():
-    """Structures with any kind of defect.
-    """
-
-
-class Adsorption():
-    """Structures that represent adsorption.
-    """
-
-
 #===============================================================================
 # 0D Structures
 class Class0D(Classification):
-    """
+    """Structures that have a structure that is isolated in all directions by a
+    vacuum gap.
     """
 
 
@@ -58,10 +45,16 @@ class Molecule(Class0D):
     """
 
 
+class NanoCluster(Class0D):
+    """
+    """
+
+
 #===============================================================================
 # 1D Structures
 class Class1D(Classification):
-    """
+    """All structures that are roughly 1-dimensional, meaning that one
+    dimension is much larger than the two others.
     """
 
 
@@ -73,57 +66,35 @@ class Material1D(Class1D):
 #===============================================================================
 # 2D Structures
 class Class2D(Classification):
+    """All structures that are roughly 2-dimensional, meaning that two
+    dimensions are much larger than the two others.
+    """
+
+
+class SurfacePristine(Class2D):
     """
     """
 
 
-class Surface(Class2D):
-    """
-    """
-
-
-class SurfacePristine(Surface):
-    """
-    """
-
-
-class SurfaceAdsorption(Surface, Adsorption):
-    """
-    """
-
-
-class Material2D(Class2D):
-    """
-    """
-
-
-class Material2DPristine(Material2D):
+class Material2DPristine(Class2D):
     """Consists of one Material2D component without defects or adsorbents.
-    """
-
-
-class Material2DAdsorption(Material2D, Adsorption):
-    """
     """
 
 
 #===============================================================================
 # 3D Structures
 class Class3D(Classification):
+    """All structures that periodically extend infinitely without vacuum gaps.
+    """
+
+
+class CrystalPristine(Classification):
     """
     """
 
 
-class Crystal(Class3D):
-    """
-    """
-
-
-class CrystalPristine(Crystal):
-    """
-    """
-
-
+#===============================================================================
+# Unknown structures
 class Unknown(Classification):
     """
     """

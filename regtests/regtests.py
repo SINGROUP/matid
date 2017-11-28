@@ -17,9 +17,13 @@ import ase.lattice.hexagonal
 
 from systax import Classifier
 from systax.classification import \
+    Class0D, \
+    Class1D, \
+    Class2D, \
+    Class3D, \
     Atom, \
     Molecule, \
-    Crystal, \
+    CrystalPristine, \
     Material1D, \
     Material2DPristine, \
     Unknown, \
@@ -242,7 +246,7 @@ class Material1DTests(unittest.TestCase):
 
         classifier = Classifier()
         clas = classifier.classify(tube)
-        self.assertIsInstance(clas, Unknown)
+        self.assertIsInstance(clas, Class1D)
 
 
 class Material2DTests(unittest.TestCase):
@@ -292,7 +296,7 @@ class Material2DTests(unittest.TestCase):
         sys.set_pbc([True, True, False])
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Unknown)
+        self.assertIsInstance(clas, Class2D)
 
     def test_graphene_shaken(self):
         """Test graphene that has randomly oriented but uniform length
@@ -319,7 +323,7 @@ class Material3DTests(unittest.TestCase):
             latticeconstant=5.430710)
         classifier = Classifier()
         clas = classifier.classify(si)
-        self.assertIsInstance(clas, Crystal)
+        self.assertIsInstance(clas, CrystalPristine)
 
     def test_graphite(self):
         """Testing a sparse material like graphite.
@@ -331,7 +335,7 @@ class Material3DTests(unittest.TestCase):
             latticeconstant=(2.461, 6.708))
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Crystal)
+        self.assertIsInstance(clas, CrystalPristine)
 
     def test_amorphous(self):
         """Test an amorphous crystal with completely random positions. This is
@@ -349,7 +353,7 @@ class Material3DTests(unittest.TestCase):
             pbc=(1, 1, 1))
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Unknown)
+        self.assertIsInstance(clas, Class3D)
 
     def test_too_sparse(self):
         """Test a crystal that is too sparse.
@@ -362,7 +366,7 @@ class Material3DTests(unittest.TestCase):
         # view(sys)
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Unknown)
+        self.assertIsInstance(clas, Class3D)
 
 
 class Material3DAnalyserTests(unittest.TestCase):
@@ -613,7 +617,7 @@ class SurfaceTests(unittest.TestCase):
         # view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
-        self.assertIsInstance(classification, Unknown)
+        self.assertIsInstance(classification, Class2D)
 
     def test_bcc_dislocated_big_surface(self):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
