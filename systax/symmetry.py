@@ -1,6 +1,7 @@
 import numpy as np
 from collections import OrderedDict, defaultdict
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
+import spglib
 
 
 class WyckoffGroup():
@@ -74,18 +75,24 @@ def make_wyckoff_groups(system, space_group):
     return groups
 
 
-def check_if_crystal(material3d_analyzer, threshold=0.1):
+def check_if_crystal(material3d_analyzer, threshold):
     """Quantifies the crystallinity of the structure as a ratio of symmetries
-    per number of atoms in primitive cell. This metric can be used to
+    per number of unique atoms in primitive cell. This metric can be used to
     distinguish between amorphous and 'regular' crystals.
+
+    The number of symemtry operations corresponds to the symmetry operations
+    corresponding to the hall number of the structure. The symmetry operations
+    as given by spglib.get_symmetry() are specific to the original structure,
+    and they have not been reduced to the symmetries of the space group.
     """
     # Get the number of equivalent atoms in the primitive cell.
-    n_atoms = len(material3d_analyzer.get_primitive_system())
+    n_unique_atoms_prim = len(material3d_analyzer.get_equivalent_atoms_primitive())
 
-    sym_ops = material3d_analyzer.get_symmetry_operations()
+    hall_number = material3d_analyzer.get_hall_number()
+    sym_ops = spglib.get_symmetry_from_database(hall_number)
     n_symmetries = len(sym_ops["rotations"])
 
-    ratio = n_symmetries/float(n_atoms)
+    ratio = n_symmetries/float(n_unique_atoms_prim)
     if ratio >= threshold:
         return True
 

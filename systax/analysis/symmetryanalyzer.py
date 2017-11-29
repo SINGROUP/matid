@@ -586,7 +586,7 @@ class SymmetryAnalyzer(Analyzer):
         return value
 
     def get_symmetry_operations(self):
-        """The symmetry operations of the crystal as rotations and
+        """The symmetry operations of the original structure as rotations and
         translations.
 
         Returns:

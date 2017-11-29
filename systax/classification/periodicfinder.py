@@ -28,9 +28,16 @@ class PeriodicFinder():
         Args:
             system(ase.Atoms): The system from which to find the periodic
                 regions.
-            orig_indices(sequence of int): The original indices of the given system in the
-                oiginal system
-            vacuum_dir()
+            vacuum_dir(sequence three booleans): The cell basis directions that
+                have a vacuum gap.
+
+        Returns:
+            list of tuples: A list of tuples containing the following information:
+                indices: Indices of the atoms belonging to a region
+                linkedunitcollection: A LinkedUnitCollection object
+                    representing the region
+                atoms: An ASE.Atoms object representing the region
+                unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         # Find the seed points
         if self.seed_algorithm == "cm":
@@ -62,6 +69,8 @@ class PeriodicFinder():
             elif n_spans == 2:
                 proto_cell, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
                 periodic_indices = [0, 1]
+            elif n_spans == 1:
+                return []
 
             # view(proto_cell)
             # print(seed_position)
@@ -75,7 +84,7 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_indices()
-            rec = unit_collection.recreate_valid()
+            # rec = unit_collection.recreate_valid()
             # view(rec)
 
             if len(i_indices) > 0:
@@ -150,14 +159,17 @@ class PeriodicFinder():
         return bases, distance_mask
 
     def _find_best_basis(self, system, seed_index, possible_spans, neighbour_mask, vacuum_dir):
-        """Check which spans in the given list actually are translational bases
-        on the surface.
+        """Used to find the best candidate for a unit cell basis that could
+        generate a periodic region in the structure.
 
-        In order to be a valid span, there has to be at least one repetition of
-        this span for all atoms that are nearby the seed atom.
+        Args:
+
+        Returns:
+            np.ndarray: A numpy array of n basis vectors.
         """
         # system = syscache["system"]
         # disp_tensor = syscache["disp_tensor"]
+        vacuum_dir = np.array(vacuum_dir)
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
 
@@ -230,7 +242,7 @@ class PeriodicFinder():
 
         # Iterate over the combos until a linearly independent combo is found
         # and stalemates have been resolved by checking the orthogonality and
-        # vector lengths
+        # vector lengths.
         best_periodicity_score = 0
         best_score = float('inf')
         best_combo = None
@@ -242,6 +254,10 @@ class PeriodicFinder():
             # Check that the combination is linearly independent
             area_threshold = 0.1
             volume_threshold = 0.1
+            if n_dim == 1:
+                i = combo[0]
+                i_score = span_lengths[i]
+
             if n_dim == 2:
                 i = combo[0]
                 j = combo[1]
@@ -290,7 +306,20 @@ class PeriodicFinder():
         """Used to get the dimensionality of the space that is span by a set of
         vectors.
         """
+        area_limit = 0.2
+        volume_limit = 0.2
+
         # Get  triplets of spans (combinations)
+        n_basis = len(normed_spans)
+        if n_basis == 1:
+            return 1
+        elif n_basis == 2:
+            area = np.linalg.norm(np.cross(normed_spans[0], normed_spans[0]))
+            if area < area_limit:
+                return 1
+            else:
+                return 2
+
         span_indices = range(len(normed_spans))
         indices = np.array(list(itertools.combinations(span_indices, 3)))
 
@@ -319,8 +348,6 @@ class PeriodicFinder():
         triple_product = np.absolute(np.dot(np.cross(a, b), c))
 
         dim = 3
-        area_limit = 0.2
-        volume_limit = 0.2
         if triple_product < volume_limit:
             dim = 2
             cross1 = np.linalg.norm(np.cross(a, b))

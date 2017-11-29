@@ -7,6 +7,7 @@ import unittest
 import sys
 
 import numpy as np
+from numpy.random import RandomState
 
 from ase import Atoms
 from ase.build import bcc100, add_adsorbate, molecule
@@ -16,14 +17,18 @@ from ase.build import nanotube
 import ase.lattice.hexagonal
 
 from systax import Classifier
+from systax import PeriodicFinder
 from systax.classification import \
     Class0D, \
     Class1D, \
     Class2D, \
     Class3D, \
+    Class3DDisordered, \
+    Class3DDisconnected, \
     Atom, \
     Molecule, \
     CrystalPristine, \
+    CrystalDefected, \
     Material1D, \
     Material2DPristine, \
     Unknown, \
@@ -144,6 +149,28 @@ class GeometryTests(unittest.TestCase):
         ])
         cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
+
+
+class PeriodicFinderTests(unittest.TestCase):
+    """Unit tests for the class that is used to find periodic regions.
+    """
+    finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+
+    def test_random(self):
+        """Test a structure with random atom positions.
+        """
+        n_atoms = 50
+        rng = RandomState(8)
+        rand_pos = rng.rand(n_atoms, 3)
+
+        sys = Atoms(
+            scaled_positions=rand_pos,
+            cell=(10, 10, 10),
+            symbols=n_atoms*['C'],
+            pbc=(1, 1, 1))
+        vacuum_dir = [False, False, False]
+        regions = self.finder.get_regions(sys, vacuum_dir)
+        self.assertEqual(len(regions), 0)
 
 
 class AtomTests(unittest.TestCase):
@@ -303,10 +330,10 @@ class Material2DTests(unittest.TestCase):
         dislocations.
         """
         # Run multiple times with random displacements
-        np.random.seed(2)
+        rng = RandomState(2)
         for i in range(10):
             sys = Material2DTests.graphene.repeat([5, 5, 1])
-            systax.geometry.make_random_displacement(sys, 0.2)
+            systax.geometry.make_random_displacement(sys, 0.2, rng)
             classifier = Classifier()
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, Material2DPristine)
@@ -325,6 +352,19 @@ class Material3DTests(unittest.TestCase):
         clas = classifier.classify(si)
         self.assertIsInstance(clas, CrystalPristine)
 
+    def test_si_shaken(self):
+        rng = RandomState(47)
+        for i in range(10):
+            si = ase.lattice.cubic.Diamond(
+                size=(1, 1, 1),
+                symbol='Si',
+                pbc=(1, 1, 1),
+                latticeconstant=5.430710)
+            systax.geometry.make_random_displacement(si, 0.2, rng)
+            classifier = Classifier()
+            clas = classifier.classify(si)
+            self.assertIsInstance(clas, CrystalPristine)
+
     def test_graphite(self):
         """Testing a sparse material like graphite.
         """
@@ -342,9 +382,9 @@ class Material3DTests(unittest.TestCase):
         currently not classified as crystal, but the threshold can be set in
         the classifier setup.
         """
-        np.random.seed(8)
         n_atoms = 50
-        rand_pos = np.random.rand(n_atoms, 3)
+        rng = RandomState(8)
+        rand_pos = rng.rand(n_atoms, 3)
 
         sys = Atoms(
             scaled_positions=rand_pos,
@@ -353,7 +393,7 @@ class Material3DTests(unittest.TestCase):
             pbc=(1, 1, 1))
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Class3D)
+        self.assertIsInstance(clas, Class3DDisordered)
 
     def test_too_sparse(self):
         """Test a crystal that is too sparse.
@@ -366,7 +406,47 @@ class Material3DTests(unittest.TestCase):
         # view(sys)
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Class3D)
+        self.assertIsInstance(clas, Class3DDisconnected)
+
+    def test_point_defect(self):
+        """Test a crystal that has a point defect.
+        """
+        si = ase.lattice.cubic.Diamond(
+            size=(3, 3, 3),
+            symbol='Si',
+            pbc=(1, 1, 1),
+            latticeconstant=5.430710)
+        del si[106]
+        classifier = Classifier()
+        clas = classifier.classify(si)
+        self.assertIsInstance(clas, CrystalDefected)
+
+    def test_adatom(self):
+        """Test a crystal that has an adatom.
+        """
+        si = ase.lattice.cubic.Diamond(
+            size=(3, 3, 3),
+            symbol='Si',
+            pbc=(1, 1, 1),
+            latticeconstant=5.430710)
+        si += ase.Atom(symbol="Si", position=(8, 8, 8))
+        # view(si)
+        classifier = Classifier()
+        clas = classifier.classify(si)
+        self.assertIsInstance(clas, CrystalDefected)
+
+    def test_impurity(self):
+        """Test a crystal where an impurity is introduced.
+        """
+        si = ase.lattice.cubic.Diamond(
+            size=(3, 3, 3),
+            symbol='Si',
+            pbc=(1, 1, 1),
+            latticeconstant=5.430710)
+        si[106].symbol = "Ge"
+        classifier = Classifier()
+        clas = classifier.classify(si)
+        self.assertIsInstance(clas, CrystalDefected)
 
 
 class Material3DAnalyserTests(unittest.TestCase):
@@ -494,8 +574,8 @@ class Material3DAnalyserTests(unittest.TestCase):
     def test_unsymmetric(self):
         """Test that a random system is handled correctly.
         """
-        np.random.seed(seed=42)
-        positions = 10*np.random.rand(10, 3)
+        rng = RandomState(42)
+        positions = 10*rng.rand(10, 3)
         system = Atoms(
             positions=positions,
             symbols=["H", "C", "Na", "Fe", "Cu", "He", "Ne", "Mg", "Si", "Ti"],
@@ -623,10 +703,10 @@ class SurfaceTests(unittest.TestCase):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
         # Run multiple times with random displacements
-        np.random.seed(47)
+        rng = RandomState(47)
         for i in range(10):
             sys = system.copy()
-            systax.geometry.make_random_displacement(sys, 0.2)
+            systax.geometry.make_random_displacement(sys, 0.2, rng)
             # view(sys)
             classifier = Classifier()
             clas = classifier.classify(sys)
@@ -776,6 +856,7 @@ class SurfaceAnalyserTests(unittest.TestCase):
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))

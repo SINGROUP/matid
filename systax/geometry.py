@@ -4,6 +4,7 @@ a atomic system.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+from numpy.random import RandomState
 
 from ase.data import covalent_radii
 from systax.data.element_data import get_covalent_radii
@@ -128,13 +129,21 @@ def get_space_filling(system):
     return ratio
 
 
-def make_random_displacement(system, delta):
+def make_random_displacement(system, delta, rng=None):
     """Dislocate every atom in the given system in a random direction but by
-    the same amount.
+    the same amount. Uses an internal random number generator to avoid touching
+    the global numpy.random.seed()-function.
+
+    Args:
+        system(ASE.Atoms): The system for which the displacement are performed.
+        delta(float): The magnitude of the displacements.
+        rng(np.random.RandomState): Random number generator.
     """
+    if rng is None:
+        rng = RandomState()
     pos = system.get_positions()
     n_atoms = len(system)
-    disloc = np.random.random((n_atoms, 3))
+    disloc = rng.rand(n_atoms, 3)
     disloc /= np.linalg.norm(disloc, axis=1)[:, None]
     disloc *= delta
     new_pos = pos + disloc

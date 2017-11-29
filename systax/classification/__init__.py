@@ -3,9 +3,12 @@ from systax.classification.classifications import \
     Class1D, \
     Class2D, \
     Class3D, \
+    Class3DDisordered, \
+    Class3DDisconnected, \
     Atom, \
     Molecule, \
     CrystalPristine, \
+    CrystalDefected, \
     Material1D, \
     Material2DPristine, \
     Unknown, \

@@ -18,13 +18,16 @@ from systax.classification.classifications import \
     Atom, \
     Molecule, \
     CrystalPristine, \
+    CrystalDefected, \
     Material1D, \
     Material2DPristine, \
     Unknown, \
     Class0D, \
     Class1D, \
     Class2D, \
-    Class3D
+    Class3D, \
+    Class3DDisordered, \
+    Class3DDisconnected
 import systax.geometry
 from systax.analysis.class3danalyzer import Class3DAnalyzer
 from systax.analysis.class2danalyzer import Class2DAnalyzer
@@ -49,7 +52,7 @@ class Classifier():
             max_cell_size=3,
             pos_tol=0.5,
             vacuum_threshold=7,
-            crystallinity_threshold=0.1,
+            crystallinity_threshold=0.25,
             connectivity_crystal=1.9,
             thickness_2d=6,
             layers_2d=1
@@ -259,13 +262,41 @@ class Classifier():
                 clusters = systax.geometry.get_clusters(ext_sys3d, self.connectivity_crystal)
                 n_clusters = len(clusters)
 
-                if is_crystal and n_clusters == 1:
+                # If the structure is connected but the symetry criteria was
+                # not fullfilled, check the number of atoms in the primitive
+                # cell. If above a certain threshold, try to find periodic
+                # region to see if it is a crystal containing a defect.
+                if not is_crystal and n_clusters == 1:
+                    primitive_system = analyzer.get_primitive_system()
+                    n_atoms_prim = len(primitive_system)
+                    if n_atoms_prim >= 20:
+                        periodicfinder = PeriodicFinder(
+                            pos_tol=self.pos_tol,
+                            seed_algorithm="cm",
+                            max_cell_size=self.max_cell_size)
+                        regions = periodicfinder.get_regions(system, vacuum_dir)
+
+                        # If all the regions cover at least 80% of the structure,
+                        # then we consider it to be a defected crystal
+                        n_atoms_in_regions = 0
+                        n_atoms_total = len(system)
+                        for region in regions:
+                            n_atoms_in_regions += len(region[0])
+                        coverage = n_atoms_in_regions/n_atoms_total
+                        if coverage >= 0.8:
+                            dim_class = CrystalDefected
+                        else:
+                            dim_class = Class3DDisordered
+
+                elif is_crystal and n_clusters == 1:
                     crystal_comps.append(CrystalComponent(
                         np.arange(len(system)),
                         system.copy(),
                         analyzer))
+                elif n_clusters > 1:
+                    dim_class = Class3DDisconnected
                 else:
-                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+                    dim_class = Class3DDisordered
 
         # Return a classification for this system.
         n_molecules = len(molecule_comps)

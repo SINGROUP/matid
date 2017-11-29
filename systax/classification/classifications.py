@@ -88,6 +88,21 @@ class Class3D(Classification):
     """
 
 
+class Class3DDisordered(Class3D):
+    """All structures that periodically extend infinitely without vacuum gaps.
+    """
+
+
+class Class3DDisconnected(Class3D):
+    """All structures that periodically extend infinitely without vacuum gaps.
+    """
+
+
+class CrystalDefected(Class3D):
+    """
+    """
+
+
 class CrystalPristine(Classification):
     """
     """
