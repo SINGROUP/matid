@@ -31,6 +31,8 @@ from systax.classification import \
     CrystalDefected, \
     Material1D, \
     Material2DPristine, \
+    Material2DDefected, \
+    Material2DAdsorption, \
     Unknown, \
     SurfacePristine
 from systax import Class3DAnalyzer
@@ -207,7 +209,7 @@ class MoleculeTests(unittest.TestCase):
         self.assertIsInstance(clas, Molecule)
 
     def test_h2o_pbc(self):
-        h2o = molecule("H2O")
+        h2o = molecule("CH4")
         gap = 10
         h2o.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
         h2o.set_pbc([True, True, True])
@@ -215,6 +217,19 @@ class MoleculeTests(unittest.TestCase):
         classifier = Classifier()
         clas = classifier.classify(h2o)
         self.assertIsInstance(clas, Molecule)
+
+    def test_unknown_molecule(self):
+        h2o = Atoms(
+            positions=[[0.0, 0.0, 0.0], [2.0, 0.0, 0.0]],
+            symbols=["Au", "Ag"]
+        )
+        gap = 10
+        h2o.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
+        h2o.set_pbc([True, True, True])
+        h2o.center()
+        classifier = Classifier()
+        clas = classifier.classify(h2o)
+        self.assertIsInstance(clas, Unknown)
 
 
 class Material1DTests(unittest.TestCase):
@@ -314,7 +329,7 @@ class Material2DTests(unittest.TestCase):
         clas = classifier.classify(sys)
         self.assertIsInstance(clas, Material2DPristine)
 
-    def test_graphene_defect(self):
+    def test_graphene_missing_atom(self):
         """Test graphene with a point defect.
         """
         sys = Material2DTests.graphene.repeat([5, 5, 1])
@@ -323,7 +338,7 @@ class Material2DTests(unittest.TestCase):
         sys.set_pbc([True, True, False])
         classifier = Classifier()
         clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Class2D)
+        self.assertIsInstance(clas, Material2DDefected)
 
     def test_graphene_shaken(self):
         """Test graphene that has randomly oriented but uniform length

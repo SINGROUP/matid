@@ -6,25 +6,27 @@ class Classification():
 
     def __init__(
             self,
-            surfaces_prist=None,
-            atoms=None,
-            molecules=None,
-            crystals_prist=None,
-            material1d=None,
-            material2d_prist=None,
-            unknowns=None,
+            components,
+            # surfaces_prist=None,
+            # atoms=None,
+            # molecules=None,
+            # crystals_prist=None,
+            # material1d=None,
+            # material2d_prist=None,
+            # unknowns=None,
             vacuum_dir=None,
             analyzer=None
             ):
-        self.surfaces_prist = surfaces_prist
-        self.atoms = atoms
-        self.molecules = molecules
-        self.crystals_prist = crystals_prist
-        self.material1d = material1d
-        self.material2d_prist = material2d_prist
-        self.unknowns = unknowns
+        self.components = components
         self.vacuum_dir = vacuum_dir
         self.analyzer = analyzer
+        # self.surfaces_prist = surfaces_prist
+        # self.atoms = atoms
+        # self.molecules = molecules
+        # self.crystals_prist = crystals_prist
+        # self.material1d = material1d
+        # self.material2d_prist = material2d_prist
+        # self.unknowns = unknowns
 
 
 #===============================================================================
@@ -76,8 +78,28 @@ class SurfacePristine(Class2D):
     """
 
 
+class SurfaceDefected(Class2D):
+    """
+    """
+
+
+class SurfaceAdsorption(Class2D):
+    """
+    """
+
+
 class Material2DPristine(Class2D):
     """Consists of one Material2D component without defects or adsorbents.
+    """
+
+
+class Material2DDefected(Class2D):
+    """Defected Material2D.
+    """
+
+
+class Material2DAdsorption(Class2D):
+    """Adsorption on 2D material.
     """
 
 

@@ -4,23 +4,30 @@ __metaclass__ = type
 
 import itertools
 
+from collections import defaultdict
+
 import numpy as np
 
+import ase.build
 from ase import Atoms
 from ase.data import covalent_radii
 from ase.visualize import view
 
 from systax.exceptions import ClassificationError
-from systax.classification.components import SurfaceComponent, SurfacePristineComponent, AtomComponent, MoleculeComponent, CrystalComponent, Material1DComponent, Material2DComponent, Material2DPristineComponent, UnknownComponent
+from systax.classification.components import ComponentType, Component
 
 from systax.classification.classifications import \
     SurfacePristine, \
+    SurfaceDefected, \
+    SurfaceAdsorption, \
     Atom, \
     Molecule, \
     CrystalPristine, \
     CrystalDefected, \
     Material1D, \
     Material2DPristine, \
+    Material2DDefected, \
+    Material2DAdsorption, \
     Unknown, \
     Class0D, \
     Class1D, \
@@ -93,16 +100,8 @@ class Classifier():
             system(ASE.Atoms or System): Atomic system to classify.
         """
         self.system = system
-        surface_comps = []
-        surface_prist_comps = []
-        atom_comps = []
-        molecule_comps = []
-        crystal_comps = []
-        unknown_comps = []
-        material1d_comps = []
-        material2d_comps = []
-        material2d_prist_comps = []
         dim_class = None
+        components = defaultdict(list)
 
         # Run a high level analysis to determine the system type
         periodicity = system.get_pbc()
@@ -113,16 +112,23 @@ class Classifier():
             # Check if system has only one atom
             n_atoms = len(system)
             if n_atoms == 1:
-                atom_comps.append(AtomComponent([0], system))
+                components[ComponentType.Atom].append(Component([0], system))
             # Check if the the system has one or multiple components
             else:
                 clusters = systax.geometry.get_clusters(system)
                 for cluster in clusters:
+                    cluster_atoms = system[cluster]
                     n_atoms_cluster = len(cluster)
                     if n_atoms_cluster == 1:
-                        atom_comps.append(AtomComponent(cluster, system[cluster]))
+                        components[ComponentType.Atom].append(Component(cluster, system[cluster]))
                     elif n_atoms_cluster > 1:
-                        molecule_comps.append(MoleculeComponent(cluster, system[cluster]))
+                        formula = cluster_atoms.get_chemical_formula()
+                        try:
+                            ase.build.molecule(formula)
+                        except KeyError:
+                            components[ComponentType.Unknown].append(Component(cluster, cluster_atoms))
+                        else:
+                            components[ComponentType.Molecule].append(Component(cluster, cluster_atoms))
 
         # If the system has at least one periodic dimension, check the periodic
         # directions for a vacuum gap.
@@ -146,17 +152,24 @@ class Classifier():
                 # Check if system has only one atom
                 n_atoms = len(system)
                 if n_atoms == 1:
-                    atom_comps.append(AtomComponent([0], system))
+                    components[ComponentType.Atom].append(Component([0], system))
 
                 # Check if the the system has one or multiple components.
                 else:
                     clusters = systax.geometry.get_clusters(system)
                     for cluster in clusters:
                         n_atoms_cluster = len(cluster)
+                        clust_atoms = system[cluster]
                         if n_atoms_cluster == 1:
-                            atom_comps.append(AtomComponent(cluster, system[cluster]))
+                            components[ComponentType.Atom].append(Component(cluster, clust_atoms))
                         elif n_atoms_cluster > 1:
-                            molecule_comps.append(MoleculeComponent(cluster, system[cluster]))
+                            formula = clust_atoms.get_chemical_formula()
+                            try:
+                                ase.build.molecule(formula)
+                            except KeyError:
+                                components[ComponentType.Unknown].append(Component(cluster, clust_atoms))
+                            else:
+                                components[ComponentType.Molecule].append(Component(cluster, clust_atoms))
 
             # 1D structures
             if n_vacuum == 2:
@@ -180,16 +193,16 @@ class Classifier():
                             is_small = False
 
                 if n_clusters == 1 and is_small:
-                    material1d_comps.append(Material1DComponent(np.arange(len(system)), system.copy()))
+                    components[ComponentType.Material1D].append(Component(np.arange(len(system)), system.copy()))
                 else:
-                    unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+                    components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
 
             # 2D structures
             if n_vacuum == 1:
 
                 dim_class = Class2D
 
-                # Run the surface detection on the whole system.
+                # Run the region detection on the whole system.
                 total_regions = []
                 indices = list(range(len(system)))
                 periodicfinder = PeriodicFinder(
@@ -208,7 +221,7 @@ class Classifier():
                 indices = set(indices)
                 i_misc_ind = indices - surface_indices
                 if i_misc_ind:
-                    unknown_comps.append(UnknownComponent(list(i_misc_ind), system[list(i_misc_ind)]))
+                    components[ComponentType.Unknown].append(Component(list(i_misc_ind), system[list(i_misc_ind)]))
 
                 # Check that surface components are continuous are chemically
                 # connected, and check if they have one or more layers
@@ -236,16 +249,16 @@ class Classifier():
 
                         if layer_mean == self.layers_2d and layer_std == 0.0 and thickness < self.thickness_2d:
                             if is_pristine:
-                                material2d_prist_comps.append(Material2DPristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                                components[ComponentType.Material2DPristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                             else:
-                                material2d_comps.append(Material2DComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                                components[ComponentType.Material2DDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                         elif layer_mean > self.layers_2d:
                             if is_pristine:
-                                surface_prist_comps.append(SurfacePristineComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                            # else:
-                                # surface_comps.append(SurfaceComponent(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                                components[ComponentType.SurfacePristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                            else:
+                                components[ComponentType.SurfaceDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                     else:
-                        unknown_comps.append(UnknownComponent(np.arange(len(system)), system.copy()))
+                        components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
 
             # Bulk structures
             if n_vacuum == 0:
@@ -262,7 +275,7 @@ class Classifier():
                 clusters = systax.geometry.get_clusters(ext_sys3d, self.connectivity_crystal)
                 n_clusters = len(clusters)
 
-                # If the structure is connected but the symetry criteria was
+                # If the structure is connected but the symmetry criteria was
                 # not fullfilled, check the number of atoms in the primitive
                 # cell. If above a certain threshold, try to find periodic
                 # region to see if it is a crystal containing a defect.
@@ -289,7 +302,7 @@ class Classifier():
                             dim_class = Class3DDisordered
 
                 elif is_crystal and n_clusters == 1:
-                    crystal_comps.append(CrystalComponent(
+                    components[ComponentType.CrystalPristine].append(Component(
                         np.arange(len(system)),
                         system.copy(),
                         analyzer))
@@ -299,88 +312,42 @@ class Classifier():
                     dim_class = Class3DDisordered
 
         # Return a classification for this system.
-        n_molecules = len(molecule_comps)
-        n_atoms = len(atom_comps)
-        n_crystals = len(crystal_comps)
-        n_surfaces = len(surface_comps)
-        n_surfaces_prist = len(surface_prist_comps)
-        n_material1d = len(material1d_comps)
-        n_material2d = len(material2d_comps)
-        n_material2d_prist = len(material2d_prist_comps)
-        n_unknown = len(unknown_comps)
+        n_molecules = len(components[ComponentType.Molecule])
+        n_atoms = len(components[ComponentType.Atom])
+        n_crystals_prist = len(components[ComponentType.CrystalPristine])
+        n_crystals_defected = len(components[ComponentType.CrystalDefected])
+        n_surfaces_prist = len(components[ComponentType.SurfacePristine])
+        n_surfaces_defected = len(components[ComponentType.SurfaceDefected])
+        n_material1d = len(components[ComponentType.Material1D])
+        n_material2d_prist = len(components[ComponentType.Material2DPristine])
+        n_material2d_defected = len(components[ComponentType.Material2DDefected])
+        n_types = 0
+        for item in components.values():
+            if len(item) != 0:
+                n_types += 1
 
-        if (n_atoms == 1) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return Atom(atoms=atom_comps)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 1) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return Molecule(molecules=molecule_comps)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 1) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return Material1D(material1d=material1d_comps, vacuum_dir=vacuum_dir)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 1) and \
-           (n_surfaces_prist == 0):
-            return Material2DPristine(material2d_prist=material2d_prist_comps, vacuum_dir=vacuum_dir)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 0) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_surfaces == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 1):
-            return SurfacePristine(surfaces_prist=surface_prist_comps, vacuum_dir=vacuum_dir)
-
-        elif (n_atoms == 0) and \
-           (n_molecules == 0) and \
-           (n_crystals == 1) and \
-           (n_material1d == 0) and \
-           (n_material2d == 0) and \
-           (n_unknown == 0) and \
-           (n_material2d_prist == 0) and \
-           (n_surfaces_prist == 0):
-            return CrystalPristine(crystals_prist=crystal_comps)
-
+        if n_types == 1:
+            if n_atoms == 1:
+                return Atom(components=components)
+            elif n_molecules == 1:
+                return Molecule(components=components)
+            elif n_material1d == 1:
+                return Material1D(components=components)
+            elif n_material2d_prist == 1:
+                return Material2DPristine(components=components)
+            elif n_material2d_defected == 1:
+                return Material2DDefected(components=components)
+            elif n_surfaces_prist == 1:
+                return SurfacePristine(components=components)
+            elif n_surfaces_defected == 1:
+                return SurfaceDefected(components=components)
+            elif n_crystals_prist == 1:
+                return CrystalPristine(components=components)
+            elif n_crystals_defected == 1:
+                return CrystalDefected(components=components)
+            else:
+                return dim_class(components=components)
         else:
             return dim_class(
-                atoms=atom_comps,
-                molecules=molecule_comps,
-                crystals_prist=crystal_comps,
-                material1d=material1d_comps,
-                material2d_prist=material2d_prist_comps,
-                surfaces_prist=surface_prist_comps,
-                unknowns=unknown_comps,
+                components=components
             )
