@@ -3,12 +3,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import systax.geometry
 from systax.exceptions import SystaxError
 from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
+import numpy as np
+import itertools
 
 __metaclass__ = type
 
 
-class Material2DAnalyzer(SymmetryAnalyzer):
-    """Class for analyzing 2D materials.
+class Class2DAnalyzer(SymmetryAnalyzer):
+    """Class for analyzing any 2D structure, like surfaces or 2D materials.
     """
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
@@ -64,7 +66,8 @@ class Material2DAnalyzer(SymmetryAnalyzer):
         return ideal_sys
 
     def get_thickness(self):
-        """Used to calculate the thickness of the 2D material.
+        """Used to calculate the thickness of the structure. All 2D structures
+        should have a finite thickness.
         """
         gaps = self._get_vacuum_gaps()
         if gaps.sum() != 1:
@@ -83,4 +86,63 @@ class Material2DAnalyzer(SymmetryAnalyzer):
         if height < 0:
             height += 1
 
-        return height
+        return height.item()
+
+    def get_layer_statistics(self):
+        """Get statistics about the number of layers. Returns the average
+        number of layers and the standard deviation in the number of layers.
+        """
+        # Find out which direction is the aperiodic one
+        vacuum_gaps = self.vacuum_gaps
+        vacuum_direction = self.system.get_cell()[vacuum_gaps]
+        unit_cell = self.unitcollection[(0, 0, 0)].cell
+        index = systax.geometry.get_closest_direction(vacuum_direction, unit_cell)
+        mask = [True, True, True]
+        mask[index] = False
+        mask = np.array(mask)
+
+        # Find out how many layers there are in the aperiodic directions
+        max_sizes = {}
+        min_sizes = {}
+        for coord, unit in self.unitcollection.items():
+            ab = tuple(np.array(coord)[mask])
+            c = coord[index]
+            min_size = min_sizes.get(ab)
+            max_size = max_sizes.get(ab)
+            if min_size is None or c < min_size:
+                min_sizes[ab] = c
+            if max_size is None or c > max_size:
+                max_sizes[ab] = c
+
+        sizes = []
+        for key, max_c in max_sizes.items():
+            min_c = min_sizes[key]
+            size = max_c - min_c + 1
+            sizes.append(size)
+        sizes = np.array(sizes)
+
+        mean = sizes.mean()
+        std = sizes.std()
+
+        return mean, std
+
+    def is_pristine(self):
+        """Looks at each unit cell in this system, and checks that each cell
+        contains the same atoms in same positions. If so, then this material is
+        labeled pristine.
+        """
+        basis_indices = set()
+        inside_indices = set()
+
+        # Each unit should have the same number of basis atoms
+        for unit in self.unitcollection.values():
+            inside = unit.inside_indices
+            basis = unit.basis_indices
+            basis_indices.update(basis)
+            inside_indices.update(inside)
+
+        # Each inside index should belong to the surface
+        if basis_indices != inside_indices:
+            return False
+
+        return True

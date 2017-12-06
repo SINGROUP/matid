@@ -4,32 +4,31 @@ import spglib
 
 import numpy as np
 
+from fractions import Fraction
+from collections import defaultdict
 import abc
 
 from systax.utils.segfault_protect import segfault_protect
-from systax.data.constants import WYCKOFF_LETTERS
 from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
 from systax.exceptions import CellNormalizationError, SystaxError
-from systax.data.symmetry_data import SPACE_GROUP_INFO
+from systax.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
 from systax.analysis.analyzer import Analyzer
 import systax.geometry
 
 from ase import Atoms
 
-from fractions import Fraction
-
 
 class SymmetryAnalyzer(Analyzer):
     """A base class for analyzers that deal with 3D symmetry.
     """
-    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None):
+    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None, unitcollection=None, unit_cell=None):
         """
         Args:
             system (ASE.Atoms): The system to inspect.
             spglib_precision (float): The tolerance for the symmetry detection
                 done by spglib.
         """
-        super(SymmetryAnalyzer, self).__init__(system, spglib_precision=None, vacuum_gaps=None)
+        super(SymmetryAnalyzer, self).__init__(system, spglib_precision, vacuum_gaps, unitcollection, unit_cell)
 
     def reset(self):
         """Used to reset all the cached values.
@@ -115,7 +114,7 @@ class SymmetryAnalyzer(Analyzer):
         Returns:
             bool: is the object chiral.
         """
-        operations = self._get_spglib_symmetry_operations()
+        operations = self.get_symmetry_operations()
         rotations = operations["rotations"]
         chiral = True
         for rotation in rotations:
@@ -125,6 +124,21 @@ class SymmetryAnalyzer(Analyzer):
                 return False
 
         return chiral
+
+    def get_has_free_wyckoff_parameters(self):
+        """Tells whether this system has Wyckoff positions with free variables.
+
+        Returns:
+            bool: Indicates the presence of Wyckoff positions with free variables.
+        """
+        space_group = self.get_space_group_number()
+        wyckoff_letters = set(self.get_wyckoff_letters_original())
+        wyckoff_info = WYCKOFF_POSITIONS[space_group]
+        for wyckoff_letter in wyckoff_letters:
+            variables = wyckoff_info[wyckoff_letter]["variables"]
+            if len(variables) != 0:
+                return True
+        return False
 
     def get_crystal_system(self):
         """Get the crystal system based on the space group number. There are
@@ -345,6 +359,21 @@ class SymmetryAnalyzer(Analyzer):
             self.get_conventional_system()
         return self._conventional_wyckoff_letters
 
+    def get_wyckoff_groups_conventional(self):
+        """Get a list of Wyckoff groups for this system. Wyckoff groups combine
+        information about the atoms and their postiions at specific Wyckoff
+        positions.
+
+        Returns:
+            list of WyckoffGroup: A list of WyckoffGroup objects for this
+            system.
+        """
+        conv_sys = self.get_conventional_system()
+        space_group = self.get_space_group_number()
+        groups = systax.symmetry.make_wyckoff_groups(conv_sys, space_group)
+
+        return groups
+
     def get_equivalent_atoms_conventional(self):
         """List of equivalent atoms in the idealized system.
 
@@ -503,7 +532,7 @@ class SymmetryAnalyzer(Analyzer):
 
         # Spglib precision is a diameter around a site, so we divide by roughly two
         # to allow the "symmetrized" structure to match the original
-        allowed_offset = 0.55*self.spglib_precision
+        allowed_offset = 1.25*self.spglib_precision
 
         # For all atoms in the normalized cell, find the corresponding atom from
         # the original cell and see which Wyckoff number is assigned to it
@@ -556,8 +585,8 @@ class SymmetryAnalyzer(Analyzer):
 
         return value
 
-    def _get_spglib_symmetry_operations(self):
-        """The symmetry operations of the crystal as rotations and
+    def get_symmetry_operations(self):
+        """The symmetry operations of the original structure as rotations and
         translations.
 
         Returns:
@@ -798,7 +827,7 @@ class SymmetryAnalyzer(Analyzer):
         Args:
             target_pos (1x3 np.array): The relative position to search.
             positions (Nx3 np.array): The relative position where to search.
-            cell (3x3 np.array): The cell to find calculate a threshold accuracy in
+            cell (3x3 np.array): The cell used to find a threshold accuracy in
                 cartesian coordinates.
             accuracy (float): The minimum cartesian distance (angstroms) that is
                 required for the atoms to be considered identical.
@@ -820,7 +849,7 @@ class SymmetryAnalyzer(Analyzer):
         # Take periodicity into account by wrapping coordinate elements that
         # are bigger than 0.5 or smaller than -0.5
         indices = np.where(displacements > 0.5)
-        displacements[indices] = 1 - displacements[indices]
+        displacements[indices] = displacements[indices] - 1
         indices = np.where(displacements < -0.5)
         displacements[indices] = displacements[indices] + 1
 
@@ -836,6 +865,11 @@ class SymmetryAnalyzer(Analyzer):
         if min_distance <= accuracy:
             return min_index
         else:
+            print(positions)
+            print(target_pos)
+            print(min_distance)
+            print(accuracy)
+            print(cell)
             return None
 
     def _find_wyckoff_ground_state(
@@ -856,6 +890,7 @@ class SymmetryAnalyzer(Analyzer):
         identity = {
             "transformation": np.identity(4),
             "permutations": {x: x for x in old_wyckoff_letters},
+            "identity": True,
         }
         transform_list.append(identity)
 
@@ -873,115 +908,94 @@ class SymmetryAnalyzer(Analyzer):
             self._best_transform = identity
             return system, old_wyckoff_letters
 
-        # print(old_wyckoff_letters)
-        # print(system.get_chemical_symbols())
-        # print(transform_list)
-
-        # Form a mapping between transformation number and a list of wyckoff
-        # letters for the atoms. The transformation with numberr -1 corresponds
-        # to the original system
-        transformed_wyckoffs = {}
-        for i_transform, transform in enumerate(transform_list):
-            permutations = transform["permutations"]
-            new_wyckoff_letters = []
-            found = False
-
-            for old_wyckoff_letter in old_wyckoff_letters:
-                new_wyckoff = permutations.get(old_wyckoff_letter)
-                if new_wyckoff is not None:
-                    found = True
-                    new_wyckoff_letters.append(new_wyckoff)
-                else:
-                    new_wyckoff_letters.append(old_wyckoff_letter)
-
-            if found:
-                transformed_wyckoffs[i_transform] = np.array(new_wyckoff_letters)
-
-        # For each available transform, determine a mapping between a Wyckoff
-        # letter and a list of atomic numbers with that Wyckoff letter
+        # Form all available representations
+        representations = []
         atomic_numbers = system.get_atomic_numbers()
-        mappings = {}
-        for i_transform, new_wyckoff in transformed_wyckoffs.items():
-            i_wyckoff_to_number_map = {}
-            for wyckoff_letter in WYCKOFF_LETTERS:
-                i_atomic_numbers = []
-                for i_atom, i_letter in enumerate(new_wyckoff):
-                    if wyckoff_letter == i_letter:
-                        i_atomic_number = atomic_numbers[i_atom]
-                        i_atomic_numbers.append(i_atomic_number)
-                if len(i_atomic_numbers) is not 0:
-                    i_wyckoff_to_number_map[wyckoff_letter] = np.array(sorted(i_atomic_numbers))
-            mappings[i_transform] = i_wyckoff_to_number_map
+        for transform in transform_list:
+            perm = transform["permutations"]
+            representation = {
+                "transformation": transform["transformation"],
+                "permutations": perm,
+            }
+            wyckoff_positions = {}
+            wyckoff_letters = []
+            i_perm = 0
+            for i_atom, old_w in enumerate(old_wyckoff_letters):
+                new_w = perm.get(old_w)
+                wyckoff_letters.append(new_w)
+                if new_w is not None:
+                    z = atomic_numbers[i_atom]
+                    old_n_atoms = wyckoff_positions.get((new_w, z))
+                    if old_n_atoms is None:
+                        wyckoff_positions[(new_w, z)] = 1
+                    else:
+                        wyckoff_positions[(new_w, z)] += 1
+                    i_perm += 1
+            representation["wyckoff_positions"] = wyckoff_positions
+            representations.append(representation)
 
-        # Find which transformation produces the combination of wyckoff letters
-        # and atomic numbers that is most favourable
-        best_transform_i = None
+        # Gather all available Wyckoff letters in all representations
+        wyckoff_letters = set()
+        for transform in transform_list:
+            i_perm = transform["permutations"]
+            for orig, new in i_perm.items():
+                wyckoff_letters.add(new)
+        wyckoff_letters = sorted(wyckoff_letters)
 
-        searched_indices = mappings.keys()
-        for letter in WYCKOFF_LETTERS:
+        # Gather all available atomic numbers
+        atomic_numbers = set(system.get_atomic_numbers())
+        atomic_numbers = sorted(atomic_numbers)
 
-            # print(letter)
-
-            # First find out the systems with this letter
-            numbers = []
-            i_indices = []
-            for index in searched_indices:
-                i_mapping = mappings[index]
-                i_numbers = i_mapping.get(letter)
-                if i_numbers is not None:
-                    numbers.append(i_numbers)
-                    i_indices.append(index)
-
-            i_indices = np.array(i_indices)
-            numbers = np.array(numbers)
-
-            # If only one transformation found with this letter, then that
-            # transformation is the best
-            if len(numbers) == 1:
-                best_transform_i = i_indices[0]
-                break
-            # If no transformation with this letter found, move onto the next
-            # letter
-            elif len(numbers) == 0:
-                continue
-
-            # Next try to see if one of the systems has atoms with lower atomic
-            # numbers with this letter
-            found = False
-            for i_col in range(numbers.shape[1]):
-                col = numbers[:, i_col]
-                col_min_ind = np.where(col == col.min())[0]
-                if len(col_min_ind) > 1:
-                    numbers = numbers[col_min_ind]
-                else:
-                    best_transform_i = i_indices[col_min_ind[0]]
-                    found = True
-                    break
+        # Decide the best representation
+        best_representation = None
+        found = False
+        for w in wyckoff_letters:
             if found:
                 break
-            else:
-                searched_indices = i_indices[col_min_ind]
+            for z in atomic_numbers:
+                n_atoms_map = defaultdict(list)
+                n_atoms_max = 0
+                for r in representations:
+                    i_n = r["wyckoff_positions"].get((w, z))
+                    if i_n is not None:
+                        n_atoms_map[i_n].append(r)
+                        if i_n > n_atoms_max:
+                            n_atoms_max = i_n
+                if n_atoms_max != 0:
+                    representations = n_atoms_map[n_atoms_max]
+                if len(representations) == 1:
+                    best_representation = representations[0]
+                    found = True
 
         # If no best transformation was found, then multiple transformation are
-        # equal. Ensure this and then return one of them.
-        if best_transform_i is None:
-            for i in range(len(searched_indices)-1):
-                index1 = searched_indices[i]
-                index2 = searched_indices[i+1]
-                wyckoffs1 = transformed_wyckoffs[index1]
-                wyckoffs2 = transformed_wyckoffs[index2]
-                if not np.array_equal(wyckoffs1, wyckoffs2):
-                    raise SystaxError("Could not successfully decide best Wyckoff positions.")
-            best_transform_i = searched_indices[0]
+        # equal. Ensure this and then choose the first one.
+        error = SystaxError("Could not successfully decide best Wyckoff positions.")
+        if len(representations) > 1:
+            new_wyckoffs = representations[0]["wyckoff_positions"]
+            n_items = len(new_wyckoffs)
+            for representation in representations[1:]:
+                i_wyckoffs = representation["wyckoff_positions"]
+                if len(i_wyckoffs) != n_items:
+                    raise error
+                for key in new_wyckoffs.keys():
+                    if i_wyckoffs[key] != new_wyckoffs[key]:
+                        raise error
+        best_representation = representations[0]
 
         # Apply the best transform
         new_system = system.copy()
-        if best_transform_i == 0:
+        if best_representation.get("identity"):
             self._best_transform = identity
             return new_system, old_wyckoff_letters
         else:
-            self._best_transform = transform_list[best_transform_i]
-            transformation_matrix = self._best_transform["transformation"]
+            self._best_transform = best_representation
+            best_transformation_matrix = best_representation["transformation"]
+            best_permutations = best_representation["permutations"]
+            new_wyckoff_letters = []
+            for i_atom, old_w in enumerate(old_wyckoff_letters):
+                new_w = best_permutations.get(old_w)
+                new_wyckoff_letters.append(new_w)
+            new_wyckoff_letters = np.array(new_wyckoff_letters)
 
             # Create the homogeneus coordinates
             n_pos = len(system)
@@ -991,7 +1005,7 @@ class SymmetryAnalyzer(Analyzer):
 
             # Apply transformation with the augmented 3x4 matrix that is used
             # for homogeneous coordinates
-            transformed_positions = np.dot(old_pos, transformation_matrix.T)
+            transformed_positions = np.dot(old_pos, best_transformation_matrix.T)
 
             # Get rid of the extra dimension of the homogeneous coordinates
             transformed_positions = transformed_positions[:, 0:3]
@@ -1000,7 +1014,7 @@ class SymmetryAnalyzer(Analyzer):
             wrapped_pos = systax.geometry.get_wrapped_positions(transformed_positions)
             new_system.set_scaled_positions(wrapped_pos)
 
-            return new_system, transformed_wyckoffs[best_transform_i]
+            return new_system, new_wyckoff_letters
 
     def _get_vacuum_gaps(self, threshold=7.0):
         # if self.vacuum_gaps is not None:

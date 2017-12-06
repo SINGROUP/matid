@@ -1,12 +1,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
+from systax.core.system import System
 
 __metaclass__ = type
 
 
-class Material3DAnalyzer(SymmetryAnalyzer):
-    """Class for analyzing 3D materials.
+class Class3DAnalyzer(SymmetryAnalyzer):
+    """Class for analyzing 3D structures.
     """
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
@@ -47,6 +48,9 @@ class Material3DAnalyzer(SymmetryAnalyzer):
             wyckoff_letters,
             spglib_conv_sys
         )
+        ideal_sys = System.from_atoms(ideal_sys)
+        ideal_sys.set_equivalent_atoms(equivalent_atoms)
+        ideal_sys.set_wyckoff_letters(ideal_wyckoff)
 
         self._conventional_system = ideal_sys
         self._conventional_wyckoff_letters = ideal_wyckoff

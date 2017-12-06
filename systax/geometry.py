@@ -4,8 +4,10 @@ a atomic system.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
+from numpy.random import RandomState
 
 from ase.data import covalent_radii
+from systax.data.element_data import get_covalent_radii
 
 from sklearn.cluster import DBSCAN
 
@@ -54,7 +56,7 @@ def get_moments_of_inertia(system, weight=True):
     return evals, evecs
 
 
-def find_vacuum_directions(system, threshold=7.0):
+def find_vacuum_directions(system, threshold):
     """Searches for vacuum gaps that are separating the periodic copies.
 
     TODO: Implement a n^2 search that allows the detection of more complex
@@ -106,6 +108,48 @@ def get_center_of_mass(system, weight=True):
     return cm
 
 
+def get_space_filling(system):
+    """Calculates the ratio of vacuum to filled space by assuming covalent
+    radii for the atoms.
+
+    Args:
+        system(ASE.Atoms): Atomic system.
+
+    Returns:
+        float: The ratio of occupied volume to the cell volume.
+    """
+    cell_volume = system.get_volume()
+    atomic_numbers = system.get_atomic_numbers()
+    occupied_volume = 0
+    radii = get_covalent_radii(atomic_numbers)
+    volumes = 4.0/3.0*np.pi*radii**3
+    occupied_volume = np.sum(volumes)
+    ratio = occupied_volume/cell_volume
+
+    return ratio
+
+
+def make_random_displacement(system, delta, rng=None):
+    """Dislocate every atom in the given system in a random direction but by
+    the same amount. Uses an internal random number generator to avoid touching
+    the global numpy.random.seed()-function.
+
+    Args:
+        system(ASE.Atoms): The system for which the displacement are performed.
+        delta(float): The magnitude of the displacements.
+        rng(np.random.RandomState): Random number generator.
+    """
+    if rng is None:
+        rng = RandomState()
+    pos = system.get_positions()
+    n_atoms = len(system)
+    disloc = rng.rand(n_atoms, 3)
+    disloc /= np.linalg.norm(disloc, axis=1)[:, None]
+    disloc *= delta
+    new_pos = pos + disloc
+    system.set_positions(new_pos)
+
+
 def get_extended_system(system, target_size):
     """Replicate the system in different directions to reach a suitable
     system size for getting the moments of inertia.
@@ -134,7 +178,7 @@ def get_extended_system(system, target_size):
     return extended_system
 
 
-def get_clusters(system):
+def get_clusters(system, threshold=1.35):
     """
     """
     if len(system) == 1:
@@ -152,7 +196,7 @@ def get_clusters(system):
             distance_matrix[i, j] = max(new_value, 0)
 
     # Detect clusters
-    db = DBSCAN(eps=1.35, min_samples=1, metric='precomputed', n_jobs=-1)
+    db = DBSCAN(eps=threshold, min_samples=1, metric='precomputed', n_jobs=-1)
     db.fit(distance_matrix)
     clusters = db.labels_
 
@@ -252,46 +296,395 @@ def get_wrapped_positions(scaled_pos, precision=1E-5):
     return scaled_pos
 
 
-def get_distance_matrix(system, wrap_distances=False):
+def get_distance_matrix(cell, pos1, pos2, wrap_distances=False):
     """Calculates the distance matrix. If wrap_distances=True, calculates
     the matrix using periodic distances
-    """
 
+    Args:
+        cell():
+        pos1():
+        pos2():
+    """
     if wrap_distances:
-        rel_pos = system.get_scaled_positions()
-        cell = system.get_cell()
-        disp_tensor = get_displacement_tensor(rel_pos)
+        rel_pos1 = to_scaled(cell, pos1)
+        rel_pos2 = to_scaled(cell, pos2)
+        disp_tensor = get_displacement_tensor(rel_pos1, rel_pos2)
         indices = np.where(disp_tensor > 0.5)
         disp_tensor[indices] = 1 - disp_tensor[indices]
         indices = np.where(disp_tensor < -0.5)
         disp_tensor[indices] = disp_tensor[indices] + 1
         disp_tensor = np.dot(disp_tensor, cell)
     else:
-        pos = system.get_positions()
-        disp_tensor = get_displacement_tensor(pos)
+        disp_tensor = get_displacement_tensor(pos1, pos2)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
 
     return distance_matrix
 
 
-def get_displacement_tensor(positions):
+def get_displacement_tensor(pos1, pos2, pbc=None, cell=None):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
 
     The displacement tensor is a matrix where the entry A[i, j, :] is the
-    vector positions[i] - positions[j]
+    vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1
 
     Args:
-        positions(np.ndarray): 2D array of positions
+        pos1(np.ndarray): 2D array of positions
+        pos2(np.ndarray): 2D array of positions
+        pbc(boolean or a list of booleans): Periodicity of the axes
+        cell(np.ndarray): Cell for taking into account the periodicity
 
     Returns:
         np.ndarray: 3D displacement tensor
     """
-    # Add new axes so that broadcasting works nicely
-    disp_tensor = positions[:, None, :] - positions[None, :, :]
+    if pbc is not None:
+        pbc = expand_pbc(pbc)
+        if pbc.any():
+            if cell is None:
+                raise ValueError(
+                    "When using periodic boundary conditions you must provide "
+                    "the cell."
+                )
 
-    displacement_tensor = disp_tensor
-    return displacement_tensor
+    # Make 1D into 2D
+    shape1 = pos1.shape
+    shape2 = pos2.shape
+    if len(shape1) == 1:
+        n_cols1 = len(pos1)
+        pos1 = np.reshape(pos1, (-1, n_cols1))
+    if len(shape2) == 1:
+        n_cols2 = len(pos2)
+        pos2 = np.reshape(pos2, (-1, n_cols2))
+
+    # Add new axes so that broadcasting works nicely
+    if pbc is None or not pbc.any():
+        disp_tensor = pos1[:, None, :] - pos2[None, :, :]
+    else:
+        rel_pos1 = to_scaled(cell, pos1)
+        rel_pos2 = to_scaled(cell, pos2)
+        disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
+
+        wrapped_disp_tensor = np.array(disp_tensor)
+        for i, periodic in enumerate(pbc):
+            if periodic:
+                i_disp_tensor = disp_tensor[:, :, i]
+                indices = np.where(i_disp_tensor > 0.5)
+                i_disp_tensor[indices] = i_disp_tensor[indices] - 1
+                indices = np.where(i_disp_tensor < -0.5)
+                i_disp_tensor[indices] = i_disp_tensor[indices] + 1
+                wrapped_disp_tensor[:, :, i] = i_disp_tensor
+        disp_tensor = np.dot(wrapped_disp_tensor, cell)
+
+    return disp_tensor
+
+
+def expand_pbc(pbc):
+    """Used to expand a pbc definition into a list of three booleans.
+
+    Args:
+        pbc(boolean or a list of booleans): The periodicity of the cell. This
+            can be any of the values that is also supprted by ASE, namely: a
+            boolean or a list of three booleans.
+
+    Returns:
+        np.ndarray of booleans: The periodicity expanded as an explicit list of
+        three boolean values.
+    """
+    if pbc is True:
+        new_pbc = [True, True, True]
+    elif pbc is False:
+        new_pbc = [False, False, False]
+    elif len(pbc) == 3:
+        new_pbc = pbc
+    else:
+        raise ValueError(
+            "Could not interpret the given periodic boundary conditions: '{}'"
+            .format(pbc)
+        )
+
+    return np.array(new_pbc)
+
+
+def change_basis(positions, basis, offset=None):
+    """Transform the given cartesian coordinates to a basis that is defined by
+    the given basis and origin offset.
+
+    Args:
+        positions(np.ndarray): Positions in cartesian coordinates.
+        basis(np.ndarray): Basis to which to transform.
+        offset(np.ndarray): Offset of the origins. A vector from the old basis
+            origin to the new basis origin.
+    Returns:
+        np.ndarray: Relative positions in the new basis
+    """
+
+    if offset is not None:
+        positions -= offset
+    new_basis_inverse = np.linalg.inv(basis.T)
+    pos_prime = np.dot(positions, new_basis_inverse.T)
+
+    return pos_prime
+
+
+def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True]):
+    """Used to return the indices of positions that are inside a certain basis.
+    Also takes periodic boundaries into account.
+
+    Args:
+        system(ASE.Atoms): System from which the positions are searched.
+        basis(np.ndarray): New basis vectors.
+        origin(np.ndarray): New origin of the basis in cartesian coordinates.
+        tolerance(float): The tolerance for the end points of the cell.
+        mask(sequence of bool): Mask for selecting the basis's to consider.
+
+    Returns:
+        sequence of int: Indices of the atoms within this cell in the given
+            system.
+        np.ndarray: Relative positions of the found atoms.
+    """
+    # If the search extend beyound the cell boundary and periodic boundaries
+    # allow, we must divide the search area into multiple regions
+
+    # Transform positions into the new basis
+    cart_pos = system.get_positions()
+
+    # See if the new positions extend beyound the boundaries. The original
+    # simulation cell is always convex, so we can just check the corners of
+    # unit cell defined by the basis
+    max_a = origin + basis[0, :]
+    max_b = origin + basis[1, :]
+    max_c = origin + basis[1, :]
+    max_ab = origin + basis[0, :] + basis[1, :]
+    max_ac = origin + basis[0, :] + basis[2, :]
+    max_bc = origin + basis[1, :] + basis[2, :]
+    max_abc = origin + basis[0, :] + basis[1, :] + basis[2, :]
+    vectors = np.array((max_a, max_b, max_c, max_ab, max_ac, max_bc, max_abc))
+    cell = system.get_cell()
+    rel_vectors = to_scaled(cell, vectors, wrap=False, pbc=system.get_pbc())
+
+    directions = set()
+    directions.add((0, 0, 0))
+    for vec in rel_vectors:
+        i_direction = tuple(np.floor(vec))
+        if i_direction != (0, 0, 0):
+            directions.add(i_direction)
+
+    # If the new cell is overflowing beyound the boundaries of the original
+    # system, we have to also check the periodic copies.
+    indices = []
+    a_prec, b_prec, c_prec = tolerance/np.linalg.norm(basis, axis=1)
+    orig_basis = system.get_cell()
+    cell_pos = []
+    for i_dir in directions:
+
+        i_origin = origin - np.dot(i_dir, orig_basis)
+        vec_new = change_basis(cart_pos - i_origin, basis)
+
+        # If no positions are defined, find the atoms within the cell
+        for i_pos, pos in enumerate(vec_new):
+            if mask[0]:
+                x = 0 - a_prec <= pos[0] < 1 - a_prec
+            else:
+                x = True
+            if mask[1]:
+                y = 0 - b_prec <= pos[1] < 1 - b_prec
+            else:
+                y = True
+            if mask[2]:
+                z = 0 - c_prec <= pos[2] < 1 - c_prec
+            else:
+                z = True
+            if x and y and z:
+                indices.append(i_pos)
+                cell_pos.append(pos)
+    cell_pos = np.array(cell_pos)
+
+    return indices, cell_pos
+
+
+def get_matches(system, positions, numbers, tolerance, return_factors=False):
+    """Given a system and a list of cartesian positions and atomic numbers,
+    returns a list of indices for the atoms corresponding to the given
+    positions with some tolerance.
+
+    Args:
+        system(ASE.Atoms): System where to search the positions
+        positions(np.ndarray): Positions to match in the system.
+        tolerance(float): Maximum allowed distance that is required for a
+            match in position.
+        return_periodicity(boolean): Whether to return a list of 3D indices
+            indicating in which periodic copy the match was found.
+    """
+    orig_num = system.get_atomic_numbers()
+    cell = system.get_cell()
+
+    scaled_pos1 = system.get_scaled_positions()
+    scaled_pos2 = to_scaled(cell, positions, wrap=False)
+
+    # Calculate displacement tensor
+    disp_tensor = get_displacement_tensor(scaled_pos2, scaled_pos1)
+
+    # Calculate distance matrix and keep track of the index of the copy was
+    # found to be the closest
+    pos_indices = np.where(disp_tensor > 0.5)
+    neg_indices = np.where(disp_tensor < -0.5)
+    disp_tensor[pos_indices] = 1 - disp_tensor[pos_indices]
+    disp_tensor[neg_indices] = disp_tensor[neg_indices] + 1
+    disp_tensor = np.dot(disp_tensor, cell)
+    distance_matrix = np.linalg.norm(disp_tensor, axis=2)
+
+    if return_factors:
+        moved = np.zeros(disp_tensor.shape)
+        moved[pos_indices] = 1
+        moved[neg_indices] = -1
+
+    min_ind = np.argmin(distance_matrix, axis=1)
+    matches = []
+    copy_indices = []
+
+    for i, ind in enumerate(min_ind):
+        distance = distance_matrix[i, ind]
+        a_num = orig_num[ind]
+        b_num = numbers[i]
+        if distance <= tolerance and a_num == b_num:
+            matches.append(ind)
+            if return_factors:
+                i_move = moved[i][ind]
+                copy_indices.append(i_move)
+        else:
+            matches.append(None)
+            if return_factors:
+                copy_indices.append(None)
+
+    if return_factors:
+        return matches, copy_indices
+    return matches
+
+
+def to_scaled(cell, positions, wrap=False, pbc=False):
+    """Used to transform a set of positions to the basis defined by the
+    cell of this system.
+
+    Args:
+        system(ASE.Atoms): Reference system.
+        positions (numpy.ndarray): The positions to scale
+        wrap (numpy.ndarray): Whether the positions should be wrapped
+            inside the cell.
+
+    Returns:
+        numpy.ndarray: The scaled positions
+    """
+    pbc = expand_pbc(pbc)
+    fractional = np.linalg.solve(
+        cell.T,
+        positions.T).T
+
+    if wrap:
+        for i, periodic in enumerate(pbc):
+            if periodic:
+                fractional[:, i] %= 1.0
+
+    return fractional
+
+
+def to_cartesian(cell, scaled_positions, wrap=False, pbc=False):
+    """Used to transofrm a set of relative positions to the cartesian basis
+    defined by the cell of this system.
+
+    Args:
+        system (ASE.Atoms): Reference system.
+        positions (numpy.ndarray): The positions to scale
+        wrap (numpy.ndarray): Whether the positions should be wrapped
+            inside the cell.
+
+    Returns:
+        numpy.ndarray: The cartesian positions
+    """
+    pbc = expand_pbc(pbc)
+    if wrap:
+        for i, periodic in enumerate(pbc):
+            if periodic:
+                scaled_positions[:, i] %= 1.0
+
+    cartesian_positions = np.dot(scaled_positions, cell)
+    return cartesian_positions
+
+
+def translate(system, translation, relative=False):
+    """Translates the positions by the given translation.
+
+    Args:
+        translation (1x3 numpy.array): The translation to apply.
+        relative (bool): True if given translation is relative to cell
+            vectors.
+    """
+    if relative:
+        rel_pos = system.get_scaled_positions()
+        rel_pos += translation
+        system.set_scaled_positions(rel_pos)
+    else:
+        cart_pos = system.get_positions()
+        cart_pos += translation
+        system.set_positions(cart_pos)
+
+
+def get_surface_normal_direction(system):
+    """Used to estimate a normal vector for a 2D like structure.
+
+    Args:
+        system (ase.Atoms): The system to examine.
+
+    Returns:
+        np.ndarray: The estimated surface normal vector
+    """
+    repeated = get_extended_system(system, 15)
+    # vectors = system.get_cell()
+
+    # Get the eigenvalues and eigenvectors of the moment of inertia tensor
+    val, vec = get_moments_of_inertia(repeated)
+    sorted_indices = np.argsort(val)
+    val = val[sorted_indices]
+    vec = vec[sorted_indices]
+
+    # If the moment of inertia is not significantly bigger in one
+    # direction, then the system cannot be described as a surface.
+    moment_limit = 1.5
+    if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
+        raise ValueError(
+            "The given system could not be identified as a surface. Make"
+            " sure that you provide a surface system with a sufficient"
+            " vacuum gap between the layers (at least ~8 angstroms of vacuum"
+            " between layers.)"
+        )
+
+    # The biggest component is the orhogonal one
+    orthogonal_dir = vec[-1]
+
+    return orthogonal_dir
+
+    # Find out the cell direction that corresponds to the orthogonal one
+    # cell = repeated.get_cell()
+    # dots = np.abs(np.dot(orthogonal_dir, vectors.T))
+    # orthogonal_vector_index = np.argmax(dots)
+    # orthogonal_vector = vectors[orthogonal_vector_index]
+    # orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
+
+    return orthogonal_dir
+
+
+def get_closest_direction(vec, directions, normalized=False):
+    """Used to return the direction that is most parallel to a given one.
+
+    Args:
+
+    Returns:
+    """
+    if not normalized:
+        directions = directions/np.linalg.norm(directions, axis=1)
+    dots = np.abs(np.dot(vec, directions.T))
+    index = np.argmax(dots)
+
+    return index
 
 
 # def get_displacement_tensor(self, system):

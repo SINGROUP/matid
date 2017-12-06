@@ -26,3 +26,4 @@ FLAT_DIM_THRESHOLD = 0.1
 
 # An ordered list of Wyckoff letters
 WYCKOFF_LETTERS = list("abcdefghijklmnopqrstuvwxyzA")
+WYCKOFF_LETTER_POSITIONS = {letter: positions for positions, letter in enumerate(WYCKOFF_LETTERS)}

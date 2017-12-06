@@ -1,45 +1,26 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from enum import Enum
 
-from systax.analysis.surfaceanalyzer import SurfaceAnalyzer
 
-__metaclass__ = type
+class ComponentType(Enum):
+
+    Atom = 0,
+    Molecule = 1,
+    CrystalPristine = 2,
+    CrystalDefected = 3,
+    Material1D = 4,
+    Material2DPristine = 5,
+    Material2DDefected = 6,
+    SurfacePristine = 7,
+    SurfaceDefected = 8,
+    Unknown = 9,
 
 
 class Component():
 
-    def __init__(self, indices, atoms):
+    def __init__(self, indices, atoms, comp_type=None, unit_collection=None, analyzer=None):
         self.indices = indices
         self.atoms = atoms
-
-
-class SurfaceComponent(Component):
-
-    def __init__(self, indices, atoms, bulk_analyzer, n_layers):
-        super().__init__(indices, atoms)
-        self.bulk_analyzer = bulk_analyzer
-        self.analyzer = SurfaceAnalyzer(component=self)
-        self.n_layers = n_layers
-
-
-class MoleculeComponent(Component):
-    pass
-
-
-class AtomComponent(Component):
-    pass
-
-
-class CrystalComponent(Component):
-    pass
-
-
-class Material1DComponent(Component):
-    pass
-
-
-class Material2DComponent(Component):
-    pass
-
-
-class UnknownComponent(Component):
-    pass
+        self.type = comp_type
+        self.analyzer = analyzer
+        self.unit_collection = unit_collection
