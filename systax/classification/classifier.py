@@ -247,7 +247,7 @@ class Classifier():
                         # print(layer_mean)
                         # print(layer_std)
 
-                        if layer_mean == self.layers_2d and layer_std == 0.0 and thickness < self.thickness_2d:
+                        if layer_mean == self.layers_2d and thickness < self.thickness_2d:
                             if is_pristine:
                                 components[ComponentType.Material2DPristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
                             else:
