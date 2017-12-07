@@ -167,8 +167,6 @@ class PeriodicFinder():
         Returns:
             np.ndarray: A numpy array of n basis vectors.
         """
-        # system = syscache["system"]
-        # disp_tensor = syscache["disp_tensor"]
         vacuum_dir = np.array(vacuum_dir)
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
@@ -177,25 +175,22 @@ class PeriodicFinder():
         # found directions
         neighbour_pos = positions[neighbour_mask]
         neighbour_num = numbers[neighbour_mask]
-        one_direction = np.empty((len(possible_spans)), dtype=int)
-        two_directions = np.empty((len(possible_spans)), dtype=int)
+        metric = np.empty((len(possible_spans)), dtype=int)
         for i_span, span in enumerate(possible_spans):
             add_pos = neighbour_pos + span
             sub_pos = neighbour_pos - span
             add_indices = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
             sub_indices = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
 
-            n_one = 0
-            n_two = 0
+            n_metric = 0
             for i_ind in range(len(add_indices)):
                 i_add = add_indices[i_ind]
                 i_sub = sub_indices[i_ind]
-                if i_add is not None and i_sub is not None:
-                    n_two += 1
-                if i_add is not None or i_sub is not None:
-                    n_one += 1
-            one_direction[i_span] = n_one
-            two_directions[i_span] = n_two
+                if i_add is not None:
+                    n_metric += 1
+                if i_sub is not None:
+                    n_metric += 1
+            metric[i_span] = n_metric
 
         # Get the spans that come from the periodicity if they are smaller than
         # the maximum cell size
@@ -205,19 +200,22 @@ class PeriodicFinder():
         n_neighbours = len(neighbour_pos)
         n_periodic_spans = len(periodic_spans)
         if n_periodic_spans != 0:
-            periodic_ones = n_neighbours*np.ones((n_periodic_spans))
-            periodic_twos = n_neighbours*np.ones((n_neighbours))
+            periodic_metric = 2*n_neighbours*np.ones((n_periodic_spans))
             possible_spans = np.concatenate((possible_spans, periodic_spans), axis=0)
-            one_direction = np.concatenate((one_direction, periodic_ones), axis=0)
-            two_directions = np.concatenate((two_directions, periodic_twos), axis=0)
+            metric = np.concatenate((metric, periodic_metric), axis=0)
 
-        # Find the directions with most one-directional matches
+        # Find the directions that are most repeat the neighbours above some
+        # preset threshold. This is used to eliminate directions that are
+        # caused by pure chance. The maximum score that a direction can get is
+        # 2*n_neighbours. We specify that the score must be above 25% percent
+        # of this maximum score to be considered a valid direction.
         span_lengths = np.linalg.norm(possible_spans, axis=1)
         normed_spans = possible_spans/span_lengths[:, np.newaxis]
         dots = np.inner(possible_spans, possible_spans)
-        max_valid_neighbours = np.max(one_direction)
-        max_span_indices = np.where(one_direction == max_valid_neighbours)
+        max_span_indices = np.where(metric > 0.5*n_neighbours)
         v2 = normed_spans[max_span_indices]
+        if len(v2) == 0:
+            return []
 
         # Find the dimensionality of the space spanned by this set of vectors
         n_dim = self._find_space_dim(v2)
@@ -233,12 +231,9 @@ class PeriodicFinder():
         periodicity_scores = np.zeros(len(combos))
         for i_dim in range(n_dim):
             i_combos = combos[:, i_dim]
-            i_scores = two_directions[i_combos]
+            i_scores = metric[i_combos]
             periodicity_scores += i_scores
         periodicity_indices = np.argsort(-periodicity_scores)
-
-        # print(two_directions)
-        # print(periodicity_scores)
 
         # Iterate over the combos until a linearly independent combo is found
         # and stalemates have been resolved by checking the orthogonality and
@@ -306,16 +301,17 @@ class PeriodicFinder():
         """Used to get the dimensionality of the space that is span by a set of
         vectors.
         """
-        area_limit = 0.2
-        volume_limit = 0.2
+        angle_threshold = np.pi/180*10  # 10 degrees
+        angle_thres_cos = np.cos(angle_threshold)
+        angle_thres_sin = np.sin(angle_threshold)
 
         # Get  triplets of spans (combinations)
         n_basis = len(normed_spans)
         if n_basis == 1:
             return 1
         elif n_basis == 2:
-            area = np.linalg.norm(np.cross(normed_spans[0], normed_spans[0]))
-            if area < area_limit:
+            dot = np.abs(np.dot(normed_spans[0], normed_spans[1]))
+            if dot >= angle_thres_cos:
                 return 1
             else:
                 return 2
@@ -326,38 +322,50 @@ class PeriodicFinder():
         # Calculate the orthogonality tensor from the dot products of the
         # normalized spans
         dots = np.inner(normed_spans, normed_spans)
-        dot1 = np.abs(dots[indices[:, 0], indices[:, 1]])
-        dot2 = np.abs(dots[indices[:, 1], indices[:, 2]])
-        dot3 = np.abs(dots[indices[:, 0], indices[:, 2]])
-        ortho_vector = dot1 + dot2 + dot3
+        a_dot_b_abs = np.abs(dots[indices[:, 0], indices[:, 1]])
+        b_dot_c_abs = np.abs(dots[indices[:, 1], indices[:, 2]])
+        a_dot_c_abs = np.abs(dots[indices[:, 0], indices[:, 2]])
+        ortho_scores = a_dot_b_abs + b_dot_c_abs + a_dot_c_abs
 
-        # Sort the triplets by value
-        i = indices[:, 0]
-        j = indices[:, 1]
-        k = indices[:, 2]
-        idx = ortho_vector.argsort()
-        indices = np.dstack((i[idx], j[idx], k[idx]))
+        # Get the triplet with minimum ortho score
+        min_idx = ortho_scores.argmin()
 
-        # Get the triplet span with lowest score
-        cell = normed_spans[indices[0, 0, :]]
+        a = normed_spans[indices[min_idx][0]]
+        b = normed_spans[indices[min_idx][1]]
+        c = normed_spans[indices[min_idx][2]]
 
-        # Check the dimensionality of this set
-        a = cell[0, :]
-        b = cell[1, :]
-        c = cell[2, :]
-        triple_product = np.absolute(np.dot(np.cross(a, b), c))
+        n_ab = np.cross(a, b)
+        n_ab_norm = np.linalg.norm(n_ab)
+        if n_ab_norm != 0:
+            n_ab /= n_ab_norm
+        n_bc = np.cross(b, c)
+        n_bc_norm = np.linalg.norm(n_bc)
+        if n_bc_norm != 0:
+            n_bc /= n_bc_norm
+        n_ac = np.cross(a, c)
+        n_ac_norm = np.linalg.norm(n_ac)
+        if n_ac_norm != 0:
+            n_ac /= n_ac_norm
 
-        dim = 3
-        if triple_product < volume_limit:
-            dim = 2
-            cross1 = np.linalg.norm(np.cross(a, b))
-            cross2 = np.linalg.norm(np.cross(a, c))
-            cross3 = np.linalg.norm(np.cross(b, c))
+        alpha = np.abs(np.dot(n_bc, a))
+        beta = np.abs(np.dot(n_ab, c))
+        gamma = np.abs(np.dot(n_ac, b))
+        angles = np.array((alpha, beta, gamma))
 
-            if cross1 < area_limit and cross2 < area_limit and cross3 < area_limit:
-                dim = 1
+        n_pairs = np.sum(angles >= angle_thres_sin)
 
-        return dim
+        if n_pairs == 3:
+            return 3
+        else:
+            a_dot_b_abs_min = a_dot_b_abs[min_idx]
+            b_dot_c_abs_min = b_dot_c_abs[min_idx]
+            a_dot_c_abs_min = a_dot_c_abs[min_idx]
+            angles = np.array((a_dot_b_abs_min, b_dot_c_abs_min, a_dot_c_abs_min))
+            n_pairs = np.sum(angles <= angle_thres_cos)
+            if n_pairs >= 1:
+                return 2
+            else:
+                return 1
 
     def _find_cell_atoms_3d(self, system, seed_index, cell_basis_vectors):
         """Finds the atoms that are within the cell defined by the seed atom
@@ -527,6 +535,7 @@ class PeriodicFinder():
             number_to_pos_map[number] = positions[number_indices]
 
         searched_coords = set()
+        used_seed_indices = set()
         collection = LinkedUnitCollection(system)
 
         # view(system)
@@ -543,6 +552,7 @@ class PeriodicFinder():
             seed_position,
             searched_coords,
             (0, 0, 0),
+            used_seed_indices,
             periodic_indices)
 
         return collection
@@ -560,6 +570,7 @@ class PeriodicFinder():
             seed_offset,
             searched_coords,
             index,
+            used_seed_indices,
             periodic_indices):
         """
         Args:
@@ -579,11 +590,11 @@ class PeriodicFinder():
                 origin.
             searched_coords(set): Set of 3D indices that have been searched.
             index(tuple): The 3D coordinate of this unit cell.
+            used_seed_indices(set): The indices that have been used as seeds.
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
         """
         # Check if this cell has already been searched
-        # print(periodic_indices)
         if index in searched_coords:
             return
         else:
@@ -616,7 +627,12 @@ class PeriodicFinder():
         # TODO: get rid of this loop by using numpy
         i_cell = np.array(old_basis)
         for it, multiplier in enumerate(multipliers):
+
             if tuple(multiplier) == (0, 0, 0):
+                continue
+
+            new_index = tuple(multiplier + index),
+            if new_index in searched_coords:
                 continue
 
             disloc = np.dot(multiplier, old_basis)
@@ -630,7 +646,7 @@ class PeriodicFinder():
                 return_factors=True)
 
             # Save the position corresponding to a seed atom or a guess for it
-            if matches[0] is not None:
+            if matches[0] is not None and matches[0] != seed_index:
                 i_seed_pos = orig_pos[matches[0]]
             else:
                 i_seed_pos = seed_guess
@@ -638,9 +654,16 @@ class PeriodicFinder():
             # Store the indices and positions of new valid seeds
             # looped = np.absolute(copy_indices) > 0
             if matches[0] is not None and (factors[0] == 0).all():
-                new_seed_indices.append(matches[0])
-                new_seed_pos.append(i_seed_pos)
-                new_seed_multipliers.append(multiplier)
+                if matches[0] not in used_seed_indices:
+                    new_seed_indices.append(matches[0])
+                    new_seed_pos.append(i_seed_pos)
+                    new_seed_multipliers.append(multiplier)
+
+                    # Add this seed as used. The used_seed_indices is needed so
+                    # that the same atom cannot become a seed point multiple
+                    # times. This can otherwise become a problem in e.g. random
+                    # systems, or "looped" structures.
+                    used_seed_indices.add(seed_index)
 
             # Store the cell basis vector
             if tuple(multiplier) == (1, 0, 0):
@@ -672,7 +695,6 @@ class PeriodicFinder():
                 i_cell[2, :] = c
 
         # Find atoms within the cell
-        # print(i_cell)
         inside_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
             system,
             i_cell,
@@ -717,6 +739,7 @@ class PeriodicFinder():
                 symbols=cell_num
             )
             # Recursively call this same function for a new cell
+
             self._find_region_rec(
                 system,
                 collection,
@@ -729,5 +752,6 @@ class PeriodicFinder():
                 seed_offset,
                 searched_coords,
                 tuple(multiplier + index),
+                used_seed_indices,
                 periodic_indices
             )

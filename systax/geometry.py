@@ -512,8 +512,12 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
         positions(np.ndarray): Positions to match in the system.
         tolerance(float): Maximum allowed distance that is required for a
             match in position.
-        return_periodicity(boolean): Whether to return a list of 3D indices
+        return_factors(boolean): Whether to return a list of 3D indices
             indicating in which periodic copy the match was found.
+
+    Returns:
+        np.ndarray:
+        (optional) np.ndarray:
     """
     orig_num = system.get_atomic_numbers()
     cell = system.get_cell()
@@ -685,66 +689,6 @@ def get_closest_direction(vec, directions, normalized=False):
     index = np.argmax(dots)
 
     return index
-
-
-# def get_displacement_tensor(self, system):
-    # """A matrix where the entry A[i, j, :] is the vector
-    # self.cartesian_pos[i] - self.cartesian_pos[j].
-
-    # For periodic systems the distance of an atom from itself is the
-    # smallest displacement of an atom from one of it's periodic copies, and
-    # the distance of two different atoms is the distance of two closest
-    # copies.
-
-    # Returns:
-        # np.array: 3D matrix containing the pairwise distance vectors.
-    # """
-    # if self.pbc.any():
-        # pos = self.get_scaled_positions()
-        # disp_tensor = pos[:, None, :] - pos[None, :, :]
-
-        # # Take periodicity into account by wrapping coordinate elements
-        # # that are bigger than 0.5 or smaller than -0.5
-        # indices = np.where(disp_tensor > 0.5)
-        # disp_tensor[indices] = 1 - disp_tensor[indices]
-        # indices = np.where(disp_tensor < -0.5)
-        # disp_tensor[indices] = disp_tensor[indices] + 1
-
-        # # Transform to cartesian
-        # disp_tensor = self.to_cartesian(disp_tensor)
-
-        # # Figure out the smallest basis vector and set it as
-        # # displacement for diagonal
-        # cell = self.get_cell()
-        # basis_lengths = np.linalg.norm(cell, axis=1)
-        # min_index = np.argmin(basis_lengths)
-        # min_basis = cell[min_index]
-        # diag_indices = np.diag_indices(len(disp_tensor))
-        # disp_tensor[diag_indices] = min_basis
-
-    # else:
-        # pos = self.get_positions()
-        # disp_tensor = pos[:, None, :] - pos[None, :, :]
-
-    # return disp_tensor
-
-
-# def get_distance_matrix(self, system):
-    # """Calculates the distance matrix A defined as:
-
-        # A_ij = |r_i - r_j|
-
-    # For periodic systems the distance of an atom from itself is the
-    # smallest displacement of an atom from one of it's periodic copies, and
-    # the distance of two different atoms is the distance of two closest
-    # copies.
-
-    # Returns:
-        # np.array: Symmetric 2D matrix containing the pairwise distances.
-    # """
-    # displacement_tensor = self.get_displacement_tensor(system)
-    # distance_matrix = np.linalg.norm(displacement_tensor, axis=2)
-    # return distance_matrix
 
 
 class Intervals(object):
