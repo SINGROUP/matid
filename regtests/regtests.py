@@ -51,6 +51,41 @@ class dotdict(dict):
 class GeometryTests(unittest.TestCase):
     """Tests for the geometry module.
     """
+    def test_distance_matrix(self):
+        pos1 = np.array([
+            [0, 0, 0],
+        ])
+        pos2 = np.array([
+            [0, 0, 7],
+            [6, 0, 0],
+        ])
+        cell = np.array([
+            [7, 0, 0],
+            [0, 7, 0],
+            [0, 0, 7]
+        ])
+
+        # Non-periodic
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2)
+        expected = np.array(
+            [[7, 6]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
+
+        # Fully periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=True, mic=True)
+        expected = np.array(
+            [[0, 1]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
+
+        # Partly periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=[False, True, True], mic=True)
+        expected = np.array(
+            [[0, 6]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
+
     def test_displacement_tensor(self):
         # Non-periodic
         cell = np.array([
@@ -71,7 +106,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Fully periodic
-        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell, mic=True)
         expected = np.array([[
             [0, 0, 0],
             [0.1, 0, 0],
@@ -79,7 +114,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Fully periodic, reversed direction
-        disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell, mic=True)
         expected = np.array([[
             [0, 0, 0],
         ], [
@@ -88,7 +123,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Periodic in one direction
-        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell, mic=True)
         expected = np.array([[
             [0, -1, -1],
             [0.1, 0, 0],
@@ -152,6 +187,86 @@ class GeometryTests(unittest.TestCase):
         ])
         cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
+
+
+class DimensionalityTests(unittest.TestCase):
+    """Unit tests for finding the dimensionality of different systems.
+    """
+    def test_atom(self):
+        system = Atoms(
+            positions=[[0, 0, 0]],
+            symbols=["H"],
+            cell=[10, 10, 10],
+            pbc=True,
+        )
+        dimensionality = systax.geometry.get_dimensionality(system)
+        self.assertEqual(dimensionality, 0)
+
+    def test_molecule(self):
+        sys = molecule("H2O")
+        gap = 10
+        sys.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
+        sys.set_pbc([True, True, True])
+        sys.center()
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 0)
+
+    def test_2d_centered(self):
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [-1.2297560733739028, 2.13, 0.0],
+                [0.0, 0.0, 20.0]
+            )),
+            scaled_positions=np.array((
+                [0.3333333333333333, 0.6666666666666666, 0.5],
+                [0.6666666666666667, 0.33333333333333337, 0.5]
+            )),
+            pbc=True
+        )
+        sys = graphene.repeat([2, 1, 1])
+        # view(sys)
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 2)
+
+    def test_2d_simple_split(self):
+        sys = Atoms(
+            positions=[[0, 0, 0], [9, 0, 0]],
+            symbols=["H", "H"],
+            cell=[10, 1, 1],
+            pbc=True,
+        )
+        # view(sys)
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 2)
+
+    def test_surface_split(self):
+        sys = bcc100('Fe', size=(5, 1, 3), vacuum=8)
+        sys.translate([0, 0, 9])
+        sys.set_pbc(True)
+        sys.wrap(pbc=True)
+        # view(sys)
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 2)
+
+    def test_surface_wavy(self):
+        """Test a surface with a high amplitude wave. This would break a
+        regular linear vacuum gap search.
+        """
+        sys = bcc100('Fe', size=(15, 15, 3), vacuum=8)
+        pos = sys.get_positions()
+        x_len = np.linalg.norm(sys.get_cell()[0, :])
+        x = pos[:, 0]
+        z = pos[:, 2]
+        z_new = z + 3*np.sin(4*(x/x_len)*np.pi)
+        pos_new = np.array(pos)
+        pos_new[:, 2] = z_new
+        sys.set_positions(pos_new)
+        sys.set_pbc(True)
+        # view(sys)
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 2)
 
 
 class PeriodicFinderTests(unittest.TestCase):
@@ -879,15 +994,16 @@ class SurfaceAnalyserTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     alltests = unittest.TestSuite(suites)

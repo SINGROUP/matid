@@ -134,7 +134,7 @@ class PeriodicFinder():
         pos = system.get_positions()
         pbc = system.get_pbc()
         cell = system.get_cell()
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos, pbc, cell)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
 
         # If the search radius exceeds beyond the periodic boundaries, extend the system
         # Get the vectors that span from the seed to all other atoms
@@ -498,7 +498,7 @@ class PeriodicFinder():
         """
         cm = system.get_center_of_mass()
         positions = system.get_positions()
-        distances = systax.geometry.get_distance_matrix(system.get_cell(), cm, positions)
+        distances = systax.geometry.get_distance_matrix(cm, positions)
         min_index = np.argmin(distances)
 
         return min_index
