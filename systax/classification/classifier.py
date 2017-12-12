@@ -59,7 +59,7 @@ class Classifier():
             pos_tol=0.5,
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
-            connectivity_crystal=1.9,
+            connectivity_crystal=3.0,
             thickness_2d=6,
             layers_2d=1
             ):
@@ -120,39 +120,24 @@ class Classifier():
         # 0D structures
         if dimensionality == 0:
             dim_class = Class0D
-            # Check if system has only one atom
+
+            # Check if system consists of one atom or one molecule
             n_atoms = len(system)
             if n_atoms == 1:
                 components[ComponentType.Atom].append(Component([0], system))
-
-            # Check if the the system has one or multiple components.
             else:
-                clusters = systax.geometry.get_clusters(system)
-                for cluster in clusters:
-                    n_atoms_cluster = len(cluster)
-                    clust_atoms = system[cluster]
-                    if n_atoms_cluster == 1:
-                        components[ComponentType.Atom].append(Component(cluster, clust_atoms))
-                    elif n_atoms_cluster > 1:
-                        formula = clust_atoms.get_chemical_formula()
-                        try:
-                            ase.build.molecule(formula)
-                        except KeyError:
-                            components[ComponentType.Unknown].append(Component(cluster, clust_atoms))
-                        else:
-                            components[ComponentType.Molecule].append(Component(cluster, clust_atoms))
+                formula = system.get_chemical_formula()
+                try:
+                    ase.build.molecule(formula)
+                except KeyError:
+                    components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
+                else:
+                    components[ComponentType.Molecule].append(Component(np.arange(len(system)), system.copy()))
 
         # 1D structures
         elif dimensionality == 1:
 
             dim_class = Class1D
-
-            # Check if the the system has one or multiple components when
-            # multiplied once in the periodic dimension
-            repetitions = np.invert(vacuum_dir).astype(int)+1
-            ext_sys1d = system.repeat(repetitions)
-            clusters = systax.geometry.get_clusters(ext_sys1d)
-            n_clusters = len(clusters)
 
             # Find out the dimensions of the system
             is_small = True
@@ -163,7 +148,7 @@ class Classifier():
                     if dimension > 15:
                         is_small = False
 
-            if n_clusters == 1 and is_small:
+            if is_small:
                 components[ComponentType.Material1D].append(Component(np.arange(len(system)), system.copy()))
             else:
                 components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
@@ -200,36 +185,23 @@ class Classifier():
 
                 i_orig_indices, i_unit_collection, i_atoms, i_cell = i_region
 
-                # Check if the the system has one or multiple components when
-                # multiplied once in the two periodic dimensions
-                repetitions = np.invert(vacuum_dir).astype(int)+1
-                ext_sys2d = i_atoms.repeat(repetitions)
-                clusters = systax.geometry.get_clusters(ext_sys2d)
-                n_clusters = len(clusters)
+                # Check the number of layers, the thickness and the
+                # pristinity
+                analyzer_2d = Class2DAnalyzer(i_atoms, vacuum_gaps=vacuum_dir, unitcollection=i_unit_collection, unit_cell=i_cell)
+                is_pristine = analyzer_2d.is_pristine()
+                layer_mean, layer_std = analyzer_2d.get_layer_statistics()
+                thickness = analyzer_2d.get_thickness()
 
-                if n_clusters == 1:
-                    # Check the number of layers, the thickness and the
-                    # pristinity
-                    analyzer_2d = Class2DAnalyzer(i_atoms, vacuum_gaps=vacuum_dir, unitcollection=i_unit_collection, unit_cell=i_cell)
-                    is_pristine = analyzer_2d.is_pristine()
-                    layer_mean, layer_std = analyzer_2d.get_layer_statistics()
-                    thickness = analyzer_2d.get_thickness()
-
-                    # print(layer_mean)
-                    # print(layer_std)
-
-                    if layer_mean == self.layers_2d and thickness < self.thickness_2d:
-                        if is_pristine:
-                            components[ComponentType.Material2DPristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                        else:
-                            components[ComponentType.Material2DDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                    elif layer_mean > self.layers_2d:
-                        if is_pristine:
-                            components[ComponentType.SurfacePristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                        else:
-                            components[ComponentType.SurfaceDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                else:
-                    components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
+                if layer_mean == self.layers_2d and thickness < self.thickness_2d:
+                    if is_pristine:
+                        components[ComponentType.Material2DPristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                    else:
+                        components[ComponentType.Material2DDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                elif layer_mean > self.layers_2d:
+                    if is_pristine:
+                        components[ComponentType.SurfacePristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                    else:
+                        components[ComponentType.SurfaceDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
 
         # Bulk structures
         elif dimensionality == 3:
@@ -240,17 +212,11 @@ class Classifier():
             analyzer = Class3DAnalyzer(system)
             is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
 
-            # Check the number of clusters
-            repetitions = [2, 2, 2]
-            ext_sys3d = system.repeat(repetitions)
-            clusters = systax.geometry.get_clusters(ext_sys3d, self.connectivity_crystal)
-            n_clusters = len(clusters)
-
             # If the structure is connected but the symmetry criteria was
             # not fullfilled, check the number of atoms in the primitive
             # cell. If above a certain threshold, try to find periodic
             # region to see if it is a crystal containing a defect.
-            if not is_crystal and n_clusters == 1:
+            if not is_crystal:
                 primitive_system = analyzer.get_primitive_system()
                 n_atoms_prim = len(primitive_system)
                 if n_atoms_prim >= 20:
@@ -272,13 +238,11 @@ class Classifier():
                     else:
                         dim_class = Class3DDisordered
 
-            elif is_crystal and n_clusters == 1:
+            elif is_crystal:
                 components[ComponentType.CrystalPristine].append(Component(
                     np.arange(len(system)),
                     system.copy(),
                     analyzer))
-            elif n_clusters > 1:
-                dim_class = Class3DDisconnected
             else:
                 dim_class = Class3DDisordered
 
