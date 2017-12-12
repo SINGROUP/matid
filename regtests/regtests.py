@@ -524,6 +524,28 @@ class Material2DTests(unittest.TestCase):
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, Material2DPristine)
 
+    # def test_2d_split(self):
+        # """A simple 2D system where the system has been split by the cell
+        # boundary.
+        # """
+        # sys = Atoms(
+            # symbols=["H", "C"],
+            # cell=np.array((
+                # [2, 0.0, 0.0],
+                # [0.0, 2, 0.0],
+                # [0.0, 0.0, 15]
+            # )),
+            # positions=np.array((
+                # [0, 0, 0],
+                # [0, 0, 13.8],
+            # )),
+            # pbc=True
+        # )
+        # # view(sys)
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Material2DPristine)
+
     def test_graphene_rectangular(self):
         sys = Atoms(
             symbols=["C", "C", "C", "C"],
@@ -919,7 +941,10 @@ class SurfaceTests(unittest.TestCase):
         # """Surface with defect.
         # """
         # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # del system[37]
+        # labels = system.get_atomic_numbers()
+        # labels[2] = 41
+        # system.set_atomic_numbers(labels)
+        # # del system[37]
         # # view(system)
         # classifier = Classifier()
         # classification = classifier.classify(system)

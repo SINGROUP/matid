@@ -138,6 +138,12 @@ class Class2DAnalyzer(SymmetryAnalyzer):
         for unit in self.unitcollection.values():
             inside = unit.inside_indices
             basis = unit.basis_indices
+
+            # Check that no basis atom is shared with another cell
+            intersection = basis_indices.intersection(basis)
+            if len(intersection) != 0:
+                return False
+
             basis_indices.update(basis)
             inside_indices.update(inside)
 
