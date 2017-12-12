@@ -14,23 +14,28 @@ from systax.exceptions import SystaxError
 from sklearn.cluster import DBSCAN
 
 
-def get_dimensionality(system, cluster_threshold=1.35, vacuum_gap=7):
+def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
     """Used to calculate the dimensionality of a system.
 
     Args:
         system (ASE.Atoms): The system for which the dimensionality is
             evaluated.
+        cluster_threshold(float): The epsilon value for the DBSCAN algorithm
+            that is used to identify clusters within the unit cell.
+        vacuum_gap(float): The minimum distance between two periodic copies of
+            the system for them to be considered energetically separated.
 
     Returns:
         clusters: List of clusters where
         int: The dimensionality of the system.
+
+    Raises:
+        SystaxError: If the dimensionality can't be detected
     """
     cell = system.get_cell()
     pbc = system.get_pbc()
     pos = system.get_positions()
     num = system.get_atomic_numbers()
-    # pos_rel = system.get_scaled_positions()
-    n_atoms = len(system)
 
     # Calculate a matrix containing the combined radii for each pair of atoms
     # in an extended system
@@ -65,10 +70,13 @@ def get_dimensionality(system, cluster_threshold=1.35, vacuum_gap=7):
     pos1 = seed_pos + disp_seed
     displacements_finite = get_displacement_tensor(pos1, pos1)
 
+    # For each basis direction, add the basis vector to the displacements to
+    # get the distance between two neighbouring copies of the cluster. If the
+    # minimum distance between two copies is bigger or equal to the vacuum gap,
+    # then remove one dimension.
     dim = 3
     for i_basis, basis in enumerate(cell):
 
-        # Add basis
         disp = np.array(displacements_finite)
         disp += basis
         dist = np.linalg.norm(disp, axis=2)
@@ -76,150 +84,6 @@ def get_dimensionality(system, cluster_threshold=1.35, vacuum_gap=7):
         min_dist = dist.min()
         if min_dist >= vacuum_gap:
             dim -= 1
-
-    #===========================================================================
-    # Get wrapped distances, but keep track which pairs have been wrapped to a
-    # neighbour instead of an atom in the same cell
-    # Add new axes so that broadcasting works nicely
-    # disp_tensor_rel = pos_rel[:, None, :] - pos_rel[None, :, :]
-    # wrapped_disp_tensor = np.array(disp_tensor_rel)
-    # masks = {}
-    # for i, periodic in enumerate(pbc):
-        # if periodic:
-            # i_disp_tensor = disp_tensor_rel[:, :, i]
-            # plus_mask = i_disp_tensor > 0.5
-            # i_disp_tensor[plus_mask] = i_disp_tensor[plus_mask] - 1
-            # minus_mask = i_disp_tensor < -0.5
-            # i_disp_tensor[minus_mask] = i_disp_tensor[minus_mask] + 1
-            # wrapped_disp_tensor[:, :, i] = i_disp_tensor
-            # masks[i] = plus_mask | minus_mask
-    # disp_tensor_cart = np.dot(wrapped_disp_tensor, cell)
-    # dist_test = np.linalg.norm(disp_tensor_cart, axis=2)
-    # print(dist_test)
-
-    # dist1 = np.linalg.norm(get_displacement_tensor(pos, pos, cell, pbc, True), axis=2)
-    # dist2 = get_distance_matrix(pos, pos, cell, pbc, True)
-    # print(dist1)
-    # print(dist2)
-    # print(wrapped_indices[0])
-
-    # Calculate the number of clusters in the unrepeated system when
-    # periodicity is taken into account
-    # displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-    # displacements_finite = get_displacement_tensor(pos, pos)
-    # distances_finite_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
-    # distances_finite_pbc_radii = distances_finite_pbc - radii_matrix
-    # db.fit(distances_finite_pbc_radii)
-    # clusters_finite = db.labels_
-    # n_clusters_finite = len(np.unique(clusters_finite))
-
-    # # If the system consists of multiple components that are not connected
-    # # according to the clustering done here, then we cannot assess the
-    # # dimensionality.
-    # if n_clusters_finite > 1:
-        # raise SystaxError(
-            # "Could not determine the dimensionality because there are more than"
-            # " one energetically isolated components in the unit cell"
-        # )
-
-    # # Convert finite distances to relative
-    # displ_vec = np.reshape(displacements_finite_pbc, [-1, 3])
-    # displacements_finite_pbc_rel = to_scaled(cell, displ_vec)
-    # displacements_finite_pbc_rel = np.reshape(displacements_finite_pbc_rel, [n_atoms, n_atoms, 3])
-
-    # print(displacements_finite_rel)
-
-    # For each basis vector direction, calculate the distance between periodic
-    # copies of the found cluster
-    # dim = 3
-    # for i_basis, basis in enumerate(cell):
-
-        # # Add basis to some
-        # mask = masks[i_basis]
-        # displ = np.array(disp_tensor_cart)
-        # displ[~mask] += basis
-
-        # # Calculate distances with radii accounted
-        # distances = np.linalg.norm(displ, axis=2)
-        # print(distances)
-        # # distances -= radii_matrix
-        # # print(distances)
-
-        # # # Get the minimum distance between the clusters in different copies
-        # min_dist = np.min(distances)
-        # print(min_dist)
-        # if min_dist > vacuum_gap:
-            # dim -= 1
-
-        # Calculate the distances between periodic copies
-        # displacements = displacements_finite_pbc + basis
-        # distances = np.linalg.norm(displacements, axis=2)
-
-        # # Remove radii
-        # distances -= radii_matrix
-
-        # # Get the minimum distance between the clusters in different copies
-        # min_dist = np.min(distances)
-        # print(min_dist)
-
-        # if min_dist > vacuum_gap:
-            # dim -= 1
-
-        # ext_cell = np.array(cell)
-        # ext_cell[i_basis, :] *= 2
-
-        # # Add a the distaces of a copied system
-        # displacements_tot = np.zeros((2*n_atoms, 2*n_atoms, 3))
-        # displacements_tot[:n_atoms, :n_atoms, :] = displacements_finite
-        # displacements_tot[n_atoms:, n_atoms:, :] = displacements_finite
-        # displacements_tot[:n_atoms, n_atoms:, :] = displacement_rep
-        # displacements_tot[n_atoms:, :n_atoms, :] = displacement_rep
-
-        # # Get relative displacements
-        # displ_vec = np.reshape(displacements_tot, [-1, 3])
-        # displacements_tot_rel = to_scaled(ext_cell, displ_vec)
-        # displ = np.reshape(displacements_tot_rel, [2*n_atoms, 2*n_atoms, 3])
-
-        # # Take periodicity into account by wrapping distances across the
-        # # borders
-        # displ = get_mic_positions(displ, ext_cell, pbc=pbc)
-        # distances = np.linalg.norm(displ, axis=2)
-
-        # # Remove radii
-        # distances -= radii_tiled
-
-        # # Calculate the clustering
-        # db.fit(distances)
-        # rep_clusters = db.labels_
-
-        # # Make a list of the different clusters
-        # idx_sort = np.argsort(rep_clusters)
-        # sorted_records_array = rep_clusters[idx_sort]
-        # vals, idx_start, count = np.unique(sorted_records_array, return_counts=True,
-                                        # return_index=True)
-        # cluster_indices = np.split(idx_sort, idx_start[1:])
-        # print(cluster_indices)
-        # n_rep_clusters = len(np.unique(rep_clusters))
-        # print(n_rep_clusters)
-
-        # # Tag each cluster into one image
-        # comps = pos[:, i_basis]
-        # sorted_indices = np.argsort(comps)
-        # cluster_to_image_map = {}
-        # found_indices = set()
-        # for index in sorted_indices:
-            # if index in found_indices:
-                # continue
-            # for i_cluster, cluster in enumerate(cluster_indices):
-                # if index in cluster:
-                    # cluster_to_image_map[i_cluster] =
-                    # found_indices.update(cluster)
-
-        # Get the minimum distance between the clusters in different copies
-        # min_dist = np.min(distances[:n_atoms, n_atoms:])
-
-        # if min_dist > vacuum_gap:
-            # dim -= 1
 
     return dim
 

@@ -98,6 +98,10 @@ class Classifier():
 
         Args:
             system(ASE.Atoms or System): Atomic system to classify.
+
+        Returns:
+            Classification: One of the subclasses of the Classification base
+            class that represents a classification.
         """
         self.system = system
         dim_class = None

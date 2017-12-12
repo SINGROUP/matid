@@ -230,18 +230,9 @@ class DimensionalityTests(unittest.TestCase):
         dimensionality = systax.geometry.get_dimensionality(sys)
         self.assertEqual(dimensionality, 2)
 
-    def test_2d_simple_split(self):
-        sys = Atoms(
-            positions=[[0, 0, 0], [9, 0, 0]],
-            symbols=["H", "H"],
-            cell=[10, 1, 1],
-            pbc=True,
-        )
-        # view(sys)
-        dimensionality = systax.geometry.get_dimensionality(sys)
-        self.assertEqual(dimensionality, 2)
-
     def test_surface_split(self):
+        """Test a surface that has been split by the cell boundary
+        """
         sys = bcc100('Fe', size=(5, 1, 3), vacuum=8)
         sys.translate([0, 0, 9])
         sys.set_pbc(True)
@@ -267,6 +258,24 @@ class DimensionalityTests(unittest.TestCase):
         # view(sys)
         dimensionality = systax.geometry.get_dimensionality(sys)
         self.assertEqual(dimensionality, 2)
+
+    def test_crystal(self):
+        sys = ase.lattice.cubic.Diamond(
+            size=(1, 1, 1),
+            symbol='Si',
+            pbc=True,
+            latticeconstant=5.430710)
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 3)
+
+    def test_graphite(self):
+        sys = ase.lattice.hexagonal.Graphite(
+            size=(1, 1, 1),
+            symbol='C',
+            pbc=True,
+            latticeconstant=(2.461, 6.708))
+        dimensionality = systax.geometry.get_dimensionality(sys)
+        self.assertEqual(dimensionality, 3)
 
 
 class PeriodicFinderTests(unittest.TestCase):
