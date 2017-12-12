@@ -435,8 +435,10 @@ class PeriodicFinder():
             test_basis,
             origin,
             self.pos_tol,
-            [True, True, False]
+            [True, True, True]
         )
+        # view(system)
+        # print(cell_pos_rel)
         seed_basis_index = np.where(indices == seed_index)[0][0]
         cell_pos_cart = systax.geometry.to_cartesian(test_basis, cell_pos_rel)
         seed_basis_pos_cart = np.array(cell_pos_cart[seed_basis_index])
@@ -626,11 +628,13 @@ class PeriodicFinder():
 
         # TODO: get rid of this loop by using numpy
         i_cell = np.array(old_basis)
+
         for it, multiplier in enumerate(multipliers):
 
             if tuple(multiplier) == (0, 0, 0):
                 continue
 
+            # If the cell in this index has already been handled, continue
             new_index = tuple(multiplier + index),
             if new_index in searched_coords:
                 continue
@@ -645,21 +649,30 @@ class PeriodicFinder():
                 2*self.pos_tol,
                 return_factors=True)
 
-            # Save the position corresponding to a seed atom or a guess for it
-            if matches[0] is not None and matches[0] != seed_index:
-                i_seed_pos = orig_pos[matches[0]]
+            # Save the position corresponding to a seed atom or a guess for it.
+            # If a match was found that is not the original seed, use it's
+            # position to update the cell. If the matched index is the same as
+            # the original seed, check the factors array to decide whether to
+            # use the guess or not.
+            if matches[0] is not None:
+                if matches[0] != seed_index:
+                    i_seed_pos = orig_pos[matches[0]]
+                else:
+                    if (factors[0] == 0).all():
+                        i_seed_pos = seed_guess
+                    else:
+                        i_seed_pos = orig_pos[matches[0]]
             else:
                 i_seed_pos = seed_guess
 
             # Store the indices and positions of new valid seeds
-            # looped = np.absolute(copy_indices) > 0
             if matches[0] is not None and (factors[0] == 0).all():
                 if matches[0] not in used_seed_indices:
                     new_seed_indices.append(matches[0])
                     new_seed_pos.append(i_seed_pos)
                     new_seed_multipliers.append(multiplier)
 
-                    # Add this seed as used. The used_seed_indices is needed so
+                    # Mark this seed as used. The used_seed_indices is needed so
                     # that the same atom cannot become a seed point multiple
                     # times. This can otherwise become a problem in e.g. random
                     # systems, or "looped" structures.
@@ -708,14 +721,14 @@ class PeriodicFinder():
                 # scaled_positions=test_pos_rel,
                 # symbols=system.get_atomic_numbers()[all_indices]
             # )
-            # if len(new_sys) != 1:
-                # view(new_sys)
+            # view(new_sys)
 
         # Translate the original system to the seed position
         match_system = system.copy()
         match_system.translate(-seed_pos)
 
         # Find the atoms that match the positions in the original basis
+        # print("=======================")
         matches = systax.geometry.get_matches(
             # new_sys,
             match_system,

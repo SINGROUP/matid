@@ -340,7 +340,7 @@ class PeriodicFinderTests(unittest.TestCase):
             n_atoms = len(sys)
             for region in regions:
                 n_region_atoms = len(region[0])
-                self.assertTrue(n_region_atoms < 5)
+                self.assertTrue(n_region_atoms < 10)
 
 
 class AtomTests(unittest.TestCase):
@@ -523,6 +523,46 @@ class Material2DTests(unittest.TestCase):
             classifier = Classifier()
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, Material2DPristine)
+
+    def test_graphene_rectangular(self):
+        sys = Atoms(
+            symbols=["C", "C", "C", "C"],
+            cell=np.array((
+                [4.26, 0.0, 0.0],
+                [0.0, 15, 0.0],
+                [0.0, 0.0, 2.4595121467478055]
+            )),
+            positions=np.array((
+                [2.84, 7.5, 6.148780366869514e-1],
+                [3.55, 7.5, 1.8446341100608543],
+                [7.1e-1, 7.5, 1.8446341100608543],
+                [1.42, 7.5, 6.148780366869514e-1],
+            )),
+            pbc=True
+        )
+        # view(sys)
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
+
+    def test_boron_nitride(self):
+        sys = Atoms(
+            symbols=["B", "N"],
+            cell=np.array((
+                [2.412000008147063, 0.0, 0.0],
+                [-1.2060000067194177, 2.0888532824002019, 0.0],
+                [0.0, 0.0, 15.875316320100001]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [-1.3823924100453746E-9, 1.3925688618963122, 0.0]
+            )),
+            pbc=True
+        )
+        # view(sys)
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
 
 
 class Material3DTests(unittest.TestCase):

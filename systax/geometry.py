@@ -477,10 +477,10 @@ def get_mic_positions(disp_tensor_rel, cell, pbc):
     for i, periodic in enumerate(pbc):
         if periodic:
             i_disp_tensor = disp_tensor_rel[:, :, i]
-            indices = np.where(i_disp_tensor > 0.5)
-            i_disp_tensor[indices] = i_disp_tensor[indices] - 1
-            indices = np.where(i_disp_tensor < -0.5)
-            i_disp_tensor[indices] = i_disp_tensor[indices] + 1
+            pos_mask = i_disp_tensor > 0.5
+            i_disp_tensor[pos_mask] = i_disp_tensor[pos_mask] - 1
+            neg_mask = i_disp_tensor < -0.5
+            i_disp_tensor[neg_mask] = i_disp_tensor[neg_mask] + 1
             wrapped_disp_tensor[:, :, i] = i_disp_tensor
     disp_tensor_cart = np.dot(wrapped_disp_tensor, cell)
 
@@ -639,17 +639,17 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
 
     # Calculate distance matrix and keep track of the index of the copy was
     # found to be the closest
-    pos_indices = np.where(disp_tensor > 0.5)
-    neg_indices = np.where(disp_tensor < -0.5)
-    disp_tensor[pos_indices] = 1 - disp_tensor[pos_indices]
-    disp_tensor[neg_indices] = disp_tensor[neg_indices] + 1
+    pos_mask = disp_tensor > 0.5
+    neg_mask = disp_tensor < -0.5
+    disp_tensor[pos_mask] = disp_tensor[pos_mask] - 1
+    disp_tensor[neg_mask] = disp_tensor[neg_mask] + 1
     disp_tensor = np.dot(disp_tensor, cell)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
 
     if return_factors:
         moved = np.zeros(disp_tensor.shape)
-        moved[pos_indices] = 1
-        moved[neg_indices] = -1
+        moved[pos_mask] = 1
+        moved[neg_mask] = -1
 
     min_ind = np.argmin(distance_matrix, axis=1)
     matches = []
