@@ -4,7 +4,6 @@ from systax.classification.classifications import \
     Class2D, \
     Class3D, \
     Class3DDisordered, \
-    Class3DDisconnected, \
     Atom, \
     Molecule, \
     CrystalPristine, \

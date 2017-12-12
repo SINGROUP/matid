@@ -26,14 +26,14 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
             the system for them to be considered energetically separated.
 
     Returns:
-        clusters: List of clusters where
         int: The dimensionality of the system.
+        np.ndarray: Boolean array indicating the presence of vacuum gaps.
 
     Raises:
         SystaxError: If the dimensionality can't be detected
     """
     cell = system.get_cell()
-    pbc = system.get_pbc()
+    pbc = expand_pbc(system.get_pbc())
     pos = system.get_positions()
     num = system.get_atomic_numbers()
 
@@ -43,7 +43,10 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
     radii_matrix = radii[:, None] + radii[None, :]
 
     # Calculate the displacements in the finite system taking into accout periodicity
-    displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+    if pbc.any():
+        displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+    else:
+        displacements_finite_pbc = get_displacement_tensor(pos, pos)
 
     # Check the number of clusters. We don't want the clustering to hog all
     # resources, so the cpu's are limited to one
@@ -75,17 +78,29 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
     # minimum distance between two copies is bigger or equal to the vacuum gap,
     # then remove one dimension.
     dim = 3
+    vacuum_gaps = np.array((False, False, False))
     for i_basis, basis in enumerate(cell):
 
+        # If the system is not periodic in this direction, reduce the
+        # periodicity
+        i_pbc = pbc[i_basis]
+        if not i_pbc:
+            dim -= 1
+            vacuum_gaps[i_basis] = True
+            continue
+
+        # If system is periodic in this direction, calculate the distance
+        # between the periodicly repeated cluster
         disp = np.array(displacements_finite)
         disp += basis
         dist = np.linalg.norm(disp, axis=2)
         dist -= radii_matrix
         min_dist = dist.min()
         if min_dist >= vacuum_gap:
+            vacuum_gaps[i_basis] = True
             dim -= 1
 
-    return dim
+    return dim, vacuum_gaps
 
 
 def get_moments_of_inertia(system, weight=True):
