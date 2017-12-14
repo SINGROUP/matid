@@ -84,8 +84,8 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_basis_indices()
-            # rec = unit_collection.recreate_valid()
-            # view(rec)
+            rec = unit_collection.recreate_valid()
+            view(rec)
 
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
@@ -602,10 +602,6 @@ class PeriodicFinder():
         else:
             searched_coords.add(index)
 
-        # If the seed atom was not found for this cell, end the search
-        if seed_index is None:
-            return
-
         cell_pos = unit_cell.get_scaled_positions()
         cell_num = unit_cell.get_atomic_numbers()
         old_basis = unit_cell.get_cell()
@@ -626,48 +622,53 @@ class PeriodicFinder():
         orig_pos = system.get_positions()
         orig_cell = system.get_cell()
 
+        # If the seed atom was not found for this cell, end the search
         # TODO: get rid of this loop by using numpy
         i_cell = np.array(old_basis)
 
-        for it, multiplier in enumerate(multipliers):
+        if seed_index is not None:
+            for it, multiplier in enumerate(multipliers):
 
-            if tuple(multiplier) == (0, 0, 0):
-                continue
+                if tuple(multiplier) == (0, 0, 0):
+                    continue
 
-            # If the cell in this index has already been handled, continue
-            new_index = tuple(multiplier + index),
-            if new_index in searched_coords:
-                continue
+                # If the cell in this index has already been handled, continue
+                new_index = tuple(multiplier + index),
+                if new_index in searched_coords:
+                    continue
 
-            disloc = np.dot(multiplier, old_basis)
-            seed_guess = seed_pos + disloc
+                disloc = np.dot(multiplier, old_basis)
+                seed_guess = seed_pos + disloc
 
-            matches, factors = systax.geometry.get_matches(
-                system,
-                seed_guess,
-                [seed_atomic_number],
-                2*self.pos_tol,
-                return_factors=True)
+                matches, factors = systax.geometry.get_matches(
+                    system,
+                    seed_guess,
+                    [seed_atomic_number],
+                    2*self.pos_tol,
+                    return_factors=True)
 
-            # Save the position corresponding to a seed atom or a guess for it.
-            # If a match was found that is not the original seed, use it's
-            # position to update the cell. If the matched index is the same as
-            # the original seed, check the factors array to decide whether to
-            # use the guess or not.
-            if matches[0] is not None:
-                if matches[0] != seed_index:
-                    i_seed_pos = orig_pos[matches[0]]
-                else:
-                    if (factors[0] == 0).all():
-                        i_seed_pos = seed_guess
-                    else:
+                # Save the position corresponding to a seed atom or a guess for it.
+                # If a match was found that is not the original seed, use it's
+                # position to update the cell. If the matched index is the same as
+                # the original seed, check the factors array to decide whether to
+                # use the guess or not.
+                if matches[0] is not None:
+                    if matches[0] != seed_index:
                         i_seed_pos = orig_pos[matches[0]]
-            else:
-                i_seed_pos = seed_guess
+                    else:
+                        if (factors[0] == 0).all():
+                            i_seed_pos = seed_guess
+                        else:
+                            i_seed_pos = orig_pos[matches[0]]
+                else:
+                    i_seed_pos = seed_guess
 
-            # Store the indices and positions of new valid seeds
-            if matches[0] is not None and (factors[0] == 0).all():
-                if matches[0] not in used_seed_indices:
+                # Store the indices and positions of new valid seeds
+                # if matches[0] is not None and (factors[0] == 0).all():
+                    # if matches[0] not in used_seed_indices:
+                if (factors[0] == 0).all():
+                    # print(matches[0])
+                    # print(i_seed_pos)
                     new_seed_indices.append(matches[0])
                     new_seed_pos.append(i_seed_pos)
                     new_seed_multipliers.append(multiplier)
@@ -678,34 +679,34 @@ class PeriodicFinder():
                     # systems, or "looped" structures.
                     used_seed_indices.add(seed_index)
 
-            # Store the cell basis vector
-            if tuple(multiplier) == (1, 0, 0):
-                factor = factors[0]
-                match = matches[0]
-                if match is None:
-                    a = disloc
-                else:
-                    temp = i_seed_pos + np.dot(factor, orig_cell)
-                    a = temp - seed_pos
-                i_cell[0, :] = a
-            elif tuple(multiplier) == (0, 1, 0):
-                factor = factors[0]
-                match = matches[0]
-                if match is None:
-                    b = disloc
-                else:
-                    temp = i_seed_pos + np.dot(factor, orig_cell)
-                    b = temp - seed_pos
-                i_cell[1, :] = b
-            elif tuple(multiplier) == (0, 0, 1):
-                factor = factors[0]
-                match = matches[0]
-                if match is None:
-                    c = disloc
-                else:
-                    temp = i_seed_pos + np.dot(factor, orig_cell)
-                    c = temp - seed_pos
-                i_cell[2, :] = c
+                # Store the cell basis vector
+                if tuple(multiplier) == (1, 0, 0):
+                    factor = factors[0]
+                    match = matches[0]
+                    if match is None:
+                        a = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        a = temp - seed_pos
+                    i_cell[0, :] = a
+                elif tuple(multiplier) == (0, 1, 0):
+                    factor = factors[0]
+                    match = matches[0]
+                    if match is None:
+                        b = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        b = temp - seed_pos
+                    i_cell[1, :] = b
+                elif tuple(multiplier) == (0, 0, 1):
+                    factor = factors[0]
+                    match = matches[0]
+                    if match is None:
+                        c = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        c = temp - seed_pos
+                    i_cell[2, :] = c
 
         # Find atoms within the cell
         inside_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
@@ -728,17 +729,18 @@ class PeriodicFinder():
         match_system.translate(-seed_pos)
 
         # Find the atoms that match the positions in the original basis
-        # print("=======================")
-        matches = systax.geometry.get_matches(
-            # new_sys,
+        matches, substitutions = systax.geometry.get_matches(
             match_system,
             unit_cell.get_positions(),
             cell_num,
-            2*self.pos_tol)
+            2*self.pos_tol,
+            return_substitutions=True,
+            )
 
-        # Create the new LinkedUnit and add it to the collection representing
-        # the surface
-        new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, matches, inside_indices)
+        # If there are maches or substitutional atoms in the unit, add it to
+        # the collection
+        # if any(x is None for x in matches) or any(x is None for x in substitutions):
+        new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, matches, substitutions, inside_indices)
         collection[index] = new_unit
 
         # Save a snapshot of the process
@@ -754,8 +756,9 @@ class PeriodicFinder():
         # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
         # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='20y,20x', show_unit_cell=2)
 
-        # Use the newly found indices to track down new indices with an updated
-        # cell.
+        # Is no proper basis atom was found for the seed position, do not
+        # continue the search futher from that seed. Otherwise Use the newly
+        # found indices to track down new indices with an updated cell.
         for seed_index, seed_pos, multiplier in zip(new_seed_indices, new_seed_pos, new_seed_multipliers):
 
             # Update the cell shape

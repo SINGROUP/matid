@@ -343,6 +343,23 @@ class PeriodicFinderTests(unittest.TestCase):
                 n_region_atoms = len(region[0])
                 self.assertTrue(n_region_atoms < 10)
 
+    def test_substitutions(self):
+        """Test that substitutional atoms are found correctly.
+        """
+        sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        labels = sys.get_atomic_numbers()
+        labels[2] = 41
+        sys.set_atomic_numbers(labels)
+        # view(sys)
+
+        vacuum_dir = [False, False, True]
+        regions = self.finder.get_regions(sys, vacuum_dir)
+        self.assertEqual(len(regions), 1)
+
+        region = regions[0][1]
+        substitutions = region.get_substitutional_indices()
+        self.assertEqual(substitutions, [2])
+
 
 class AtomTests(unittest.TestCase):
     """Tests for detecting an Atom.
@@ -534,27 +551,27 @@ class Material2DTests(unittest.TestCase):
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, Material2DPristine)
 
-    # def test_2d_split(self):
-        # """A simple 2D system where the system has been split by the cell
-        # boundary.
-        # """
-        # sys = Atoms(
-            # symbols=["H", "C"],
-            # cell=np.array((
-                # [2, 0.0, 0.0],
-                # [0.0, 2, 0.0],
-                # [0.0, 0.0, 15]
-            # )),
-            # positions=np.array((
-                # [0, 0, 0],
-                # [0, 0, 13.8],
-            # )),
-            # pbc=True
-        # )
-        # view(sys)
-        # classifier = Classifier()
-        # clas = classifier.classify(sys)
-        # self.assertIsInstance(clas, Material2DPristine)
+    def test_2d_split(self):
+        """A simple 2D system where the system has been split by the cell
+        boundary.
+        """
+        sys = Atoms(
+            symbols=["H", "C"],
+            cell=np.array((
+                [2, 0.0, 0.0],
+                [0.0, 2, 0.0],
+                [0.0, 0.0, 15]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [0, 0, 13.8],
+            )),
+            pbc=True
+        )
+        view(sys)
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
 
     def test_graphene_rectangular(self):
         sys = Atoms(
@@ -983,7 +1000,7 @@ class SurfaceTests(unittest.TestCase):
         cell_width = np.linalg.norm(system.get_cell()[0, :])
         for atom in system:
             pos = atom.position
-            distortion_z = 2.0*np.sin(pos[0]/cell_width*2.0*np.pi)
+            distortion_z = 1.0*np.sin(pos[0]/cell_width*2.0*np.pi)
             pos += np.array((0, 0, distortion_z))
         # view(system)
 
@@ -991,46 +1008,46 @@ class SurfaceTests(unittest.TestCase):
         classification = classifier.classify(system)
         self.assertIsInstance(classification, SurfacePristine)
 
-    def test_surface_complicated(self):
-        """Test the detection for a very complicated surfae with adsorbate and
-        defects.
-        """
-        from ase.lattice.cubic import SimpleCubicFactory
+    # def test_surface_complicated(self):
+        # """Test the detection for a very complicated surfae with adsorbate and
+        # defects.
+        # """
+        # from ase.lattice.cubic import SimpleCubicFactory
 
-        # Create the system
-        class NaClFactory(SimpleCubicFactory):
-            "A factory for creating NaCl (B1, Rocksalt) lattices."
+        # # Create the system
+        # class NaClFactory(SimpleCubicFactory):
+            # "A factory for creating NaCl (B1, Rocksalt) lattices."
 
-            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
-                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
-                            [0.5, 0.5, 0.5]]
-            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
+            # bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
+                            # [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                            # [0.5, 0.5, 0.5]]
+            # element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
 
-        nacl = NaClFactory()
-        nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
-        nacl = nacl.repeat((4, 4, 2))
-        rng = RandomState(8)
-        systax.geometry.make_random_displacement(nacl, 0.5, rng)
-        cell = nacl.get_cell()
-        cell[2, :] *= 3
-        nacl.set_cell(cell)
-        # nacl.rotate(-45, [0, 1, 0], )
-        # nacl.rotate(-90, [1, 0, 0])
-        nacl.center()
-        # view(nacl)
-        # from ase.io import write
-        # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45x,20y')
-        # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45y,20x', show_unit_cell=2)
+        # nacl = NaClFactory()
+        # nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
+        # nacl = nacl.repeat((4, 4, 2))
+        # rng = RandomState(8)
+        # systax.geometry.make_random_displacement(nacl, 0.5, rng)
+        # cell = nacl.get_cell()
+        # cell[2, :] *= 3
+        # nacl.set_cell(cell)
+        # # nacl.rotate(-45, [0, 1, 0], )
+        # # nacl.rotate(-90, [1, 0, 0])
+        # nacl.center()
+        # # view(nacl)
+        # # from ase.io import write
+        # # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45x,20y')
+        # # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45y,20x', show_unit_cell=2)
 
-        # h2o = molecule("H2O")
-        # h2o.rotate(-45, [0, 0, 1])
-        # h2o.translate([4.5, 4.5, 10])
-        # nacl += h2o
-        # view(nacl)
+        # # h2o = molecule("H2O")
+        # # h2o.rotate(-45, [0, 0, 1])
+        # # h2o.translate([4.5, 4.5, 10])
+        # # nacl += h2o
+        # # view(nacl)
 
-        classifier = Classifier(max_cell_size=5, pos_tol=1.2)
-        classification = classifier.classify(nacl)
-        self.assertIsInstance(classification, SurfacePristine)
+        # classifier = Classifier(max_cell_size=5, pos_tol=1.2)
+        # classification = classifier.classify(nacl)
+        # self.assertIsInstance(classification, SurfacePristine)
 
 
 # class SurfaceAnalyserTests(unittest.TestCase):

@@ -76,6 +76,21 @@ class LinkedUnitCollection(dict):
 
         return np.array(list(indices))
 
+    def get_substitutional_indices(self):
+        """Returns the indices of the atoms that have replaced a basis atom in
+        the structure.
+
+        Returns:
+            np.ndarray: Indices of the atoms in the original system that have
+            replaced a basis atom in the structure.
+        """
+        indices = set()
+        for unit in self.values():
+            i_indices = [x for x in unit.substitute_indices if x is not None]
+            indices.update(i_indices)
+
+        return np.array(list(indices))
+
     def get_inside_indices(self):
         """Returns the indices of the atoms that are within the region defined
         by the LinkedUnits in this collection as a single list.
@@ -110,21 +125,24 @@ class LinkedUnit():
     """Represents a cell that is connected to others in 3D space to form a
     structure, e.g. a surface.
     """
-    def __init__(self, index, seed_index, seed_coordinate, cell, basis_indices, inside_indices):
+    def __init__(self, index, seed_index, seed_coordinate, cell, basis_indices, substitute_indices, inside_indices):
         """
         Args:
             index(tuple of three ints):
             seed_index(int):
             seed_coordinate():
             cell(np.ndarray): Cell for this unit. Can change from unit to unit.
-            all_indices(np.ndarray): Indices of all atoms in this unit
             basis_indices(sequence of ints and Nones): A sequence where there
                 is an index or None for each atom that is supposed to be in the
                 basis
+            substitute_indices(sequence of ints and Nones): If basis atom is
+                replaced by a foreign atom, the index of the substitutional atom is
+                here.
         """
         self.index = index
         self.seed_index = seed_index
         self.seed_coordinate = seed_coordinate
         self.cell = cell
         self.basis_indices = basis_indices
+        self.substitute_indices = substitute_indices
         self.inside_indices = inside_indices

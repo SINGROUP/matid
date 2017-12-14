@@ -622,7 +622,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     return indices, cell_pos
 
 
-def get_matches(system, positions, numbers, tolerance, return_factors=False):
+def get_matches(system, positions, numbers, tolerance, return_substitutions=False, return_factors=False):
     """Given a system and a list of cartesian positions and atomic numbers,
     returns a list of indices for the atoms corresponding to the given
     positions with some tolerance.
@@ -664,24 +664,38 @@ def get_matches(system, positions, numbers, tolerance, return_factors=False):
 
     min_ind = np.argmin(distance_matrix, axis=1)
     matches = []
+    substitutions = []
     copy_indices = []
 
     for i, ind in enumerate(min_ind):
         distance = distance_matrix[i, ind]
         a_num = orig_num[ind]
         b_num = numbers[i]
-        if distance <= tolerance and a_num == b_num:
-            matches.append(ind)
-            if return_factors:
-                i_move = moved[i][ind]
-                copy_indices.append(i_move)
-        else:
-            matches.append(None)
-            if return_factors:
-                copy_indices.append(None)
+        match = None
+        subs = None
+        copy = None
+        if distance <= tolerance:
+            if a_num == b_num:
+                match = ind
+            elif return_substitutions:
+                subs = ind
 
-    if return_factors:
+        if return_factors:
+            i_move = moved[i][ind]
+            copy = i_move
+
+        matches.append(match)
+        if return_substitutions:
+            substitutions.append(subs)
+        if return_factors:
+            copy_indices.append(copy)
+
+    if return_factors and return_substitutions:
+        return matches, substitutions, copy_indices
+    elif return_factors:
         return matches, copy_indices
+    elif return_substitutions:
+        return matches, substitutions
     return matches
 
 

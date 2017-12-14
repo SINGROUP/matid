@@ -131,24 +131,22 @@ class Class2DAnalyzer(SymmetryAnalyzer):
         contains the same atoms in same positions. If so, then this material is
         labeled pristine.
         """
+        # Check that there are no substitutions
+        substitutions = self.unitcollection.get_substitutional_indices()
+        if len(substitutions) != 0:
+            return False
+
         basis_indices = set()
-        inside_indices = set()
 
-        # Each unit should have the same number of basis atoms
+        # Check that no basis atom is shared with another cell
         for unit in self.unitcollection.values():
-            inside = unit.inside_indices
-            basis = unit.basis_indices
-
-            # Check that no basis atom is shared with another cell
+            basis = [x for x in unit.basis_indices if x is not None]
             intersection = basis_indices.intersection(basis)
             if len(intersection) != 0:
                 return False
-
             basis_indices.update(basis)
-            inside_indices.update(inside)
 
-        # Each inside index should belong to the surface
-        if basis_indices != inside_indices:
-            return False
+        # Check that every layer has the same basis atoms present
+        # TODO
 
         return True
