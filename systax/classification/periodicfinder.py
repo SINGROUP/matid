@@ -84,8 +84,8 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_basis_indices()
-            rec = unit_collection.recreate_valid()
-            view(rec)
+            # rec = unit_collection.recreate_valid()
+            # view(rec)
 
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))

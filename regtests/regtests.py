@@ -944,26 +944,26 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-    def test_bcc_pristine_thin_surface(self):
-        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, SurfacePristine)
+    # def test_bcc_pristine_thin_surface(self):
+        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
 
-    def test_bcc_pristine_small_surface(self):
-        system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, SurfacePristine)
+    # def test_bcc_pristine_small_surface(self):
+        # system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
 
-    def test_bcc_pristine_big_surface(self):
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, SurfacePristine)
+    # def test_bcc_pristine_big_surface(self):
+        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
 
     # def test_bcc_defected_big_surface(self):
         # """Surface with defect.
@@ -978,35 +978,106 @@ class SurfaceTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, SurfaceDefected)
 
-    def test_bcc_dislocated_big_surface(self):
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+    # def test_bcc_dislocated_big_surface(self):
+        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
-        # Run multiple times with random displacements
-        rng = RandomState(47)
-        for i in range(10):
-            sys = system.copy()
-            systax.geometry.make_random_displacement(sys, 0.2, rng)
-            # view(sys)
-            classifier = Classifier()
-            clas = classifier.classify(sys)
-            self.assertIsInstance(clas, SurfacePristine)
+        # # Run multiple times with random displacements
+        # rng = RandomState(47)
+        # for i in range(10):
+            # sys = system.copy()
+            # systax.geometry.make_random_displacement(sys, 0.2, rng)
+            # # view(sys)
+            # classifier = Classifier()
+            # clas = classifier.classify(sys)
+            # self.assertIsInstance(clas, SurfacePristine)
 
-    def test_curved_surface(self):
+    # def test_curved_surface(self):
 
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+
+        # # Bulge the surface
+        # cell_width = np.linalg.norm(system.get_cell()[0, :])
+        # for atom in system:
+            # pos = atom.position
+            # distortion_z = 1.0*np.sin(pos[0]/cell_width*2.0*np.pi)
+            # pos += np.array((0, 0, distortion_z))
+        # # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
+
+    # def test_surface_kink(self):
+        # """Test a surface that has a kink
+        # """
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
+
+        # # Remove a range of atoms to form a kink
+        # del system[86:89]
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
+
+    def test_surface_ads_kink(self):
+        """Test a surface that has a kink
+        """
         # Create an Fe 100 surface as an ASE Atoms object
-        system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+        system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
 
-        # Bulge the surface
-        cell_width = np.linalg.norm(system.get_cell()[0, :])
-        for atom in system:
-            pos = atom.position
-            distortion_z = 1.0*np.sin(pos[0]/cell_width*2.0*np.pi)
-            pos += np.array((0, 0, distortion_z))
-        # view(system)
+        # Remove a range of atoms to form a kink
+        del system[86:89]
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, SurfacePristine)
+        view(system)
+        points = system.get_positions()
+
+        from scipy.spatial import Delaunay
+        tri = Delaunay(points)
+        # print(tri.simplices)
+        # print(tri.neighbors)
+        simplices = tri.simplices
+        # neighbors = tri.neighbors
+        import itertools
+
+        # Keep tetrahedra for which the sides are smaller than a threshold
+        pos = system.get_positions()
+        dist_mat = systax.geometry.get_distance_matrix(pos, pos)
+        threshold = 3
+        valid_simplices = []
+        for i_simplex, simplex in enumerate(simplices):
+            for i, j in itertools.combinations(simplex, 2):
+                distance = dist_mat[i, j]
+                if distance >= threshold:
+                    break
+            else:
+                valid_simplices.append(i_simplex)
+        print(valid_simplices)
+
+        # Try to separate H2O from the surface
+        h2o = molecule("H2O")
+        h2o.rotate(180, [1, 0, 0])
+        h2o.translate([5.74, 5.74, 12.0])
+        system += h2o
+        view(system)
+
+        # print(valid_simplices)
+        # res = tri.find_simplex(np.array((0, 0, 0)))
+        for pos in h2o.get_positions():
+            res = tri.find_simplex(pos)
+            if res in valid_simplices:
+                print(res)
+
+        # surface_indices = []
+        # for i, neighbour in enumerate(neighbours):
+            # for ij, j in enumerate(neighbour):
+                # if j == -1:
+                    # indices = simplices
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, SurfacePristine)
 
     # def test_surface_complicated(self):
         # """Test the detection for a very complicated surfae with adsorbate and
@@ -1192,15 +1263,15 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
 
     alltests = unittest.TestSuite(suites)
