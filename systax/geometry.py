@@ -14,7 +14,7 @@ from systax.exceptions import SystaxError
 from sklearn.cluster import DBSCAN
 
 
-def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
+def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7, disp_tensor=None, disp_tensor_pbc=None):
     """Used to calculate the dimensionality of a system.
 
     Args:
@@ -24,6 +24,11 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
             that is used to identify clusters within the unit cell.
         vacuum_gap(float): The minimum distance between two periodic copies of
             the system for them to be considered energetically separated.
+        disp_tensor (np.ndarray): A precalculated displacement tensor for the
+            system.
+        disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
+            takes into account the periodic boundary conditions for the
+                system.
 
     Returns:
         int: The dimensionality of the system.
@@ -44,9 +49,15 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7):
 
     # Calculate the displacements in the finite system taking into accout periodicity
     if pbc.any():
-        displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        if disp_tensor_pbc is not None:
+            displacements_finite_pbc = disp_tensor_pbc
+        else:
+            displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
     else:
-        displacements_finite_pbc = get_displacement_tensor(pos, pos)
+        if disp_tensor is not None:
+            displacements_finite_pbc = disp_tensor
+        else:
+            displacements_finite_pbc = get_displacement_tensor(pos, pos)
 
     # Check the number of clusters. We don't want the clustering to hog all
     # resources, so the cpu's are limited to one

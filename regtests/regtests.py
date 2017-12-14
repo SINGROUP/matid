@@ -15,6 +15,7 @@ from ase.visualize import view
 import ase.build
 from ase.build import nanotube
 import ase.lattice.hexagonal
+import ase.io
 
 from systax import Classifier
 from systax import PeriodicFinder
@@ -488,6 +489,15 @@ class Material2DTests(unittest.TestCase):
 
     def test_graphene_supercell(self):
         sys = Material2DTests.graphene.repeat([5, 5, 1])
+        classifier = Classifier()
+        clas = classifier.classify(sys)
+        self.assertIsInstance(clas, Material2DPristine)
+
+    def test_make_movie(self):
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        rng = RandomState(2)
+        systax.geometry.make_random_displacement(sys, 0.2, rng)
+        # ase.io.write('/home/lauri/Desktop/2d/aaaa.png', sys, rotation='', show_unit_cell=2)
         # view(sys)
         classifier = Classifier()
         clas = classifier.classify(sys)
@@ -541,7 +551,7 @@ class Material2DTests(unittest.TestCase):
             # )),
             # pbc=True
         # )
-        # # view(sys)
+        # view(sys)
         # classifier = Classifier()
         # clas = classifier.classify(sys)
         # self.assertIsInstance(clas, Material2DPristine)
@@ -665,6 +675,7 @@ class Material3DTests(unittest.TestCase):
             pbc=(1, 1, 1),
             latticeconstant=5.430710)
         del si[106]
+
         classifier = Classifier()
         clas = classifier.classify(si)
         self.assertIsInstance(clas, CrystalDefected)
@@ -945,7 +956,7 @@ class SurfaceTests(unittest.TestCase):
         # labels[2] = 41
         # system.set_atomic_numbers(labels)
         # # del system[37]
-        # # view(system)
+        # view(system)
         # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, SurfaceDefected)
@@ -963,10 +974,68 @@ class SurfaceTests(unittest.TestCase):
             clas = classifier.classify(sys)
             self.assertIsInstance(clas, SurfacePristine)
 
+    def test_curved_surface(self):
 
-class SurfaceAnalyserTests(unittest.TestCase):
-    """Tests for analyzing surfaces.
-    """
+        # Create an Fe 100 surface as an ASE Atoms object
+        system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+
+        # Bulge the surface
+        cell_width = np.linalg.norm(system.get_cell()[0, :])
+        for atom in system:
+            pos = atom.position
+            distortion_z = 2.0*np.sin(pos[0]/cell_width*2.0*np.pi)
+            pos += np.array((0, 0, distortion_z))
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, SurfacePristine)
+
+    def test_surface_complicated(self):
+        """Test the detection for a very complicated surfae with adsorbate and
+        defects.
+        """
+        from ase.lattice.cubic import SimpleCubicFactory
+
+        # Create the system
+        class NaClFactory(SimpleCubicFactory):
+            "A factory for creating NaCl (B1, Rocksalt) lattices."
+
+            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
+                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                            [0.5, 0.5, 0.5]]
+            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
+
+        nacl = NaClFactory()
+        nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
+        nacl = nacl.repeat((4, 4, 2))
+        rng = RandomState(8)
+        systax.geometry.make_random_displacement(nacl, 0.5, rng)
+        cell = nacl.get_cell()
+        cell[2, :] *= 3
+        nacl.set_cell(cell)
+        # nacl.rotate(-45, [0, 1, 0], )
+        # nacl.rotate(-90, [1, 0, 0])
+        nacl.center()
+        # view(nacl)
+        # from ase.io import write
+        # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45x,20y')
+        # write('/home/lauri/Desktop/test/aaaa.png', nacl, rotation='-90x,45y,20x', show_unit_cell=2)
+
+        # h2o = molecule("H2O")
+        # h2o.rotate(-45, [0, 0, 1])
+        # h2o.translate([4.5, 4.5, 10])
+        # nacl += h2o
+        # view(nacl)
+
+        classifier = Classifier(max_cell_size=5, pos_tol=1.2)
+        classification = classifier.classify(nacl)
+        self.assertIsInstance(classification, SurfacePristine)
+
+
+# class SurfaceAnalyserTests(unittest.TestCase):
+    # """Tests for analyzing surfaces.
+    # """
         # # Test surface info
         # # surfaces = classifier.surfaces
         # surface = classification.surfaces[0]
@@ -1116,7 +1185,6 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(BCCTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

@@ -83,7 +83,7 @@ class PeriodicFinder():
                 seed_position,
                 periodic_indices)
 
-            i_indices = unit_collection.get_indices()
+            i_indices = unit_collection.get_basis_indices()
             # rec = unit_collection.recreate_valid()
             # view(rec)
 
@@ -740,6 +740,19 @@ class PeriodicFinder():
         # the surface
         new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, matches, inside_indices)
         collection[index] = new_unit
+
+        # Save a snapshot of the process
+        # from ase.io import write
+        # rec = collection.recreate_valid()
+        # rec.set_cell(system.get_cell())
+        # num = len(collection)
+        # str_num = str(num)
+        # str_len = len(str_num)
+        # num = (3-str_len)*"0" + str_num
+        # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
+        # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
+        # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
+        # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='20y,20x', show_unit_cell=2)
 
         # Use the newly found indices to track down new indices with an updated
         # cell.

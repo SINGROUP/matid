@@ -69,12 +69,12 @@ class LinkedUnitCollection(dict):
             np.ndarray: Indices of the atoms in the original system that belong
             to this collection of LinkedUnits.
         """
-        indices = []
+        indices = set()
         for unit in self.values():
             i_indices = [x for x in unit.basis_indices if x is not None]
-            indices.extend(i_indices)
+            indices.update(i_indices)
 
-        return np.array(indices)
+        return np.array(list(indices))
 
     def get_inside_indices(self):
         """Returns the indices of the atoms that are within the region defined
@@ -84,26 +84,26 @@ class LinkedUnitCollection(dict):
             np.ndarray: Indices of the atoms in the original system that belong
             to this collection of LinkedUnits.
         """
-        indices = []
+        indices = set()
         for unit in self.values():
             i_indices = unit.inside_indices
-            indices.extend(i_indices)
+            indices.update(i_indices)
 
-        return np.array(indices)
+        return np.array(list(indices))
 
-    def get_indices(self):
-        """Returns all the indices in of the LinkedUnits in this collection as a
-        single list.
+    # def get_indices(self):
+        # """Returns all the indices in of the LinkedUnits in this collection as a
+        # single list.
 
-        Returns:
-            np.ndarray: Indices of the atoms in the original system that belong
-            to this collection of LinkedUnits.
-        """
-        basis_indices = set(self.get_basis_indices())
-        inside_indices = (self.get_basis_indices())
-        all_indices = basis_indices.union(inside_indices)
+        # Returns:
+            # np.ndarray: Indices of the atoms in the original system that belong
+            # to this collection of LinkedUnits.
+        # """
+        # basis_indices = set(self.get_basis_indices())
+        # inside_indices = (self.get_basis_indices())
+        # all_indices = basis_indices.union(inside_indices)
 
-        return np.array(list(all_indices))
+        # return np.array(list(all_indices))
 
 
 class LinkedUnit():

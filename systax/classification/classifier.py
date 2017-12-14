@@ -106,12 +106,25 @@ class Classifier():
         dim_class = None
         components = defaultdict(list)
 
+        # Calculate the displacement tensor for the original system. It will be
+        # reused in multiple sections.
+        pos = system.get_positions()
+        cell = system.get_cell()
+        pbc = system.get_pbc()
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+        if pbc.any():
+            disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        else:
+            disp_tensor_pbc = disp_tensor
+
         # Get the system dimensionality
         try:
             dimensionality, vacuum_dir = systax.geometry.get_dimensionality(
                 system,
                 self.connectivity_crystal,
-                self.vacuum_threshold
+                self.vacuum_threshold,
+                disp_tensor=disp_tensor,
+                disp_tensor_pbc=disp_tensor_pbc
             )
         except SystaxError:
             components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
@@ -167,6 +180,7 @@ class Classifier():
                 max_cell_size=self.max_cell_size)
             regions = periodicfinder.get_regions(system, vacuum_dir)
 
+            # Find indices of atoms that do not belong to the surface
             surface_indices = set()
             for i_region in regions:
                 i_indices, i_unit_collection, i_region_atoms, i_cell = i_region
@@ -174,8 +188,45 @@ class Classifier():
                     total_regions.append(i_region)
                     surface_indices.update(i_indices)
 
+            # Get the indices of atoms that do not belong to any region
             indices = set(indices)
             i_misc_ind = indices - surface_indices
+
+            # Get the indices of atoms that are within the unit cells of the
+            # region
+
+            #===================================================================
+            # Possible adsorption detection implementation based on the angle
+            # map of neighbouring atoms
+            # Cluster the atoms that are not part of the surface.
+            # print(i_misc_ind)
+
+            # Categorize atoms that are not part of a surface as adsorbates or
+            # interstitials
+            # angle_threshold = np.cos(np.pi)
+            # surf_ind_array = np.array(list(surface_indices))
+            # for index in i_misc_ind:
+
+                # # Take out the row coresponding to this index
+                # vectors = disp_tensor[index, :]
+
+                # # Select only atoms that belong to a periodic region
+                # vectors = vectors[surf_ind_array]
+
+                # # Select atoms that are nearby
+                # distances = np.linalg.norm(vectors, axis=1)
+                # neighbour_indices = distances <= 4
+                # vectors = vectors[neighbour_indices]
+
+                # # Calculate the cosines of the angles between all vectors
+                # vector_norms = distances[neighbour_indices]
+                # vectors_normed = vectors/vector_norms[:, None]
+                # cosines = np.inner(vectors_normed, vectors_normed)
+                # max_angle = cosines.min()
+                # if max_angle < angle_threshold
+                # print(np.arccos(max_angle)/np.pi*180)
+            #===================================================================
+
             if i_misc_ind:
                 components[ComponentType.Unknown].append(Component(list(i_misc_ind), system[list(i_misc_ind)]))
 
