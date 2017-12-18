@@ -140,15 +140,16 @@ class LinkedUnitCollection(dict):
         """
         # Get the indices of atoms that are outside the tesselation
         inside_indices, _ = self.get_inside_and_outside_indices()
+        inside_set = set(inside_indices)
 
         # Find substitutions that are inside the tesselation
         valid_subst = []
         for cell in self.values():
             substitutions = cell.substitutions
-            if substitutions is not None:
+            if len(substitutions) != 0:
                 for substitution in substitutions:
                     subst_index = substitution.index
-                    if subst_index in inside_indices:
+                    if subst_index in inside_set:
                         valid_subst.append(substitution)
 
         return valid_subst
@@ -332,17 +333,3 @@ class Substitution():
         self.index = index
         self.original_element = original_element
         self.substitutional_element = substitutional_element
-
-
-class Vacancy():
-    """Represents a vacancy point defect.
-    """
-    def __init__(self, vacancy):
-        """
-        Args:
-            vacancy (ase.Atom): Represents the atom that was searched but was not found
-
-        """
-        self.index = index
-        self.original = original
-        self.substitution = substitution

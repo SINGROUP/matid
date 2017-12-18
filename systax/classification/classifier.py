@@ -51,14 +51,13 @@ class Classifier():
     def __init__(
             self,
             seed_algorithm="cm",
-            max_cell_size=3,
-            pos_tol=0.5,
+            max_cell_size=5,
+            pos_tol=1,
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
             connectivity_crystal=3.0,
-            thickness_2d=6,
             layers_2d=1,
-            tesselation_distance=3
+            tesselation_distance=6
             ):
         """
         Args:
@@ -81,7 +80,6 @@ class Classifier():
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
-        self.thickness_2d = thickness_2d
         self.layers_2d = layers_2d
         self.tesselation_distance = tesselation_distance
         self._repeated_system = None
