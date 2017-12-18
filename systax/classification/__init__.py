@@ -9,9 +9,6 @@ from systax.classification.classifications import \
     CrystalPristine, \
     CrystalDefected, \
     Material1D, \
-    Material2DPristine, \
-    Material2DDefected, \
-    Material2DAdsorption, \
+    Material2D, \
     Unknown, \
-    SurfacePristine, \
-    SurfaceDefected
+    Surface

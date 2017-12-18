@@ -65,66 +65,28 @@ class Class2DAnalyzer(SymmetryAnalyzer):
         self._conventional_equivalent_atoms = equivalent_atoms
         return ideal_sys
 
-    def get_thickness(self):
-        """Used to calculate the thickness of the structure. All 2D structures
-        should have a finite thickness.
-        """
-        gaps = self._get_vacuum_gaps()
-        if gaps.sum() != 1:
-            raise SystaxError(
-                "Found more than one dimension with a vacuum gap for a 2D "
-                "material."
-            )
-        orig_pos = self.system.get_positions()
-        gap_coordinates = orig_pos[:, gaps]
-        bottom_i, top_i = systax.geometry.get_biggest_gap_indices(gap_coordinates)
+    # def get_thickness(self):
+        # """Used to calculate the thickness of the structure. All 2D structures
+        # should have a finite thickness.
+        # """
+        # gaps = self._get_vacuum_gaps()
+        # if gaps.sum() != 1:
+            # raise SystaxError(
+                # "Found more than one dimension with a vacuum gap for a 2D "
+                # "material."
+            # )
+        # orig_pos = self.system.get_positions()
+        # gap_coordinates = orig_pos[:, gaps]
+        # bottom_i, top_i = systax.geometry.get_biggest_gap_indices(gap_coordinates)
 
-        # Calculate height
-        bottom_pos = gap_coordinates[bottom_i]
-        top_pos = gap_coordinates[top_i]
-        height = top_pos - bottom_pos
-        if height < 0:
-            height += 1
+        # # Calculate height
+        # bottom_pos = gap_coordinates[bottom_i]
+        # top_pos = gap_coordinates[top_i]
+        # height = top_pos - bottom_pos
+        # if height < 0:
+            # height += 1
 
-        return height.item()
-
-    def get_layer_statistics(self):
-        """Get statistics about the number of layers. Returns the average
-        number of layers and the standard deviation in the number of layers.
-        """
-        # Find out which direction is the aperiodic one
-        vacuum_gaps = self.vacuum_gaps
-        vacuum_direction = self.system.get_cell()[vacuum_gaps]
-        unit_cell = self.unitcollection[(0, 0, 0)].cell
-        index = systax.geometry.get_closest_direction(vacuum_direction, unit_cell)
-        mask = [True, True, True]
-        mask[index] = False
-        mask = np.array(mask)
-
-        # Find out how many layers there are in the aperiodic directions
-        max_sizes = {}
-        min_sizes = {}
-        for coord, unit in self.unitcollection.items():
-            ab = tuple(np.array(coord)[mask])
-            c = coord[index]
-            min_size = min_sizes.get(ab)
-            max_size = max_sizes.get(ab)
-            if min_size is None or c < min_size:
-                min_sizes[ab] = c
-            if max_size is None or c > max_size:
-                max_sizes[ab] = c
-
-        sizes = []
-        for key, max_c in max_sizes.items():
-            min_c = min_sizes[key]
-            size = max_c - min_c + 1
-            sizes.append(size)
-        sizes = np.array(sizes)
-
-        mean = sizes.mean()
-        std = sizes.std()
-
-        return mean, std
+        # return height.item()
 
     def is_pristine(self):
         """Looks at each unit cell in this system, and checks that each cell

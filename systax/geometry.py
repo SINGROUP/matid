@@ -3,15 +3,22 @@ a atomic system.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import itertools
+
 import numpy as np
 from numpy.random import RandomState
 
 from ase.data import covalent_radii
+from ase import Atom, Atoms
+from ase.visualize import view
 
 from systax.data.element_data import get_covalent_radii
 from systax.exceptions import SystaxError
+from systax.core.linkedunits import Substitution
 
 from sklearn.cluster import DBSCAN
+
+from scipy.spatial import Delaunay
 
 
 def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7, disp_tensor=None, disp_tensor_pbc=None):
@@ -112,6 +119,138 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7, disp_tensor=
             dim -= 1
 
     return dim, vacuum_gaps
+
+
+def get_tetrahedra_decomposition(pos, max_distance=5, distance_matrix=None):
+    """Used to decompose a series of 3D atomic coordinates into non-overlapping
+    tetrahedron that together represent the atomic structure.
+    """
+    class TetrahedraTesselation():
+        """A class that represents a collection of tetrahedron.
+        """
+        def __init__(self, delaunay, valid_simplex_indices):
+            self.delaunay = delaunay
+            self.valid_simplex_indices = valid_simplex_indices
+
+        def find_simplex(self, pos):
+            """Used to find the index of the simplex in which the given
+            position resides in.
+
+            Args:
+                pos(np.nadrray): Position for which to find the simplex
+
+            Returns:
+                int: Index of the simplex in which the point is in. Returns
+                None if simplex was not found.
+            """
+            index = self.delaunay.find_simplex(pos).item()
+            if index == -1:
+                return None
+            if index in self.valid_simplex_indices:
+                return index
+            return None
+
+    # The QJ options makes sure that all positions are included in the tesselation
+    tri = Delaunay(pos, qhull_options="QJ")
+    simplices = tri.simplices
+
+    # Keep tetrahedra for which the sides are smaller than a threshold
+    if distance_matrix is None:
+        distance_matrix = get_distance_matrix(pos, pos)
+    valid_simplex_indices = set()
+    for i_simplex, simplex in enumerate(simplices):
+        for i, j in itertools.combinations(simplex, 2):
+            distance = distance_matrix[i, j]
+            if distance >= max_distance:
+                break
+        else:
+            valid_simplex_indices.add(i_simplex)
+
+    tetrahedras = TetrahedraTesselation(tri, valid_simplex_indices)
+    return tetrahedras
+
+
+def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
+    """Used to decompose a series of 3D atomic coordinates into non-overlapping
+    tetrahedron that together represent the atomic structure.
+    """
+    class TetrahedraTesselation():
+        """A class that represents a collection of tetrahedron.
+        """
+        def __init__(self, delaunay, valid_simplex_indices):
+            self.delaunay = delaunay
+            self.valid_simplex_indices = valid_simplex_indices
+
+        def find_simplex(self, pos):
+            """Used to find the index of the simplex in which the given
+            position resides in.
+
+            Args:
+                pos(np.nadrray): Position for which to find the simplex
+
+            Returns:
+                int: Index of the simplex in which the point is in. Returns
+                None if simplex was not found.
+            """
+            index = self.delaunay.find_simplex(pos).item()
+            if index == -1:
+                return None
+            if index in self.valid_simplex_indices:
+                return index
+            return None
+
+    cell = system.get_cell()
+    pos = system.get_positions()
+    num = system.get_atomic_numbers()
+
+    # Calculate a matrix containing the combined radii for each pair of atoms
+    # in an extended system
+    radii = covalent_radii[num]
+    radii_matrix = radii[:, None] + radii[None, :]
+
+    displacements_finite = get_displacement_tensor(pos, pos)
+
+    # For each basis direction, add the basis vector to the displacements to
+    # get the distance between two neighbouring copies of the cluster. If the
+    # minimum distance between two copies is bigger or equal to the vacuum gap,
+    # then remove one dimension.
+    tesselation_atoms = system.copy()
+    multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
+
+    for mult in multipliers:
+        if tuple(mult) != (0, 0, 0):
+            disloc = np.dot(mult, cell)
+
+            # If system is periodic in this direction, calculate the distance
+            # between the periodically repeated images and choose copies that
+            # are within a certain range
+            disp = np.array(displacements_finite)
+            disp += disloc
+            dist = np.linalg.norm(disp, axis=2)
+            dist -= radii_matrix
+            connectivity_mask = np.where(dist < max_distance)
+
+            for i, j in zip(connectivity_mask[0], connectivity_mask[1]):
+                tesselation_atoms += Atom(num[j], pos[j]+disp[i, j])
+
+    # The QJ options makes sure that all positions are included in the tesselation
+    tesselation_pos = tesselation_atoms.get_positions()
+    tri = Delaunay(tesselation_pos, qhull_options="QJ")
+    simplices = tri.simplices
+
+    # Keep tetrahedra for which the sides are smaller than a threshold
+    distance_matrix = get_covalent_distances(tesselation_atoms, mic=False)
+    valid_simplex_indices = set()
+    for i_simplex, simplex in enumerate(simplices):
+        for i, j in itertools.combinations(simplex, 2):
+            distance = distance_matrix[i, j]
+            if distance >= max_distance:
+                break
+        else:
+            valid_simplex_indices.add(i_simplex)
+
+    tetrahedras = TetrahedraTesselation(tri, valid_simplex_indices)
+    return tetrahedras
 
 
 def get_moments_of_inertia(system, weight=True):
@@ -300,7 +439,7 @@ def get_clusters(system, threshold=1.35):
     return cluster_indices
 
 
-def get_covalent_distances(system):
+def get_covalent_distances(system, mic=True):
     """Returns a distance matrix where the covalent radii have been taken into
     account. Clips negative values to be zero.
     """
@@ -309,7 +448,7 @@ def get_covalent_distances(system):
             return np.array([[0]])
 
         # Calculate distance matrix with radii taken into account
-        distance_matrix = system.get_all_distances(mic=True)
+        distance_matrix = system.get_all_distances(mic=mic)
 
     # Remove the radii from distances and clip out negative values
     numbers = system.get_atomic_numbers()
@@ -622,7 +761,11 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     return indices, cell_pos
 
 
-def get_matches(system, positions, numbers, tolerance, return_substitutions=False, return_factors=False):
+def get_matches(
+        system,
+        positions,
+        numbers,
+        tolerance):
     """Given a system and a list of cartesian positions and atomic numbers,
     returns a list of indices for the atoms corresponding to the given
     positions with some tolerance.
@@ -632,14 +775,16 @@ def get_matches(system, positions, numbers, tolerance, return_substitutions=Fals
         positions(np.ndarray): Positions to match in the system.
         tolerance(float): Maximum allowed distance that is required for a
             match in position.
-        return_factors(boolean): Whether to return a list of 3D indices
-            indicating in which periodic copy the match was found.
 
     Returns:
-        np.ndarray:
-        (optional) np.ndarray:
+        np.ndarray: indices of matched atoms
+        list: list of substitutions
+        list: list of vacancies
+        np.ndarray: for each searched position, an integer array representing
+            the number of the periodic copy where the match was found.
     """
     orig_num = system.get_atomic_numbers()
+    orig_pos = system.get_positions()
     cell = system.get_cell()
 
     scaled_pos1 = system.get_scaled_positions()
@@ -657,14 +802,14 @@ def get_matches(system, positions, numbers, tolerance, return_substitutions=Fals
     disp_tensor = np.dot(disp_tensor, cell)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
 
-    if return_factors:
-        moved = np.zeros(disp_tensor.shape)
-        moved[pos_mask] = 1
-        moved[neg_mask] = -1
+    moved = np.zeros(disp_tensor.shape)
+    moved[pos_mask] = 1
+    moved[neg_mask] = -1
 
     min_ind = np.argmin(distance_matrix, axis=1)
     matches = []
     substitutions = []
+    vacancies = []
     copy_indices = []
 
     for i, ind in enumerate(min_ind):
@@ -672,31 +817,24 @@ def get_matches(system, positions, numbers, tolerance, return_substitutions=Fals
         a_num = orig_num[ind]
         b_num = numbers[i]
         match = None
-        subs = None
         copy = None
         if distance <= tolerance:
             if a_num == b_num:
                 match = ind
-            elif return_substitutions:
-                subs = ind
+            else:
+                subst_pos = scaled_pos2[i]
+                subst_pos %= 1
+                subst_pos_cart = np.dot(subst_pos, cell)
+                substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+        else:
+            vacancies.append(Atom(b_num, position=positions[i]))
 
-        if return_factors:
-            i_move = moved[i][ind]
-            copy = i_move
-
+        i_move = moved[i][ind]
+        copy = i_move
         matches.append(match)
-        if return_substitutions:
-            substitutions.append(subs)
-        if return_factors:
-            copy_indices.append(copy)
+        copy_indices.append(copy)
 
-    if return_factors and return_substitutions:
-        return matches, substitutions, copy_indices
-    elif return_factors:
-        return matches, copy_indices
-    elif return_substitutions:
-        return matches, substitutions
-    return matches
+    return matches, substitutions, vacancies, copy_indices
 
 
 def to_scaled(cell, positions, wrap=False, pbc=False):

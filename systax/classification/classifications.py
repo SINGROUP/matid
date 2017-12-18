@@ -57,36 +57,65 @@ class Class2D(Classification):
     """All structures that are roughly 2-dimensional, meaning that two
     dimensions are much larger than the two others.
     """
+    def __init__(
+            self,
+            region=None,
+            interstitials=None,
+            substitutions=None,
+            adsorbates=None,
+            vacancies=None,
+            unknown=None,
+            vacuum_dir=None,
+            cell_analyzer=None
+            ):
+        self.region = region
+        self.interstitials = [] if interstitials is None else interstitials
+        self.substitutions = [] if substitutions is None else substitutions
+        self.adsorbates = [] if adsorbates is None else adsorbates
+        self.vacancies = [] if vacancies is None else vacancies
+        self.unknown = [] if unknown is None else unknown
+        self.vacuum_dir = vacuum_dir
+        self.cell_analyzer = cell_analyzer
 
 
-class SurfacePristine(Class2D):
+class Surface(Class2D):
     """
     """
 
 
-class SurfaceDefected(Class2D):
+class Material2D(Class2D):
     """
     """
 
 
-class SurfaceAdsorption(Class2D):
-    """
-    """
+# class SurfacePristine(Class2D):
+    # """
+    # """
 
 
-class Material2DPristine(Class2D):
-    """Consists of one Material2D component without defects or adsorbents.
-    """
+# class SurfaceDefected(Class2D):
+    # """
+    # """
 
 
-class Material2DDefected(Class2D):
-    """Defected Material2D.
-    """
+# class SurfaceAdsorption(Class2D):
+    # """
+    # """
 
 
-class Material2DAdsorption(Class2D):
-    """Adsorption on 2D material.
-    """
+# class Material2DPristine(Class2D):
+    # """Consists of one Material2D component without defects or adsorbents.
+    # """
+
+
+# class Material2DDefected(Class2D):
+    # """Defected Material2D.
+    # """
+
+
+# class Material2DAdsorption(Class2D):
+    # """Adsorption on 2D material.
+    # """
 
 
 #===============================================================================

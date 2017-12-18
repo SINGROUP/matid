@@ -17,17 +17,13 @@ from systax.exceptions import ClassificationError, SystaxError
 from systax.classification.components import ComponentType, Component
 
 from systax.classification.classifications import \
-    SurfacePristine, \
-    SurfaceDefected, \
-    SurfaceAdsorption, \
+    Surface, \
     Atom, \
     Molecule, \
     CrystalPristine, \
     CrystalDefected, \
     Material1D, \
-    Material2DPristine, \
-    Material2DDefected, \
-    Material2DAdsorption, \
+    Material2D, \
     Unknown, \
     Class0D, \
     Class1D, \
@@ -61,7 +57,8 @@ class Classifier():
             crystallinity_threshold=0.25,
             connectivity_crystal=3.0,
             thickness_2d=6,
-            layers_2d=1
+            layers_2d=1,
+            tesselation_distance=3
             ):
         """
         Args:
@@ -86,6 +83,7 @@ class Classifier():
         self.connectivity_crystal = connectivity_crystal
         self.thickness_2d = thickness_2d
         self.layers_2d = layers_2d
+        self.tesselation_distance = tesselation_distance
         self._repeated_system = None
         self._analyzed = False
         self._orthogonal_dir = None
@@ -105,6 +103,7 @@ class Classifier():
         self.system = system
         dim_class = None
         components = defaultdict(list)
+        classification = None
 
         # Calculate the displacement tensor for the original system. It will be
         # reused in multiple sections.
@@ -169,90 +168,41 @@ class Classifier():
         # 2D structures
         elif dimensionality == 2:
 
-            dim_class = Class2D
-
             # Run the region detection on the whole system.
-            total_regions = []
-            indices = list(range(len(system)))
             periodicfinder = PeriodicFinder(
                 pos_tol=self.pos_tol,
                 seed_algorithm="cm",
                 max_cell_size=self.max_cell_size)
-            regions = periodicfinder.get_regions(system, vacuum_dir)
+            regions = periodicfinder.get_regions(system, vacuum_dir, self.tesselation_distance)
 
-            # Find indices of atoms that do not belong to the surface
-            surface_indices = set()
-            for i_region in regions:
-                i_indices, i_unit_collection, i_region_atoms, i_cell = i_region
-                if len(i_indices) != 0:
-                    total_regions.append(i_region)
-                    surface_indices.update(i_indices)
+            # If more than one region found, categorize as unknown
+            n_regions = len(regions)
+            if n_regions != 1:
+                classification = Class2D()
+            else:
+                region = regions[0][1]
 
-            # Get the indices of atoms that do not belong to any region
-            indices = set(indices)
-            i_misc_ind = indices - surface_indices
+                # Get information about defects, adsorbates and uncategorized
+                # atoms.
+                adsorbates = region.get_adsorbates()
+                substitutions = region.get_substitutions()
+                vacancies = region.get_vacancies()
+                layer_mean, layer_std = region.get_layer_statistics()
 
-            # Get the indices of atoms that are within the unit cells of the
-            # region
-
-            #===================================================================
-            # Possible adsorption detection implementation based on the angle
-            # map of neighbouring atoms
-            # Cluster the atoms that are not part of the surface.
-            # print(i_misc_ind)
-
-            # Categorize atoms that are not part of a surface as adsorbates or
-            # interstitials
-            # angle_threshold = np.cos(np.pi)
-            # surf_ind_array = np.array(list(surface_indices))
-            # for index in i_misc_ind:
-
-                # # Take out the row coresponding to this index
-                # vectors = disp_tensor[index, :]
-
-                # # Select only atoms that belong to a periodic region
-                # vectors = vectors[surf_ind_array]
-
-                # # Select atoms that are nearby
-                # distances = np.linalg.norm(vectors, axis=1)
-                # neighbour_indices = distances <= 4
-                # vectors = vectors[neighbour_indices]
-
-                # # Calculate the cosines of the angles between all vectors
-                # vector_norms = distances[neighbour_indices]
-                # vectors_normed = vectors/vector_norms[:, None]
-                # cosines = np.inner(vectors_normed, vectors_normed)
-                # max_angle = cosines.min()
-                # if max_angle < angle_threshold
-                # print(np.arccos(max_angle)/np.pi*180)
-            #===================================================================
-
-            if i_misc_ind:
-                components[ComponentType.Unknown].append(Component(list(i_misc_ind), system[list(i_misc_ind)]))
-
-            # Check that surface components are continuous are chemically
-            # connected, and check if they have one or more layers
-            for i_region in total_regions:
-
-                i_orig_indices, i_unit_collection, i_atoms, i_cell = i_region
-
-                # Check the number of layers, the thickness and the
-                # pristinity
-                analyzer_2d = Class2DAnalyzer(i_atoms, vacuum_gaps=vacuum_dir, unitcollection=i_unit_collection, unit_cell=i_cell)
-                is_pristine = analyzer_2d.is_pristine()
-                layer_mean, layer_std = analyzer_2d.get_layer_statistics()
-                thickness = analyzer_2d.get_thickness()
-
-                if layer_mean == self.layers_2d and thickness < self.thickness_2d:
-                    if is_pristine:
-                        components[ComponentType.Material2DPristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                    else:
-                        components[ComponentType.Material2DDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                if layer_mean == self.layers_2d:
+                    classification = Material2D(
+                        region,
+                        adsorbates=adsorbates,
+                        substitutions=substitutions,
+                        vacancies=vacancies,
+                    )
                 elif layer_mean > self.layers_2d:
-                    if is_pristine:
-                        components[ComponentType.SurfacePristine].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
-                    else:
-                        components[ComponentType.SurfaceDefected].append(Component(i_orig_indices, i_atoms, i_unit_collection, analyzer_2d))
+                    classification = Surface(
+                        region,
+                        adsorbates=adsorbates,
+                        substitutions=substitutions,
+                        vacancies=vacancies,
+                    )
 
         # Bulk structures
         elif dimensionality == 3:
@@ -275,7 +225,7 @@ class Classifier():
                         pos_tol=self.pos_tol,
                         seed_algorithm="cm",
                         max_cell_size=self.max_cell_size)
-                    regions = periodicfinder.get_regions(system, vacuum_dir)
+                    regions = periodicfinder.get_regions(system, vacuum_dir, self.tesselation_distance)
 
                     # If all the regions cover at least 80% of the structure,
                     # then we consider it to be a defected crystal
@@ -297,55 +247,15 @@ class Classifier():
             else:
                 dim_class = Class3DDisordered
 
-        # if n_periodic == 0:
-            # dim_class = Class0D
-            # # Check if system has only one atom
-            # n_atoms = len(system)
-            # if n_atoms == 1:
-                # components[ComponentType.Atom].append(Component([0], system))
-            # # Check if the the system has one or multiple components
-            # else:
-                # clusters = systax.geometry.get_clusters(system)
-                # for cluster in clusters:
-                    # cluster_atoms = system[cluster]
-                    # n_atoms_cluster = len(cluster)
-                    # if n_atoms_cluster == 1:
-                        # components[ComponentType.Atom].append(Component(cluster, system[cluster]))
-                    # elif n_atoms_cluster > 1:
-                        # formula = cluster_atoms.get_chemical_formula()
-                        # try:
-                            # ase.build.molecule(formula)
-                        # except KeyError:
-                            # components[ComponentType.Unknown].append(Component(cluster, cluster_atoms))
-                        # else:
-                            # components[ComponentType.Molecule].append(Component(cluster, cluster_atoms))
-
-        # If the system has at least one periodic dimension, check the periodic
-        # directions for a vacuum gap.
-        # else:
-
-            # # Find out the the eigenvectors and eigenvalues of the inertia
-            # # tensor for an extended version of this system.
-            # # extended_system = geometry.get_extended_system(system, 15)
-            # # eigval, eigvec = geometry.get_moments_of_inertia(extended_system)
-            # # print(eigval)
-            # # print(eigvec)
-            # vacuum_dir = systax.geometry.find_vacuum_directions(system, self.vacuum_threshold)
-            # n_vacuum = np.sum(vacuum_dir)
-
-            # If all directions have a vacuum separating the copies, the system
-            # represents a finite structure.
+        if classification is not None:
+            return classification
 
         # Return a classification for this system.
         n_molecules = len(components[ComponentType.Molecule])
         n_atoms = len(components[ComponentType.Atom])
         n_crystals_prist = len(components[ComponentType.CrystalPristine])
         n_crystals_defected = len(components[ComponentType.CrystalDefected])
-        n_surfaces_prist = len(components[ComponentType.SurfacePristine])
-        n_surfaces_defected = len(components[ComponentType.SurfaceDefected])
         n_material1d = len(components[ComponentType.Material1D])
-        n_material2d_prist = len(components[ComponentType.Material2DPristine])
-        n_material2d_defected = len(components[ComponentType.Material2DDefected])
         n_types = 0
         for item in components.values():
             if len(item) != 0:
@@ -358,14 +268,6 @@ class Classifier():
                 return Molecule(components=components)
             elif n_material1d == 1:
                 return Material1D(components=components)
-            elif n_material2d_prist == 1:
-                return Material2DPristine(components=components)
-            elif n_material2d_defected == 1:
-                return Material2DDefected(components=components)
-            elif n_surfaces_prist == 1:
-                return SurfacePristine(components=components)
-            elif n_surfaces_defected == 1:
-                return SurfaceDefected(components=components)
             elif n_crystals_prist == 1:
                 return CrystalPristine(components=components)
             elif n_crystals_defected == 1:
