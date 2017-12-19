@@ -371,44 +371,71 @@ class PeriodicFinderTests(unittest.TestCase):
     """
     finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
 
-    def test_random(self):
-        """Test a structure with random atom positions.
+    # def test_random(self):
+        # """Test a structure with random atom positions.
+        # """
+        # n_atoms = 50
+        # rng = RandomState(8)
+        # for i in range(10):
+            # rand_pos = rng.rand(n_atoms, 3)
+
+            # sys = Atoms(
+                # scaled_positions=rand_pos,
+                # cell=(10, 10, 10),
+                # symbols=n_atoms*['C'],
+                # pbc=(1, 1, 1))
+            # # view(sys)
+
+            # vacuum_dir = [False, False, False]
+            # regions = self.finder.get_regions(sys, vacuum_dir)
+            # n_atoms = len(sys)
+            # for region in regions:
+                # n_region_atoms = len(region[0])
+                # self.assertTrue(n_region_atoms < 10)
+
+    # def test_substitutions(self):
+        # """Test that substitutional atoms are found correctly.
+        # """
+        # sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # labels = sys.get_atomic_numbers()
+        # labels[2] = 41
+        # sys.set_atomic_numbers(labels)
+        # # view(sys)
+
+        # vacuum_dir = [False, False, True]
+        # regions = self.finder.get_regions(sys, vacuum_dir)
+        # self.assertEqual(len(regions), 1)
+
+        # region = regions[0][1]
+        # substitutions = region.get_substitutional_indices()
+        # self.assertEqual(substitutions, [2])
+
+    def test_nanocluster(self):
+        """Test the periodicity finder on an artificial nanocluster.
         """
-        n_atoms = 50
-        rng = RandomState(8)
-        for i in range(10):
-            rand_pos = rng.rand(n_atoms, 3)
+        system = bcc100('Fe', size=(7, 7, 12), vacuum=0)
+        system.set_cell([30, 30, 30])
+        system.set_pbc(True)
+        system.center()
 
-            sys = Atoms(
-                scaled_positions=rand_pos,
-                cell=(10, 10, 10),
-                symbols=n_atoms*['C'],
-                pbc=(1, 1, 1))
-            # view(sys)
+        # Make the thing spherical
+        center = np.array([15, 15, 15])
+        pos = system.get_positions()
+        dist = np.linalg.norm(pos - center, axis=1)
+        valid_ind = dist < 10
+        system = system[valid_ind]
 
-            vacuum_dir = [False, False, False]
-            regions = self.finder.get_regions(sys, vacuum_dir)
-            n_atoms = len(sys)
-            for region in regions:
-                n_region_atoms = len(region[0])
-                self.assertTrue(n_region_atoms < 10)
+        view(system)
 
-    def test_substitutions(self):
-        """Test that substitutional atoms are found correctly.
-        """
-        sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        labels = sys.get_atomic_numbers()
-        labels[2] = 41
-        sys.set_atomic_numbers(labels)
-        # view(sys)
-
-        vacuum_dir = [False, False, True]
-        regions = self.finder.get_regions(sys, vacuum_dir)
+        # Find the region with periodicity
+        finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+        vacuum_dir = [True, True, True]
+        tesselation_distance = 6
+        regions = finder.get_regions(system, vacuum_dir, tesselation_distance)
         self.assertEqual(len(regions), 1)
-
         region = regions[0][1]
-        substitutions = region.get_substitutional_indices()
-        self.assertEqual(substitutions, [2])
+        rec = region.recreate_valid()
+        view(rec)
 
 
 class AtomTests(unittest.TestCase):
@@ -1486,14 +1513,14 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

@@ -71,7 +71,7 @@ class PeriodicFinder():
             elif n_spans == 1:
                 return []
 
-            view(proto_cell)
+            # view(proto_cell)
             # print(seed_position)
 
             # Find a region that is spanned by the found unit cell
