@@ -369,46 +369,50 @@ class TesselationTests(unittest.TestCase):
 class PeriodicFinderTests(unittest.TestCase):
     """Unit tests for the class that is used to find periodic regions.
     """
-    finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+    def test_random(self):
+        """Test a structure with random atom positions.
+        """
+        finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+        n_atoms = 50
+        rng = RandomState(8)
+        for i in range(10):
+            rand_pos = rng.rand(n_atoms, 3)
 
-    # def test_random(self):
-        # """Test a structure with random atom positions.
-        # """
-        # n_atoms = 50
-        # rng = RandomState(8)
-        # for i in range(10):
-            # rand_pos = rng.rand(n_atoms, 3)
+            sys = Atoms(
+                scaled_positions=rand_pos,
+                cell=(10, 10, 10),
+                symbols=n_atoms*['C'],
+                pbc=(1, 1, 1))
+            # view(sys)
 
-            # sys = Atoms(
-                # scaled_positions=rand_pos,
-                # cell=(10, 10, 10),
-                # symbols=n_atoms*['C'],
-                # pbc=(1, 1, 1))
-            # # view(sys)
+            vacuum_dir = [False, False, False]
+            regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
+            n_atoms = len(sys)
+            for region in regions:
+                n_region_atoms = len(region[0])
+                self.assertTrue(n_region_atoms < 10)
 
-            # vacuum_dir = [False, False, False]
-            # regions = self.finder.get_regions(sys, vacuum_dir)
-            # n_atoms = len(sys)
-            # for region in regions:
-                # n_region_atoms = len(region[0])
-                # self.assertTrue(n_region_atoms < 10)
+    def test_substitutions(self):
+        """Test that substitutional atoms are found correctly.
+        """
+        sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        labels = sys.get_atomic_numbers()
+        labels[2] = 41
+        sys.set_atomic_numbers(labels)
+        # view(sys)
 
-    # def test_substitutions(self):
-        # """Test that substitutional atoms are found correctly.
-        # """
-        # sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # labels = sys.get_atomic_numbers()
-        # labels[2] = 41
-        # sys.set_atomic_numbers(labels)
-        # # view(sys)
+        finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+        vacuum_dir = [False, False, True]
+        regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
+        self.assertEqual(len(regions), 1)
 
-        # vacuum_dir = [False, False, True]
-        # regions = self.finder.get_regions(sys, vacuum_dir)
-        # self.assertEqual(len(regions), 1)
-
-        # region = regions[0][1]
-        # substitutions = region.get_substitutional_indices()
-        # self.assertEqual(substitutions, [2])
+        region = regions[0][1]
+        substitutions = region.get_substitutions()
+        self.assertEqual(len(substitutions), 1)
+        subst = substitutions[0]
+        self.assertEqual(subst.index, 2)
+        self.assertEqual(subst.original_element, 26)
+        self.assertEqual(subst.substitutional_element, 41)
 
     def test_nanocluster(self):
         """Test the periodicity finder on an artificial nanocluster.
@@ -425,17 +429,16 @@ class PeriodicFinderTests(unittest.TestCase):
         valid_ind = dist < 10
         system = system[valid_ind]
 
-        view(system)
+        # view(system)
 
         # Find the region with periodicity
         finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
         vacuum_dir = [True, True, True]
-        tesselation_distance = 6
-        regions = finder.get_regions(system, vacuum_dir, tesselation_distance)
+        regions = finder.get_regions(system, vacuum_dir, tesselation_distance=6)
         self.assertEqual(len(regions), 1)
         region = regions[0][1]
         rec = region.recreate_valid()
-        view(rec)
+        # view(rec)
 
 
 class AtomTests(unittest.TestCase):

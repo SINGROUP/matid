@@ -93,7 +93,6 @@ class LinkedUnitCollection(dict):
         """
         all_indices = set(range(len(self.system)))
         basis_indices = set(self.get_basis_indices())
-        print(basis_indices)
         invalid_indices = all_indices - basis_indices
 
         return np.array(list(invalid_indices))
