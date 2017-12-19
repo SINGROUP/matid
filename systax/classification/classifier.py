@@ -176,7 +176,10 @@ class Classifier():
             if n_regions != 1:
                 classification = Class2D()
             else:
-                region = regions[0][1]
+                region = regions[0]
+
+                # If the region covers less than 50% of the whole system,
+                # categorize as Class2D
 
                 # Get information about defects, adsorbates and uncategorized
                 # atoms.

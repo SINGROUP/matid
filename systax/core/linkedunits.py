@@ -16,13 +16,15 @@ class LinkedUnitCollection(dict):
     Essentially this is a special flavor of a regular dictionary: the keys can
     only be a sequence of three integers, and the values should be LinkedUnits.
     """
-    def __init__(self, system, vacuum_gaps, tesselation_dist):
+    def __init__(self, system, cell, is_2d, vacuum_gaps, tesselation_dist):
         """
         Args:
             system(ase.Atoms): A reference to the system from which this
             LinkedUniCollection is gathered.
         """
         self.system = system
+        self.cell = cell
+        self.is_2d = is_2d
         self.vacuum_gaps = vacuum_gaps
         self.tesselation_dist = tesselation_dist
         self._tesselation = None
@@ -30,6 +32,7 @@ class LinkedUnitCollection(dict):
         self._outside_indices = None
         self._adsorbates = None
         self._substitutions = None
+        self._vacancies = None
         dict.__init__(self)
 
     def __setitem__(self, key, value):
@@ -144,20 +147,31 @@ class LinkedUnitCollection(dict):
         """Get the substitutions in the region.
         """
         if self._substitutions is None:
-            # Get the indices of atoms that are outside the tesselation
-            inside_indices, _ = self.get_inside_and_outside_indices()
-            inside_set = set(inside_indices)
 
-            # Find substitutions that are inside the tesselation
-            valid_subst = []
+            # Gather all substitutions
+            all_substitutions = []
             for cell in self.values():
-                substitutions = cell.substitutions
-                if len(substitutions) != 0:
-                    for substitution in substitutions:
-                        subst_index = substitution.index
-                        if subst_index in inside_set:
-                            valid_subst.append(substitution)
-            self._substitutions = np.array(valid_subst)
+                subst = cell.substitutions
+                if len(subst) != 0:
+                    all_substitutions.extend(subst)
+
+            # In 2D materials all substitutions in the cell are valid
+            # substitutions
+            if self.is_2d:
+                self._substitutions = all_substitutions
+            else:
+                # In surfaces the substitutions have to be validate by whether they
+                # are inside the tesselation or not
+                inside_indices, _ = self.get_inside_and_outside_indices()
+                inside_set = set(inside_indices)
+
+                # Find substitutions that are inside the tesselation
+                valid_subst = []
+                for subst in all_substitutions:
+                    subst_index = subst.index
+                    if subst_index in inside_set:
+                        valid_subst.append(subst)
+                self._substitutions = valid_subst
 
         return self._substitutions
 
@@ -168,23 +182,32 @@ class LinkedUnitCollection(dict):
             ASE.Atoms: An atoms object representing the atoms that are missing.
             The Atoms object has the same properties as the original system.
         """
-        # For purely 2D systems all missing atoms in the basis are vacancies
+        if self._vacancies is None:
 
-        # Get the tesselation
-        tesselation = self.get_tetrahedra_decomposition()
+            # Gather all cavancies
+            all_vacancies = []
+            for cell in self.values():
+                vacancies = cell.vacancies
+                if len(vacancies) != 0:
+                    all_vacancies.extend(vacancies)
 
-        # Find substitutions that are inside the tesselation
-        valid_vacancies = []
-        for cell in self.values():
-            vacancies = cell.vacancies
-            if vacancies is not None:
-                for vacancy in vacancies:
+            # For purely 2D systems all missing atoms in the basis are vacancies
+            if self.is_2d:
+                self._vacancies = all_vacancies
+            else:
+                # Get the tesselation
+                tesselation = self.get_tetrahedra_decomposition()
+
+                # Find substitutions that are inside the tesselation
+                valid_vacancies = []
+                for vacancy in all_vacancies:
                     vac_pos = vacancy.position
                     simplex = tesselation.find_simplex(vac_pos)
                     if simplex is not None:
                         valid_vacancies.append(vacancy)
+                self._vacancies = valid_vacancies
 
-        return valid_vacancies
+        return self._vacancies
 
     def get_unknown(self):
         """Get the indices that form an unknown part around the region.
