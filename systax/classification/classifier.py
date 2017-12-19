@@ -20,16 +20,14 @@ from systax.classification.classifications import \
     Surface, \
     Atom, \
     Molecule, \
-    CrystalPristine, \
-    CrystalDefected, \
+    Crystal, \
     Material1D, \
     Material2D, \
     Unknown, \
     Class0D, \
     Class1D, \
     Class2D, \
-    Class3D, \
-    Class3DDisordered
+    Class3D
 import systax.geometry
 from systax.analysis.class3danalyzer import Class3DAnalyzer
 from systax.analysis.class2danalyzer import Class2DAnalyzer

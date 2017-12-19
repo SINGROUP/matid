@@ -85,8 +85,8 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_basis_indices()
-            # rec = unit_collection.recreate_valid()
-            # view(rec)
+            rec = unit_collection.recreate_valid()
+            view(rec)
 
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
@@ -605,6 +605,10 @@ class PeriodicFinder():
         else:
             searched_coords.add(index)
 
+        # print(seed_index)
+        print(index)
+        print(seed_pos)
+
         cell_pos = unit_cell.get_scaled_positions()
         cell_num = unit_cell.get_atomic_numbers()
         old_basis = unit_cell.get_cell()
@@ -666,20 +670,23 @@ class PeriodicFinder():
                     i_seed_pos = seed_guess
 
                 # Store the indices and positions of new valid seeds
-                # if matches[0] is not None and (factors[0] == 0).all():
-                    # if matches[0] not in used_seed_indices:
                 if (factors[0] == 0).all():
-                    # print(matches[0])
-                    # print(i_seed_pos)
-                    new_seed_indices.append(matches[0])
+                    # Check if this index has already been used as a seed. The
+                    # used_seed_indices is needed so that the same atom cannot
+                    # become a seed point multiple times. This can otherwise
+                    # become a problem in e.g. random systems, or "looped"
+                    # structures.
+                    new_seed_index = matches[0]
+                    # add = True
+                    # if new_seed_index is not None:
+                        # if new_seed_index in used_seed_indices:
+                            # add = False
+                    # if add:
+                    new_seed_indices.append(new_seed_index)
                     new_seed_pos.append(i_seed_pos)
                     new_seed_multipliers.append(multiplier)
-
-                    # Mark this seed as used. The used_seed_indices is needed so
-                    # that the same atom cannot become a seed point multiple
-                    # times. This can otherwise become a problem in e.g. random
-                    # systems, or "looped" structures.
-                    used_seed_indices.add(seed_index)
+                    # if new_seed_index is not None:
+                        # used_seed_indices.add(new_seed_index)
 
                 # Store the cell basis vector
                 if tuple(multiplier) == (1, 0, 0):
@@ -773,6 +780,8 @@ class PeriodicFinder():
                 symbols=cell_num
             )
             # Recursively call this same function for a new cell
+            print("=============")
+            print(multiplier)
 
             self._find_region_rec(
                 system,
