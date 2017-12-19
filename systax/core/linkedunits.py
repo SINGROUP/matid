@@ -29,6 +29,7 @@ class LinkedUnitCollection(dict):
         self._inside_indices = None
         self._outside_indices = None
         self._adsorbates = None
+        self._substitutions = None
         dict.__init__(self)
 
     def __setitem__(self, key, value):
@@ -92,18 +93,20 @@ class LinkedUnitCollection(dict):
         """
         all_indices = set(range(len(self.system)))
         basis_indices = set(self.get_basis_indices())
-        out_indices = all_indices - basis_indices
+        print(basis_indices)
+        invalid_indices = all_indices - basis_indices
 
-        return np.array(list(out_indices))
+        return np.array(list(invalid_indices))
 
     def get_interstitials(self):
         """Get the indices of interstitial atoms in the original system.
         """
-        inside_indices = self.get_inside_indices()
-        substitutions = self.get_substitutions()
+        inside_indices, _ = self.get_inside_and_outside_indices()
+        inside_indices = set(inside_indices)
+        substitutions = set(self.get_substitutions())
         interstitials = inside_indices - substitutions
 
-        return interstitials
+        return np.array(interstitials)
 
     def get_adsorbates(self):
         """Get the indices of adsorbates for the region.
@@ -138,21 +141,23 @@ class LinkedUnitCollection(dict):
     def get_substitutions(self):
         """Get the substitutions in the region.
         """
-        # Get the indices of atoms that are outside the tesselation
-        inside_indices, _ = self.get_inside_and_outside_indices()
-        inside_set = set(inside_indices)
+        if self._substitutions is None:
+            # Get the indices of atoms that are outside the tesselation
+            inside_indices, _ = self.get_inside_and_outside_indices()
+            inside_set = set(inside_indices)
 
-        # Find substitutions that are inside the tesselation
-        valid_subst = []
-        for cell in self.values():
-            substitutions = cell.substitutions
-            if len(substitutions) != 0:
-                for substitution in substitutions:
-                    subst_index = substitution.index
-                    if subst_index in inside_set:
-                        valid_subst.append(substitution)
+            # Find substitutions that are inside the tesselation
+            valid_subst = []
+            for cell in self.values():
+                substitutions = cell.substitutions
+                if len(substitutions) != 0:
+                    for substitution in substitutions:
+                        subst_index = substitution.index
+                        if subst_index in inside_set:
+                            valid_subst.append(substitution)
+            self._substitutions = np.array(valid_subst)
 
-        return valid_subst
+        return self._substitutions
 
     def get_vacancies(self):
         """Get the vacancies in the region.

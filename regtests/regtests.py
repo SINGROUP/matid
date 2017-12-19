@@ -1116,6 +1116,40 @@ class SurfaceTests(unittest.TestCase):
         # self.assertTrue(np.allclose(vac_true.position, vac_found.position))
         # self.assertEqual(vac_true.symbol, vac_found.symbol)
 
+    def test_bcc_interstitional(self):
+        """Surface with interstitional atom.
+        """
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        vac_index = 42
+
+        # Add an interstitionl atom
+        interstitional = ase.Atom(
+            "C",
+            [8, 8, 9],
+        )
+        system += interstitional
+        view(system)
+
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # One interstitional
+        # adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        # print(interstitials)
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(vacancies, [])
+        # self.assertEqual(substitutions, [])
+        # self.assertEqual(adsorbates, [])
+        # self.assertEqual(unknown, [])
+        # self.assertTrue(len(interstitials), 1)
+        # int_found = interstitials[0]
+        # self.assertEqual(int_found, )
+
     # def test_bcc_dislocated_big_surface(self):
         # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 

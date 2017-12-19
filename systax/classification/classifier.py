@@ -185,6 +185,7 @@ class Classifier():
                 adsorbates = region.get_adsorbates()
                 substitutions = region.get_substitutions()
                 vacancies = region.get_vacancies()
+                interstitials = region.get_interstitials()
                 layer_mean, layer_std = region.get_layer_statistics()
 
                 if layer_mean == self.layers_2d:
@@ -193,6 +194,7 @@ class Classifier():
                         adsorbates=adsorbates,
                         substitutions=substitutions,
                         vacancies=vacancies,
+                        interstitials=interstitials,
                     )
                 elif layer_mean > self.layers_2d:
                     classification = Surface(
@@ -200,6 +202,7 @@ class Classifier():
                         adsorbates=adsorbates,
                         substitutions=substitutions,
                         vacancies=vacancies,
+                        interstitials=interstitials,
                     )
 
         # Bulk structures
