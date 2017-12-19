@@ -87,8 +87,8 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_basis_indices()
-            # rec = unit_collection.recreate_valid()
-            # view(rec)
+            rec = unit_collection.recreate_valid()
+            view(rec)
 
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
@@ -565,7 +565,7 @@ class PeriodicFinder():
             periodic_indices,
             queue)
 
-        # Keep on
+        # Keep searching while new cells are found
         finished = False
         while not finished:
             try:
@@ -752,7 +752,7 @@ class PeriodicFinder():
 
         # Translate the original system to the seed position
         match_system = system.copy()
-        match_system.translate(-seed_pos)
+        match_system.translate(-seed_pos+seed_offset)
 
         # Find the atoms that match the positions in the original basis
         matches, substitutions, vacancies, _ = systax.geometry.get_matches(
