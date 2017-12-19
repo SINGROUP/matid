@@ -640,7 +640,12 @@ class PeriodicFinder():
         else:
             searched_coords.add(index)
 
-        cell_pos = unit_cell.get_scaled_positions()
+        # Try to get the scaled positions for atoms in this new cell. If the
+        # cell is non-invertible, then this cell is not processed.
+        try:
+            cell_pos = unit_cell.get_scaled_positions()
+        except:
+            return
         cell_num = unit_cell.get_atomic_numbers()
         old_basis = unit_cell.get_cell()
 
@@ -684,46 +689,46 @@ class PeriodicFinder():
                     [seed_atomic_number],
                     2*self.pos_tol)
 
+                factor = factors[0]
+                match = matches[0]
+
                 # Save the position corresponding to a seed atom or a guess for it.
                 # If a match was found that is not the original seed, use it's
                 # position to update the cell. If the matched index is the same as
                 # the original seed, check the factors array to decide whether to
                 # use the guess or not.
-                if matches[0] is not None:
-                    if matches[0] != seed_index:
-                        i_seed_pos = orig_pos[matches[0]]
+                if match is not None:
+                    if match != seed_index:
+                        i_seed_pos = orig_pos[match]
                     else:
-                        if (factors[0] == 0).all():
+                        if (factor == 0).all():
                             i_seed_pos = seed_guess
                         else:
-                            i_seed_pos = orig_pos[matches[0]]
+                            i_seed_pos = orig_pos[match]
                 else:
                     i_seed_pos = seed_guess
 
                 # Store the indices and positions of new valid seeds
-                if (factors[0] == 0).all():
+                if (factor == 0).all():
                     # Check if this index has already been used as a seed. The
                     # used_seed_indices is needed so that the same atom cannot
                     # become a seed point multiple times. This can otherwise
                     # become a problem in e.g. random systems, or "looped"
                     # structures.
-                    new_seed_index = matches[0]
-                    # add = True
-                    # if new_seed_index is not None:
-                        # if new_seed_index in used_seed_indices:
-                            # add = False
-                    # if add:
-                    new_seed_indices.append(new_seed_index)
-                    new_seed_pos.append(i_seed_pos)
-                    new_seed_multipliers.append(new_index)
-                    # print(new_index)
-                    # if new_seed_index is not None:
-                        # used_seed_indices.add(new_seed_index)
+                    add = True
+                    if match is not None:
+                        if match in used_seed_indices:
+                            add = False
+                    if add:
+                        new_seed_indices.append(match)
+                        new_seed_pos.append(i_seed_pos)
+                        new_seed_multipliers.append(new_index)
+                        # print(new_index)
+                        if match is not None:
+                            used_seed_indices.add(match)
 
                 # Store the cell basis vector
                 if tuple(multiplier) == (1, 0, 0):
-                    factor = factors[0]
-                    match = matches[0]
                     if match is None:
                         a = disloc
                     else:
@@ -731,8 +736,6 @@ class PeriodicFinder():
                         a = temp - seed_pos
                     i_cell[0, :] = a
                 elif tuple(multiplier) == (0, 1, 0):
-                    factor = factors[0]
-                    match = matches[0]
                     if match is None:
                         b = disloc
                     else:
@@ -740,8 +743,6 @@ class PeriodicFinder():
                         b = temp - seed_pos
                     i_cell[1, :] = b
                 elif tuple(multiplier) == (0, 0, 1):
-                    factor = factors[0]
-                    match = matches[0]
                     if match is None:
                         c = disloc
                     else:
@@ -789,6 +790,7 @@ class PeriodicFinder():
             scaled_positions=cell_pos,
             symbols=cell_num
         )
+        # view(new_cell)
         cells = len(new_seed_pos)*[new_cell]
 
         # Add the found neighbours to a queue
