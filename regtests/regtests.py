@@ -667,17 +667,17 @@ class Material2DTests(unittest.TestCase):
             # clas = classifier.classify(sys)
             # self.assertIsInstance(clas, Material2DPristine)
 
-    def test_mos2(self):
-        system = ase.build.mx2(
-            formula="MoS2",
-            kind="2H",
-            a=3.18,
-            thickness=3.19,
-            size=(5, 5, 1),
-            vacuum=8)
-        system.set_pbc(True)
+    # def test_mos2(self):
+        # system = ase.build.mx2(
+            # formula="MoS2",
+            # kind="2H",
+            # a=3.18,
+            # thickness=3.19,
+            # size=(5, 5, 1),
+            # vacuum=8)
+        # system.set_pbc(True)
 
-        view(system)
+        # view(system)
 
         # classifier = Classifier()
         # classification = classifier.classify(system)
@@ -1076,24 +1076,24 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-    def test_bcc_pristine_thin_surface(self):
-        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+    # def test_bcc_pristine_thin_surface(self):
+        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
-        # No defects or unknown atoms
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknown = classification.unknown
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(len(unknown), 0)
+        # # No defects or unknown atoms
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknown), 0)
 
     # def test_bcc_pristine_small_surface(self):
         # system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
@@ -1314,37 +1314,37 @@ class SurfaceTests(unittest.TestCase):
         # self.assertEqual(len(adsorbates), 0)
         # self.assertEqual(len(unknown), 0)
 
-    # def test_surface_ads(self):
-        # """Test a surface with an adsorbate in a kink.
-        # """
-        # # Create an Fe 100 surface as an ASE Atoms object
-        # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
+    def test_surface_ads(self):
+        """Test a surface with an adsorbate in a kink.
+        """
+        # Create an Fe 100 surface as an ASE Atoms object
+        system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
 
-        # # Add a H2O molecule on top of the surface
-        # h2o = molecule("H2O")
-        # h2o.rotate(180, [1, 0, 0])
-        # h2o.translate([7.2, 7.2, 13.5])
-        # system += h2o
-        # # view(system)
+        # Add a H2O molecule on top of the surface
+        h2o = molecule("H2O")
+        h2o.rotate(180, [1, 0, 0])
+        h2o.translate([7.2, 7.2, 13.5])
+        system += h2o
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # # No defects or unknown atoms, one adsorbate cluster
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknown = classification.unknown
+        # No defects or unknown atoms, one adsorbate cluster
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknown = classification.unknown
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(unknown), 0)
-        # self.assertTrue(len(adsorbates), 1)
-        # ads = adsorbates[0]
-        # self.assertTrue(np.array_equal(ads, np.array([100, 101, 102])))
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(unknown), 0)
+        self.assertTrue(len(adsorbates), 1)
+        ads = adsorbates[0]
+        self.assertTrue(np.array_equal(ads, np.array([100, 101, 102])))
 
     # def test_nacl(self):
         # """Test the detection for an imperfect NaCl surface with adsorbate and
@@ -1570,8 +1570,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 

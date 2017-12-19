@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import itertools
 
+from collections import deque
+
 import numpy as np
 
 from ase import Atoms
@@ -85,8 +87,8 @@ class PeriodicFinder():
                 periodic_indices)
 
             i_indices = unit_collection.get_basis_indices()
-            rec = unit_collection.recreate_valid()
-            view(rec)
+            # rec = unit_collection.recreate_valid()
+            # view(rec)
 
             if len(i_indices) > 0:
                 regions.append((i_indices, unit_collection, proto_cell))
@@ -541,10 +543,12 @@ class PeriodicFinder():
 
         searched_coords = set()
         used_seed_indices = set()
+        queue = deque()
         collection = LinkedUnitCollection(system, vacuum_dir, tesselation_distance)
 
         # view(system)
 
+        # Start off the queue
         self._find_region_rec(
             system,
             collection,
@@ -558,7 +562,32 @@ class PeriodicFinder():
             searched_coords,
             (0, 0, 0),
             used_seed_indices,
-            periodic_indices)
+            periodic_indices,
+            queue)
+
+        # Keep on
+        finished = False
+        while not finished:
+            try:
+                queue_seed_index, queue_seed_pos, queue_index, queue_cell = queue.popleft()
+            except IndexError:
+                finished = True
+            else:
+                self._find_region_rec(
+                    system,
+                    collection,
+                    number_to_index_map,
+                    number_to_pos_map,
+                    queue_seed_index,
+                    queue_seed_pos,
+                    seed_number,
+                    queue_cell,
+                    seed_position,
+                    searched_coords,
+                    queue_index,
+                    used_seed_indices,
+                    periodic_indices,
+                    queue)
 
         return collection
 
@@ -576,7 +605,8 @@ class PeriodicFinder():
             searched_coords,
             index,
             used_seed_indices,
-            periodic_indices):
+            periodic_indices,
+            queue):
         """
         Args:
             system(ASE.Atoms): The original system from which the periodic
@@ -599,15 +629,16 @@ class PeriodicFinder():
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
         """
+        # print("===================")
+        # print(seed_index)
+        # print(index)
+        # print(seed_pos)
+
         # Check if this cell has already been searched
         if index in searched_coords:
             return
         else:
             searched_coords.add(index)
-
-        # print(seed_index)
-        print(index)
-        print(seed_pos)
 
         cell_pos = unit_cell.get_scaled_positions()
         cell_num = unit_cell.get_atomic_numbers()
@@ -640,7 +671,7 @@ class PeriodicFinder():
                     continue
 
                 # If the cell in this index has already been handled, continue
-                new_index = tuple(multiplier + index),
+                new_index = tuple(multiplier + np.array(index))
                 if new_index in searched_coords:
                     continue
 
@@ -684,7 +715,8 @@ class PeriodicFinder():
                     # if add:
                     new_seed_indices.append(new_seed_index)
                     new_seed_pos.append(i_seed_pos)
-                    new_seed_multipliers.append(multiplier)
+                    new_seed_multipliers.append(new_index)
+                    # print(new_index)
                     # if new_seed_index is not None:
                         # used_seed_indices.add(new_seed_index)
 
@@ -717,22 +749,6 @@ class PeriodicFinder():
                         c = temp - seed_pos
                     i_cell[2, :] = c
 
-        # Find atoms within the cell
-        # inside_indices, test_pos_rel = systax.geometry.get_positions_within_basis(
-            # system,
-            # i_cell,
-            # seed_pos-seed_offset,
-            # self.pos_tol/2.0)
-
-        # Create new LinkedUnit for the cell and its contents.
-        # if len(inside_indices) != 0:
-            # new_sys = Atoms(
-                # cell=i_cell,
-                # scaled_positions=test_pos_rel,
-                # symbols=system.get_atomic_numbers()[all_indices]
-            # )
-            # view(new_sys)
-
         # Translate the original system to the seed position
         match_system = system.copy()
         match_system.translate(-seed_pos)
@@ -751,7 +767,6 @@ class PeriodicFinder():
 
         # If there are maches or substitutional atoms in the unit, add it to
         # the collection
-        # if any(x is None for x in matches) or any(x is None for x in substitutions):
         new_unit = LinkedUnit(index, seed_index, seed_pos, i_cell, matches, substitutions, vacancies)
         collection[index] = new_unit
 
@@ -768,33 +783,13 @@ class PeriodicFinder():
         # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
         # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='20y,20x', show_unit_cell=2)
 
-        # Is no proper basis atom was found for the seed position, do not
-        # continue the search futher from that seed. Otherwise Use the newly
-        # found indices to track down new indices with an updated cell.
-        for seed_index, seed_pos, multiplier in zip(new_seed_indices, new_seed_pos, new_seed_multipliers):
+        # Save the updated cell shape for the new cells in the queue
+        new_cell = Atoms(
+            cell=i_cell,
+            scaled_positions=cell_pos,
+            symbols=cell_num
+        )
+        cells = len(new_seed_pos)*[new_cell]
 
-            # Update the cell shape
-            new_cell = Atoms(
-                cell=i_cell,
-                scaled_positions=cell_pos,
-                symbols=cell_num
-            )
-            # Recursively call this same function for a new cell
-            print("=============")
-            print(multiplier)
-
-            self._find_region_rec(
-                system,
-                collection,
-                number_to_index_map,
-                number_to_pos_map,
-                seed_index,
-                seed_pos,
-                seed_atomic_number,
-                new_cell,
-                seed_offset,
-                searched_coords,
-                tuple(multiplier + index),
-                used_seed_indices,
-                periodic_indices
-            )
+        # Add the found neighbours to a queue
+        queue.extend(list(zip(new_seed_indices, new_seed_pos, new_seed_multipliers, cells)))
