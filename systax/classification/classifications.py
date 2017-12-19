@@ -123,21 +123,39 @@ class Material2D(Class2D):
 class Class3D(Classification):
     """All structures that periodically extend infinitely without vacuum gaps.
     """
+    def __init__(
+            self,
+            region=None,
+            interstitials=None,
+            substitutions=None,
+            vacancies=None,
+            unknown=None,
+            vacuum_dir=None,
+            cell_analyzer=None
+            ):
+        self.region = region
+        self.interstitials = [] if interstitials is None else interstitials
+        self.substitutions = [] if substitutions is None else substitutions
+        self.vacancies = [] if vacancies is None else vacancies
+        self.unknown = [] if unknown is None else unknown
+        self.vacuum_dir = vacuum_dir
+        self.cell_analyzer = cell_analyzer
 
 
-class Class3DDisordered(Class3D):
-    """All structures that periodically extend infinitely without vacuum gaps.
+class Crystal(Class3D):
+    """
     """
 
+# class Class3DDisordered(Class3D):
+    # """All structures that periodically extend infinitely without vacuum gaps.
+    # """
 
-class CrystalDefected(Class3D):
-    """
-    """
+
+# class CrystalDefected(Class3D):
+    # """
+    # """
 
 
-class CrystalPristine(Classification):
-    """
-    """
 
 
 #===============================================================================

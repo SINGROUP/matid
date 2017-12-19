@@ -102,10 +102,13 @@ class LinkedUnitCollection(dict):
         """
         inside_indices, _ = self.get_inside_and_outside_indices()
         inside_indices = set(inside_indices)
-        substitutions = set(self.get_substitutions())
-        interstitials = inside_indices - substitutions
+        substitutions = self.get_substitutions()
+        subst_indices = set()
+        for subst in substitutions:
+            subst_indices.add(subst.index)
+        interstitials = inside_indices - subst_indices
 
-        return np.array(interstitials)
+        return np.array(list(interstitials))
 
     def get_adsorbates(self):
         """Get the indices of adsorbates for the region.
