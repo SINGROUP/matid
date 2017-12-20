@@ -367,118 +367,118 @@ class TesselationTests(unittest.TestCase):
 class PeriodicFinderTests(unittest.TestCase):
     """Unit tests for the class that is used to find periodic regions.
     """
-    def test_cell_atoms_interstitional(self):
-        """Tests that the correct cell is identified even if interstitial are
-        near the seed atom.
-        """
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+    # def test_cell_atoms_interstitional(self):
+        # """Tests that the correct cell is identified even if interstitial are
+        # near the seed atom.
+        # """
+        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
-        # Add an interstitionl atom
-        interstitional = ase.Atom(
-            "C",
-            [8, 8, 9],
-        )
-        system += interstitional
-        # view(system)
+        # # Add an interstitionl atom
+        # interstitional = ase.Atom(
+            # "C",
+            # [8, 8, 9],
+        # )
+        # system += interstitional
+        # # view(system)
 
-        # Classified as surface
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+        # # Classified as surface
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
-        # One interstitional
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknown = classification.unknown
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(len(unknown), 0)
-        self.assertTrue(len(interstitials), 1)
-        int_found = interstitials[0]
-        self.assertEqual(int_found, 75)
+        # # One interstitional
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknown), 0)
+        # self.assertTrue(len(interstitials), 1)
+        # int_found = interstitials[0]
+        # self.assertEqual(int_found, 75)
 
-    def test_cell_2d_adsorbate(self):
-        """Test that the cell is correctly identified even if adsorbates are
-        near.
-        """
-        system = ase.build.mx2(
-            formula="MoS2",
-            kind="2H",
-            a=3.18,
-            thickness=3.19,
-            size=(5, 5, 1),
-            vacuum=8)
-        system.set_pbc(True)
+    # def test_cell_2d_adsorbate(self):
+        # """Test that the cell is correctly identified even if adsorbates are
+        # near.
+        # """
+        # system = ase.build.mx2(
+            # formula="MoS2",
+            # kind="2H",
+            # a=3.18,
+            # thickness=3.19,
+            # size=(5, 5, 1),
+            # vacuum=8)
+        # system.set_pbc(True)
 
-        ads = molecule("C6H6")
-        ads.translate([4.9, 5.5, 13])
-        system += ads
-        # view(system)
+        # ads = molecule("C6H6")
+        # ads.translate([4.9, 5.5, 13])
+        # system += ads
+        # # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Material2D)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
 
-        # One adsorbate
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknown = classification.unknown
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknown), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 12)
-        self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
+        # # One adsorbate
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknown), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 12)
+        # self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
 
-    def test_random(self):
-        """Test a structure with random atom positions.
-        """
-        finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
-        n_atoms = 50
-        rng = RandomState(8)
-        for i in range(10):
-            rand_pos = rng.rand(n_atoms, 3)
+    # def test_random(self):
+        # """Test a structure with random atom positions.
+        # """
+        # finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+        # n_atoms = 50
+        # rng = RandomState(8)
+        # for i in range(10):
+            # rand_pos = rng.rand(n_atoms, 3)
 
-            sys = Atoms(
-                scaled_positions=rand_pos,
-                cell=(10, 10, 10),
-                symbols=n_atoms*['C'],
-                pbc=(1, 1, 1))
-            # view(sys)
+            # sys = Atoms(
+                # scaled_positions=rand_pos,
+                # cell=(10, 10, 10),
+                # symbols=n_atoms*['C'],
+                # pbc=(1, 1, 1))
+            # # view(sys)
 
-            vacuum_dir = [False, False, False]
-            regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
-            n_atoms = len(sys)
-            for region in regions:
-                n_region_atoms = len(region.get_basis_indices())
-                self.assertTrue(n_region_atoms < 10)
+            # vacuum_dir = [False, False, False]
+            # regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
+            # n_atoms = len(sys)
+            # for region in regions:
+                # n_region_atoms = len(region.get_basis_indices())
+                # self.assertTrue(n_region_atoms < 10)
 
-    def test_substitutions(self):
-        """Test that substitutional atoms are found correctly.
-        """
-        sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        labels = sys.get_atomic_numbers()
-        labels[2] = 41
-        sys.set_atomic_numbers(labels)
-        # view(sys)
+    # def test_substitutions(self):
+        # """Test that substitutional atoms are found correctly.
+        # """
+        # sys = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # labels = sys.get_atomic_numbers()
+        # labels[2] = 41
+        # sys.set_atomic_numbers(labels)
+        # # view(sys)
 
-        finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
-        vacuum_dir = [False, False, True]
-        regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
-        self.assertEqual(len(regions), 1)
+        # finder = PeriodicFinder(pos_tol=0.5, seed_algorithm="cm", max_cell_size=3)
+        # vacuum_dir = [False, False, True]
+        # regions = finder.get_regions(sys, vacuum_dir, tesselation_distance=6)
+        # self.assertEqual(len(regions), 1)
 
-        region = regions[0]
-        substitutions = region.get_substitutions()
-        self.assertEqual(len(substitutions), 1)
-        subst = substitutions[0]
-        self.assertEqual(subst.index, 2)
-        self.assertEqual(subst.original_element, 26)
-        self.assertEqual(subst.substitutional_element, 41)
+        # region = regions[0]
+        # substitutions = region.get_substitutions()
+        # self.assertEqual(len(substitutions), 1)
+        # subst = substitutions[0]
+        # self.assertEqual(subst.index, 2)
+        # self.assertEqual(subst.original_element, 26)
+        # self.assertEqual(subst.substitutional_element, 41)
 
     def test_nanocluster(self):
         """Test the periodicity finder on an artificial nanocluster.
@@ -506,23 +506,23 @@ class PeriodicFinderTests(unittest.TestCase):
         rec = region.recreate_valid()
         # view(rec)
 
-    def test_optimized_nanocluster(self):
-        """Test the periodicity finder on a DFT-optimized nanocluster.
-        """
-        system = ase.io.read("cu55.xyz")
-        system.set_cell([20, 20, 20])
-        system.set_pbc(True)
-        system.center()
-        # view(system)
+    # def test_optimized_nanocluster(self):
+        # """Test the periodicity finder on a DFT-optimized nanocluster.
+        # """
+        # system = ase.io.read("cu55.xyz")
+        # system.set_cell([20, 20, 20])
+        # system.set_pbc(True)
+        # system.center()
+        # # view(system)
 
-        # Find the region with periodicity
-        finder = PeriodicFinder(pos_tol=1, seed_algorithm="cm", max_cell_size=4)
-        vacuum_dir = [True, True, True]
-        regions = finder.get_regions(system, vacuum_dir, tesselation_distance=6)
-        self.assertEqual(len(regions), 1)
-        region = regions[0]
-        rec = region.recreate_valid()
-        # view(rec)
+        # # Find the region with periodicity
+        # finder = PeriodicFinder(pos_tol=1, seed_algorithm="cm", max_cell_size=4)
+        # vacuum_dir = [True, True, True]
+        # regions = finder.get_regions(system, vacuum_dir, tesselation_distance=6)
+        # self.assertEqual(len(regions), 1)
+        # region = regions[0]
+        # rec = region.recreate_valid()
+        # # view(rec)
 
 
 class AtomTests(unittest.TestCase):
@@ -1785,11 +1785,11 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))

@@ -347,6 +347,10 @@ class PeriodicFinder():
             if mean_edges >= 2:
                 valid_graphs.append(graph)
 
+        # If no valid graphs found, no region can be tracked.
+        if len(valid_graphs) == 0:
+            return None, None, None
+
         # Each subgraph represents a group of atoms that repeat periodically in
         # each cell. Here we calculate a mean position of these atoms in the
         # cell.
@@ -460,21 +464,29 @@ class PeriodicFinder():
         pos_max_rel = np.array([0, 0, c_comp[max_index]])
         pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
         pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
-        c_new_cart = pos_max_cart-pos_min_cart
+        c_real_cart = pos_max_cart-pos_min_cart
         # print(c_new_cart)
 
         # We demand a minimum size for the c-vector even if the system seems to
         # be purely 2-dimensional. This is done because the 3D-space cannot be
         # searched properly if one dimension is flat.
-        c_size = np.linalg.norm(c_new_cart)
+        c_size = np.linalg.norm(c_real_cart)
         min_size = 2*self.pos_tol
         if c_size < min_size:
-            c_new_cart = min_size*c_norm
+            c_inflated_cart = min_size*c_norm
+            c_new_cart = c_inflated_cart
+        else:
+            c_new_cart = c_real_cart
         new_basis = np.array(basis)
         new_basis[2, :] = c_new_cart
 
         new_scaled_pos = basis_element_positions - pos_min_rel
         new_scaled_pos[:, 2] /= np.linalg.norm(c_new_cart)
+
+        if c_size < min_size:
+            offset_cart = (c_real_cart-c_inflated_cart)/2
+            offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
+            new_scaled_pos -= offset_rel
 
         # Create translated system
         # group_seed_pos = pos[seed_index]
