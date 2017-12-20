@@ -114,31 +114,30 @@ class LinkedUnitCollection(dict):
         return np.array(list(interstitials))
 
     def get_adsorbates(self):
-        """Get the indices of adsorbates for the region.
+        """Get the indices of the adsorbate atoms in the region.
+
+        All atoms that are outside the tesselation, and which are not part of
+        the elements present in the surface are labeled as adsorbate atoms.
+
+        This function does not differentiate between different adsorbate
+        molecules.
+
+        Returns:
+            np.ndarray: Indices of the adsorbates in the original system.
         """
         if self._adsorbates is None:
+
             _, outside_indices = self.get_inside_and_outside_indices()
-
-            adsorbates = []
+            basis_elements = self.cell.get_atomic_numbers()
+            num = self.system.get_atomic_numbers()
             if len(outside_indices) != 0:
+                print(outside_indices)
+                outside_num = num[outside_indices]
+                adsorbate_mask = ~np.isin(outside_num, basis_elements)
+                adsorbates = outside_indices[adsorbate_mask]
+            else:
+                adsorbates = np.array([])
 
-                # Cluster the outside atoms
-                outside_sys = self.system[outside_indices]
-                clusters = systax.geometry.get_clusters(outside_sys)
-
-                # Valid adsorbates are either atoms or molecules
-                for cluster_indices in clusters:
-                    if len(cluster_indices) == 1:
-                        adsorbates.append(outside_indices[cluster_indices])
-                    else:
-                        cluster_sys = outside_sys[cluster_indices]
-                        formula = cluster_sys.get_chemical_formula()
-                        try:
-                            ase.build.molecule(formula)
-                        except:
-                            pass
-                        else:
-                            adsorbates.append(np.array(outside_indices[cluster_indices]))
             self._adsorbates = adsorbates
 
         return self._adsorbates
