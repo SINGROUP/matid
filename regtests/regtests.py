@@ -367,24 +367,24 @@ class TesselationTests(unittest.TestCase):
 class PeriodicFinderTests(unittest.TestCase):
     """Unit tests for the class that is used to find periodic regions.
     """
-    def test_cell_atoms_interstitional(self):
-        """Tests that the correct cell is identified even if interstitial are
-        near the seed atom.
-        """
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+    # def test_cell_atoms_interstitional(self):
+        # """Tests that the correct cell is identified even if interstitial are
+        # near the seed atom.
+        # """
+        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
-        # Add an interstitionl atom
-        interstitional = ase.Atom(
-            "C",
-            [8, 8, 9],
-        )
-        system += interstitional
-        view(system)
+        # # Add an interstitionl atom
+        # interstitional = ase.Atom(
+            # "C",
+            # [8, 8, 9],
+        # )
+        # system += interstitional
+        # view(system)
 
-        # Classified as surface
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+        # # Classified as surface
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
         # # One interstitional
         # adsorbates = classification.adsorbates
@@ -398,7 +398,39 @@ class PeriodicFinderTests(unittest.TestCase):
         # self.assertEqual(len(unknown), 0)
         # self.assertTrue(len(interstitials), 1)
         # int_found = interstitials[0]
-        # self.assertEqual(int_found, )
+        # self.assertEqual(int_found, 75)
+
+    def test_cell_2d_adsorbate(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
+
+        ads = molecule("C6H6")
+        ads.translate([4.9, 5.5, 13])
+        system += ads
+
+        view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # One adsorbate
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknown), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 0)
 
     # def test_random(self):
         # """Test a structure with random atom positions.
