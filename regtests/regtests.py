@@ -680,23 +680,23 @@ class Material2DTests(unittest.TestCase):
         # self.assertEqual(len(adsorbates), 0)
         # self.assertEqual(len(unknown), 0)
 
-    # def test_graphene_supercell(self):
-        # sys = Material2DTests.graphene.repeat([5, 5, 1])
-        # classifier = Classifier()
-        # classification = classifier.classify(sys)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_supercell(self):
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknown = classification.unknown
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknown), 0)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknown = classification.unknown
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknown), 0)
 
     # def test_graphene_partial_pbc(self):
         # sys = Material2DTests.graphene.copy()
@@ -788,6 +788,7 @@ class Material2DTests(unittest.TestCase):
             # size=(1, 1, 1),
             # vacuum=8)
         # system.set_pbc(True)
+        # # view(system)
 
         # classifier = Classifier()
         # classification = classifier.classify(system)
@@ -848,7 +849,7 @@ class Material2DTests(unittest.TestCase):
         # system.set_pbc(True)
 
         # del system[25]
-        # view(system)
+        # # view(system)
 
         # classifier = Classifier()
         # classification = classifier.classify(system)
@@ -866,37 +867,40 @@ class Material2DTests(unittest.TestCase):
         # self.assertEqual(len(unknown), 0)
         # self.assertEqual(len(vacancies), 1)
 
-    def test_mos2_adsorption(self):
-        system = ase.build.mx2(
-            formula="MoS2",
-            kind="2H",
-            a=3.18,
-            thickness=3.19,
-            size=(5, 5, 1),
-            vacuum=8)
-        system.set_pbc(True)
+    # def test_mos2_adsorption(self):
+        # """Test adsorption on mos2 surface.
+        # """
+        # system = ase.build.mx2(
+            # formula="MoS2",
+            # kind="2H",
+            # a=3.18,
+            # thickness=3.19,
+            # size=(5, 5, 1),
+            # vacuum=8)
+        # system.set_pbc(True)
 
-        ads = molecule("C6H6")
-        ads.translate([4.9, 5.5, 13])
-        system += ads
+        # ads = molecule("C6H6")
+        # ads.translate([4.9, 5.5, 13])
+        # system += ads
 
-        view(system)
+        # # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Material2D)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
 
-        # One adsorbate
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknown = classification.unknown
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknown), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
+        # # One adsorbate
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknown = classification.unknown
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknown), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 12)
+        # self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
 
     # def test_2d_split(self):
         # """A simple 2D system where the system has been split by the cell
@@ -1781,11 +1785,11 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))

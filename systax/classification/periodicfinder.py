@@ -67,7 +67,7 @@ class PeriodicFinder():
             # The indices of the periodic dimensions.
             periodic_indices = list(range(dim))
 
-            # view(proto_cell)
+            view(proto_cell)
             # print(seed_position)
 
             # Find a region that is spanned by the found unit cell
@@ -210,6 +210,11 @@ class PeriodicFinder():
             periodic_metric = 2*n_neighbours*np.ones((n_periodic_spans))
             possible_spans = np.concatenate((possible_spans, periodic_spans), axis=0)
             metric = np.concatenate((metric, periodic_metric), axis=0)
+            for per_span in periodic_spans:
+                per_adjacency_list = defaultdict(list)
+                for i_neigh in neighbour_indices:
+                    per_adjacency_list[i_neigh].extend([i_neigh, i_neigh])
+                adjacency_lists.append(per_adjacency_list)
 
         # Find the directions that are most repeat the neighbours above some
         # preset threshold. This is used to eliminate directions that are
@@ -304,24 +309,42 @@ class PeriodicFinder():
         best_spans = possible_spans[best_combo]
         n_spans = len(best_spans)
 
-        # Create a periodicity graph for the found basis
+        # Create a full periodicity graph for the found basis
         periodicity_graph = None
+        full_adjacency_list = defaultdict(list)
         for i_span in best_combo:
             adjacency_list = adjacency_lists[i_span]
-            i_graph = nx.from_dict_of_lists(adjacency_list)
-            if periodicity_graph is None:
-                periodicity_graph = i_graph
-            else:
-                periodicity_graph = nx.compose(periodicity_graph, i_graph)
+            for key, value in adjacency_list.items():
+                full_adjacency_list[key].extend(value)
+        periodicity_graph = nx.MultiGraph(full_adjacency_list)
+
+        # import matplotlib.pyplot as plt
+        # plt.subplot(111)
+        # nx.draw(periodicity_graph)
+        # plt.show()
 
         # Get all disconnected subgraphs
         graphs = list(nx.connected_component_subgraphs(periodicity_graph))
 
-        # Eliminate subgraphs that are too small
+        # Eliminate subgraphs that do not have enough periodicity
         valid_graphs = []
         for graph in graphs:
-            n_nodes = nx.number_of_nodes(graph)
-            if n_nodes >= 3:
+
+            # The periodicity is measured by the average degree of the nodes.
+            # The graph allows multiple edges, and edges that have the same
+            # source and target due to periodicity.
+            edges = graph.edges()
+            node_edges = defaultdict(lambda: 0)
+            for edge in edges:
+                source = edge[0]
+                target = edge[1]
+                node_edges[source] += 1
+                if source != target:
+                    node_edges[target] += 1
+            n_edges = np.array(list(node_edges.values()))
+            mean_edges = n_edges.mean()
+
+            if mean_edges >= 2:
                 valid_graphs.append(graph)
 
         # Each subgraph represents a group of atoms that repeat periodically in
@@ -333,7 +356,8 @@ class PeriodicFinder():
         group_num = []
         seed_group_index = None
         for i_graph, graph in enumerate(valid_graphs):
-            nodes = graph.nodes()
+            nodes = graph.nodes(data=True)
+            nodes = [node[0] for node in nodes]
             if seed_index in set(nodes):
                 seed_group_index = i_graph
             nodes = np.array(nodes)
