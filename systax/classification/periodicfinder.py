@@ -51,7 +51,6 @@ class PeriodicFinder():
         regions = []
 
         for seed_index in seed_points:
-            seed_position = system.get_positions()[seed_index]
             possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
             proto_cell, offset, dim = self._find_proto_cell(
                 system,
@@ -61,23 +60,12 @@ class PeriodicFinder():
                 vacuum_dir
             )
 
-            # n_spans = len(best_basis)
-            # if best_basis is None or n_spans == 0:
-                # return []
-
-            # Find the atoms within the found cell
-            if dim == 3:
-                # proto_cell = self._find_cell_atoms_3d(system, seed_index, best_basis)
-                periodic_indices = [0, 1, 2]
-                # seed_position = np.array((0, 0, 0))
-                # dim = 3
-            elif dim == 2:
-                # proto_cell, seed_position = self._find_cell_atoms_2d(system, seed_index, best_basis)
-                periodic_indices = [0, 1]
-                # dim = 2
-            elif dim == 1:
-                # dim = 1
+            # 1D is not handled
+            if dim == 1 or proto_cell is None:
                 return []
+
+            # The indices of the periodic dimensions.
+            periodic_indices = list(range(dim))
 
             # view(proto_cell)
             # print(seed_position)
@@ -184,31 +172,33 @@ class PeriodicFinder():
         # copy in the found directions
         neighbour_pos = positions[neighbour_mask]
         neighbour_num = numbers[neighbour_mask]
+        neighbour_indices = np.where(neighbour_mask)[0]
         n_neighbours = len(neighbour_pos)
         n_spans = len(possible_spans)
         metric = np.empty((len(possible_spans)), dtype=int)
         metric_per_atom_per_span = np.zeros((n_neighbours, n_spans))
         adjacency_lists = []
         for i_span, span in enumerate(possible_spans):
-            adjacency_lists.append(defaultdict(list))
+            i_adj_list = defaultdict(list)
             add_pos = neighbour_pos + span
             sub_pos = neighbour_pos - span
             add_indices, _, _, _ = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
             sub_indices, _, _, _ = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
 
             n_metric = 0
-            for i_ind in range(len(add_indices)):
-                i_add = add_indices[i_ind]
-                i_sub = sub_indices[i_ind]
+            for i_neigh in range(n_neighbours):
+                i_add = add_indices[i_neigh]
+                i_sub = sub_indices[i_neigh]
                 if i_add is not None:
                     n_metric += 1
-                    metric_per_atom_per_span[i_ind, i_span] += 1
-                    adjacency_lists[i_span][i_ind].append(i_add)
+                    metric_per_atom_per_span[i_neigh, i_span] += 1
+                    i_adj_list[neighbour_indices[i_neigh]].append(i_add)
                 if i_sub is not None:
                     n_metric += 1
-                    metric_per_atom_per_span[i_ind, i_span] += 1
-                    adjacency_lists[i_span][i_ind].append(i_sub)
+                    metric_per_atom_per_span[i_neigh, i_span] += 1
+                    i_adj_list[neighbour_indices[i_neigh]].append(i_sub)
             metric[i_span] = n_metric
+            adjacency_lists.append(i_adj_list)
 
         # Get the spans that come from the periodicity if they are smaller than
         # the maximum cell size
@@ -232,10 +222,14 @@ class PeriodicFinder():
         max_span_indices = np.where(metric > 0.5*n_neighbours)
         v2 = normed_spans[max_span_indices]
         if len(v2) == 0:
-            return []
+            return None, None, None
 
         # Find the dimensionality of the space spanned by this set of vectors
         n_dim = self._find_space_dim(v2)
+
+        # Currently 1D is not handled
+        if n_dim == 1:
+            return None, None, 1
 
         # Find best valid combination of spans by looking at the number of
         # neighbours that are periodically repeated by the spans, the
@@ -314,8 +308,6 @@ class PeriodicFinder():
         periodicity_graph = None
         for i_span in best_combo:
             adjacency_list = adjacency_lists[i_span]
-            print(possible_spans[i_span])
-            print(adjacency_list)
             i_graph = nx.from_dict_of_lists(adjacency_list)
             if periodicity_graph is None:
                 periodicity_graph = i_graph
@@ -367,7 +359,6 @@ class PeriodicFinder():
         for i_group, positions in enumerate(pos):
 
             # Calculate position in the relative basis of the found cell cell
-            # print(nodes)
             scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
             scaled_pos %= 1
 
@@ -411,11 +402,9 @@ class PeriodicFinder():
 
         basis_element_positions = np.zeros((len(num), 3))
         basis_element_num = []
-        seed_pos = pos[seed_index]
         for i_group, positions in enumerate(pos):
 
             # Calculate position in the relative basis of the found cell cell
-            # print(nodes)
             scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
             scaled_pos_2d = scaled_pos[:, 0:2]
             scaled_pos_2d %= 1
@@ -457,18 +446,20 @@ class PeriodicFinder():
         min_size = 2*self.pos_tol
         if c_size < min_size:
             c_new_cart = min_size*c_norm
-        offset_cart = (basis[2, :]-c_new_cart)/2
-        offset_rel = systax.geometry.to_scaled(basis, offset_cart)
         new_basis = np.array(basis)
         new_basis[2, :] = c_new_cart
 
+        new_scaled_pos = basis_element_positions - pos_min_rel
+        new_scaled_pos[:, 2] /= np.linalg.norm(c_new_cart)
+
         # Create translated system
-        offset = seed_pos - offset_cart
+        # group_seed_pos = pos[seed_index]
         proto_cell = Atoms(
             cell=new_basis,
-            scaled_positions=basis_element_positions - offset_rel,
+            scaled_positions=new_scaled_pos,
             symbols=basis_element_num
         )
+        offset = proto_cell.get_positions()[seed_index]
 
         return proto_cell, offset
 
@@ -570,104 +561,6 @@ class PeriodicFinder():
         # )
 
         # return proto_sys
-
-    def _find_cell_atoms_2d(self, cell_basis_vectors, pos, num):
-        """Used to find a cell for 2D materials. The best basis that is found
-        only contains two basis vector directions that have been deduced from
-        translational symmetry. The third cell vector is determined by this
-        function by looking at which atoms fullfill the periodic repetition in
-        the neighbourhood of the seed atom and in the direction orthogonal to
-        the found two vectors.
-
-        Args:
-            system(ASE.Atoms): Original system
-            seed_index(int): Index of the seed atom in system
-            cell_basis_vectors(np.ndarray): Two cell basis vectors that span
-                the 2D system
-
-        Returns:
-            ASE.Atoms: System representing the found cell.
-            np.ndarray: Position of the seed atom in the new cell.
-        """
-        # Find the atoms that are repeated with the cell
-        pos = system.get_positions()
-        num = system.get_atomic_numbers()
-        seed_pos = pos[seed_index]
-
-        # Create test basis that is used to find atoms that follow the
-        # translation
-        a = cell_basis_vectors[0]
-        b = cell_basis_vectors[1]
-        c = np.cross(a, b)
-        c_norm = c/np.linalg.norm(c)
-        # c_test = 2*self.max_cell_size*c_norm
-        # test_basis = np.array((a, b, c_test))
-        # origin = seed_pos-0.5*c_test
-
-        # Convert positions to this basis
-        # indices, cell_pos_rel = systax.geometry.get_positions_within_basis(
-            # system,
-            # test_basis,
-            # origin,
-            # self.pos_tol,
-            # [True, True, True]
-        # )
-        # view(system)
-        # print(cell_pos_rel)
-        seed_basis_index = np.where(indices == seed_index)[0][0]
-        cell_pos_cart = systax.geometry.to_cartesian(test_basis, cell_pos_rel)
-        seed_basis_pos_cart = np.array(cell_pos_cart[seed_basis_index])
-
-        # View system
-        # new_num = num[indices]
-        # test_sys = Atoms(
-            # cell=test_basis,
-            # scaled_positions=cell_pos_rel,
-            # symbols=new_num
-        # )
-        # view(test_sys)
-
-        # TODO: Add a function that checks that periodic copies are not allowed
-        # in the same cell, or that atoms just outside the edge of the cell are
-        # not missed
-
-        # TODO: For each atom in the cell, test that after subtraction and addition
-        # in the lattice basis directions there is an identical copy
-
-        # Determine the real cell thickness by getting the maximum and minimum
-        # heights of the cell
-        c_comp = cell_pos_rel[:, 2]
-        max_index = np.argmax(c_comp)
-        min_index = np.argmin(c_comp)
-        pos_min_rel = np.array([0, 0, c_comp[min_index]])
-        pos_max_rel = np.array([0, 0, c_comp[max_index]])
-        pos_min_cart = systax.geometry.to_cartesian(test_basis, pos_min_rel)
-        pos_max_cart = systax.geometry.to_cartesian(test_basis, pos_max_rel)
-        c_new_cart = pos_max_cart-pos_min_cart
-
-        # We demand a minimum size for the c-vector even if the system seems to
-        # be purely 2-dimensional. This is done because the 3D-space cannot be
-        # searched properly if one dimension is flat.
-        c_size = np.linalg.norm(c_new_cart)
-        min_size = 2*self.pos_tol
-        if c_size < min_size:
-            c_new_cart = min_size*c_norm
-        offset_cart = (test_basis[2, :]-c_new_cart)/2
-
-        new_basis = np.array(test_basis)
-        new_basis[2, :] = c_new_cart
-
-        # Create translated system
-        new_num = num[indices]
-        seed_basis_pos_cart -= offset_cart
-        new_sys = Atoms(
-            cell=new_basis,
-            positions=cell_pos_cart - offset_cart,
-            symbols=new_num
-        )
-        # view(new_sys)
-
-        return new_sys, seed_basis_pos_cart
 
     # def _find_cell_atoms_2d(self, system, seed_index, cell_basis_vectors):
         # """Used to find a cell for 2D materials. The best basis that is found
@@ -994,7 +887,6 @@ class PeriodicFinder():
                         new_seed_indices.append(match)
                         new_seed_pos.append(i_seed_pos)
                         new_seed_multipliers.append(new_index)
-                        # print(new_index)
                         if match is not None:
                             used_seed_indices.add(match)
 

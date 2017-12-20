@@ -131,7 +131,6 @@ class LinkedUnitCollection(dict):
             basis_elements = self.cell.get_atomic_numbers()
             num = self.system.get_atomic_numbers()
             if len(outside_indices) != 0:
-                print(outside_indices)
                 outside_num = num[outside_indices]
                 adsorbate_mask = ~np.isin(outside_num, basis_elements)
                 adsorbates = outside_indices[adsorbate_mask]
