@@ -67,7 +67,7 @@ class PeriodicFinder():
             # The indices of the periodic dimensions.
             periodic_indices = list(range(dim))
 
-            view(proto_cell)
+            # view(proto_cell)
             # print(seed_position)
 
             # Find a region that is spanned by the found unit cell
@@ -373,6 +373,9 @@ class PeriodicFinder():
             proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
         elif n_spans == 2:
             proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
+
+        # TODO: Create a Material3D/Material2D analyzer to analyze the cell.
+        # The primitive cell is used as the final cell.
 
         return proto_cell, offset, n_spans
 

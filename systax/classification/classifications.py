@@ -64,7 +64,7 @@ class Class2D(Classification):
             substitutions=None,
             adsorbates=None,
             vacancies=None,
-            unknown=None,
+            unknowns=None,
             vacuum_dir=None,
             cell_analyzer=None
             ):
@@ -73,7 +73,7 @@ class Class2D(Classification):
         self.substitutions = [] if substitutions is None else substitutions
         self.adsorbates = [] if adsorbates is None else adsorbates
         self.vacancies = [] if vacancies is None else vacancies
-        self.unknown = [] if unknown is None else unknown
+        self.unknowns = [] if unknowns is None else unknowns
         self.vacuum_dir = vacuum_dir
         self.cell_analyzer = cell_analyzer
 

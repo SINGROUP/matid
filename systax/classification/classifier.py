@@ -54,7 +54,6 @@ class Classifier():
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
             connectivity_crystal=3.0,
-            layers_2d=1,
             tesselation_distance=6
             ):
         """
@@ -78,7 +77,6 @@ class Classifier():
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
-        self.layers_2d = layers_2d
         self.tesselation_distance = tesselation_distance
         self._repeated_system = None
         self._analyzed = False
@@ -180,31 +178,39 @@ class Classifier():
 
                 # If the region covers less than 50% of the whole system,
                 # categorize as Class2D
+                n_region_atoms = len(region.get_basis_indices())
+                n_atoms = len(system)
+                coverage = n_region_atoms/n_atoms
 
-                # Get information about defects, adsorbates and uncategorized
-                # atoms.
-                adsorbates = region.get_adsorbates()
-                substitutions = region.get_substitutions()
-                vacancies = region.get_vacancies()
-                interstitials = region.get_interstitials()
-                layer_mean, layer_std = region.get_layer_statistics()
+                if coverage < 0.5:
+                    classification = Class2D()
+                else:
+                    # Get information about defects, adsorbates and uncategorized
+                    # atoms.
+                    adsorbates = region.get_adsorbates()
+                    substitutions = region.get_substitutions()
+                    vacancies = region.get_vacancies()
+                    interstitials = region.get_interstitials()
+                    unknowns = region.get_unknowns()
 
-                if layer_mean == self.layers_2d:
-                    classification = Material2D(
-                        region,
-                        adsorbates=adsorbates,
-                        substitutions=substitutions,
-                        vacancies=vacancies,
-                        interstitials=interstitials,
-                    )
-                elif layer_mean > self.layers_2d:
-                    classification = Surface(
-                        region,
-                        adsorbates=adsorbates,
-                        substitutions=substitutions,
-                        vacancies=vacancies,
-                        interstitials=interstitials,
-                    )
+                    if region.is_2d:
+                        classification = Material2D(
+                            region,
+                            adsorbates=adsorbates,
+                            substitutions=substitutions,
+                            vacancies=vacancies,
+                            interstitials=interstitials,
+                            unknowns=unknowns,
+                        )
+                    else:
+                        classification = Surface(
+                            region,
+                            adsorbates=adsorbates,
+                            substitutions=substitutions,
+                            vacancies=vacancies,
+                            interstitials=interstitials,
+                            unknowns=unknowns,
+                        )
 
         # Bulk structures
         elif dimensionality == 3:

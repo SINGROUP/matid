@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import numpy as np
 
 from ase import Atoms
-import ase.build
 
 import systax.geometry
 from systax.exceptions import SystaxError
@@ -207,9 +206,20 @@ class LinkedUnitCollection(dict):
 
         return self._vacancies
 
-    def get_unknown(self):
+    def get_unknowns(self):
         """Get the indices that form an unknown part around the region.
         """
+        # Get all indices
+        all_indices = set(self.get_all_indices())
+        basis_indices = set(self.get_basis_indices())
+        interstitials = set(self.get_interstitials())
+        adsorbates = set(self.get_adsorbates())
+        substitutions = set(self.get_substitutions())
+        subst_indices = set([x.index for x in substitutions])
+
+        combined = basis_indices.union(interstitials).union(adsorbates).union(subst_indices)
+        unknowns = all_indices - combined
+        return np.array(list(unknowns))
 
     def get_tetrahedra_decomposition(self):
         """Get the tetrahedra decomposition for this region.
@@ -260,43 +270,43 @@ class LinkedUnitCollection(dict):
 
         return self._inside_indices, self._outside_indices
 
-    def get_layer_statistics(self):
-        """Get statistics about the number of layers. Returns the average
-        number of layers and the standard deviation in the number of layers.
-        """
-        # Find out which direction is the aperiodic one
-        vacuum_gaps = self.vacuum_gaps
-        vacuum_direction = self.system.get_cell()[vacuum_gaps]
-        unit_cell = self[(0, 0, 0)].cell
-        index = systax.geometry.get_closest_direction(vacuum_direction, unit_cell)
-        mask = [True, True, True]
-        mask[index] = False
-        mask = np.array(mask)
+    # def get_layer_statistics(self):
+        # """Get statistics about the number of layers. Returns the average
+        # number of layers and the standard deviation in the number of layers.
+        # """
+        # # Find out which direction is the aperiodic one
+        # vacuum_gaps = self.vacuum_gaps
+        # vacuum_direction = self.system.get_cell()[vacuum_gaps]
+        # unit_cell = self[(0, 0, 0)].cell
+        # index = systax.geometry.get_closest_direction(vacuum_direction, unit_cell)
+        # mask = [True, True, True]
+        # mask[index] = False
+        # mask = np.array(mask)
 
-        # Find out how many layers there are in the aperiodic directions
-        max_sizes = {}
-        min_sizes = {}
-        for coord, unit in self.items():
-            ab = tuple(np.array(coord)[mask])
-            c = coord[index]
-            min_size = min_sizes.get(ab)
-            max_size = max_sizes.get(ab)
-            if min_size is None or c < min_size:
-                min_sizes[ab] = c
-            if max_size is None or c > max_size:
-                max_sizes[ab] = c
+        # # Find out how many layers there are in the aperiodic directions
+        # max_sizes = {}
+        # min_sizes = {}
+        # for coord, unit in self.items():
+            # ab = tuple(np.array(coord)[mask])
+            # c = coord[index]
+            # min_size = min_sizes.get(ab)
+            # max_size = max_sizes.get(ab)
+            # if min_size is None or c < min_size:
+                # min_sizes[ab] = c
+            # if max_size is None or c > max_size:
+                # max_sizes[ab] = c
 
-        sizes = []
-        for key, max_c in max_sizes.items():
-            min_c = min_sizes[key]
-            size = max_c - min_c + 1
-            sizes.append(size)
-        sizes = np.array(sizes)
+        # sizes = []
+        # for key, max_c in max_sizes.items():
+            # min_c = min_sizes[key]
+            # size = max_c - min_c + 1
+            # sizes.append(size)
+        # sizes = np.array(sizes)
 
-        mean = sizes.mean()
-        std = sizes.std()
+        # mean = sizes.mean()
+        # std = sizes.std()
 
-        return mean, std
+        # return mean, std
 
     # def _get_cell_substitutions(self):
         # """Returns the indices of the atoms that have replaced a basis atom in
