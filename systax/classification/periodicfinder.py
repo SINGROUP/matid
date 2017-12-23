@@ -239,79 +239,6 @@ class PeriodicFinder():
         if dim == 1:
             return None, None, 1
 
-        # Find the dimensionality of the space spanned by this set of vectors
-        # n_dim = self._find_space_dim(v2)
-
-        # Find best valid combination of spans by looking at the number of
-        # neighbours that are periodically repeated by the spans, the
-        # orthogonality of the spans and the length of the spans
-        # span_indices = list(range(len(possible_spans)))
-        # combos = np.array(list(itertools.combinations(span_indices, n_dim)))
-
-        # # First sort by the number of periodic neighbours that are generated.
-        # # This way we first choose spans that create most periodic neighbours.
-        # periodicity_scores = np.zeros(len(combos))
-        # for i_dim in range(n_dim):
-            # i_combos = combos[:, i_dim]
-            # i_scores = metric[i_combos]
-            # periodicity_scores += i_scores
-        # periodicity_indices = np.argsort(-periodicity_scores)
-
-        # # Iterate over the combos until a linearly independent combo is found
-        # # and stalemates have been resolved by checking the orthogonality and
-        # # vector lengths.
-        # best_periodicity_score = 0
-        # best_score = float('inf')
-        # best_combo = None
-        # for index in periodicity_indices:
-
-            # combo = combos[index]
-            # i_per_score = periodicity_scores[index]
-
-            # # Check that the combination is linearly independent
-            # area_threshold = 0.1
-            # volume_threshold = 0.1
-            # if n_dim == 1:
-                # i = combo[0]
-                # i_score = span_lengths[i]
-
-            # if n_dim == 2:
-                # i = combo[0]
-                # j = combo[1]
-                # a_norm = normed_spans[i]
-                # b_norm = normed_spans[j]
-                # orthogonality = np.linalg.norm(np.cross(a_norm, b_norm))
-                # if orthogonality < area_threshold:
-                    # continue
-                # else:
-                    # ortho_score = abs(dots[i, j])
-                    # norm_score = span_lengths[i] + span_lengths[j]
-                    # i_score = ortho_score + norm_score
-
-            # elif n_dim == 3:
-                # i = combo[0]
-                # j = combo[1]
-                # k = combo[2]
-                # a_norm = normed_spans[i]
-                # b_norm = normed_spans[j]
-                # c_norm = normed_spans[k]
-                # orthogonality = np.dot(np.cross(a_norm, b_norm), c_norm)
-                # if orthogonality < volume_threshold:
-                    # continue
-                # else:
-                    # ortho_score = abs(dots[i, j]) + abs(dots[j, k]) + abs(dots[i, k])
-                    # norm_score = span_lengths[i] + span_lengths[j] + span_lengths[k]
-                    # i_score = ortho_score + norm_score
-
-            # if i_per_score >= best_periodicity_score:
-                # best_periodicity_score = i_per_score
-                # if i_score < best_score:
-                    # best_score = i_score
-                    # best_combo = combo
-            # else:
-                # if best_combo is not None:
-                    # break
-
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
 
@@ -528,7 +455,7 @@ class PeriodicFinder():
             return best_indices, dim
 
         # The angle threshold for validating cells
-        angle_threshold = np.pi/180*self.angle_tol  # 10 degrees
+        angle_threshold = np.pi/180*self.angle_tol
         angle_thres_sin = np.sin(angle_threshold)
 
         # Create combinations of normed spans
@@ -542,17 +469,17 @@ class PeriodicFinder():
         alpha_cross_norm = np.linalg.norm(alpha_cross, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             alpha_cross_normed = alpha_cross / alpha_cross_norm[:, None]
-        alphas = inner1d(normed_combos[:, 0, :], alpha_cross_normed)
+        alphas = np.abs(inner1d(normed_combos[:, 0, :], alpha_cross_normed))
         beta_cross = np.cross(normed_combos[:, 2, :], normed_combos[:, 0, :])
         beta_cross_norm = np.linalg.norm(beta_cross, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             beta_cross_normed = beta_cross / beta_cross_norm[:, None]
-        betas = inner1d(normed_combos[:, 1, :], beta_cross_normed)
+        betas = np.abs(inner1d(normed_combos[:, 1, :], beta_cross_normed))
         gamma_cross = np.cross(normed_combos[:, 0, :], normed_combos[:, 1, :])
         gamma_cross_norm = np.linalg.norm(gamma_cross, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
             gamma_cross_normed = gamma_cross / gamma_cross_norm[:, None]
-        gammas = inner1d(normed_combos[:, 2, :], gamma_cross_normed)
+        gammas = np.abs(inner1d(normed_combos[:, 2, :], gamma_cross_normed))
 
         with np.errstate(invalid='ignore'):
             alpha_mask = alphas > angle_thres_sin

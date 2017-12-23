@@ -60,20 +60,16 @@ class Class2D(Classification):
     def __init__(
             self,
             region=None,
-            interstitials=None,
-            substitutions=None,
-            adsorbates=None,
-            vacancies=None,
-            unknowns=None,
             vacuum_dir=None,
             cell_analyzer=None
             ):
         self.region = region
-        self.interstitials = [] if interstitials is None else interstitials
-        self.substitutions = [] if substitutions is None else substitutions
-        self.adsorbates = [] if adsorbates is None else adsorbates
-        self.vacancies = [] if vacancies is None else vacancies
-        self.unknowns = [] if unknowns is None else unknowns
+        self.basis_indices = region.get_basis_indices()
+        self.interstitials = region.get_interstitials()
+        self.substitutions = region.get_substitutions()
+        self.adsorbates = region.get_adsorbates()
+        self.vacancies = region.get_vacancies()
+        self.unknowns = region.get_unknowns()
         self.vacuum_dir = vacuum_dir
         self.cell_analyzer = cell_analyzer
 

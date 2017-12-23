@@ -853,18 +853,30 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    # def test_graphene_shaken(self):
-        # """Test graphene that has randomly oriented but uniform length
-        # dislocations.
-        # """
-        # # Run multiple times with random displacements
-        # rng = RandomState(2)
-        # for i in range(10):
-            # sys = Material2DTests.graphene.repeat([5, 5, 1])
-            # systax.geometry.make_random_displacement(sys, 0.2, rng)
-            # classifier = Classifier()
-            # clas = classifier.classify(sys)
-            # self.assertIsInstance(clas, Material2D)
+    def test_graphene_shaken(self):
+        """Test graphene that has randomly oriented but uniform length
+        dislocations.
+        """
+        # Run multiple times with random displacements
+        rng = RandomState(4)
+        for i in range(30):
+            system = Material2DTests.graphene.repeat([5, 5, 1])
+            systax.geometry.make_random_displacement(system, 0.2, rng)
+            classifier = Classifier()
+            classification = classifier.classify(system)
+            self.assertIsInstance(classification, Material2D)
+
+            # Pristine
+            adsorbates = classification.adsorbates
+            interstitials = classification.interstitials
+            substitutions = classification.substitutions
+            vacancies = classification.vacancies
+            unknowns = classification.unknowns
+            self.assertEqual(len(interstitials), 0)
+            self.assertEqual(len(substitutions), 0)
+            self.assertEqual(len(vacancies), 0)
+            self.assertEqual(len(adsorbates), 0)
+            self.assertEqual(len(unknowns), 0)
 
     def test_mos2_pristine_supercell(self):
         system = ase.build.mx2(
@@ -1015,67 +1027,109 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 12)
         self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
 
-    # def test_2d_split(self):
-        # """A simple 2D system where the system has been split by the cell
-        # boundary.
-        # """
-        # sys = Atoms(
-            # symbols=["H", "C"],
-            # cell=np.array((
-                # [2, 0.0, 0.0],
-                # [0.0, 2, 0.0],
-                # [0.0, 0.0, 15]
-            # )),
-            # positions=np.array((
-                # [0, 0, 0],
-                # [0, 0, 13.8],
-            # )),
-            # pbc=True
-        # )
-        # # view(sys)
-        # classifier = Classifier()
-        # clas = classifier.classify(sys)
-        # self.assertIsInstance(clas, Material2DPristine)
+    def test_2d_split(self):
+        """A simple 2D system where the system has been split by the cell
+        boundary.
+        """
+        system = Atoms(
+            symbols=["H", "C"],
+            cell=np.array((
+                [2, 0.0, 0.0],
+                [0.0, 2, 0.0],
+                [0.0, 0.0, 15]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [0, 0, 13.8],
+            )),
+            pbc=True
+        )
+        # view(sys)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-    # def test_graphene_rectangular(self):
-        # sys = Atoms(
-            # symbols=["C", "C", "C", "C"],
-            # cell=np.array((
-                # [4.26, 0.0, 0.0],
-                # [0.0, 15, 0.0],
-                # [0.0, 0.0, 2.4595121467478055]
-            # )),
-            # positions=np.array((
-                # [2.84, 7.5, 6.148780366869514e-1],
-                # [3.55, 7.5, 1.8446341100608543],
-                # [7.1e-1, 7.5, 1.8446341100608543],
-                # [1.42, 7.5, 6.148780366869514e-1],
-            # )),
-            # pbc=True
-        # )
-        # # view(sys)
-        # classifier = Classifier()
-        # clas = classifier.classify(sys)
-        # self.assertIsInstance(clas, Material2DPristine)
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
 
-    # def test_boron_nitride(self):
-        # sys = Atoms(
-            # symbols=["B", "N"],
-            # cell=np.array((
-                # [2.412000008147063, 0.0, 0.0],
-                # [-1.2060000067194177, 2.0888532824002019, 0.0],
-                # [0.0, 0.0, 15.875316320100001]
-            # )),
-            # positions=np.array((
-                # [0, 0, 0],
-                # [-1.3823924100453746E-9, 1.3925688618963122, 0.0]
-            # )),
-            # pbc=True
-        # )
-        # # view(sys)
-        # classifier = Classifier()
-        # clas = classifier.classify(sys)
-        # self.assertIsInstance(clas, Material2DPristine)
+    def test_graphene_rectangular(self):
+        system = Atoms(
+            symbols=["C", "C", "C", "C"],
+            cell=np.array((
+                [4.26, 0.0, 0.0],
+                [0.0, 15, 0.0],
+                [0.0, 0.0, 2.4595121467478055]
+            )),
+            positions=np.array((
+                [2.84, 7.5, 6.148780366869514e-1],
+                [3.55, 7.5, 1.8446341100608543],
+                [7.1e-1, 7.5, 1.8446341100608543],
+                [1.42, 7.5, 6.148780366869514e-1],
+            )),
+            pbc=True
+        )
+        # view(sys)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
+
+    def test_boron_nitride(self):
+        system = Atoms(
+            symbols=["B", "N"],
+            cell=np.array((
+                [2.412000008147063, 0.0, 0.0],
+                [-1.2060000067194177, 2.0888532824002019, 0.0],
+                [0.0, 0.0, 15.875316320100001]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [-1.3823924100453746E-9, 1.3925688618963122, 0.0]
+            )),
+            pbc=True
+        )
+        # view(sys)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
 
 
 class Material3DTests(unittest.TestCase):

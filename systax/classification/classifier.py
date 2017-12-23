@@ -51,7 +51,7 @@ class Classifier():
             seed_algorithm="cm",
             max_cell_size=5,
             pos_tol=1,
-            angle_tol=10,
+            angle_tol=20,
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
             connectivity_crystal=3.0,
@@ -188,32 +188,10 @@ class Classifier():
                 if coverage < 0.5:
                     classification = Class2D()
                 else:
-                    # Get information about defects, adsorbates and uncategorized
-                    # atoms.
-                    adsorbates = region.get_adsorbates()
-                    substitutions = region.get_substitutions()
-                    vacancies = region.get_vacancies()
-                    interstitials = region.get_interstitials()
-                    unknowns = region.get_unknowns()
-
                     if region.is_2d:
-                        classification = Material2D(
-                            region,
-                            adsorbates=adsorbates,
-                            substitutions=substitutions,
-                            vacancies=vacancies,
-                            interstitials=interstitials,
-                            unknowns=unknowns,
-                        )
+                        classification = Material2D(region)
                     else:
-                        classification = Surface(
-                            region,
-                            adsorbates=adsorbates,
-                            substitutions=substitutions,
-                            vacancies=vacancies,
-                            interstitials=interstitials,
-                            unknowns=unknowns,
-                        )
+                        classification = Surface(region)
 
         # Bulk structures
         elif dimensionality == 3:
