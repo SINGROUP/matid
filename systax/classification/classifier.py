@@ -51,6 +51,7 @@ class Classifier():
             seed_algorithm="cm",
             max_cell_size=5,
             pos_tol=1,
+            angle_tol=10,
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
             connectivity_crystal=3.0,
@@ -74,6 +75,7 @@ class Classifier():
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
+        self.angle_tol = angle_tol
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
@@ -165,6 +167,7 @@ class Classifier():
             # Run the region detection on the whole system.
             periodicfinder = PeriodicFinder(
                 pos_tol=self.pos_tol,
+                angle_tol=self.angle_tol,
                 seed_algorithm="cm",
                 max_cell_size=self.max_cell_size)
             regions = periodicfinder.get_regions(system, vacuum_dir, self.tesselation_distance)
