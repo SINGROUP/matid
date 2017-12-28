@@ -19,15 +19,33 @@ from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
 class PeriodicFinder():
     """Used to find translationally periodic structures within atomic systems.
     """
-    def __init__(self, pos_tol, angle_tol, seed_algorithm, max_cell_size):
+    def __init__(self, pos_tol, angle_tol, seed_algorithm, max_cell_size, pos_tol_metric=None):
         """
+        Args:
+            pos_tol(float): The positions tolerance for finding atoms. The
+                value depends on the metric that is used, see parameter
+                'pos_tol_metric'.
+            angle_tol(float): The angle tolerance for separating parallel
+                directions. Directions that have angle smaller than this value
+                are considered to be parallel.
+            seed_algorithm(str): The seed algorithm. One of the following:
+                - 'cm': One seed nearest to center of mass
+            max_cell_size(float): Guess for the maximum cell basis vector
+                lengths. In angstroms.
+            pos_tol_metric(str): The metric used for the position tolerance.
+            One of the following:
+                - 'absolute': Tolerance in angstroms
+                - 'rel_min_mean_dist': Relative to the average distance between
+                  all closest neighbours.
         """
         self.pos_tol = pos_tol
+        self.pos_tol_metric = pos_tol_metric
         self.angle_tol = angle_tol
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
+        self.pos_tol_factor = 2
 
-    def get_regions(self, system, vacuum_dir, tesselation_distance):
+    def get_regions(self, system, disp_tensor_pbc, dist_matrix_pbc, vacuum_dir, tesselation_distance):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
 
@@ -45,6 +63,9 @@ class PeriodicFinder():
                 atoms: An ASE.Atoms object representing the region
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
+        self.disp_tensor_pbc = disp_tensor_pbc
+        self.dist_matrix_pbc = dist_matrix_pbc
+
         # Find the seed points
         if self.seed_algorithm == "cm":
             seed_points = [self._find_seed_cm(system)]
@@ -129,10 +150,7 @@ class PeriodicFinder():
         """
         # Calculate a displacement tensor that takes into account the
         # periodicity of the system
-        pos = system.get_positions()
-        pbc = system.get_pbc()
-        cell = system.get_cell()
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        disp_tensor = self.disp_tensor_pbc
 
         # If the search radius exceeds beyond the periodic boundaries, extend the system
         # Get the vectors that span from the seed to all other atoms
@@ -302,6 +320,10 @@ class PeriodicFinder():
             group_pos.append(graph_pos)
             group_num.append(numbers[nodes[0]])
 
+        # If the seed atom is not in a valid graph, no region could be found.
+        if seed_group_index is None:
+            return None, None, None
+
         if n_spans == 3:
             proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
         elif n_spans == 2:
@@ -340,8 +362,8 @@ class PeriodicFinder():
             basis_element_num.append(num[i_group])
 
         basis_element_num = np.array(basis_element_num)
-
         offset = basis_element_positions[seed_index]
+
         proto_cell = Atoms(
             scaled_positions=basis_element_positions,
             symbols=basis_element_num,
@@ -352,6 +374,15 @@ class PeriodicFinder():
 
     def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
         """
+        Args:
+            basis(np.ndarray): The basis cell vectors.
+            pos(np.ndarray): A list of atomic positions. The list contains an
+                entry containing multiple positions for each unique atom in the
+                cell.
+            num(np.ndarray): The atomic numbers of the cell atoms atoms.
+            seed_index(int): The index of the seed atom in the pos and num arrays.
+            seed_pos(np.ndarray): The position of the seed atom in cartesian
+                coordinates.
         """
         # We need to make the third basis vector
         a = basis[0]
@@ -386,6 +417,8 @@ class PeriodicFinder():
             group_avg = np.mean(scaled_pos, axis=0)
             basis_element_positions[i_group] = group_avg
             basis_element_num.append(num[i_group])
+
+        # print(basis_element_positions)
 
         basis_element_num = np.array(basis_element_num)
 
@@ -602,7 +635,9 @@ class PeriodicFinder():
 
         return min_index
 
-    def _find_periodic_region(self, system, vacuum_dir, is_2d, tesselation_distance, seed_index, unit_cell, seed_position, periodic_indices):
+    def _find_periodic_region(self, system, vacuum_dir, is_2d,
+            tesselation_distance, seed_index, unit_cell, seed_position,
+            periodic_indices):
         """Used to find atoms that are generated by a given unit cell and a
         given origin.
 
@@ -640,8 +675,6 @@ class PeriodicFinder():
         used_seed_indices = set()
         queue = deque()
         collection = LinkedUnitCollection(system, unit_cell, is_2d, vacuum_dir, tesselation_distance)
-
-        # view(system)
 
         # Start off the queue
         self._find_region_rec(
@@ -724,11 +757,6 @@ class PeriodicFinder():
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
         """
-        # print("===================")
-        # print(seed_index)
-        # print(index)
-        # print(seed_pos)
-
         # Check if this cell has already been searched
         if index in searched_coords:
             return
@@ -759,6 +787,7 @@ class PeriodicFinder():
         new_seed_multipliers = []
         orig_pos = system.get_positions()
         orig_cell = system.get_cell()
+        orig_pbc = system.get_pbc()
 
         # If the seed atom was not found for this cell, end the search
         # TODO: get rid of this loop by using numpy
@@ -782,7 +811,7 @@ class PeriodicFinder():
                     system,
                     seed_guess,
                     [seed_atomic_number],
-                    2*self.pos_tol)
+                    self.pos_tol_factor*self.pos_tol)
 
                 factor = factors[0]
                 match = matches[0]
@@ -853,12 +882,16 @@ class PeriodicFinder():
             match_system,
             unit_cell.get_positions(),
             cell_num,
-            1.2*self.pos_tol,
+            self.pos_tol_factor*self.pos_tol,
             )
 
-        # Correct the vacancy positions by the seed pos
+        # Correct the vacancy positions by the seed pos and cell periodicity
         for vacancy in vacancies:
-            vacancy.position += seed_pos
+            old_vac_pos = vacancy.position
+            old_vac_pos += seed_pos
+            vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
+            new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
+            vacancy.position = new_vac_pos
 
         # If there are maches or substitutional atoms in the unit, add it to
         # the collection
@@ -884,7 +917,8 @@ class PeriodicFinder():
             scaled_positions=cell_pos,
             symbols=cell_num
         )
-        # view(new_cell)
+        # if matches[0] is None:
+            # view(new_cell)
         cells = len(new_seed_pos)*[new_cell]
 
         # Add the found neighbours to a queue

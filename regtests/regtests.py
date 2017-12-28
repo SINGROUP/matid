@@ -878,6 +878,35 @@ class Material2DTests(unittest.TestCase):
             self.assertEqual(len(adsorbates), 0)
             self.assertEqual(len(unknowns), 0)
 
+    def test_curved_2d(self):
+        """Curved 2D-material
+        """
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [-1.2297560733739028, 2.13, 0.0],
+                [0.0, 0.0, 20.0]
+            )),
+            scaled_positions=np.array((
+                [0.3333333333333333, 0.6666666666666666, 0.5],
+                [0.6666666666666667, 0.33333333333333337, 0.5]
+            )),
+            pbc=True
+        )
+        graphene = graphene.repeat([5, 5, 1])
+
+        # Bulge the surface
+        cell_width = np.linalg.norm(graphene.get_cell()[0, :])
+        for atom in graphene:
+            pos = atom.position
+            distortion_z = 0.4*np.sin(pos[0]/cell_width*2.0*np.pi)
+            pos += np.array((0, 0, distortion_z))
+
+        classifier = Classifier()
+        classification = classifier.classify(graphene)
+        self.assertIsInstance(classification, Material2D)
+
     def test_mos2_pristine_supercell(self):
         system = ase.build.mx2(
             formula="MoS2",
@@ -1464,7 +1493,7 @@ class SurfaceTests(unittest.TestCase):
     """
     def test_bcc_pristine_thin_surface(self):
         system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        view(system)
+        # view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertIsInstance(classification, Surface)
@@ -1527,7 +1556,7 @@ class SurfaceTests(unittest.TestCase):
         sub_index = 42
         labels[sub_index] = 41
         system.set_atomic_numbers(labels)
-        view(system)
+        # view(system)
 
         # Classified as surface
         classifier = Classifier()
@@ -1595,7 +1624,7 @@ class SurfaceTests(unittest.TestCase):
             [8, 8, 9],
         )
         system += interstitional
-        view(system)
+        # view(system)
 
         # Classified as surface
         classifier = Classifier()
@@ -1637,6 +1666,7 @@ class SurfaceTests(unittest.TestCase):
             substitutions = classification.substitutions
             vacancies = classification.vacancies
             unknowns = classification.unknowns
+            # print(unknowns)
             self.assertEqual(len(interstitials), 0)
             self.assertEqual(len(substitutions), 0)
             self.assertEqual(len(vacancies), 0)
@@ -1644,7 +1674,6 @@ class SurfaceTests(unittest.TestCase):
             self.assertEqual(len(unknowns), 0)
 
     def test_curved_surface(self):
-
         # Create an Fe 100 surface as an ASE Atoms object
         system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
 
@@ -1652,36 +1681,9 @@ class SurfaceTests(unittest.TestCase):
         cell_width = np.linalg.norm(system.get_cell()[0, :])
         for atom in system:
             pos = atom.position
-            distortion_z = 1.0*np.sin(pos[0]/cell_width*2.0*np.pi)
+            distortion_z = 0.9*np.sin(pos[0]/cell_width*2.0*np.pi)
             pos += np.array((0, 0, distortion_z))
         # view(system)
-
-        # Classified as surface
-        classifier = Classifier(pos_tol=0.5)
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-
-        # No defects or unknown atoms
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(len(unknowns), 0)
-
-    def test_surface_kink(self):
-        """Test a surface that has a kink. Whether the kink is classified as
-        a vacancy or not depends on the tesselation distance.
-        """
-        # Create an Fe 100 surface as an ASE Atoms object
-        system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
-
-        # Remove a range of atoms to form a kink
-        del system[86:89]
 
         # Classified as surface
         classifier = Classifier()
@@ -1700,8 +1702,35 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
+    # def test_surface_kink(self):
+        # """Test a surface that has a kink. Whether the kink is classified as
+        # a vacancy or not depends on the tesselation distance.
+        # """
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
+
+        # # Remove a range of atoms to form a kink
+        # del system[86:89]
+
+        # # Classified as surface
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # No defects or unknown atoms
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+
     def test_surface_ads(self):
-        """Test a surface with an adsorbate in a kink.
+        """Test a surface with an adsorbate.
         """
         # Create an Fe 100 surface as an ASE Atoms object
         system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
@@ -1711,7 +1740,7 @@ class SurfaceTests(unittest.TestCase):
         h2o.rotate(180, [1, 0, 0])
         h2o.translate([7.2, 7.2, 13.5])
         system += h2o
-        view(system)
+        # view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -1728,7 +1757,7 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(substitutions), 0)
         self.assertEqual(len(vacancies), 0)
         self.assertEqual(len(unknowns), 0)
-        self.assertTrue(len(adsorbates), 1)
+        self.assertEqual(len(adsorbates), 3)
         self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
 
     def test_nacl(self):
@@ -1764,7 +1793,7 @@ class SurfaceTests(unittest.TestCase):
 
         # Shake the atoms
         rng = RandomState(8)
-        systax.geometry.make_random_displacement(nacl, 0.5, rng)
+        systax.geometry.make_random_displacement(nacl, 0.4, rng)
 
         # Add adsorbate
         h2o = molecule("H2O")
@@ -1778,8 +1807,6 @@ class SurfaceTests(unittest.TestCase):
         symbols[subst_num] = 15
         nacl.set_atomic_numbers(symbols)
 
-        # view(nacl)
-
         classifier = Classifier()
         classification = classifier.classify(nacl)
         self.assertIsInstance(classification, Surface)
@@ -1791,7 +1818,7 @@ class SurfaceTests(unittest.TestCase):
 
         # Detect vacancy
         vacancies = classification.vacancies
-        self.assertTrue(len(vacancies), 1)
+        self.assertEqual(len(vacancies), 1)
         vac_found = vacancies[0]
         vacancy_disp = np.linalg.norm(vac_true.position - vac_found.position)
         self.assertTrue(vacancy_disp <= 1)
@@ -1808,6 +1835,10 @@ class SurfaceTests(unittest.TestCase):
         # No unknown atoms
         unknowns = classification.unknowns
         self.assertEqual(len(unknowns), 0)
+
+        # No interstitials
+        interstitials = classification.interstitials
+        self.assertEqual(len(interstitials), 0)
 
 
 # class SurfaceAnalyserTests(unittest.TestCase):
@@ -1952,15 +1983,15 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 

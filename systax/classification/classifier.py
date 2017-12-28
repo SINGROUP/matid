@@ -50,7 +50,8 @@ class Classifier():
             self,
             seed_algorithm="cm",
             max_cell_size=5,
-            pos_tol=1,
+            pos_tol=0.3,
+            pos_tol_mode="relative",
             angle_tol=20,
             vacuum_threshold=6,
             crystallinity_threshold=0.25,
@@ -64,6 +65,11 @@ class Classifier():
             max_cell_size(float): The maximum cell size
             pos_tol(float): The position tolerance in angstroms for finding translationally
                 repeated units.
+            pos_tol_mode(str): The mode for calculting the position tolerance.
+                One of the following:
+                    - "relative": Tolerance relative to the average nearest
+                      neighbour distance.
+                    - "absolute": Absolute tolerance in angstroms.
             vacuum_threshold(float): Amount of vacuum that is considered to
                 decouple interaction between structures.
             crystallinity_threshold(float): The threshold of number of symmetry
@@ -75,6 +81,7 @@ class Classifier():
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
+        self.pos_tol_mode = pos_tol_mode
         self.angle_tol = angle_tol
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
@@ -84,6 +91,10 @@ class Classifier():
         self._analyzed = False
         self._orthogonal_dir = None
         self.decisions = {}
+
+        allowed_modes = set(["relative", "absolute"])
+        if pos_tol_mode not in allowed_modes:
+            raise ValueError("Unknown value '{}' for 'pos_tol_mode'.".format(pos_tol_mode))
 
     def classify(self, system):
         """A function that analyzes the system and breaks it into different
@@ -111,6 +122,17 @@ class Classifier():
             disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
         else:
             disp_tensor_pbc = disp_tensor
+        dist_matrix_pbc = np.linalg.norm(disp_tensor, axis=2)
+
+        # If pos_tol_mode is relative, get the average distance to closest
+        # neighbours
+        if self.pos_tol_mode == "relative":
+            min_basis = np.linalg.norm(cell, axis=1).min()
+            dist_matrix_mod = np.array(dist_matrix_pbc)
+            np.fill_diagonal(dist_matrix_mod, min_basis)
+            min_dist = np.min(dist_matrix_mod, axis=1)
+            mean_min_dist = min_dist.mean()
+            self.pos_tol = self.pos_tol * mean_min_dist
 
         # Get the system dimensionality
         try:
@@ -170,7 +192,7 @@ class Classifier():
                 angle_tol=self.angle_tol,
                 seed_algorithm="cm",
                 max_cell_size=self.max_cell_size)
-            regions = periodicfinder.get_regions(system, vacuum_dir, self.tesselation_distance)
+            regions = periodicfinder.get_regions(system, disp_tensor_pbc, dist_matrix_pbc, vacuum_dir, self.tesselation_distance)
 
             # If more than one region found, categorize as unknown
             n_regions = len(regions)

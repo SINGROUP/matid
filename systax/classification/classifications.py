@@ -64,12 +64,20 @@ class Class2D(Classification):
             cell_analyzer=None
             ):
         self.region = region
-        self.basis_indices = region.get_basis_indices()
-        self.interstitials = region.get_interstitials()
-        self.substitutions = region.get_substitutions()
-        self.adsorbates = region.get_adsorbates()
-        self.vacancies = region.get_vacancies()
-        self.unknowns = region.get_unknowns()
+        if region is not None:
+            self.basis_indices = region.get_basis_indices()
+            self.interstitials = region.get_interstitials()
+            self.substitutions = region.get_substitutions()
+            self.adsorbates = region.get_adsorbates()
+            self.vacancies = region.get_vacancies()
+            self.unknowns = region.get_unknowns()
+        else:
+            self.basis_indices = None
+            self.interstitials = None
+            self.substitutions = None
+            self.adsorbates = None
+            self.vacancies = None
+            self.unknowns = None
         self.vacuum_dir = vacuum_dir
         self.cell_analyzer = cell_analyzer
 

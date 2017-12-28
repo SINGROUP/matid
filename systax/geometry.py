@@ -121,55 +121,6 @@ def get_dimensionality(system, cluster_threshold=1.9, vacuum_gap=7, disp_tensor=
     return dim, vacuum_gaps
 
 
-def get_tetrahedra_decomposition(pos, max_distance=5, distance_matrix=None):
-    """Used to decompose a series of 3D atomic coordinates into non-overlapping
-    tetrahedron that together represent the atomic structure.
-    """
-    class TetrahedraTesselation():
-        """A class that represents a collection of tetrahedron.
-        """
-        def __init__(self, delaunay, valid_simplex_indices):
-            self.delaunay = delaunay
-            self.valid_simplex_indices = valid_simplex_indices
-
-        def find_simplex(self, pos):
-            """Used to find the index of the simplex in which the given
-            position resides in.
-
-            Args:
-                pos(np.nadrray): Position for which to find the simplex
-
-            Returns:
-                int: Index of the simplex in which the point is in. Returns
-                None if simplex was not found.
-            """
-            index = self.delaunay.find_simplex(pos).item()
-            if index == -1:
-                return None
-            if index in self.valid_simplex_indices:
-                return index
-            return None
-
-    # The QJ options makes sure that all positions are included in the tesselation
-    tri = Delaunay(pos, qhull_options="QJ")
-    simplices = tri.simplices
-
-    # Keep tetrahedra for which the sides are smaller than a threshold
-    if distance_matrix is None:
-        distance_matrix = get_distance_matrix(pos, pos)
-    valid_simplex_indices = set()
-    for i_simplex, simplex in enumerate(simplices):
-        for i, j in itertools.combinations(simplex, 2):
-            distance = distance_matrix[i, j]
-            if distance >= max_distance:
-                break
-        else:
-            valid_simplex_indices.add(i_simplex)
-
-    tetrahedras = TetrahedraTesselation(tri, valid_simplex_indices)
-    return tetrahedras
-
-
 def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
     """Used to decompose a series of 3D atomic coordinates into non-overlapping
     tetrahedron that together represent the atomic structure.
@@ -235,6 +186,7 @@ def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
 
     # The QJ options makes sure that all positions are included in the tesselation
     tesselation_pos = tesselation_atoms.get_positions()
+
     tri = Delaunay(tesselation_pos, qhull_options="QJ")
     simplices = tri.simplices
 
@@ -784,7 +736,6 @@ def get_matches(
             the number of the periodic copy where the match was found.
     """
     orig_num = system.get_atomic_numbers()
-    orig_pos = system.get_positions()
     cell = system.get_cell()
 
     scaled_pos1 = system.get_scaled_positions()
@@ -822,7 +773,8 @@ def get_matches(
             if a_num == b_num:
                 match = ind
             else:
-                subst_pos = scaled_pos2[i]
+                # Wrap the substitute position
+                subst_pos = np.array(scaled_pos2[i])
                 subst_pos %= 1
                 subst_pos_cart = np.dot(subst_pos, cell)
                 substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
@@ -831,6 +783,7 @@ def get_matches(
 
         i_move = moved[i][ind]
         copy = i_move
+
         matches.append(match)
         copy_indices.append(copy)
 
@@ -850,6 +803,9 @@ def to_scaled(cell, positions, wrap=False, pbc=False):
     Returns:
         numpy.ndarray: The scaled positions
     """
+    # Force 1D to 2D
+    if len(positions.shape) == 1:
+        positions = positions[None, :]
     pbc = expand_pbc(pbc)
     fractional = np.linalg.solve(
         cell.T,
