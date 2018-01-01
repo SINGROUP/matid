@@ -488,7 +488,7 @@ class PeriodicFinder():
         n_spans = len(valid_spans)
 
         if n_spans == 1:
-            return [0], 1
+            return [0]
         elif n_spans == 2:
             best_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)
             return best_indices

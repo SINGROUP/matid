@@ -1,20 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
-__metaclass__ = type
-
-
-import itertools
-
-from collections import defaultdict
 
 import numpy as np
 
 import ase.build
-from ase import Atoms
-from ase.data import covalent_radii
 from ase.visualize import view
 
-from systax.exceptions import ClassificationError, SystaxError
-from systax.classification.components import ComponentType, Component
+from systax.exceptions import SystaxError
 
 from systax.classification.classifications import \
     Surface, \
@@ -30,11 +21,10 @@ from systax.classification.classifications import \
     Class3D
 import systax.geometry
 from systax.analysis.class3danalyzer import Class3DAnalyzer
-from systax.analysis.class2danalyzer import Class2DAnalyzer
-from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
 from systax.symmetry import check_if_crystal
-from systax.core.system import System
 from systax.classification.periodicfinder import PeriodicFinder
+
+__metaclass__ = type
 
 
 class SystemCache(dict):
@@ -49,7 +39,7 @@ class Classifier():
     def __init__(
             self,
             seed_algorithm="cm",
-            max_cell_size=5,
+            max_cell_size=10,
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
@@ -81,16 +71,13 @@ class Classifier():
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
+        self.abs_pos_tol = None
         self.pos_tol_mode = pos_tol_mode
         self.angle_tol = angle_tol
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.connectivity_crystal = connectivity_crystal
         self.tesselation_distance = tesselation_distance
-        self._repeated_system = None
-        self._analyzed = False
-        self._orthogonal_dir = None
-        self.decisions = {}
 
         allowed_modes = set(["relative", "absolute"])
         if pos_tol_mode not in allowed_modes:
@@ -130,7 +117,9 @@ class Classifier():
             np.fill_diagonal(dist_matrix_mod, min_basis)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
-            self.pos_tol = self.pos_tol * mean_min_dist
+            self.abs_pos_tol = self.pos_tol * mean_min_dist
+        elif self.pos_tol_mode == "absolute":
+            self.abs_pos_tol = self.pos_tol
 
         # Get the system dimensionality
         try:
@@ -185,7 +174,7 @@ class Classifier():
 
             # Run the region detection on the whole system.
             periodicfinder = PeriodicFinder(
-                pos_tol=self.pos_tol,
+                pos_tol=self.abs_pos_tol,
                 angle_tol=self.angle_tol,
                 seed_algorithm="cm",
                 max_cell_size=self.max_cell_size)
@@ -226,7 +215,7 @@ class Classifier():
                 n_atoms_prim = len(primitive_system)
                 if n_atoms_prim >= 20:
                     periodicfinder = PeriodicFinder(
-                        pos_tol=self.pos_tol,
+                        pos_tol=self.abs_pos_tol,
                         angle_tol=self.angle_tol,
                         seed_algorithm="cm",
                         max_cell_size=self.max_cell_size)
