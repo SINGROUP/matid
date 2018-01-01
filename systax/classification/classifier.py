@@ -108,8 +108,6 @@ class Classifier():
             class that represents a classification.
         """
         self.system = system
-        dim_class = None
-        components = defaultdict(list)
         classification = None
 
         # Calculate the displacement tensor for the original system. It will be
@@ -144,30 +142,29 @@ class Classifier():
                 disp_tensor_pbc=disp_tensor_pbc
             )
         except SystaxError:
-            components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
-            return Unknown(components=components)
+            return Unknown()
 
         # 0D structures
         if dimensionality == 0:
-            dim_class = Class0D
+            classification = Class0D()
 
             # Check if system consists of one atom or one molecule
             n_atoms = len(system)
             if n_atoms == 1:
-                components[ComponentType.Atom].append(Component([0], system))
+                classification = Atom(vacuum_dir)
             else:
                 formula = system.get_chemical_formula()
                 try:
                     ase.build.molecule(formula)
                 except KeyError:
-                    components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
+                    pass
                 else:
-                    components[ComponentType.Molecule].append(Component(np.arange(len(system)), system.copy()))
+                    classification = Molecule(vacuum_dir)
 
         # 1D structures
         elif dimensionality == 1:
 
-            dim_class = Class1D
+            classification = Class1D(vacuum_dir)
 
             # Find out the dimensions of the system
             is_small = True
@@ -179,12 +176,12 @@ class Classifier():
                         is_small = False
 
             if is_small:
-                components[ComponentType.Material1D].append(Component(np.arange(len(system)), system.copy()))
-            else:
-                components[ComponentType.Unknown].append(Component(np.arange(len(system)), system.copy()))
+                classification = Material1D(vacuum_dir)
 
         # 2D structures
         elif dimensionality == 2:
+
+            classification = Class2D(vacuum_dir)
 
             # Run the region detection on the whole system.
             periodicfinder = PeriodicFinder(
@@ -192,13 +189,11 @@ class Classifier():
                 angle_tol=self.angle_tol,
                 seed_algorithm="cm",
                 max_cell_size=self.max_cell_size)
-            regions = periodicfinder.get_regions(system, disp_tensor_pbc, dist_matrix_pbc, vacuum_dir, self.tesselation_distance)
+            regions = periodicfinder.get_regions(system, disp_tensor_pbc, vacuum_dir, self.tesselation_distance)
 
             # If more than one region found, categorize as unknown
             n_regions = len(regions)
-            if n_regions != 1:
-                classification = Class2D()
-            else:
+            if n_regions == 1:
                 region = regions[0]
 
                 # If the region covers less than 50% of the whole system,
@@ -207,18 +202,16 @@ class Classifier():
                 n_atoms = len(system)
                 coverage = n_region_atoms/n_atoms
 
-                if coverage < 0.5:
-                    classification = Class2D()
-                else:
+                if coverage >= 0.5:
                     if region.is_2d:
-                        classification = Material2D(region)
+                        classification = Material2D(vacuum_dir, region)
                     else:
-                        classification = Surface(region)
+                        classification = Surface(vacuum_dir, region)
 
         # Bulk structures
         elif dimensionality == 3:
 
-            dim_class = Class3D
+            classification = Class3D(vacuum_dir)
 
             # Check the number of symmetries
             analyzer = Class3DAnalyzer(system)
@@ -234,58 +227,24 @@ class Classifier():
                 if n_atoms_prim >= 20:
                     periodicfinder = PeriodicFinder(
                         pos_tol=self.pos_tol,
+                        angle_tol=self.angle_tol,
                         seed_algorithm="cm",
                         max_cell_size=self.max_cell_size)
-                    regions = periodicfinder.get_regions(system, vacuum_dir, self.tesselation_distance)
 
-                    # If all the regions cover at least 80% of the structure,
-                    # then we consider it to be a defected crystal
-                    n_atoms_in_regions = 0
-                    n_atoms_total = len(system)
-                    for region in regions:
-                        n_atoms_in_regions += len(region[0])
-                    coverage = n_atoms_in_regions/n_atoms_total
-                    if coverage >= 0.8:
-                        dim_class = CrystalDefected
-                    else:
-                        dim_class = Class3DDisordered
+                    regions = periodicfinder.get_regions(system, disp_tensor_pbc, vacuum_dir, self.tesselation_distance)
+                    n_regions = len(regions)
+                    if n_regions == 1:
+                        region = regions[0]
+
+                        # If all the regions cover at least 80% of the structure,
+                        # then we consider it to be a defected crystal
+                        n_region_atoms = len(region.get_basis_indices())
+                        n_atoms = len(system)
+                        coverage = n_region_atoms/n_atoms
+                        if coverage >= 0.5:
+                            classification = Crystal(analyzer, region=region)
 
             elif is_crystal:
-                components[ComponentType.CrystalPristine].append(Component(
-                    np.arange(len(system)),
-                    system.copy(),
-                    analyzer))
-            else:
-                dim_class = Class3DDisordered
+                classification = Crystal(analyzer)
 
-        if classification is not None:
-            return classification
-
-        # Return a classification for this system.
-        n_molecules = len(components[ComponentType.Molecule])
-        n_atoms = len(components[ComponentType.Atom])
-        n_crystals_prist = len(components[ComponentType.CrystalPristine])
-        n_crystals_defected = len(components[ComponentType.CrystalDefected])
-        n_material1d = len(components[ComponentType.Material1D])
-        n_types = 0
-        for item in components.values():
-            if len(item) != 0:
-                n_types += 1
-
-        if n_types == 1:
-            if n_atoms == 1:
-                return Atom(components=components)
-            elif n_molecules == 1:
-                return Molecule(components=components)
-            elif n_material1d == 1:
-                return Material1D(components=components)
-            elif n_crystals_prist == 1:
-                return CrystalPristine(components=components)
-            elif n_crystals_defected == 1:
-                return CrystalDefected(components=components)
-            else:
-                return dim_class(components=components)
-        else:
-            return dim_class(
-                components=components
-            )
+        return classification

@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from builtins import super
 __metaclass__ = type
 
 
@@ -6,13 +7,9 @@ class Classification():
 
     def __init__(
             self,
-            components,
             vacuum_dir=None,
-            analyzer=None
             ):
-        self.components = components
         self.vacuum_dir = vacuum_dir
-        self.analyzer = analyzer
 
 
 #===============================================================================
@@ -21,6 +18,8 @@ class Class0D(Classification):
     """Structures that have a structure that is isolated in all directions by a
     vacuum gap.
     """
+    def __init__(self):
+        pass
 
 
 class Atom(Class0D):
@@ -59,10 +58,11 @@ class Class2D(Classification):
     """
     def __init__(
             self,
-            region=None,
             vacuum_dir=None,
+            region=None,
             cell_analyzer=None
             ):
+        super().__init__(vacuum_dir)
         self.region = region
         if region is not None:
             self.basis_indices = region.get_basis_indices()
@@ -72,12 +72,12 @@ class Class2D(Classification):
             self.vacancies = region.get_vacancies()
             self.unknowns = region.get_unknowns()
         else:
-            self.basis_indices = None
-            self.interstitials = None
-            self.substitutions = None
-            self.adsorbates = None
-            self.vacancies = None
-            self.unknowns = None
+            self.basis_indices = ()
+            self.interstitials = ()
+            self.substitutions = ()
+            self.adsorbates = ()
+            self.vacancies = ()
+            self.unknowns = ()
         self.vacuum_dir = vacuum_dir
         self.cell_analyzer = cell_analyzer
 
@@ -92,36 +92,6 @@ class Material2D(Class2D):
     """
 
 
-# class SurfacePristine(Class2D):
-    # """
-    # """
-
-
-# class SurfaceDefected(Class2D):
-    # """
-    # """
-
-
-# class SurfaceAdsorption(Class2D):
-    # """
-    # """
-
-
-# class Material2DPristine(Class2D):
-    # """Consists of one Material2D component without defects or adsorbents.
-    # """
-
-
-# class Material2DDefected(Class2D):
-    # """Defected Material2D.
-    # """
-
-
-# class Material2DAdsorption(Class2D):
-    # """Adsorption on 2D material.
-    # """
-
-
 #===============================================================================
 # 3D Structures
 class Class3D(Classification):
@@ -129,37 +99,28 @@ class Class3D(Classification):
     """
     def __init__(
             self,
+            cell_analyzer,
             region=None,
-            interstitials=None,
-            substitutions=None,
-            vacancies=None,
-            unknown=None,
-            vacuum_dir=None,
-            cell_analyzer=None
             ):
         self.region = region
-        self.interstitials = [] if interstitials is None else interstitials
-        self.substitutions = [] if substitutions is None else substitutions
-        self.vacancies = [] if vacancies is None else vacancies
-        self.unknown = [] if unknown is None else unknown
-        self.vacuum_dir = vacuum_dir
+        if region is not None:
+            self.basis_indices = region.get_basis_indices()
+            self.interstitials = region.get_interstitials()
+            self.substitutions = region.get_substitutions()
+            self.vacancies = region.get_vacancies()
+            self.unknowns = region.get_unknowns()
+        else:
+            self.basis_indices = ()
+            self.interstitials = ()
+            self.substitutions = ()
+            self.vacancies = ()
+            self.unknowns = ()
         self.cell_analyzer = cell_analyzer
 
 
 class Crystal(Class3D):
     """
     """
-
-# class Class3DDisordered(Class3D):
-    # """All structures that periodically extend infinitely without vacuum gaps.
-    # """
-
-
-# class CrystalDefected(Class3D):
-    # """
-    # """
-
-
 
 
 #===============================================================================

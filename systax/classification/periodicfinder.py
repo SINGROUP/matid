@@ -32,20 +32,16 @@ class PeriodicFinder():
                 - 'cm': One seed nearest to center of mass
             max_cell_size(float): Guess for the maximum cell basis vector
                 lengths. In angstroms.
-            pos_tol_metric(str): The metric used for the position tolerance.
-            One of the following:
-                - 'absolute': Tolerance in angstroms
-                - 'rel_min_mean_dist': Relative to the average distance between
-                  all closest neighbours.
         """
         self.pos_tol = pos_tol
-        self.pos_tol_metric = pos_tol_metric
         self.angle_tol = angle_tol
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol_factor = 2
+        self.metric_max_filter = 0.9
+        self.cell_factor = 0.25
 
-    def get_regions(self, system, disp_tensor_pbc, dist_matrix_pbc, vacuum_dir, tesselation_distance):
+    def get_regions(self, system, disp_tensor_pbc, vacuum_dir, tesselation_distance):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
 
@@ -64,7 +60,6 @@ class PeriodicFinder():
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         self.disp_tensor_pbc = disp_tensor_pbc
-        self.dist_matrix_pbc = dist_matrix_pbc
 
         # Find the seed points
         if self.seed_algorithm == "cm":
@@ -251,7 +246,8 @@ class PeriodicFinder():
         # Find the best basis
         valid_span_metrics = metric[valid_span_indices]
         valid_spans = possible_spans[valid_span_indices]
-        best_combo, dim = self._find_best_basis(valid_spans, valid_span_metrics)
+        best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
+        dim = len(best_combo)
 
         # Currently 1D is not handled
         if dim == 1:
@@ -263,7 +259,7 @@ class PeriodicFinder():
         # Create a full periodicity graph for the found basis
         periodicity_graph = None
         full_adjacency_list = defaultdict(list)
-        for i_span in best_combo:
+        for ii_span, i_span in enumerate(best_combo):
             adjacency_list = adjacency_lists[i_span]
             for key, value in adjacency_list.items():
                 full_adjacency_list[key].extend(value)
@@ -271,7 +267,13 @@ class PeriodicFinder():
 
         # import matplotlib.pyplot as plt
         # plt.subplot(111)
-        # nx.draw(periodicity_graph)
+        # # nx.draw(periodicity_graph)
+        # pos = nx.spring_layout(periodicity_graph)
+        # nx.draw_networkx_nodes(periodicity_graph, pos)
+        # data = periodicity_graph.nodes(data=True)
+        # labels = {x[0]: x[0] for x in data}
+        # # print(data)
+        # nx.draw_networkx_labels(periodicity_graph, pos, labels, font_size=16)
         # plt.show()
 
         # Get all disconnected subgraphs
@@ -471,6 +473,14 @@ class PeriodicFinder():
         The given set of basis vectors should represent ones that reproduce the
         correct periodicity. This function then chooses one with correct
         dimensionality, minimal volume and maximal orthogonality.
+
+        Args:
+            valid_spans(np.ndarray):
+            valid_span_metrics(np.ndarray):
+
+        Returns:
+            np.ndarray: Indices of the best spans from the given list of valid
+            spans.
         """
         # Normed spans
         norms = np.linalg.norm(valid_spans, axis=1)
@@ -481,11 +491,7 @@ class PeriodicFinder():
             return [0], 1
         elif n_spans == 2:
             best_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)
-            if len(best_indices) == 2:
-                dim = 2
-            else:
-                dim = 1
-            return best_indices, dim
+            return best_indices
 
         # The angle threshold for validating cells
         angle_threshold = np.pi/180*self.angle_tol
@@ -525,17 +531,16 @@ class PeriodicFinder():
 
         # If there are three angles that are above the treshold, the cell is 3D
         if n_valids > 0:
-            dim = 3
 
             valid_indices = combo_indices[angles_mask]
             angle_sum = alphas[angles_mask] + betas[angles_mask] + gammas[angles_mask]
 
             # Filter out combos that do not have metric score close to maximum
-            # score that was found
+            # score that was found. This step is needed to filter out invalid
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > 0.8*max_metric
+            metric_filter = metric_sum > self.metric_max_filter*max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Filter the set into group with volume closest to the smallest
@@ -543,28 +548,21 @@ class PeriodicFinder():
             set_norms = norms[valid_indices]
             set_volumes = alphas[angles_mask][metric_filter]*alpha_cross_norm[angles_mask][metric_filter]*np.prod(set_norms, axis=1)
             smallest_volume = set_volumes.min()
-            smallest_cell_filter = (0.75*smallest_volume < set_volumes) & (set_volumes < 1.25*smallest_volume)
+            smallest_cell_filter = ((1-self.cell_factor)*smallest_volume < set_volumes) & (set_volumes < (1+self.cell_factor)*smallest_volume)
 
             # From the group with smallest volume find a combination with
             # highest orthogonality
             angle_set = angle_sum[metric_filter][smallest_cell_filter]
             biggest_angle_sum_filter = np.argmax(angle_set)
-
             best_span_indices = valid_indices[smallest_cell_filter][biggest_angle_sum_filter]
 
         else:
             best_span_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)
-            n_found_spans = len(best_span_indices)
-            if n_found_spans == 2:
-                dim = 2
-            elif n_found_spans == 1:
-                dim = 2
 
-        return best_span_indices, dim
+        return best_span_indices
 
     def _find_best_2d_basis(self, norm_spans, norms, valid_span_metrics):
         """Used to find the best 2D basis for a set of vectors.
-
         """
         # The angle threshold for validating cells
         angle_threshold = np.pi/180*self.angle_tol  # 10 degrees
@@ -594,11 +592,12 @@ class PeriodicFinder():
         # For 2D structures the best span pair has lowest area, angle
         # closest to 90 and sum of metric close to maximum that was found
         if n_cross_valids > 0:
+
             # Get all pairs that have metric close to maximum
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > 0.8*max_metric
+            metric_filter = metric_sum > self.metric_max_filter*max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Find group of cells by finding cells with smallest aree
@@ -607,7 +606,7 @@ class PeriodicFinder():
             valid_norms = np.prod(norms[valid_indices], axis=1)
             areas = valid_norms*sin_angle
             smallest_area = areas.min()
-            smallest_cells_filter = (0.75*smallest_area < areas) & (areas < 1.25*smallest_area)
+            smallest_cells_filter = ((1-self.cell_factor)*smallest_area < areas) & (areas < (1+self.cell_factor)*smallest_area)
             valid_indices = valid_indices[smallest_cells_filter]
 
             # From the group with smallest area find a combination with
@@ -806,6 +805,9 @@ class PeriodicFinder():
 
                 disloc = np.dot(multiplier, old_basis)
                 seed_guess = seed_pos + disloc
+
+                # if seed_index == 105:
+                    # print(seed_guess)
 
                 matches, _, _, factors = systax.geometry.get_matches(
                     system,
