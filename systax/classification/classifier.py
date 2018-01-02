@@ -39,7 +39,7 @@ class Classifier():
     def __init__(
             self,
             seed_algorithm="cm",
-            max_cell_size=10,
+            max_cell_size=8,
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
@@ -140,7 +140,7 @@ class Classifier():
             # Check if system consists of one atom or one molecule
             n_atoms = len(system)
             if n_atoms == 1:
-                classification = Atom(vacuum_dir)
+                classification = Atom()
             else:
                 formula = system.get_chemical_formula()
                 try:
@@ -148,7 +148,7 @@ class Classifier():
                 except KeyError:
                     pass
                 else:
-                    classification = Molecule(vacuum_dir)
+                    classification = Molecule()
 
         # 1D structures
         elif dimensionality == 1:

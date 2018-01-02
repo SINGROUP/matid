@@ -38,7 +38,7 @@ class PeriodicFinder():
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol_factor = 2
-        self.metric_max_filter = 0.9
+        self.metric_max_filter = 0.95
         self.cell_factor = 0.25
 
     def get_regions(self, system, disp_tensor_pbc, vacuum_dir, tesselation_distance):
@@ -596,6 +596,7 @@ class PeriodicFinder():
             # Get all pairs that have metric close to maximum
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
+            # print(metric_sum)
             max_metric = metric_sum.max()
             metric_filter = metric_sum > self.metric_max_filter*max_metric
             valid_indices = valid_indices[metric_filter]
