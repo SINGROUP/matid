@@ -37,6 +37,7 @@ if __name__ == "__main__":
             "ase",
             "spglib",
             "sklearn",
+            "networkx",
         ],
         python_requires='>=2.6, <4',
     )

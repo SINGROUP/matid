@@ -3,3 +3,4 @@ scipy
 ase
 spglib
 sklearn
+networkx

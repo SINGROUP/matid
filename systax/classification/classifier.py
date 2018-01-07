@@ -44,8 +44,8 @@ class Classifier():
             pos_tol_mode="relative",
             angle_tol=20,
             vacuum_threshold=6,
+            cluster_threshold=3.0,
             crystallinity_threshold=0.25,
-            connectivity_crystal=3.0,
             tesselation_distance=6
             ):
         """
@@ -62,11 +62,12 @@ class Classifier():
                     - "absolute": Absolute tolerance in angstroms.
             vacuum_threshold(float): Amount of vacuum that is considered to
                 decouple interaction between structures.
+            cluster_threshold(float): A parameter that controls which atoms are
+                considered to be energetically connected when clustering is
+                perfomed the connectivity that is required for .
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
-            connectivity_crystal(float): A parameter that controls the
-                connectivity that is required for the atoms of a crystal.
         """
         self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
@@ -76,7 +77,7 @@ class Classifier():
         self.angle_tol = angle_tol
         self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
-        self.connectivity_crystal = connectivity_crystal
+        self.cluster_threshold = cluster_threshold
         self.tesselation_distance = tesselation_distance
 
         allowed_modes = set(["relative", "absolute"])
@@ -125,7 +126,7 @@ class Classifier():
         try:
             dimensionality, vacuum_dir = systax.geometry.get_dimensionality(
                 system,
-                self.connectivity_crystal,
+                self.cluster_threshold,
                 self.vacuum_threshold,
                 disp_tensor=disp_tensor,
                 disp_tensor_pbc=disp_tensor_pbc
