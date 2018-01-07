@@ -6,7 +6,7 @@ with open("README.md", "r") as fin:
 
 if __name__ == "__main__":
     setup(name="systax",
-        version="0.0.4",
+        version="0.1.0",
         description=(
             "Systax is a python package for the analysis and classification of "
             "atomistic systems."
@@ -32,6 +32,8 @@ if __name__ == "__main__":
         keywords='atoms structure material science crystal symmetry spglib',
         packages=find_packages(),
         install_requires=[
+            "future",
+            "enum",
             "numpy",
             "scipy",
             "ase",

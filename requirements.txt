@@ -1,3 +1,5 @@
+future
+enum
 numpy
 scipy
 ase
