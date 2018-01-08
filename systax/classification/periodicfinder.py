@@ -41,6 +41,15 @@ class PeriodicFinder():
         self.metric_max_filter = 0.95
         self.cell_factor = 0.25
 
+        # Check the seed algorithm
+        possible_algorithms = set(["cm"])
+        if seed_algorithm in possible_algorithms:
+            self.seed_algorithm = seed_algorithm
+        else:
+            msg = "Unknown seed selection algorithm '{}'. Please use one of the following: ".format(seed_algorithm)
+            msg += ", ".join(possible_algorithms)
+            raise ValueError(msg)
+
     def get_regions(self, system, disp_tensor_pbc, vacuum_dir, tesselation_distance):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
@@ -61,7 +70,6 @@ class PeriodicFinder():
         """
         self.disp_tensor_pbc = disp_tensor_pbc
 
-        # Find the seed points
         if self.seed_algorithm == "cm":
             seed_points = [self._find_seed_cm(system)]
 
@@ -297,7 +305,7 @@ class PeriodicFinder():
             n_edges = np.array(list(node_edges.values()))
             mean_edges = n_edges.mean()
 
-            if mean_edges >= 2:
+            if mean_edges >= dim:
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
@@ -601,7 +609,7 @@ class PeriodicFinder():
             metric_filter = metric_sum > self.metric_max_filter*max_metric
             valid_indices = valid_indices[metric_filter]
 
-            # Find group of cells by finding cells with smallest aree
+            # Find group of cells by finding cells with smallest area
             crosses = pair_crosses[valid_indices[:, 0], valid_indices[:, 1]]
             sin_angle = np.abs(np.linalg.norm(crosses, axis=1))
             valid_norms = np.prod(norms[valid_indices], axis=1)
