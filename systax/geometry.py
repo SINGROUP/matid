@@ -188,13 +188,15 @@ def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
             for i, j in zip(connectivity_mask[0], connectivity_mask[1]):
                 tesselation_atoms += Atom(num[j], pos[j]+disp[i, j])
 
-    # The QJ options makes sure that all positions are included in the tesselation
     tesselation_pos = tesselation_atoms.get_positions()
 
+    # The QJ options makes sure that all positions are included in the
+    # tesselation
     tri = Delaunay(tesselation_pos, qhull_options="QJ")
     simplices = tri.simplices
 
-    # Keep tetrahedra for which the sides are smaller than a threshold
+    # Keep tetrahedra for which the sides are smaller than a threshold. Takes
+    # into account the radii of the atoms.
     distance_matrix = get_covalent_distances(tesselation_atoms, mic=False)
     valid_simplex_indices = set()
     for i_simplex, simplex in enumerate(simplices):

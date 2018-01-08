@@ -355,14 +355,17 @@ class PeriodicFinder():
             scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
             scaled_pos %= 1
 
-            # Find the copy with minimum manhattan distance from origin
-            manhattan_distances = np.sum(scaled_pos, axis=1)
-            min_manhattan_index = np.argmin(manhattan_distances)
-            min_manhattan_pos = scaled_pos[min_manhattan_index]
+            # Find the copy with minimum distance from origin
+            # manhattan_distances = np.sum(scaled_pos, axis=1)
+            # min_manhattan_index = np.argmin(manhattan_distances)
+            # min_manhattan_pos = scaled_pos[min_manhattan_index]
+            distances = np.linalg.norm(scaled_pos, axis=1)
+            min_dist_index = np.argmin(distances)
+            min_dist_pos = scaled_pos[min_dist_index]
 
             # All the other copies are moved periodically to be near the min.
             # manhattan copy
-            distances = scaled_pos - min_manhattan_pos
+            distances = scaled_pos - min_dist_pos
             displacement = np.rint(distances)
             final_pos = scaled_pos - displacement
 
@@ -381,6 +384,101 @@ class PeriodicFinder():
         )
 
         return proto_cell, offset
+
+    # def _find_average_positions(self, valid_graphs, cell_guess, positions, distances):
+        # """Used to find an average shape for the cell and the average relative
+        # positions of atoms within that cell.
+        # """
+        # for graph in valid_graphs:
+            # nodes = graph.nodes()
+            # for node in nodes:
+                # # Find the nodes that define the basis for this local cell.
+                # edges = nodes.edges()
+                # for edge in
+                    # forward_indec
+
+        # Find all the unit cell within the neighbourhood
+
+        # Find the positions and indices of atoms that are within each cell
+
+        # Find the average relative positions for atoms that are connected by the network
+
+    def _find_new_seeds_and_cell(self, system, seed_index, dislocations, multipliers, orig_cell, used_seed_indices):
+        orig_pos = system.get_positions()
+        orig_num = system.get_atomic_numbers()
+        seed_pos = orig_pos[seed_index]
+        seed_atomic_number = orig_num[seed_index]
+
+        new_seed_indices = []
+        new_seed_pos = []
+        i_cell = np.zeros((3, 3))
+
+        if seed_index is not None:
+            seed_guesses = seed_pos + dislocations
+
+            matches, _, _, factors = systax.geometry.get_matches(
+                system,
+                seed_guesses,
+                len(dislocations)*[seed_atomic_number],
+                self.pos_tol_factor*self.pos_tol)
+
+            for match, factor, seed_guess, multiplier, disloc in zip(matches, factors, seed_guesses, multipliers, dislocations):
+
+                # Save the position corresponding to a seed atom or a guess for it.
+                # If a match was found that is not the original seed, use it's
+                # position to update the cell. If the matched index is the same as
+                # the original seed, check the factors array to decide whether to
+                # use the guess or not.
+                if match is not None:
+                    if match != seed_index:
+                        i_seed_pos = orig_pos[match]
+                    else:
+                        if (factor == 0).all():
+                            i_seed_pos = seed_guess
+                        else:
+                            i_seed_pos = orig_pos[match]
+                else:
+                    i_seed_pos = seed_guess
+
+                # Store the indices and positions of new valid seeds
+                if (factor == 0).all():
+                    # Check if this index has already been used as a seed. The
+                    # used_seed_indices is needed so that the same atom cannot
+                    # become a seed point multiple times. This can otherwise
+                    # become a problem in e.g. random systems, or "looped"
+                    # structures.
+                    add = True
+                    if match is not None:
+                        if match in used_seed_indices:
+                            add = False
+                    if add:
+                        new_seed_indices.append(match)
+                        new_seed_pos.append(i_seed_pos)
+                        if match is not None:
+                            used_seed_indices.add(match)
+
+                # Store the new cell basis vector
+                if tuple(multiplier) == (1, 0, 0):
+                    if match is None:
+                        a = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        a = temp - seed_pos
+                    i_cell[0, :] = a
+                elif tuple(multiplier) == (0, 1, 0):
+                    if match is None:
+                        b = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        b = temp - seed_pos
+                    i_cell[1, :] = b
+                elif tuple(multiplier) == (0, 0, 1):
+                    if match is None:
+                        c = disloc
+                    else:
+                        temp = i_seed_pos + np.dot(factor, orig_cell)
+                        c = temp - seed_pos
+                    i_cell[2, :] = c
 
     def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
         """
@@ -406,7 +504,7 @@ class PeriodicFinder():
         basis_element_num = []
         for i_group, positions in enumerate(pos):
 
-            # Calculate position in the relative basis of the found cell cell
+            # Calculate position in the relative basis of the found cell
             scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
             scaled_pos_2d = scaled_pos[:, 0:2]
             scaled_pos_2d %= 1
@@ -814,9 +912,6 @@ class PeriodicFinder():
 
                 disloc = np.dot(multiplier, old_basis)
                 seed_guess = seed_pos + disloc
-
-                # if seed_index == 105:
-                    # print(seed_guess)
 
                 matches, _, _, factors = systax.geometry.get_matches(
                     system,
