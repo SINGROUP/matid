@@ -43,7 +43,6 @@ class Classifier():
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
-            vacuum_threshold=6,
             cluster_threshold=3.0,
             crystallinity_threshold=0.25,
             tesselation_distance=6
@@ -60,8 +59,6 @@ class Classifier():
                     - "relative": Tolerance relative to the average nearest
                       neighbour distance.
                     - "absolute": Absolute tolerance in angstroms.
-            vacuum_threshold(float): Amount of vacuum that is considered to
-                decouple interaction between structures.
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
                 perfomed the connectivity that is required for .
@@ -75,7 +72,6 @@ class Classifier():
         self.abs_pos_tol = None
         self.pos_tol_mode = pos_tol_mode
         self.angle_tol = angle_tol
-        self.vacuum_threshold = vacuum_threshold
         self.crystallinity_threshold = crystallinity_threshold
         self.cluster_threshold = cluster_threshold
         self.tesselation_distance = tesselation_distance
@@ -127,7 +123,6 @@ class Classifier():
             dimensionality, vacuum_dir = systax.geometry.get_dimensionality(
                 system,
                 self.cluster_threshold,
-                self.vacuum_threshold,
                 disp_tensor=disp_tensor,
                 disp_tensor_pbc=disp_tensor_pbc
             )

@@ -24,7 +24,6 @@ from scipy.spatial import Delaunay
 def get_dimensionality(
         system,
         cluster_threshold,
-        vacuum_threshold,
         disp_tensor=None,
         disp_tensor_pbc=None
     ):
@@ -35,8 +34,6 @@ def get_dimensionality(
             evaluated.
         cluster_threshold(float): The epsilon value for the DBSCAN algorithm
             that is used to identify clusters within the unit cell.
-        vacuum_threshold(float): The minimum distance between two periodic copies of
-            the system for them to be considered energetically separated.
         disp_tensor (np.ndarray): A precalculated displacement tensor for the
             system.
         disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
@@ -114,13 +111,14 @@ def get_dimensionality(
             continue
 
         # If system is periodic in this direction, calculate the distance
-        # between the periodicly repeated cluster
+        # between the periodicly repeated cluster by also taking radii into
+        # account
         disp = np.array(displacements_finite)
         disp += basis
         dist = np.linalg.norm(disp, axis=2)
         dist -= radii_matrix
         min_dist = dist.min()
-        if min_dist >= vacuum_threshold:
+        if min_dist >= cluster_threshold:
             vacuum_gaps[i_basis] = True
             dim -= 1
 

@@ -189,7 +189,6 @@ class DimensionalityTests(unittest.TestCase):
     """
     # Read the defaults
     classifier = Classifier()
-    vacuum_threshold = classifier.vacuum_threshold
     cluster_threshold = classifier.cluster_threshold
 
     def test_atom(self):
@@ -201,8 +200,7 @@ class DimensionalityTests(unittest.TestCase):
         )
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
         self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
@@ -215,8 +213,7 @@ class DimensionalityTests(unittest.TestCase):
         )
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
         self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
@@ -228,8 +225,7 @@ class DimensionalityTests(unittest.TestCase):
         system.center()
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
         self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
@@ -251,8 +247,7 @@ class DimensionalityTests(unittest.TestCase):
         # view(sys)
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
@@ -274,8 +269,7 @@ class DimensionalityTests(unittest.TestCase):
         # view(sys)
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
@@ -289,8 +283,7 @@ class DimensionalityTests(unittest.TestCase):
         # view(sys)
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
@@ -311,8 +304,7 @@ class DimensionalityTests(unittest.TestCase):
         # view(sys)
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
@@ -324,8 +316,7 @@ class DimensionalityTests(unittest.TestCase):
             latticeconstant=5.430710)
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
 
@@ -337,8 +328,7 @@ class DimensionalityTests(unittest.TestCase):
             latticeconstant=(2.461, 6.708))
         dimensionality, gaps = systax.geometry.get_dimensionality(
             system,
-            DimensionalityTests.cluster_threshold,
-            DimensionalityTests.vacuum_threshold)
+            DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
         self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
 
@@ -2049,17 +2039,17 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
