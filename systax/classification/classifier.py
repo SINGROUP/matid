@@ -38,19 +38,25 @@ class Classifier():
     """
     def __init__(
             self,
-            seed_algorithm="cm",
+            seed_position="cm",
             max_cell_size=8,
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
             cluster_threshold=3.0,
             crystallinity_threshold=0.25,
-            tesselation_distance=6
+            delaunay_threshold=6,
+            delaunay_threshold_mode="relative",
+            pos_tol_factor=2,
+            n_edge_tol=0.95,
+            cell_size_tol=0.25
             ):
         """
         Args:
-            seed_algorithm(str): Algorithm for finding unit cells. The options are:
-                -"cm": One seed point at atom nearest to center of mass.
+            seed_position(str or np.ndarray): The seed position. Either provide
+                a 3D vector from which the closest atom will be used as a seed, or
+                then provide a valid option as a string. Valid options are:
+                    - 'cm': One seed nearest to center of mass
             max_cell_size(float): The maximum cell size
             pos_tol(float): The position tolerance in angstroms for finding translationally
                 repeated units.
@@ -66,7 +72,6 @@ class Classifier():
                 operations per atoms in primitive cell that is required for
                 crystals.
         """
-        self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
         self.abs_pos_tol = None
@@ -74,8 +79,24 @@ class Classifier():
         self.angle_tol = angle_tol
         self.crystallinity_threshold = crystallinity_threshold
         self.cluster_threshold = cluster_threshold
-        self.tesselation_distance = tesselation_distance
+        self.delaunay_threshold = delaunay_threshold,
+        self.delaunay_threshold_mode = delaunay_threshold_mode
+        self.pos_tol_factor = pos_tol_factor
+        self.n_edge_tol = n_edge_tol
+        self.cell_size_tol = cell_size_tol
 
+        # Check seed position
+        if type(seed_position) == str:
+            if seed_position == "cm":
+                pass
+            else:
+                raise ValueError(
+                    "Unknown seed_position: '{}'. Please provide a 3D vector "
+                    "or a valid option as a string.".format(seed_position)
+                )
+        self.seed_position = seed_position
+
+        # Check pos tolerance mode
         allowed_modes = set(["relative", "absolute"])
         if pos_tol_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'pos_tol_mode'.".format(pos_tol_mode))
@@ -168,18 +189,25 @@ class Classifier():
 
             classification = Class2D(vacuum_dir)
 
+            # Get the index of the seed atom
+            if self.seed_position == "cm":
+                seed_vec = self.system.get_center_of_mass()
+            else:
+                seed_vec = self.seed_position
+            seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+
             # Run the region detection on the whole system.
             periodicfinder = PeriodicFinder(
                 pos_tol=self.abs_pos_tol,
                 angle_tol=self.angle_tol,
-                seed_algorithm="cm",
-                max_cell_size=self.max_cell_size)
-            regions = periodicfinder.get_regions(system, disp_tensor_pbc, vacuum_dir, self.tesselation_distance)
-
-            # If more than one region found, categorize as unknown
-            n_regions = len(regions)
-            if n_regions == 1:
-                region = regions[0]
+                max_cell_size=self.max_cell_size,
+                pos_tol_factor=self.pos_tol_factor,
+                cell_size_tol=self.cell_size_tol,
+                n_edge_tol=self.n_edge_tol
+            )
+            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.delaunay_threshold)
+            if region is not None:
+                region = region[1]
 
                 # If the region covers less than 50% of the whole system,
                 # categorize as Class2D
@@ -213,13 +241,22 @@ class Classifier():
                     periodicfinder = PeriodicFinder(
                         pos_tol=self.abs_pos_tol,
                         angle_tol=self.angle_tol,
-                        seed_algorithm="cm",
-                        max_cell_size=self.max_cell_size)
+                        max_cell_size=self.max_cell_size,
+                        pos_tol_factor=self.pos_tol_factor,
+                        cell_size_tol=self.cell_size_tol,
+                        n_edge_tol=self.n_edge_tol
+                    )
 
-                    regions = periodicfinder.get_regions(system, disp_tensor_pbc, vacuum_dir, self.tesselation_distance)
-                    n_regions = len(regions)
-                    if n_regions == 1:
-                        region = regions[0]
+                    # Get the index of the seed atom
+                    if self.seed_position == "cm":
+                        seed_vec = self.system.get_center_of_mass()
+                    else:
+                        seed_vec = self.seed_position
+                    seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+
+                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.delaunay_threshold)
+                    if region is not None:
+                        region = region[1]
 
                         # If all the regions cover at least 80% of the structure,
                         # then we consider it to be a defected crystal

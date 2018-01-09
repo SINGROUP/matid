@@ -19,44 +19,45 @@ from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
 class PeriodicFinder():
     """Used to find translationally periodic structures within atomic systems.
     """
-    def __init__(self, pos_tol, angle_tol, seed_algorithm, max_cell_size, pos_tol_metric=None):
+    def __init__(
+            self,
+            pos_tol,
+            angle_tol,
+            max_cell_size,
+            pos_tol_factor,
+            cell_size_tol,
+            n_edge_tol
+        ):
         """
         Args:
-            pos_tol(float): The positions tolerance for finding atoms. The
-                value depends on the metric that is used, see parameter
-                'pos_tol_metric'.
+            pos_tol(float): The positions tolerance for finding atoms in
+                angstroms.
             angle_tol(float): The angle tolerance for separating parallel
                 directions. Directions that have angle smaller than this value
                 are considered to be parallel.
-            seed_algorithm(str): The seed algorithm. One of the following:
-                - 'cm': One seed nearest to center of mass
             max_cell_size(float): Guess for the maximum cell basis vector
                 lengths. In angstroms.
+            pos_tol_factor(float): A factor that is used to multiply the
+                position tolerance when finding atoms in adjacent unit cell.
+            cell_size_tol(float):
+            n_edge_tol(float):
         """
         self.pos_tol = pos_tol
         self.angle_tol = angle_tol
-        self.seed_algorithm = seed_algorithm
         self.max_cell_size = max_cell_size
-        self.pos_tol_factor = 2
-        self.metric_max_filter = 0.95
-        self.cell_factor = 0.25
+        self.pos_tol_factor = pos_tol_factor
+        self.cell_size_tol = cell_size_tol
+        self.n_edge_tol = n_edge_tol
 
-        # Check the seed algorithm
-        possible_algorithms = set(["cm"])
-        if seed_algorithm in possible_algorithms:
-            self.seed_algorithm = seed_algorithm
-        else:
-            msg = "Unknown seed selection algorithm '{}'. Please use one of the following: ".format(seed_algorithm)
-            msg += ", ".join(possible_algorithms)
-            raise ValueError(msg)
-
-    def get_regions(self, system, disp_tensor_pbc, vacuum_dir, tesselation_distance):
+    def get_region(self, system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
 
         Args:
             system(ase.Atoms): The system from which to find the periodic
                 regions.
+            seed_index(int): The index of the atom from which the search is
+                initiated.
             vacuum_dir(sequence three booleans): The cell basis directions that
                 have a vacuum gap.
 
@@ -65,88 +66,48 @@ class PeriodicFinder():
                 indices: Indices of the atoms belonging to a region
                 linkedunitcollection: A LinkedUnitCollection object
                     representing the region
-                atoms: An ASE.Atoms object representing the region
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         self.disp_tensor_pbc = disp_tensor_pbc
+        region = None
+        possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
+        proto_cell, offset, dim = self._find_proto_cell(
+            system,
+            seed_index,
+            possible_spans,
+            neighbour_mask,
+            vacuum_dir
+        )
 
-        if self.seed_algorithm == "cm":
-            seed_points = [self._find_seed_cm(system)]
+        # 1D is not handled
+        if dim == 1 or proto_cell is None:
+            return None
 
-        # Find possible bases for each seed point
-        regions = []
+        # The indices of the periodic dimensions.
+        periodic_indices = list(range(dim))
 
-        for seed_index in seed_points:
-            possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
-            proto_cell, offset, dim = self._find_proto_cell(
-                system,
-                seed_index,
-                possible_spans,
-                neighbour_mask,
-                vacuum_dir
-            )
+        # view(proto_cell)
+        # print(seed_position)
 
-            # 1D is not handled
-            if dim == 1 or proto_cell is None:
-                return []
+        # Find a region that is spanned by the found unit cell
+        unit_collection = self._find_periodic_region(
+            system,
+            vacuum_dir,
+            dim == 2,
+            tesselation_distance,
+            seed_index,
+            proto_cell,
+            offset,
+            periodic_indices)
 
-            # The indices of the periodic dimensions.
-            periodic_indices = list(range(dim))
+        i_indices = unit_collection.get_basis_indices()
+        # rec = unit_collection.recreate_valid()
+        # view(rec)
 
-            # view(proto_cell)
-            # print(seed_position)
+        if len(i_indices) > 0:
+            region = (i_indices, unit_collection, proto_cell)
 
-            # Find a region that is spanned by the found unit cell
-            unit_collection = self._find_periodic_region(
-                system,
-                vacuum_dir,
-                dim == 2,
-                tesselation_distance,
-                seed_index,
-                proto_cell,
-                offset,
-                periodic_indices)
-
-            i_indices = unit_collection.get_basis_indices()
-            # rec = unit_collection.recreate_valid()
-            # view(rec)
-
-            if len(i_indices) > 0:
-                regions.append((i_indices, unit_collection, proto_cell))
-
-        # Combine regions that are identical. The algorithm used here is
-        # suboptimal but there are not so many regions here to compare.
-        n_regions = len(regions)
-        similarity = np.zeros((n_regions, n_regions))
-        intersection_threshold = 0.9
-        for i in range(n_regions):
-            for j in range(n_regions):
-                if j > i:
-                    i_ind = set(regions[i][0])
-                    j_ind = set(regions[j][0])
-                    l_total = len(i_ind.union(j_ind))
-                    l_intersection = i_ind.intersection(j_ind)
-                    l_sim = l_intersection/l_total
-                    similarity[i, j] = l_sim
-
-        # Return only dissimilar regions
-        dissimilar = []
-        initial = set(range(n_regions))
-        for i in range(n_regions):
-            for j in initial:
-                if j >= i:
-                    l_sim = similarity[i, j]
-                    if l_sim >= intersection_threshold:
-                        initial.remove(i)
-                    dissimilar.append(j)
-
-        # See if the found cell is OK
-        region_tuples = []
-        for i_region in dissimilar:
-            l_ind, l_coll, l_cell = regions[i_region]
-            region_tuples.append(l_coll)
-
-        return region_tuples
+        return region
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -356,15 +317,12 @@ class PeriodicFinder():
             scaled_pos %= 1
 
             # Find the copy with minimum distance from origin
-            # manhattan_distances = np.sum(scaled_pos, axis=1)
-            # min_manhattan_index = np.argmin(manhattan_distances)
-            # min_manhattan_pos = scaled_pos[min_manhattan_index]
             distances = np.linalg.norm(scaled_pos, axis=1)
             min_dist_index = np.argmin(distances)
             min_dist_pos = scaled_pos[min_dist_index]
 
-            # All the other copies are moved periodically to be near the min.
-            # manhattan copy
+            # All the other copies are moved periodically to be near the
+            # position that is closest to origin.
             distances = scaled_pos - min_dist_pos
             displacement = np.rint(distances)
             final_pos = scaled_pos - displacement
@@ -384,26 +342,6 @@ class PeriodicFinder():
         )
 
         return proto_cell, offset
-
-    # def _find_average_positions(self, valid_graphs, cell_guess, positions, distances):
-        # """Used to find an average shape for the cell and the average relative
-        # positions of atoms within that cell.
-        # """
-        # for graph in valid_graphs:
-            # nodes = graph.nodes()
-            # for node in nodes:
-                # # Find the nodes that define the basis for this local cell.
-                # edges = nodes.edges()
-                # for edge in
-                    # forward_indec
-
-        # Find all the unit cell within the neighbourhood
-
-        # Find the positions and indices of atoms that are within each cell
-
-        # Find the average relative positions for atoms that are connected by the network
-
-
 
     def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
         """
@@ -435,13 +373,13 @@ class PeriodicFinder():
             scaled_pos_2d %= 1
 
             # Find the copy with minimum manhattan distance from origin
-            manhattan_distances = np.sum(scaled_pos_2d, axis=1)
-            min_manhattan_index = np.argmin(manhattan_distances)
-            min_manhattan_pos = scaled_pos_2d[min_manhattan_index]
+            distances = np.linalg.norm(scaled_pos_2d, axis=1)
+            min_dist_index = np.argmin(distances)
+            min_dist_pos = scaled_pos_2d[min_dist_index]
 
             # All the other copies are moved periodically to be near the min.
             # manhattan copy
-            distances = scaled_pos_2d - min_manhattan_pos
+            distances = scaled_pos_2d - min_dist_pos
             displacement = np.rint(distances)
             final_pos_2d = scaled_pos_2d - displacement
 
@@ -571,7 +509,7 @@ class PeriodicFinder():
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > self.metric_max_filter*max_metric
+            metric_filter = metric_sum > self.n_edge_tol*max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Filter the set into group with volume closest to the smallest
@@ -579,7 +517,7 @@ class PeriodicFinder():
             set_norms = norms[valid_indices]
             set_volumes = alphas[angles_mask][metric_filter]*alpha_cross_norm[angles_mask][metric_filter]*np.prod(set_norms, axis=1)
             smallest_volume = set_volumes.min()
-            smallest_cell_filter = ((1-self.cell_factor)*smallest_volume < set_volumes) & (set_volumes < (1+self.cell_factor)*smallest_volume)
+            smallest_cell_filter = set_volumes < (1+self.cell_size_tol)*smallest_volume
 
             # From the group with smallest volume find a combination with
             # highest orthogonality
@@ -629,7 +567,7 @@ class PeriodicFinder():
             metric_sum = np.sum(metrics, axis=1)
             # print(metric_sum)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > self.metric_max_filter*max_metric
+            metric_filter = metric_sum > self.n_edge_tol*max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Find group of cells by finding cells with smallest area
@@ -638,7 +576,7 @@ class PeriodicFinder():
             valid_norms = np.prod(norms[valid_indices], axis=1)
             areas = valid_norms*sin_angle
             smallest_area = areas.min()
-            smallest_cells_filter = ((1-self.cell_factor)*smallest_area < areas) & (areas < (1+self.cell_factor)*smallest_area)
+            smallest_cells_filter = areas < (1+self.cell_size_tol)*smallest_area
             valid_indices = valid_indices[smallest_cells_filter]
 
             # From the group with smallest area find a combination with
@@ -654,17 +592,6 @@ class PeriodicFinder():
             best_span_indices = np.array([np.argmin(norms)])
 
         return best_span_indices
-
-    def _find_seed_cm(self, system):
-        """Finds the index of the seed point closest to the center of mass of
-        the system.
-        """
-        cm = system.get_center_of_mass()
-        positions = system.get_positions()
-        distances = systax.geometry.get_distance_matrix(cm, positions)
-        min_index = np.argmin(distances)
-
-        return min_index
 
     def _find_periodic_region(self, system, vacuum_dir, is_2d,
             tesselation_distance, seed_index, unit_cell, seed_position,

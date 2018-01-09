@@ -9,7 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 
 from ase.data import covalent_radii
-from ase import Atom, Atoms
+from ase import Atom
 from ase.visualize import view
 
 from systax.data.element_data import get_covalent_radii
@@ -19,6 +19,47 @@ from systax.core.linkedunits import Substitution
 from sklearn.cluster import DBSCAN
 
 from scipy.spatial import Delaunay
+
+
+def get_nearest_atom(system, position):
+    """Finds the index of the atom nearest to the given position in the given
+    system.
+
+    Args:
+        system(ase.Atoms): The system from which the atom is searched from.
+        position(np.ndarray): The position to search.
+
+    Returns:
+        int: Index of the nearest atom.
+    """
+    positions = system.get_positions()
+    distances = get_distance_matrix(position, positions)
+    min_index = np.argmin(distances)
+
+    return min_index
+
+
+def get_nearest_neighbours(system, dist_matrix_pbc):
+    """For each atom in the given system, returns a list of indices for the
+    nearest neighbours and a list of distances to the neighbour.
+
+    Args:
+        system(ase.Atoms): The system from which the nearest neighbours are
+            calculated
+
+    Returns:
+        int: Index of the nearest atom.
+    """
+    cell = system.get_cell()
+    min_basis = np.linalg.norm(cell, axis=1).min()
+    dist_matrix_mod = np.array(dist_matrix_pbc)
+    np.fill_diagonal(dist_matrix_mod, min_basis)
+
+    columns = np.argmin(dist_matrix_mod, axis=1)
+    rows = range(len(system))
+    distances = dist_matrix_mod[rows, columns]
+
+    return columns, distances
 
 
 def get_dimensionality(
