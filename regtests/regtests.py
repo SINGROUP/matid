@@ -333,59 +333,6 @@ class DimensionalityTests(unittest.TestCase):
         self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
 
 
-class TesselationTests(unittest.TestCase):
-    """Tests the tesselation of different systems.
-    """
-    def test_small(self):
-        """Tests that the tesselation will extend to neighbouring cells in
-        small systems.
-        """
-        system = Atoms(positions=[[1.5, 1.5, 6.5], [1.5, 1.5, 8.5]], symbols=["Fe", "Fe"], cell=[3, 3, 15], pbc=True)
-        # view(system)
-        tesselation = systax.geometry.get_tetrahedra_tesselation(system, [False, False, True], 3)
-
-        # An atom above should not belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 8.6]))
-        self.assertTrue(simplex is None)
-
-        # An atom below should not belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 6.4]))
-        self.assertTrue(simplex is None)
-
-        # This atom should belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 7]))
-        self.assertTrue(simplex is not None)
-
-        # This atom should belong to tesselation
-        simplex = tesselation.find_simplex(np.array([0, 0, 7]))
-        self.assertTrue(simplex is not None)
-
-    def test_big(self):
-        """Tests that the tesselation will extend to neighbouring cells in
-        big systems.
-        """
-        system = Atoms(positions=[[1.5, 1.5, 6.5], [1.5, 1.5, 8.5]], symbols=["Fe", "Fe"], cell=[3, 3, 15], pbc=True)
-        system = system.repeat([5, 5, 1])
-        # view(system)
-        tesselation = systax.geometry.get_tetrahedra_tesselation(system, [False, False, True], 3)
-
-        # An atom above should not belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 8.6]))
-        self.assertTrue(simplex is None)
-
-        # An atom below should not belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 6.4]))
-        self.assertTrue(simplex is None)
-
-        # This atom should belong to tesselation
-        simplex = tesselation.find_simplex(np.array([1.5, 1.5, 7]))
-        self.assertTrue(simplex is not None)
-
-        # # This atom should belong to tesselation
-        simplex = tesselation.find_simplex(np.array([0, 0, 7]))
-        self.assertTrue(simplex is not None)
-
-
 class PeriodicFinderTests(unittest.TestCase):
     """Unit tests for the class that is used to find periodic regions.
     """
@@ -690,14 +637,18 @@ class PeriodicFinderTests(unittest.TestCase):
                 n_region_atoms = len(region.get_basis_indices())
                 self.assertTrue(n_region_atoms < 10)
 
-    def test_substitutions(self):
-        """Test that substitutional atoms are found correctly.
+    def test_surface_substitution(self):
+        """Test how a surface where an atom at the surface has been substituted
+        is getting classified. The classification depends on the delaunay
+        threshold. Currently it is favoured that these kind of atoms are
+        classified as adsorbates. This is because this corresponds to lower
+        delaunay threshold which is faster.
         """
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
         labels = system.get_atomic_numbers()
         labels[2] = 41
         system.set_atomic_numbers(labels)
-        # view(sys)
+        # view(system)
 
         # Calculate the diplacement tensor and the mean nearest neighbour
         # distance
@@ -728,11 +679,9 @@ class PeriodicFinderTests(unittest.TestCase):
         region = region[1]
 
         substitutions = region.get_substitutions()
-        self.assertEqual(len(substitutions), 1)
-        subst = substitutions[0]
-        self.assertEqual(subst.index, 2)
-        self.assertEqual(subst.original_element, 26)
-        self.assertEqual(subst.substitutional_element, 41)
+        adsorbates = region.get_adsorbates()
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(adsorbates), 1)
 
     # def test_nanocluster(self):
         # """Test the periodicity finder on an artificial nanocluster.
@@ -777,6 +726,75 @@ class PeriodicFinderTests(unittest.TestCase):
         # region = regions[0]
         # rec = region.recreate_valid()
         # view(rec)
+
+
+class DelaunayTests(unittest.TestCase):
+    """Tests for the Delaunay triangulation.
+    """
+    classifier = Classifier()
+    delaunay_threshold = classifier.delaunay_threshold
+
+    def test_surface(self):
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # view(system)
+        vacuum_gaps = [False, False, True]
+        decomposition = systax.geometry.get_tetrahedra_decomposition(
+            system,
+            vacuum_gaps,
+            DelaunayTests.delaunay_threshold
+        )
+
+        # Atom inside
+        test_pos = np.array([7, 7, 9.435])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+
+        # Atoms at the edges should belong to the surface
+        test_pos = np.array([14, 2, 9.435])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+        test_pos = np.array([1.435, 13, 9.435])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+
+        # Atoms outside
+        test_pos = np.array([5, 5, 10.9])
+        self.assertEqual(decomposition.find_simplex(test_pos), None)
+        test_pos = np.array([5, 5, 7.9])
+        self.assertEqual(decomposition.find_simplex(test_pos), None)
+
+    def test_2d(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(2, 2, 1),
+            vacuum=8)
+        system.set_pbc(True)
+        # view(system)
+
+        vacuum_gaps = [False, False, True]
+        decomposition = systax.geometry.get_tetrahedra_decomposition(
+            system,
+            vacuum_gaps,
+            DelaunayTests.delaunay_threshold
+        )
+
+        # Atom inside
+        test_pos = np.array([2, 2, 10])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+        test_pos = np.array([2, 2, 10.5])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+
+        # # Atoms at the edges should belong to the surface
+        test_pos = np.array([0, 4, 10])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+        test_pos = np.array([5, 1, 10])
+        self.assertNotEqual(decomposition.find_simplex(test_pos), None)
+
+        # # Atoms outside
+        test_pos = np.array([2, 2, 11.2])
+        self.assertEqual(decomposition.find_simplex(test_pos), None)
+        test_pos = np.array([0, 0, 7.9])
+        self.assertEqual(decomposition.find_simplex(test_pos), None)
 
 
 class AtomTests(unittest.TestCase):
@@ -1878,9 +1896,8 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    # def test_surface_kink(self):
-        # """Test a surface that has a kink. Whether the kink is classified as
-        # a vacancy or not depends on the tesselation distance.
+    # def test_adsorbate_in_kink(self):
+        # """Test a surface with an adsorbate inside a kink.
         # """
         # # Create an Fe 100 surface as an ASE Atoms object
         # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
@@ -1888,12 +1905,19 @@ class SurfaceTests(unittest.TestCase):
         # # Remove a range of atoms to form a kink
         # del system[86:89]
 
+        # # Add a H2O molecule on top of the surface
+        # h2o = molecule("H2O")
+        # h2o.rotate(180, [1, 0, 0])
+        # h2o.translate([7.2, 6.0, 12.0])
+        # system += h2o
+        # view(system)
+
         # # Classified as surface
         # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
-        # # No defects or unknown atoms
+        # # Only adsorbate
         # adsorbates = classification.adsorbates
         # interstitials = classification.interstitials
         # substitutions = classification.substitutions
@@ -1902,7 +1926,7 @@ class SurfaceTests(unittest.TestCase):
         # self.assertEqual(len(interstitials), 0)
         # self.assertEqual(len(substitutions), 0)
         # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(adsorbates), 3)
         # self.assertEqual(len(unknowns), 0)
 
     def test_surface_ads(self):
@@ -2019,13 +2043,13 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TesselationTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))

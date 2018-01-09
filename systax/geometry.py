@@ -7,9 +7,10 @@ import itertools
 
 import numpy as np
 from numpy.random import RandomState
+import time
 
 from ase.data import covalent_radii
-from ase import Atom
+from ase import Atom, Atoms
 from ase.visualize import view
 
 from systax.data.element_data import get_covalent_radii
@@ -166,16 +167,25 @@ def get_dimensionality(
     return dim, vacuum_gaps
 
 
-def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
+def get_tetrahedra_decomposition(system, vacuum_gaps, max_distance):
     """Used to decompose a series of 3D atomic coordinates into non-overlapping
     tetrahedron that together represent the atomic structure.
+
     """
-    class TetrahedraTesselation():
+    # TODO: Reuse the distance matrix from the original system, just filter out
+    # the entries that do not belong to the valid basis. This way we can avoid
+    # recalculating the distances.
+
+    # TODO: Determine the distance matrix of the padded system during the
+    # construction of the padded system. This should be doable by simply using
+    # the internal displacements and the cell periodicity.
+
+    class TetrahedraDecomposition():
         """A class that represents a collection of tetrahedron.
         """
-        def __init__(self, delaunay, valid_simplex_indices):
+        def __init__(self, delaunay, invalid_simplex_indices):
             self.delaunay = delaunay
-            self.valid_simplex_indices = valid_simplex_indices
+            self.invalid_simplex_indices = invalid_simplex_indices
 
         def find_simplex(self, pos):
             """Used to find the index of the simplex in which the given
@@ -191,7 +201,7 @@ def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
             index = self.delaunay.find_simplex(pos).item()
             if index == -1:
                 return None
-            if index in self.valid_simplex_indices:
+            if index not in self.invalid_simplex_indices:
                 return index
             return None
 
@@ -206,10 +216,9 @@ def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
 
     displacements_finite = get_displacement_tensor(pos, pos)
 
-    # For each basis direction, add the basis vector to the displacements to
-    # get the distance between two neighbouring copies of the cluster. If the
-    # minimum distance between two copies is bigger or equal to the vacuum gap,
-    # then remove one dimension.
+    # In order for the decomposition to cover also the edges, we have to extend
+    # the system to cover also into the adjacent periodic images. That is done
+    # within this loop.
     tesselation_atoms = system.copy()
     multipliers = np.array(list(itertools.product((-1, 0, 1), repeat=3)))
 
@@ -218,37 +227,74 @@ def get_tetrahedra_tesselation(system, vacuum_gaps, max_distance):
             disloc = np.dot(mult, cell)
 
             # If system is periodic in this direction, calculate the distance
-            # between the periodically repeated images and choose copies that
-            # are within a certain range
+            # between atoms in the periodically repeated images and choose
+            # atoms from the copies that are within a certain range when tha
+            # radii are taken into account
             disp = np.array(displacements_finite)
             disp += disloc
             dist = np.linalg.norm(disp, axis=2)
-            dist -= radii_matrix
-            connectivity_mask = np.where(dist < max_distance)
+            dist_radii = dist - radii_matrix
+            connectivity_mask = np.where(dist_radii < max_distance)
 
-            for i, j in zip(connectivity_mask[0], connectivity_mask[1]):
-                tesselation_atoms += Atom(num[j], pos[j]+disp[i, j])
+            pad_pos = pos[connectivity_mask[1]] + disp[connectivity_mask[0], connectivity_mask[1]]
+            pad_num = num[connectivity_mask[1]]
+            pad_atoms = Atoms(positions=pad_pos, symbols=pad_num)
+            tesselation_atoms += pad_atoms
 
+    # view(tesselation_atoms)
     tesselation_pos = tesselation_atoms.get_positions()
 
     # The QJ options makes sure that all positions are included in the
     # tesselation
     tri = Delaunay(tesselation_pos, qhull_options="QJ")
-    simplices = tri.simplices
 
-    # Keep tetrahedra for which the sides are smaller than a threshold. Takes
-    # into account the radii of the atoms.
+    # valid_simplex_indices = set()
+    # print(simplices)
+    # for i_simplex, simplex in enumerate(simplices):
+        # for i, j in itertools.combinations(simplex, 2):
+            # distance = distance_matrix[i, j]
+            # if distance >= max_distance:
+                # break
+        # else:
+            # valid_simplex_indices.add(i_simplex)
+    # end = time.time()
+    # print("Filtering: {}".format(end-start))
+
+    # Remove invalid simplices from the surface until only valid simplices are
+    # found on the surface
     distance_matrix = get_covalent_distances(tesselation_atoms, mic=False)
-    valid_simplex_indices = set()
-    for i_simplex, simplex in enumerate(simplices):
-        for i, j in itertools.combinations(simplex, 2):
-            distance = distance_matrix[i, j]
-            if distance >= max_distance:
-                break
-        else:
-            valid_simplex_indices.add(i_simplex)
+    simplices = np.array(tri.simplices)
+    neighbors = np.array(tri.neighbors)
+    end = False
+    invalid_indices = set()
+    surface_simplices = np.any(neighbors == -1, axis=1)
+    original_indices = np.arange(len(simplices))
+    surface_simplex_indices = set(original_indices[surface_simplices])
 
-    tetrahedras = TetrahedraTesselation(tri, valid_simplex_indices)
+    while not end:
+
+        # Remove the surface simplices that are too big. Also update the
+        # neighbour list.
+        too_big_simplex_indices = []
+        for i_simplex in surface_simplex_indices:
+            simplex = simplices[i_simplex]
+            for i, j in itertools.combinations(simplex, 2):
+                distance = distance_matrix[i, j]
+                if distance >= max_distance:
+                    too_big_simplex_indices.append(i_simplex)
+                    break
+        invalid_indices = invalid_indices | set(too_big_simplex_indices)
+        if len(too_big_simplex_indices) == 0:
+            end = True
+        else:
+            # Find the neighbours of the simplices that were removed
+            mask = np.isin(neighbors, too_big_simplex_indices)
+            affected = np.any(mask, axis=1)
+            new_surface_simplex_indices = set(original_indices[affected])
+            new_surface_simplex_indices -= invalid_indices
+            surface_simplex_indices = new_surface_simplex_indices
+
+    tetrahedras = TetrahedraDecomposition(tri, invalid_indices)
     return tetrahedras
 
 

@@ -45,7 +45,7 @@ class Classifier():
             angle_tol=20,
             cluster_threshold=3.0,
             crystallinity_threshold=0.25,
-            delaunay_threshold=6,
+            delaunay_threshold=1.5,
             delaunay_threshold_mode="relative",
             pos_tol_factor=2,
             n_edge_tol=0.95,
@@ -79,7 +79,8 @@ class Classifier():
         self.angle_tol = angle_tol
         self.crystallinity_threshold = crystallinity_threshold
         self.cluster_threshold = cluster_threshold
-        self.delaunay_threshold = delaunay_threshold,
+        self.delaunay_threshold = delaunay_threshold
+        self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
         self.pos_tol_factor = pos_tol_factor
         self.n_edge_tol = n_edge_tol
@@ -100,6 +101,11 @@ class Classifier():
         allowed_modes = set(["relative", "absolute"])
         if pos_tol_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'pos_tol_mode'.".format(pos_tol_mode))
+
+        # Check delunay tolerance mode
+        allowed_modes = set(["relative", "absolute"])
+        if delaunay_threshold_mode not in allowed_modes:
+            raise ValueError("Unknown value '{}' for 'delaunay_threshold_mode'.".format(delaunay_threshold_mode))
 
     def classify(self, system):
         """A function that analyzes the system and breaks it into different
@@ -127,17 +133,24 @@ class Classifier():
             disp_tensor_pbc = disp_tensor
         dist_matrix_pbc = np.linalg.norm(disp_tensor, axis=2)
 
-        # If pos_tol_mode is relative, get the average distance to closest
-        # neighbours
-        if self.pos_tol_mode == "relative":
+        # If pos_tol_mode or delaunay_threshold_mode is relative, get the
+        # average distance to closest neighbours
+        if self.pos_tol_mode == "relative" or self.delaunay_threshold_mode == "relative":
             min_basis = np.linalg.norm(cell, axis=1).min()
             dist_matrix_mod = np.array(dist_matrix_pbc)
             np.fill_diagonal(dist_matrix_mod, min_basis)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
-            self.abs_pos_tol = self.pos_tol * mean_min_dist
-        elif self.pos_tol_mode == "absolute":
-            self.abs_pos_tol = self.pos_tol
+
+            if self.pos_tol_mode == "relative":
+                self.abs_pos_tol = self.pos_tol * mean_min_dist
+            elif self.pos_tol_mode == "absolute":
+                self.abs_pos_tol = self.pos_tol
+
+            if self.delaunay_threshold_mode == "relative":
+                self.abs_delaunay_threshold = self.delaunay_threshold * mean_min_dist
+            elif self.delaunay_threshold_mode == "absolute":
+                self.abs_delaunay_threshold = self.delaunay_threshold
 
         # Get the system dimensionality
         try:
@@ -205,7 +218,7 @@ class Classifier():
                 cell_size_tol=self.cell_size_tol,
                 n_edge_tol=self.n_edge_tol
             )
-            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.delaunay_threshold)
+            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.abs_delaunay_threshold)
             if region is not None:
                 region = region[1]
 
@@ -254,7 +267,7 @@ class Classifier():
                         seed_vec = self.seed_position
                     seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
-                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.delaunay_threshold)
+                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.abs_delaunay_threshold)
                     if region is not None:
                         region = region[1]
 

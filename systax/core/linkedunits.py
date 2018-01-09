@@ -5,7 +5,6 @@ import numpy as np
 from ase import Atoms
 
 import systax.geometry
-from systax.exceptions import SystaxError
 
 
 class LinkedUnitCollection(dict):
@@ -15,7 +14,7 @@ class LinkedUnitCollection(dict):
     Essentially this is a special flavor of a regular dictionary: the keys can
     only be a sequence of three integers, and the values should be LinkedUnits.
     """
-    def __init__(self, system, cell, is_2d, vacuum_gaps, tesselation_dist):
+    def __init__(self, system, cell, is_2d, vacuum_gaps, delaunay_threshold):
         """
         Args:
             system(ase.Atoms): A reference to the system from which this
@@ -25,8 +24,8 @@ class LinkedUnitCollection(dict):
         self.cell = cell
         self.is_2d = is_2d
         self.vacuum_gaps = vacuum_gaps
-        self.tesselation_dist = tesselation_dist
-        self._tesselation = None
+        self.delaunay_threshold = delaunay_threshold
+        self._decomposition = None
         self._inside_indices = None
         self._outside_indices = None
         self._adsorbates = None
@@ -224,19 +223,19 @@ class LinkedUnitCollection(dict):
     def get_tetrahedra_decomposition(self):
         """Get the tetrahedra decomposition for this region.
         """
-        if self._tesselation is None:
+        if self._decomposition is None:
             # Get the positions of basis atoms
             basis_indices = self.get_basis_indices()
             valid_sys = self.system[basis_indices]
 
-            # Perform tetrahedra tesselation
-            self.tesselation = systax.geometry.get_tetrahedra_tesselation(
+            # Perform tetrahedra decomposition
+            self._decomposition = systax.geometry.get_tetrahedra_decomposition(
                 valid_sys,
                 self.vacuum_gaps,
-                self.tesselation_dist
+                self.delaunay_threshold
             )
 
-        return self.tesselation
+        return self._decomposition
 
     def get_all_indices(self):
         return set(range(len(self.system)))
@@ -269,63 +268,6 @@ class LinkedUnitCollection(dict):
             self._outside_indices = np.array(outside_indices)
 
         return self._inside_indices, self._outside_indices
-
-    # def get_layer_statistics(self):
-        # """Get statistics about the number of layers. Returns the average
-        # number of layers and the standard deviation in the number of layers.
-        # """
-        # # Find out which direction is the aperiodic one
-        # vacuum_gaps = self.vacuum_gaps
-        # vacuum_direction = self.system.get_cell()[vacuum_gaps]
-        # unit_cell = self[(0, 0, 0)].cell
-        # index = systax.geometry.get_closest_direction(vacuum_direction, unit_cell)
-        # mask = [True, True, True]
-        # mask[index] = False
-        # mask = np.array(mask)
-
-        # # Find out how many layers there are in the aperiodic directions
-        # max_sizes = {}
-        # min_sizes = {}
-        # for coord, unit in self.items():
-            # ab = tuple(np.array(coord)[mask])
-            # c = coord[index]
-            # min_size = min_sizes.get(ab)
-            # max_size = max_sizes.get(ab)
-            # if min_size is None or c < min_size:
-                # min_sizes[ab] = c
-            # if max_size is None or c > max_size:
-                # max_sizes[ab] = c
-
-        # sizes = []
-        # for key, max_c in max_sizes.items():
-            # min_c = min_sizes[key]
-            # size = max_c - min_c + 1
-            # sizes.append(size)
-        # sizes = np.array(sizes)
-
-        # mean = sizes.mean()
-        # std = sizes.std()
-
-        # return mean, std
-
-    # def _get_cell_substitutions(self):
-        # """Returns the indices of the atoms that have replaced a basis atom in
-        # the structure. These atoms may be on top of the region or within the
-        # region.
-
-        # Returns:
-            # np.ndarray: Indices of the atoms in the original system that have
-            # replaced a basis atom in the structure.
-        # """
-        # indices = set()
-        # for unit in self.values():
-            # for i, x in enumerate(unit.substitute_indices):
-                # if x is not None:
-                    # original_atom =
-            # i_indices = [x for x in unit.substitute_indices if x is not None]
-            # indices.update(i_indices)
-
-        # return np.array(list(indices))
 
 
 class LinkedUnit():
