@@ -380,7 +380,23 @@ class PeriodicFinder():
                 best_adjacency_lists_sub_factors
             )
         elif n_spans == 2:
-            proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
+            # proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
+            proto_cell, offset = self._find_proto_cell_2d_v2(
+                seed_index,
+                seed_nodes,
+                neighbour_indices,
+                best_combo,
+                best_spans,
+                disp_tensor,
+                system,
+                group_indices,
+                group_num,
+                seed_group_index,
+                best_adjacency_lists_add,
+                best_adjacency_lists_add_factors,
+                best_adjacency_lists_sub,
+                best_adjacency_lists_sub_factors
+            )
 
         return proto_cell, offset, n_spans
 
@@ -484,7 +500,6 @@ class PeriodicFinder():
             symbols=group_num,
             cell=best_spans
         )
-        # view(proto_cell)
 
         return proto_cell, offset
 
@@ -529,42 +544,106 @@ class PeriodicFinder():
 
         # return proto_cell, offset
 
-    def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
-        """
-        Args:
-            basis(np.ndarray): The basis cell vectors.
-            pos(np.ndarray): A list of atomic positions. The list contains an
-                entry containing multiple positions for each unique atom in the
-                cell.
-            num(np.ndarray): The atomic numbers of the cell atoms atoms.
-            seed_index(int): The index of the seed atom in the pos and num arrays.
-            seed_pos(np.ndarray): The position of the seed atom in cartesian
-                coordinates.
-        """
+    def _find_proto_cell_2d_v2(
+            self,
+            seed_index,
+            seed_nodes,
+            neighbours,
+            best_span_indices,
+            best_spans,
+            disp_tensor,
+            system,
+            group_indices,
+            group_num,
+            seed_group_index,
+            adjacency_add,
+            factors_add,
+            adjacency_sub,
+            factors_sub
+        ):
         # We need to make the third basis vector
-        a = basis[0]
-        b = basis[1]
+        a = best_spans[0]
+        b = best_spans[1]
         c = np.cross(a, b)
         c_norm = c/np.linalg.norm(c)
         c_norm = c_norm[None, :]
-        basis = np.concatenate((basis, c_norm), axis=0)
 
-        basis_element_positions = np.zeros((len(num), 3))
-        basis_element_num = []
-        for i_group, positions in enumerate(pos):
+        basis = np.concatenate((best_spans, c_norm), axis=0)
+        # Find the seed positions copies that are within the neighbourhood
+        orig_cell = system.get_cell()
+        neighbour_seeds = seed_nodes
 
-            # Calculate position in the relative basis of the found cell
-            scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
+        # Find the cells in which the copies of the seed atom are at the
+        # origin. Here we are reusing information from the displacement tensor
+        # and the factors that tell in which periodic cell copy the match was
+        # found originally.
+        cells = np.zeros((len(neighbour_seeds), 3, 3))
+        for i_node, node in enumerate(neighbour_seeds):
+
+            # Handle each basis
+            for i_basis in range(2):
+                a_add_neighbour = adjacency_add[i_basis][node]
+                a_sub_neighbour = adjacency_sub[i_basis][node]
+                if a_add_neighbour and a_add_neighbour != node:
+                    a_final_neighbour = a_add_neighbour
+                    multiplier = 1
+                elif a_sub_neighbour and a_sub_neighbour != node:
+                    a_final_neighbour = a_sub_neighbour
+                    multiplier = -1
+                else:
+                    a_final_neighbour = None
+
+                if a_final_neighbour is not None:
+                    a_factor = factors_add[i_basis][node]
+                    a_correction = np.dot(a_factor, orig_cell)
+                    a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
+                else:
+                    a = best_spans[i_basis, :]
+                cells[i_node, i_basis, :] = a
+            cells[i_node, 2, :] = c_norm
+
+        # Find the relative positions of atoms inside the cell
+        orig_pos = system.get_positions()
+        inside_indices = []
+        inside_pos = []
+        for i_seed, cell in zip(neighbour_seeds, cells):
+            seed_pos = orig_pos[i_seed]
+            i_indices, i_pos = systax.geometry.get_positions_within_basis(
+                system,
+                cell,
+                seed_pos,
+                0,
+                mask=[True, True, False]  # We ignore the third axis limits
+            )
+            inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
+            inside_pos.append(i_pos)
+
+        # For each node in a network, find the first relative position. Wrap
+        # and average these positions to get a robust final estimate.
+        averaged_rel_pos = np.zeros((len(group_indices), 3))
+        for i_group, group in enumerate(group_indices):
+            scaled_pos = []
+            for index in group:
+                for cell_ind, cell_pos in zip(inside_indices, inside_pos):
+                    if index in cell_ind:
+                        pos_index = cell_ind[index]
+                        pos = cell_pos[pos_index]
+                        scaled_pos.append(pos)
+                        break
+            scaled_pos = np.array(scaled_pos)
+            # print(scaled_pos)
+
+            # Only wrap the 2D positions
             scaled_pos_2d = scaled_pos[:, 0:2]
             scaled_pos_2d %= 1
 
-            # Find the copy with minimum manhattan distance from origin
+            # Find the copy with minimum distance from origin
             distances = np.linalg.norm(scaled_pos_2d, axis=1)
             min_dist_index = np.argmin(distances)
             min_dist_pos = scaled_pos_2d[min_dist_index]
 
-            # All the other copies are moved periodically to be near the min.
-            # manhattan copy
+            # All the other copies are moved periodically to be near the
+            # position that is closest to origin.
             distances = scaled_pos_2d - min_dist_pos
             displacement = np.rint(distances)
             final_pos_2d = scaled_pos_2d - displacement
@@ -572,15 +651,12 @@ class PeriodicFinder():
             # The average position is calculated
             scaled_pos[:, 0:2] = final_pos_2d
             group_avg = np.mean(scaled_pos, axis=0)
-            basis_element_positions[i_group] = group_avg
-            basis_element_num.append(num[i_group])
+            averaged_rel_pos[i_group, :] = group_avg
 
-        # print(basis_element_positions)
-
-        basis_element_num = np.array(basis_element_num)
+        # print(averaged_rel_pos)
 
         # Grow the cell to fit all atoms
-        c_comp = basis_element_positions[:, 2]
+        c_comp = averaged_rel_pos[:, 2]
         min_index = np.argmin(c_comp, axis=0)
         max_index = np.argmax(c_comp, axis=0)
         pos_min_rel = np.array([0, 0, c_comp[min_index]])
@@ -588,7 +664,6 @@ class PeriodicFinder():
         pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
         pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
         c_real_cart = pos_max_cart-pos_min_cart
-        # print(c_new_cart)
 
         # We demand a minimum size for the c-vector even if the system seems to
         # be purely 2-dimensional. This is done because the 3D-space cannot be
@@ -603,7 +678,7 @@ class PeriodicFinder():
         new_basis = np.array(basis)
         new_basis[2, :] = c_new_cart
 
-        new_scaled_pos = basis_element_positions - pos_min_rel
+        new_scaled_pos = averaged_rel_pos - pos_min_rel
         new_scaled_pos[:, 2] /= np.linalg.norm(c_new_cart)
 
         if c_size < min_size:
@@ -616,11 +691,104 @@ class PeriodicFinder():
         proto_cell = Atoms(
             cell=new_basis,
             scaled_positions=new_scaled_pos,
-            symbols=basis_element_num
+            symbols=group_num
         )
-        offset = proto_cell.get_positions()[seed_index]
+        offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
+
+    # def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
+        # """
+        # Args:
+            # basis(np.ndarray): The basis cell vectors.
+            # pos(np.ndarray): A list of atomic positions. The list contains an
+                # entry containing multiple positions for each unique atom in the
+                # cell.
+            # num(np.ndarray): The atomic numbers of the cell atoms atoms.
+            # seed_index(int): The index of the seed atom in the pos and num arrays.
+            # seed_pos(np.ndarray): The position of the seed atom in cartesian
+                # coordinates.
+        # """
+        # # We need to make the third basis vector
+        # a = basis[0]
+        # b = basis[1]
+        # c = np.cross(a, b)
+        # c_norm = c/np.linalg.norm(c)
+        # c_norm = c_norm[None, :]
+        # basis = np.concatenate((basis, c_norm), axis=0)
+
+        # basis_element_positions = np.zeros((len(num), 3))
+        # basis_element_num = []
+        # for i_group, positions in enumerate(pos):
+
+            # # Calculate position in the relative basis of the found cell
+            # scaled_pos = systax.geometry.change_basis(positions, basis, seed_pos)
+            # scaled_pos_2d = scaled_pos[:, 0:2]
+            # scaled_pos_2d %= 1
+
+            # # Find the copy with minimum manhattan distance from origin
+            # distances = np.linalg.norm(scaled_pos_2d, axis=1)
+            # min_dist_index = np.argmin(distances)
+            # min_dist_pos = scaled_pos_2d[min_dist_index]
+
+            # # All the other copies are moved periodically to be near the min.
+            # # manhattan copy
+            # distances = scaled_pos_2d - min_dist_pos
+            # displacement = np.rint(distances)
+            # final_pos_2d = scaled_pos_2d - displacement
+
+            # # The average position is calculated
+            # scaled_pos[:, 0:2] = final_pos_2d
+            # group_avg = np.mean(scaled_pos, axis=0)
+            # basis_element_positions[i_group] = group_avg
+            # basis_element_num.append(num[i_group])
+
+        # # print(basis_element_positions)
+
+        # basis_element_num = np.array(basis_element_num)
+
+        # # Grow the cell to fit all atoms
+        # c_comp = basis_element_positions[:, 2]
+        # min_index = np.argmin(c_comp, axis=0)
+        # max_index = np.argmax(c_comp, axis=0)
+        # pos_min_rel = np.array([0, 0, c_comp[min_index]])
+        # pos_max_rel = np.array([0, 0, c_comp[max_index]])
+        # pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
+        # pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
+        # c_real_cart = pos_max_cart-pos_min_cart
+        # # print(c_new_cart)
+
+        # # We demand a minimum size for the c-vector even if the system seems to
+        # # be purely 2-dimensional. This is done because the 3D-space cannot be
+        # # searched properly if one dimension is flat.
+        # c_size = np.linalg.norm(c_real_cart)
+        # min_size = 2*self.pos_tol
+        # if c_size < min_size:
+            # c_inflated_cart = min_size*c_norm
+            # c_new_cart = c_inflated_cart
+        # else:
+            # c_new_cart = c_real_cart
+        # new_basis = np.array(basis)
+        # new_basis[2, :] = c_new_cart
+
+        # new_scaled_pos = basis_element_positions - pos_min_rel
+        # new_scaled_pos[:, 2] /= np.linalg.norm(c_new_cart)
+
+        # if c_size < min_size:
+            # offset_cart = (c_real_cart-c_inflated_cart)/2
+            # offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
+            # new_scaled_pos -= offset_rel
+
+        # # Create translated system
+        # # group_seed_pos = pos[seed_index]
+        # proto_cell = Atoms(
+            # cell=new_basis,
+            # scaled_positions=new_scaled_pos,
+            # symbols=basis_element_num
+        # )
+        # offset = proto_cell.get_positions()[seed_index]
+
+        # return proto_cell, offset
 
     def _find_best_basis(self, valid_spans, valid_span_metrics):
         """Used to choose the best basis from a set of valid ones.
