@@ -32,11 +32,6 @@ class Molecule(Class0D):
     """
 
 
-class NanoCluster(Class0D):
-    """
-    """
-
-
 #===============================================================================
 # 1D Structures
 class Class1D(Classification):
