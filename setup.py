@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 if __name__ == "__main__":
     setup(name="systax",
-        version="0.1.1",
+        version="0.1.2",
         description=(
             "Systax is a python package for the analysis and classification of "
             "atomistic systems."
