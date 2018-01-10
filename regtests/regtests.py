@@ -400,7 +400,7 @@ class PeriodicFinderTests(unittest.TestCase):
             [0, 0, 0],
             [0, 0.5, 0.5],
         ])
-        self.assertTrue(np.allclose(relative_pos, assumed_pos))
+        self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.08))
 
     def test_cell_finding_nacl(self):
         """Test the cell finding for system with multiple atoms in basis.
@@ -780,12 +780,43 @@ class PeriodicFinderTests(unittest.TestCase):
         # system.center()
         # view(system)
 
+        # # Calculate the diplacement tensor and the mean nearest neighbour
+        # # distance
+        # pos = system.get_positions()
+        # cell = system.get_cell()
+        # pbc = system.get_pbc()
+        # disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        # disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+        # dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
+        # _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
+        # mean = distances.mean()
+        # # pos_tol = PeriodicFinderTests.pos_tol*mean
+        # pos_tol = 3
+
+        # # Find the seed atom nearest to center of mass
+        # seed_vec = system.get_center_of_mass()
+        # seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
+
         # # Find the region with periodicity
-        # finder = PeriodicFinder(pos_tol=1.5, angle_tol=15, seed_algorithm="cm", max_cell_size=4)
+        # finder = PeriodicFinder(
+            # pos_tol,
+            # PeriodicFinderTests.angle_tol,
+            # PeriodicFinderTests.max_cell_size,
+            # PeriodicFinderTests.pos_tol_factor,
+            # PeriodicFinderTests.cell_size_tol,
+            # PeriodicFinderTests.n_edge_tol,
+        # )
         # vacuum_dir = [True, True, True]
-        # regions = finder.get_regions(system, vacuum_dir, tesselation_distance=6)
-        # self.assertEqual(len(regions), 1)
-        # region = regions[0]
+        # region = finder.get_region(
+            # system,
+            # seed_index,
+            # disp_tensor_pbc,
+            # disp_tensor,
+            # vacuum_dir,
+            # tesselation_distance=PeriodicFinderTests.delaunay_threshold
+        # )
+        # # print(region)
+        # region = region[1]
         # rec = region.recreate_valid()
         # view(rec)
 
@@ -2134,17 +2165,17 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
