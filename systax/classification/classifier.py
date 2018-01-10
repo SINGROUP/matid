@@ -227,12 +227,13 @@ class Classifier():
                 n_region_atoms = len(region.get_basis_indices())
                 n_atoms = len(system)
                 coverage = n_region_atoms/n_atoms
+                analyzer = Class3DAnalyzer(region.cell)
 
                 if coverage >= 0.5:
                     if region.is_2d:
-                        classification = Material2D(vacuum_dir, region)
+                        classification = Material2D(vacuum_dir, region, analyzer)
                     else:
-                        classification = Surface(vacuum_dir, region)
+                        classification = Surface(vacuum_dir, region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:

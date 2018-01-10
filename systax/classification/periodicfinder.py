@@ -343,23 +343,21 @@ class PeriodicFinder():
             return None, None, None
 
         if n_spans == 3:
-            proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
-            # proto_cell, offset = self._find_proto_cell_3d_v2(
-                # seed_index,
-                # seed_nodes,
-                # neighbour_indices,
-                # best_adjacency_lists_add,
-                # best_combo,
-                # best_spans,
-                # disp_tensor,
-                # system,
-                # group_indices,
-                # group_num,
-                # seed_group_index,
-                # best_adjacency_lists_add_factors
-            # )
-            # print(offset)
-            # print(proto_cell.get_scaled_positions())
+            # proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
+            proto_cell, offset = self._find_proto_cell_3d_v2(
+                seed_index,
+                seed_nodes,
+                neighbour_indices,
+                best_adjacency_lists_add,
+                best_combo,
+                best_spans,
+                disp_tensor,
+                system,
+                group_indices,
+                group_num,
+                seed_group_index,
+                best_adjacency_lists_add_factors
+            )
         elif n_spans == 2:
             proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
 

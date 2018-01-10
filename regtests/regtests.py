@@ -15,6 +15,8 @@ from ase.visualize import view
 import ase.build
 from ase.build import nanotube
 import ase.lattice.hexagonal
+from ase.lattice.compounds import Zincblende
+from ase.lattice.cubic import SimpleCubicFactory
 import ase.io
 
 from systax import Classifier
@@ -344,6 +346,61 @@ class PeriodicFinderTests(unittest.TestCase):
     pos_tol_factor = classifier.pos_tol_factor
     n_edge_tol = classifier.n_edge_tol
     cell_size_tol = classifier.cell_size_tol
+
+    def test_proto_cell_in_curved(self):
+        """Tests that the relative positions in the prototype cell are found
+        robustly even in distorted cells.
+        """
+        # Create an Fe 100 surface as an ASE Atoms object
+        class NaClFactory(SimpleCubicFactory):
+            "A factory for creating NaCl (B1, Rocksalt) lattices."
+
+            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
+                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                            [0.5, 0.5, 0.5]]
+            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
+
+        system = NaClFactory()
+        system = system(symbol=["Na", "Cl"], latticeconstant=5.64)
+        system = system.repeat((4, 4, 1))
+        cell = system.get_cell()
+        cell[2, :] *= 3
+        system.set_cell(cell)
+        system.center()
+
+        # Bulge the surface
+        cell_width = np.linalg.norm(system.get_cell()[0, :])
+        for atom in system:
+            pos = atom.position
+            distortion_z = 0.9*np.cos(pos[0]/cell_width*2.0*np.pi)
+            pos += np.array((0, 0, distortion_z))
+        # view(system)
+
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
+        # Test that the relative positions are robust in the prototype cell
+        proto_cell = classification.region.cell
+        relative_pos = proto_cell.get_scaled_positions()
+        assumed_pos = np.array([
+            [0, 0, 0],
+            [0, 0.5, 0.5],
+        ])
+        self.assertTrue(np.allclose(relative_pos, assumed_pos))
 
     def test_cell_finding_nacl(self):
         """Test the cell finding for system with multiple atoms in basis.
@@ -1690,6 +1747,36 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+    def test_zinc_blende(self):
+        system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
+        system = system.repeat((4, 4, 2))
+        cell = system.get_cell()
+        cell[2, :] *= 3
+        system.set_cell(cell)
+        system.center()
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Check that the right cell is found
+        analyzer = classification.cell_analyzer
+        space_group = analyzer.get_space_group_number()
+        self.assertEqual(space_group, 216)
+
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
     def test_bcc_pristine_thin_surface(self):
         system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
         # view(system)
@@ -1901,39 +1988,6 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    # def test_adsorbate_in_kink(self):
-        # """Test a surface with an adsorbate inside a kink.
-        # """
-        # # Create an Fe 100 surface as an ASE Atoms object
-        # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
-
-        # # Remove a range of atoms to form a kink
-        # del system[86:89]
-
-        # # Add a H2O molecule on top of the surface
-        # h2o = molecule("H2O")
-        # h2o.rotate(180, [1, 0, 0])
-        # h2o.translate([7.2, 6.0, 12.0])
-        # system += h2o
-        # view(system)
-
-        # # Classified as surface
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
-
-        # # Only adsorbate
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 3)
-        # self.assertEqual(len(unknowns), 0)
-
     def test_surface_ads(self):
         """Test a surface with an adsorbate.
         """
@@ -1969,7 +2023,6 @@ class SurfaceTests(unittest.TestCase):
         """Test the detection for an imperfect NaCl surface with adsorbate and
         defects.
         """
-        from ase.lattice.cubic import SimpleCubicFactory
 
         # Create the system
         class NaClFactory(SimpleCubicFactory):
@@ -2045,20 +2098,53 @@ class SurfaceTests(unittest.TestCase):
         interstitials = classification.interstitials
         self.assertEqual(len(interstitials), 0)
 
+    # def test_adsorbate_in_kink(self):
+        # """Test a surface with an adsorbate inside a kink.
+        # """
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
+
+        # # Remove a range of atoms to form a kink
+        # del system[86:89]
+
+        # # Add a H2O molecule on top of the surface
+        # h2o = molecule("H2O")
+        # h2o.rotate(180, [1, 0, 0])
+        # h2o.translate([7.2, 6.0, 12.0])
+        # system += h2o
+        # view(system)
+
+        # # Classified as surface
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Only adsorbate
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 3)
+        # self.assertEqual(len(unknowns), 0)
+
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
