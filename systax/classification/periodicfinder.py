@@ -49,7 +49,7 @@ class PeriodicFinder():
         self.cell_size_tol = cell_size_tol
         self.n_edge_tol = n_edge_tol
 
-    def get_region(self, system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance):
+    def get_region(self, system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
 
@@ -77,7 +77,7 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             vacuum_dir,
-            disp_tensor_pbc,
+            disp_tensor
         )
 
         # 1D is not handled
@@ -139,7 +139,15 @@ class PeriodicFinder():
 
         return bases, distance_mask
 
-    def _find_proto_cell(self, system, seed_index, possible_spans, neighbour_mask, vacuum_dir, disp_tensor_pbc):
+    def _find_proto_cell(
+            self,
+            system,
+            seed_index,
+            possible_spans,
+            neighbour_mask,
+            vacuum_dir,
+            disp_tensor
+        ):
         """Used to find the best candidate for a unit cell basis that could
         generate a periodic region in the structure.
 
@@ -164,23 +172,28 @@ class PeriodicFinder():
         metric_per_atom_per_span = np.zeros((n_neighbours, n_spans))
         adjacency_lists = []
         adjacency_lists_add = []
+        adjacency_lists_add_factors = []
+
         for i_span, span in enumerate(possible_spans):
             i_adj_list = defaultdict(list)
             i_adj_list_add = defaultdict(list)
+            i_adj_list_add_factors = defaultdict(list)
             add_pos = neighbour_pos + span
             sub_pos = neighbour_pos - span
-            add_indices, _, _, _ = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
+            add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
             sub_indices, _, _, _ = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
 
             n_metric = 0
             for i_neigh in range(n_neighbours):
                 i_add = add_indices[i_neigh]
                 i_sub = sub_indices[i_neigh]
+                i_factor = add_factors[i_neigh]
                 if i_add is not None:
                     n_metric += 1
                     metric_per_atom_per_span[i_neigh, i_span] += 1
                     i_adj_list[neighbour_indices[i_neigh]].append(i_add)
                     i_adj_list_add[neighbour_indices[i_neigh]].append(i_add)
+                    i_adj_list_add_factors[neighbour_indices[i_neigh]].append(i_factor)
                 if i_sub is not None:
                     n_metric += 1
                     metric_per_atom_per_span[i_neigh, i_span] += 1
@@ -188,6 +201,7 @@ class PeriodicFinder():
             metric[i_span] = n_metric
             adjacency_lists.append(i_adj_list)
             adjacency_lists_add.append(i_adj_list_add)
+            adjacency_lists_add_factors.append(i_adj_list_add_factors)
 
         # Get the spans that come from the periodicity if they are smaller than
         # the maximum cell size
@@ -199,14 +213,19 @@ class PeriodicFinder():
             periodic_metric = 2*n_neighbours*np.ones((n_periodic_spans))
             possible_spans = np.concatenate((possible_spans, periodic_spans), axis=0)
             metric = np.concatenate((metric, periodic_metric), axis=0)
-            for per_span in periodic_spans:
+            for i_per_span, per_span in enumerate(periodic_spans):
                 per_adjacency_list = defaultdict(list)
                 per_adjacency_list_add = defaultdict(list)
+                per_adjacency_list_add_factors = defaultdict(list)
                 for i_neigh in neighbour_indices:
                     per_adjacency_list[i_neigh].extend([i_neigh, i_neigh])
                     per_adjacency_list_add[i_neigh].extend([i_neigh])
+                    i_factor = np.zeros((3))
+                    i_factor[i_per_span] = 1
+                    per_adjacency_list_add_factors[i_neigh].extend([i_factor])
                 adjacency_lists.append(per_adjacency_list)
                 adjacency_lists_add.append(per_adjacency_list_add)
+                adjacency_lists_add_factors.append(per_adjacency_list_add_factors)
 
         # print(len(adjacency_lists))
         # print(len(adjacency_lists_add))
@@ -236,14 +255,24 @@ class PeriodicFinder():
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
 
+        # Get the adjacency lists corresponding to the best spans
+        best_adjacency_lists = []
+        best_adjacency_lists_add = []
+        best_adjacency_lists_add_factors = []
+        for i_span in best_combo:
+            original_span_index = valid_span_indices[i_span]
+            i_adjacency_list = adjacency_lists[original_span_index]
+            i_adjacency_list_add = adjacency_lists_add[original_span_index]
+            i_adjacency_list_add_factor = adjacency_lists_add_factors[original_span_index]
+            best_adjacency_lists.append(i_adjacency_list)
+            best_adjacency_lists_add.append(i_adjacency_list_add)
+            best_adjacency_lists_add_factors.append(i_adjacency_list_add_factor)
+
         # Create a full periodicity graph for the found basis
         periodicity_graph = None
         full_adjacency_list = defaultdict(list)
-        valid_adjacency_add = []
         for ii_span, i_span in enumerate(best_combo):
-            original_span_index = valid_span_indices[i_span]
-            adjacency_list = adjacency_lists[original_span_index]
-            valid_adjacency_add.append(adjacency_lists_add[original_span_index])
+            adjacency_list = best_adjacency_lists[ii_span]
             for key, value in adjacency_list.items():
                 full_adjacency_list[key].extend(value)
         periodicity_graph = nx.MultiGraph(full_adjacency_list)
@@ -319,15 +348,18 @@ class PeriodicFinder():
                 # seed_index,
                 # seed_nodes,
                 # neighbour_indices,
-                # valid_adjacency_add,
+                # best_adjacency_lists_add,
                 # best_combo,
                 # best_spans,
-                # disp_tensor_pbc,
+                # disp_tensor,
                 # system,
                 # group_indices,
                 # group_num,
-                # seed_group_index
+                # seed_group_index,
+                # best_adjacency_lists_add_factors
             # )
+            # print(offset)
+            # print(proto_cell.get_scaled_positions())
         elif n_spans == 2:
             proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
 
@@ -341,36 +373,45 @@ class PeriodicFinder():
             add_edges,
             best_span_indices,
             best_spans,
-            disp_tensor_pbc,
+            disp_tensor,
             system,
             group_indices,
             group_num,
-            seed_group_index
+            seed_group_index,
+            factors
         ):
 
         # Find the seed positions copies that are within the neighbourhood
         seed_nodes = set(seed_nodes)
         neighbours = set(neighbours)
         neighbour_seeds = neighbours & seed_nodes
+        orig_cell = system.get_cell()
 
         cells = np.zeros((len(neighbour_seeds), 3, 3))
         for i_node, node in enumerate(neighbour_seeds):
-            a_neighbour = add_edges[best_span_indices[0]][node]
-            b_neighbour = add_edges[best_span_indices[1]][node]
-            c_neighbour = add_edges[best_span_indices[2]][node]
 
-            if a_neighbour:
-                a = disp_tensor_pbc[node, a_neighbour, :]
+            a_neighbour = add_edges[0][node]
+            b_neighbour = add_edges[1][node]
+            c_neighbour = add_edges[2][node]
+
+            if a_neighbour and a_neighbour != node:
+                a_factor = factors[0][node]
+                a_correction = np.dot(a_factor, orig_cell)
+                a = disp_tensor[a_neighbour, node, :] + a_correction
             else:
                 a = best_spans[0, :]
-            if b_neighbour:
-                b = disp_tensor_pbc[node, b_neighbour, :]
+            if b_neighbour and b_neighbour != node:
+                b_factor = factors[1][node]
+                b_correction = np.dot(b_factor, orig_cell)
+                b = disp_tensor[b_neighbour, node, :] + b_correction
             else:
                 b = best_spans[1, :]
-            if c_neighbour:
-                c = disp_tensor_pbc[node, c_neighbour, :]
+            if c_neighbour and c_neighbour != node:
+                c_factor = factors[2][node]
+                c_correction = np.dot(c_factor, orig_cell)
+                c = disp_tensor[c_neighbour, node, :] + c_correction
             else:
-                c = best_spans[1, :]
+                c = best_spans[2, :]
 
             cells[i_node, 0, :] = a
             cells[i_node, 1, :] = b
@@ -426,6 +467,7 @@ class PeriodicFinder():
             symbols=group_num,
             cell=best_spans
         )
+        # view(proto_cell)
 
         return proto_cell, offset
 

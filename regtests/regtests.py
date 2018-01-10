@@ -374,6 +374,7 @@ class PeriodicFinderTests(unittest.TestCase):
         cell = nacl.get_cell()
         pbc = nacl.get_pbc()
         disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
         _, distances = systax.geometry.get_nearest_neighbours(nacl, dist_matrix_pbc)
         pos_tol = PeriodicFinderTests.pos_tol*distances.mean()
@@ -392,7 +393,7 @@ class PeriodicFinderTests(unittest.TestCase):
         )
 
         vacuum_dir = [False, False, True]
-        region = finder.get_region(nacl, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
+        region = finder.get_region(nacl, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
         region = region[1]
 
         # Pristine
@@ -434,6 +435,7 @@ class PeriodicFinderTests(unittest.TestCase):
         cell = system.get_cell()
         pbc = system.get_pbc()
         disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
         _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
         mean = distances.mean()
@@ -453,7 +455,7 @@ class PeriodicFinderTests(unittest.TestCase):
         )
 
         vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
+        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
         region = region[1]
 
         # Pristine
@@ -488,6 +490,7 @@ class PeriodicFinderTests(unittest.TestCase):
         cell = system.get_cell()
         pbc = system.get_pbc()
         disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
         _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
         mean = distances.mean()
@@ -507,7 +510,7 @@ class PeriodicFinderTests(unittest.TestCase):
         )
 
         vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
+        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
         region = region[1]
 
         # Pristine
@@ -612,6 +615,7 @@ class PeriodicFinderTests(unittest.TestCase):
             cell = system.get_cell()
             pbc = system.get_pbc()
             disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
             dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
             _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
             mean = distances.mean()
@@ -631,7 +635,7 @@ class PeriodicFinderTests(unittest.TestCase):
             seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
 
             vacuum_dir = [False, False, False]
-            region = finder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
+            region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
             if region is not None:
                 region = region[1]
                 n_region_atoms = len(region.get_basis_indices())
@@ -656,6 +660,7 @@ class PeriodicFinderTests(unittest.TestCase):
         cell = system.get_cell()
         pbc = system.get_pbc()
         disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
         _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
         mean = distances.mean()
@@ -675,7 +680,7 @@ class PeriodicFinderTests(unittest.TestCase):
         )
 
         vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
+        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
         region = region[1]
 
         substitutions = region.get_substitutions()
@@ -2043,17 +2048,17 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

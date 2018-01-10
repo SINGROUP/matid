@@ -218,7 +218,7 @@ class Classifier():
                 cell_size_tol=self.cell_size_tol,
                 n_edge_tol=self.n_edge_tol
             )
-            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.abs_delaunay_threshold)
+            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
             if region is not None:
                 region = region[1]
 
@@ -267,7 +267,7 @@ class Classifier():
                         seed_vec = self.seed_position
                     seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
-                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, vacuum_dir, self.abs_delaunay_threshold)
+                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
                     if region is not None:
                         region = region[1]
 
