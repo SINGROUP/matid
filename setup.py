@@ -1,17 +1,17 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from setuptools import setup, find_packages
 
-with open("README.md", "r") as fin:
-    long_description = fin.read()
-
 if __name__ == "__main__":
     setup(name="systax",
-        version="0.1.0",
+        version="0.1.1",
         description=(
             "Systax is a python package for the analysis and classification of "
             "atomistic systems."
         ),
-        long_description=long_description,
+        long_description=(
+            "Systax is a python package for the analysis and classification of "
+            "atomistic systems."
+        ),
         author='Lauri Himanen',
         author_email='lauri.himanen@aalto.fi',
         license="LGPL3",

@@ -18,9 +18,4 @@ Systax can be used e.g. to perform the following tasks:
     - Given a crystal structure, get the idealized primitive or conventional
       system.
     - Given a surface system, get the idealized bulk cell corresponding to the
-      surface, and the orientation of the surface with respect to the idealized
-      cell as Miller indices.
-
-# Example
-```python
-```
+      surface.
