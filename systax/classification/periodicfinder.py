@@ -339,7 +339,6 @@ class PeriodicFinder():
         # each cell. Here we calculate a mean position of these atoms in the
         # cell.
         seed_pos = positions[seed_index]
-
         group_pos = []
         group_num = []
         group_indices = []
@@ -569,7 +568,6 @@ class PeriodicFinder():
         c_norm = c_norm[None, :]
 
         basis = np.concatenate((best_spans, c_norm), axis=0)
-        # Find the seed positions copies that are within the neighbourhood
         orig_cell = system.get_cell()
         neighbour_seeds = seed_nodes
 
@@ -631,7 +629,6 @@ class PeriodicFinder():
                         scaled_pos.append(pos)
                         break
             scaled_pos = np.array(scaled_pos)
-            # print(scaled_pos)
 
             # Only wrap the 2D positions
             scaled_pos_2d = scaled_pos[:, 0:2]

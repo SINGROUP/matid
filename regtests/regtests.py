@@ -1416,147 +1416,361 @@ class Material2DTests(unittest.TestCase):
 class Material3DTests(unittest.TestCase):
     """Tests detection of bulk 3D materials.
     """
-    def test_si(self):
-        si = ase.lattice.cubic.Diamond(
-            size=(1, 1, 1),
-            symbol='Si',
-            pbc=(1, 1, 1),
-            latticeconstant=5.430710)
-        classifier = Classifier()
-        clas = classifier.classify(si)
-        self.assertIsInstance(clas, Crystal)
-
-    def test_si_shaken(self):
-        rng = RandomState(47)
-        for i in range(10):
-            si = ase.lattice.cubic.Diamond(
-                size=(1, 1, 1),
-                symbol='Si',
-                pbc=(1, 1, 1),
-                latticeconstant=5.430710)
-            systax.geometry.make_random_displacement(si, 0.2, rng)
-            classifier = Classifier()
-            clas = classifier.classify(si)
-            self.assertIsInstance(clas, Crystal)
-
-    def test_graphite(self):
-        """Testing a sparse material like graphite.
+    def test_exciting_1(self):
+        """A test case from NOMAD/Exciting.
         """
-        sys = ase.lattice.hexagonal.Graphite(
-            size=(1, 1, 1),
-            symbol='C',
-            pbc=(1, 1, 1),
-            latticeconstant=(2.461, 6.708))
+        positions = np.array(([
+            [1.9987688885358088E-9, 5.799929264497318E-10, 8.795763583352711E-11],
+            [1.1374043517187333E-10, 6.022479393053376E-12, 1.282521043508434E-10],
+            [2.377521828406158E-10, 7.24207154782679E-11, 1.0674289110601609E-10],
+            [3.052047015504064E-10, 8.323094720269705E-11, 5.673142103410658E-10],
+            [2.0481872101260573E-9, 5.525380121939131E-10, 2.1271805592943434E-10],
+            [6.895000259777852E-11, 8.084751422132878E-10, 2.361689104126793E-10],
+            [1.6237269380826286E-9, 6.933252548627746E-10, 3.153324975183583E-10],
+            [1.4961335560480377E-9, 6.34787540144988E-10, 3.3825983202347506E-10],
+            [4.313800916365212E-10, 1.463005181097072E-10, 3.4104094798758835E-12],
+            [1.27395504310039E-9, 5.291109129449205E-10, 3.116086740319425E-10],
+            [4.557371156399816E-10, 1.864341759159311E-10, 1.3320386971219793E-10],
+            [1.159783302758868E-9, 4.6553159252754584E-10, 2.563827045624277E-10],
+            [5.690789423466898E-10, 2.5168174514286647E-10, 1.879384807021967E-10],
+            [1.1485202095584152E-9, 3.995379063894688E-10, 1.355754460029639E-10],
+            [1.02027292792115E-9, 3.4929045156660153E-10, 1.1235629089625984E-10],
+            [9.329212219683846E-10, 3.759764230897223E-10, 2.15817609506493E-10],
+            [7.968762554078395E-10, 3.390378121536629E-10, 2.2881810676471312E-10],
+            [1.984939409741212E-9, 1.6784603933565662E-10, 3.339760500497965E-10],
+            [2.078995103050173E-9, 1.390757767166748E-10, 2.3882885791630244E-10],
+            [9.737843519959325E-11, 3.9860777568908823E-10, 2.641682006411585E-10],
+            [9.59008106770361E-11, 4.738999937443244E-10, 3.7976118725432095E-10],
+            [2.0310468696548666E-10, 5.459737106825549E-10, 4.3851990953989326E-10],
+            [1.428058748988789E-9, 6.218162396962262E-10, 4.570989075715079E-10],
+            [2.1637859073958305E-10, 5.999554673591759E-10, 5.648481752022076E-10],
+            [1.301800929321803E-9, 5.635663393107926E-10, 4.423883295498515E-10],
+            [3.45503499797324E-10, 6.554735940015691E-10, 8.06332234818847E-12],
+            [4.265271603071203E-10, 6.449319434616104E-10, 4.77537195579393E-10],
+            [5.612820573005174E-10, 6.845546075767279E-10, 4.607760717090284E-10],
+            [5.826323703365059E-10, 3.11528538815549E-10, 3.1165114897135485E-10],
+            [6.422593886276395E-10, 6.63574281756399E-10, 3.509069695016407E-10],
+            [7.115105668686247E-10, 3.599508911667247E-10, 3.3520221514228534E-10],
+            [7.730681761951761E-10, 7.078008462852198E-10, 3.702935006878082E-10],
+            [9.375965701778847E-10, -8.165699435142211E-12, 9.758186445770774E-11],
+            [7.93271865059123E-10, 7.634933154047732E-10, 4.951477835126144E-10],
+            [9.125365814844333E-10, -5.891171620742129E-11, 5.498224063915614E-10],
+            [1.8041643810240634E-9, -7.293249095111224E-11, 2.1949954838512468E-10],
+            [1.671773368803901E-9, -1.1738430793411084E-10, 2.0365481019151864E-10],
+            [1.8560145728823766E-9, -1.0388750370151937E-10, 3.4230768969817506E-10],
+            [1.7406143224571033E-9, 3.570608228775501E-10, 2.2845191595309063E-10],
+            [1.615726644583312E-9, 2.9882743944988515E-10, 2.006269992699928E-10],
+            [1.615458709135338E-9, 2.253090298311804E-10, 8.37268621675304E-11],
+            [1.507264034302639E-9, 1.5472471327684707E-10, 2.4529523482134787E-11],
+            [1.49106225516399E-9, 9.91949111800418E-11, 4.776039319912152E-10],
+            [1.3641384745134684E-9, 4.3650588705904195E-11, 4.5632449665135437E-10],
+            [1.2808595600842764E-9, 5.59255748549558E-11, 5.656108605157051E-10],
+            [1.1480658942672242E-9, 1.7790784397704178E-11, 4.2474013401936864E-12],
+            [1.0690202523162651E-9, 3.4901502198915875E-11, 1.1621036932018943E-10],
+            [1.834345481512018E-9, 3.2658879815395615E-10, 1.336151398674752E-10],
+            [1.9034860449942793E-9, 5.493204875233715E-10, 4.4379140892874936E-11],
+            [2.060405298301637E-9, 7.454114651805678E-11, 1.5220525002385775E-10],
+            [2.686327258171263E-10, 4.0336848170435656E-11, 4.736100375724196E-10],
+            [1.8809963969337115E-9, 1.3608458586411957E-10, 3.388973728193389E-10],
+            [1.9959008168661436E-9, 4.908649822471625E-10, 2.867362141742881E-10],
+            [1.275827532524098E-10, 7.938582833261461E-10, 3.2766473358578325E-10],
+            [1.8711086254808926E-10, 3.8698849597112047E-10, 2.0237556155300304E-10],
+            [5.0143233222465E-10, 1.6064351590139996E-10, 5.012942643383386E-10],
+            [1.2340350551402785E-9, 3.8298622972188414E-10, 6.931602792392328E-11],
+            [6.071705250143102E-10, 6.13918085389292E-10, 2.598234929709009E-10],
+            [9.91738318134674E-10, 2.916538540010818E-10, 2.3685279802892925E-11],
+            [8.536164485754934E-10, 6.965391015799964E-10, 2.969463700898116E-10],
+            [1.4685466082168011E-9, 6.584042908019132E-10, 5.517922272838827E-10],
+            [1.3920433528147343E-10, 5.964824259860885E-10, 6.171149163952486E-11],
+            [1.2310764889838321E-9, 5.469561530426416E-10, 5.243861393159303E-10],
+            [3.7612140137873335E-10, 7.022381881511279E-10, 1.0223823250231535E-10],
+            [4.987401813370425E-10, 3.2323340438631527E-10, 3.8095630784823946E-10],
+            [7.423288997895465E-10, 4.104074071228825E-10, 4.273634115112578E-10],
+            [8.591898032201439E-10, -1.8060363951853643E-12, 1.7376079272637627E-10],
+            [1.611096366887524E-9, -9.933828256684765E-11, 1.1411639937141172E-10],
+            [1.5704989191937335E-9, 1.0092460027460123E-10, 4.019397902651151E-10],
+            [1.3334292174150623E-9, -4.3656370181229014E-12, 3.627754884999099E-10],
+            [1.9556989049065064E-9, -8.249091665315816E-11, 3.811674266436998E-10],
+            [1.8594030172629535E-9, -1.8339000184093856E-11, 1.4230282472606054E-10],
+            [1.5264927794968624E-9, 3.113760322447445E-10, 2.629521290620005E-10],
+            [1.106115604681183E-9, 7.939386973742445E-11, 2.0916164933529008E-10],
+            [1.9402175258985508E-9, 3.51429180397771E-10, 1.307942864821867E-10],
+            [1.7614356011244215E-9, 4.1871871698484303E-10, 3.1665655927253937E-10],
+            [0.0, 0.0, 0.0],
+            [3.254306047761279E-10, 1.4245155119614193E-10, 2.360778141398424E-10],
+            [1.4036870408018015E-9, 5.728823196564517E-10, 2.0802583970732027E-10],
+            [1.0101992491468156E-9, 4.6554023621350347E-10, 3.4085122003230623E-10],
+            [7.165802568073737E-10, 2.5804479299215403E-10, 1.0005627420309677E-10],
+            [2.0456137992669636E-9, 2.7127814408074284E-10, 4.542029315927364E-10],
+            [3.4622091958610527E-10, 5.681267083438881E-10, 3.4638793458652145E-10],
+            [6.502009370175009E-10, 7.62367550174389E-10, 8.583965906519874E-12],
+            [1.0557650802357433E-9, -5.231685753372869E-11, 4.544009126156846E-10],
+            [1.3638514011648734E-9, 1.3461608906298012E-10, 1.166574760778432E-10],
+            [1.7430301740151573E-9, 6.891365125880632E-10, 4.388020880582183E-10],
+            [1.7704949693584647E-9, 2.2914384051650565E-10, 1.0271666156165868E-11]
+        ]))
+        cell = np.array([
+            [2.1043389939198592E-9, -1.95885199433499E-10, 0.0],
+            [0.0, 8.753579974713195E-10, 0.0],
+            [-2.3990699916378828E-12, 0.0, 5.78756498328576E-10]
+        ])
+        pbc = [True, True, True]
+        atom_labels = ["C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"]
+
+        system = Atoms(positions=1e10*positions, symbols=atom_labels, cell=1e10*cell, pbc=pbc)
+        view(system)
+
         classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Crystal)
+        classification = classifier.classify(system)
 
-    def test_amorphous(self):
-        """Test an amorphous crystal with completely random positions. This is
-        currently not classified as crystal, but the threshold can be set in
-        the classifier setup.
-        """
-        n_atoms = 50
-        rng = RandomState(8)
-        rand_pos = rng.rand(n_atoms, 3)
 
-        sys = Atoms(
-            scaled_positions=rand_pos,
-            cell=(10, 10, 10),
-            symbols=n_atoms*['C'],
-            pbc=(1, 1, 1))
-        classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Class3D)
+    # def test_exciting(self):
+        # """A test case from NOMAD/Exciting.
+        # """
+        # positions = np.array(([[1.1776915391871786E-10, 4.699376657497057E-10, 7.432997340171558E-11],
+            # [4.5516597318298074E-10, 4.799074627807157E-10, 3.0288708591288285E-10],
+            # [-1.8540254958031107E-12, 1.8572166657158253E-10, 3.0288708591288285E-10],
+            # [5.747891525975017E-10, 1.9569146360259254E-10, 7.432997340171558E-11],
+            # [-1.3396714281835247E-10, 3.5930230777667365E-10, 2.046681322687549E-9],
+            # [4.270662735246743E-10, 2.2110828081821386E-11, 3.787057102296988E-10],
+            # [-2.9953725154109515E-11, 7.508630859855043E-11, 3.787057102296988E-10],
+            # [3.2305285586043135E-10, 3.063268272599446E-10, 2.046681322687549E-9],
+            # [-2.0906564045132877E-10, 3.5454940909697777E-10, 1.9274478028597265E-9],
+            # [5.021647711576506E-10, 2.6863726761517274E-11, 4.979392300575212E-10],
+            # [4.51447724788668E-11, 7.033340991885456E-11, 4.979392300575212E-10],
+            # [2.4795435822745513E-10, 3.110797259396405E-10, 1.9274478028597265E-9],
+            # [6.196136244575112E-10, 4.621212767110286E-10, 1.9127157666896765E-9],
+            # [5.875255036063786E-10, 4.877238575037128E-10, 5.126712662275713E-10],
+            # [1.3050550492759466E-10, 1.7790527753290541E-10, 5.126712662275713E-10],
+            # [1.6259362577872719E-10, 2.035078583255896E-10, 1.9127157666896765E-9],
+            # [5.283935787473235E-10, 4.926395153174981E-10, 1.8066803470782344E-9],
+            # [6.78745549316566E-10, 4.5720561889724344E-10, 6.187066858390133E-10],
+            # [2.2172555063778218E-10, 2.0842351613937484E-10, 6.187066858390133E-10],
+            # [7.137358006853973E-11, 1.7298961971912023E-10, 1.8066803470782344E-9],
+            # [4.443158322580829E-10, 3.313328727762738E-11, 1.7947301353941496E-9],
+            # [7.628232838670467E-10, 3.482798428965477E-10, 6.306569180047978E-10],
+            # [3.0580328518826276E-10, 3.1734928645575057E-10, 6.306569180047978E-10],
+            # [-1.2704166420700917E-11, 6.406384371842447E-11, 1.7947301353941496E-9],
+            # [3.677413262356508E-10, 3.1694853052826946E-11, 1.677582820077202E-9],
+            # [-7.4642207468089E-11, 3.497182828056681E-10, 7.478042333217458E-10],
+            # [3.823777912106948E-10, 3.1591085223095017E-10, 7.478042333217458E-10],
+            # [-8.927867244313296E-11, 6.550228362754488E-11, 1.677582820077202E-9],
+            # [3.917562521216119E-10, 4.900815883778549E-10, 1.5974615231270131E-9],
+            # [-9.865712421364998E-11, 4.597635458368866E-10, 8.279255302719345E-10],
+            # [3.583628744651339E-10, 2.058655891997317E-10, 8.279255302719345E-10],
+            # [-6.526374655717197E-11, 1.7554754665876335E-10, 1.5974615231270131E-9],
+            # [3.3201309603797235E-10, 4.5694344669096156E-10, 1.4721533973588356E-9],
+            # [-3.891396813001041E-11, 4.929016875237799E-10, 9.532336560401117E-10],
+            # [4.1810603054877345E-10, 1.7272744751283832E-10, 9.532336560401117E-10],
+            # [-1.2500690264081155E-10, 2.086856883456567E-10, 1.4721533973588356E-9],
+            # [3.53515219832919E-10, 3.471051497503446E-10, 1.3910025467977206E-9],
+            # [-6.041608912659709E-11, 3.430798610815047E-11, 1.0343844861195268E-9],
+            # [3.9660390955218675E-10, 6.288915057222136E-11, 1.0343844861195268E-9],
+            # [-1.0350477884586487E-10, 3.185239852862737E-10, 1.3910025467977206E-9],
+            # [2.754469571677641E-10, 3.475449455874728E-10, 1.274735207237031E-9],
+            # [1.7652164398157782E-11, 3.3868190271022235E-11, 1.1506518256802164E-9],
+            # [4.746721630769417E-10, 6.33289464093496E-11, 1.1506518256802164E-9],
+            # [7.32466955846548E-10, 3.180841894491455E-10, 1.274735207237031E-9],
+            # [1.9270147844366985E-10, 4.579419259176742E-10, 1.2644045859757687E-9],
+            # [1.0039764946429202E-10, 4.919032082970672E-10, 1.1609824674231788E-9],
+            # [5.574176481430758E-10, 1.73725926739551E-10, 1.1609824674231788E-9],
+            # [6.497214771224537E-10, 2.0768720911894404E-10, 1.2644045859757687E-9],
+            # [1.5917599868424452E-10, 4.995278936442987E-10, 1.7110670199999908E-10],
+            # [4.137591312158141E-10, 4.5031723488612276E-10, 2.0611033683289944E-10],
+            # [8.70779129894598E-10, 2.1531189446617547E-10, 2.0611033683289944E-10],
+            # [6.161959973630284E-10, 1.6610123570799957E-10, 1.7110670199999908E-10],
+            # [2.1877778974981035E-10, 2.8280582170796105E-10, 2.7632844511789117E-11],
+            # [3.5415733735188827E-10, 9.860731415053398E-11, 3.4958421480280935E-10],
+            # [8.111773360306721E-10, 5.670218208860843E-10, 3.4958421480280935E-10],
+            # [6.757977884285941E-10, 3.828233133286572E-10, 2.7632844511789117E-11],
+            # [-2.0091495275687403E-10, 2.734684507496823E-10, 1.8538832305848E-9],
+            # [4.940140806648359E-10, 1.0794468510881279E-10, 5.715038228141474E-10],
+            # [3.6994081986052046E-11, 5.576844499278055E-10, 5.715038228141474E-10],
+            # [2.561050459219098E-10, 3.92160684286936E-10, 1.8538832305848E-9],
+            # [4.385011419035128E-10, 1.1290400986871175E-10, 1.8699651131894515E-9],
+            # [7.686379861603768E-10, 2.685091259897833E-10, 5.554219197277962E-10],
+            # [3.1161798748159294E-10, 3.97120009046835E-10, 5.554219197277962E-10],
+            # [-1.8518856775271103E-11, 5.527251251679065E-10, 1.8699651131894515E-9],
+            # [2.952696461917572E-10, 1.0974646675128252E-10, 1.651157822374324E-9],
+            # [-2.1705182837952722E-12, 2.716666634228925E-10, 7.742292310246234E-10],
+            # [4.548494803949886E-10, 3.9396246592940574E-10, 7.742292310246234E-10],
+            # [-1.6175035248702668E-10, 5.558826626010158E-10, 1.651157822374324E-9],
+            # [4.250317143846559E-10, 2.6771346898440413E-10, 1.416060739218446E-9],
+            # [-1.3193258367833406E-10, 1.1369966118977093E-10, 1.0093262936988017E-9],
+            # [3.2508741500044975E-10, 5.519294681625273E-10, 1.0093262936988017E-9],
+            # [-3.198828429412793E-11, 3.9791566036789417E-10, 1.416060739218446E-9],
+            # [2.791147289377015E-10, 2.6808845220507975E-10, 1.1990463344893403E-9],
+            # [1.398439262822039E-11, 1.1332467796909529E-10, 1.2263406984279072E-9],
+            # [4.710043913070041E-10, 5.52304451383203E-10, 1.2263406984279072E-9],
+            # [7.361347276164854E-10, 3.975406771472185E-10, 1.1990463344893403E-9],
+            # [0.0, 0.0, 0.0],
+            # [5.729351299000585E-10, 3.8141313585849507E-10, 3.772170388328985E-10],
+            # [1.1591513122127474E-10, 2.842159991781232E-10, 3.772170388328985E-10],
+            # [4.5701999867878384E-10, 9.719713668037183E-11, 0.0],
+            # [5.114013575009889E-10, 3.88295528596353E-10, 1.6699508471184449E-9],
+            # [6.957377677645407E-10, 5.615496056183885E-10, 7.554362062805026E-10],
+            # [2.387177690857568E-10, 1.040795237339098E-10, 7.554362062805026E-10],
+            # [5.438135882220508E-11, 2.7733360644026527E-10, 1.6699508471184449E-9],
+            # [2.1316949311755538E-10, 5.610779491677523E-10, 1.4017229348088575E-9],
+            # [7.99296256500065E-11, 3.887671793626691E-10, 1.0236641185900902E-9],
+            # [5.369496243287904E-10, 2.7686194998962913E-10, 1.0236641185900902E-9],
+            # [6.701894917963393E-10, 1.045511801845459E-10, 1.4017229348088575E-9]]))
 
-    def test_too_sparse(self):
-        """Test a crystal that is too sparse.
-        """
-        sys = ase.lattice.hexagonal.Graphite(
-            size=(1, 1, 1),
-            symbol='C',
-            pbc=(1, 1, 1),
-            latticeconstant=(2.461, 10))
-        # view(sys)
-        classifier = Classifier()
-        clas = classifier.classify(sys)
-        self.assertIsInstance(clas, Unknown)
+        # simulation_cell = np.array([
+            # [9.140399973575677E-10, 0.0, 0.0],
+            # [0.0, 5.684319983562464E-10, 0.0],
+            # [-2.798359991937367E-10, 0.0, 2.048169994084349E-9]
+        # ])
+        # pbc = [True, True, True]
+        # atom_labels = ["C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "H", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S", "S"]
 
-    def test_point_defect(self):
-        """Test a crystal that has a point defect.
-        """
-        si = ase.lattice.cubic.Diamond(
-            size=(3, 3, 3),
-            symbol='Si',
-            pbc=(1, 1, 1),
-            latticeconstant=5.430710)
-        del si[106]
-        # view(si)
+        # system = Atoms(positions=1e10*positions, symbols=atom_labels, cell=1e10*simulation_cell, pbc=pbc)
+        # # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(si)
-        self.assertIsInstance(classification, Crystal)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
 
-        # One point defect
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 1)
+    # def test_si(self):
+        # si = ase.lattice.cubic.Diamond(
+            # size=(1, 1, 1),
+            # symbol='Si',
+            # pbc=(1, 1, 1),
+            # latticeconstant=5.430710)
+        # classifier = Classifier()
+        # clas = classifier.classify(si)
+        # self.assertIsInstance(clas, Crystal)
 
-    def test_adatom(self):
-        """Test a crystal that has an adatom. If the adatom is chosen as a seed
-        atom, the whole search can go wrong. Same happens if a defect is chosen
-        as seed.
-        """
-        si = ase.lattice.cubic.Diamond(
-            size=(3, 3, 3),
-            symbol='Si',
-            pbc=(1, 1, 1),
-            latticeconstant=5.430710)
-        si += ase.Atom(symbol="Si", position=(4, 4, 4))
-        # view(si)
+    # def test_si_shaken(self):
+        # rng = RandomState(47)
+        # for i in range(10):
+            # si = ase.lattice.cubic.Diamond(
+                # size=(1, 1, 1),
+                # symbol='Si',
+                # pbc=(1, 1, 1),
+                # latticeconstant=5.430710)
+            # systax.geometry.make_random_displacement(si, 0.2, rng)
+            # classifier = Classifier()
+            # clas = classifier.classify(si)
+            # self.assertIsInstance(clas, Crystal)
 
-        classifier = Classifier()
-        classification = classifier.classify(si)
-        self.assertIsInstance(classification, Crystal)
+    # def test_graphite(self):
+        # """Testing a sparse material like graphite.
+        # """
+        # sys = ase.lattice.hexagonal.Graphite(
+            # size=(1, 1, 1),
+            # symbol='C',
+            # pbc=(1, 1, 1),
+            # latticeconstant=(2.461, 6.708))
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Crystal)
 
-        # One interstitial
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(interstitials), 1)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
+    # def test_amorphous(self):
+        # """Test an amorphous crystal with completely random positions. This is
+        # currently not classified as crystal, but the threshold can be set in
+        # the classifier setup.
+        # """
+        # n_atoms = 50
+        # rng = RandomState(8)
+        # rand_pos = rng.rand(n_atoms, 3)
 
-    def test_substitution(self):
-        """Test a crystal where an impurity is introduced.
-        """
-        si = ase.lattice.cubic.Diamond(
-            size=(3, 3, 3),
-            symbol='Si',
-            pbc=(1, 1, 1),
-            latticeconstant=5.430710)
-        si[106].symbol = "Ge"
-        # view(si)
-        classifier = Classifier()
-        classification = classifier.classify(si)
-        self.assertIsInstance(classification, Crystal)
+        # sys = Atoms(
+            # scaled_positions=rand_pos,
+            # cell=(10, 10, 10),
+            # symbols=n_atoms*['C'],
+            # pbc=(1, 1, 1))
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Class3D)
 
-        # One substitution
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 1)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
+    # def test_too_sparse(self):
+        # """Test a crystal that is too sparse.
+        # """
+        # sys = ase.lattice.hexagonal.Graphite(
+            # size=(1, 1, 1),
+            # symbol='C',
+            # pbc=(1, 1, 1),
+            # latticeconstant=(2.461, 10))
+        # # view(sys)
+        # classifier = Classifier()
+        # clas = classifier.classify(sys)
+        # self.assertIsInstance(clas, Unknown)
+
+    # def test_point_defect(self):
+        # """Test a crystal that has a point defect.
+        # """
+        # si = ase.lattice.cubic.Diamond(
+            # size=(3, 3, 3),
+            # symbol='Si',
+            # pbc=(1, 1, 1),
+            # latticeconstant=5.430710)
+        # del si[106]
+        # # view(si)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(si)
+        # self.assertIsInstance(classification, Crystal)
+
+        # # One point defect
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(vacancies), 1)
+
+    # def test_adatom(self):
+        # """Test a crystal that has an adatom. If the adatom is chosen as a seed
+        # atom, the whole search can go wrong. Same happens if a defect is chosen
+        # as seed.
+        # """
+        # si = ase.lattice.cubic.Diamond(
+            # size=(3, 3, 3),
+            # symbol='Si',
+            # pbc=(1, 1, 1),
+            # latticeconstant=5.430710)
+        # si += ase.Atom(symbol="Si", position=(4, 4, 4))
+        # # view(si)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(si)
+        # self.assertIsInstance(classification, Crystal)
+
+        # # One interstitial
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 1)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(vacancies), 0)
+
+    # def test_substitution(self):
+        # """Test a crystal where an impurity is introduced.
+        # """
+        # si = ase.lattice.cubic.Diamond(
+            # size=(3, 3, 3),
+            # symbol='Si',
+            # pbc=(1, 1, 1),
+            # latticeconstant=5.430710)
+        # si[106].symbol = "Ge"
+        # # view(si)
+        # classifier = Classifier()
+        # classification = classifier.classify(si)
+        # self.assertIsInstance(classification, Crystal)
+
+        # # One substitution
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 1)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(vacancies), 0)
 
 
 class Material3DAnalyserTests(unittest.TestCase):
@@ -2165,17 +2379,17 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
