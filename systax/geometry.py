@@ -730,7 +730,7 @@ def change_basis(positions, basis, offset=None):
     return pos_prime
 
 
-def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True]):
+def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True], pbc=True):
     """Used to return the indices of positions that are inside a certain basis.
     Also takes periodic boundaries into account.
 
@@ -752,6 +752,8 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     # Transform positions into the new basis
     cart_pos = system.get_positions()
 
+    pbc = expand_pbc(pbc)
+
     # See if the new positions extend beyound the boundaries. The original
     # simulation cell is always convex, so we can just check the corners of
     # unit cell defined by the basis
@@ -770,8 +772,19 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     directions.add((0, 0, 0))
     for vec in rel_vectors:
         i_direction = tuple(np.floor(vec))
-        if i_direction != (0, 0, 0):
-            directions.add(i_direction)
+        a_per = i_direction[0]
+        b_per = i_direction[1]
+        c_per = i_direction[2]
+        allow = True
+        if a_per != 0 and not pbc[0]:
+            allow = False
+        if b_per != 0 and not pbc[1]:
+            allow = False
+        if c_per != 0 and not pbc[2]:
+            allow = False
+        if allow:
+            if i_direction != (0, 0, 0):
+                directions.add(i_direction)
 
     # If the new cell is overflowing beyound the boundaries of the original
     # system, we have to also check the periodic copies.
@@ -872,11 +885,18 @@ def get_matches(
                 subst_pos %= 1
                 subst_pos_cart = np.dot(subst_pos, cell)
                 substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+
+            # If a match was found the factor is reported based on the
+            # displacement tensor
+            i_move = moved[i][ind]
+            copy = i_move
         else:
             vacancies.append(Atom(b_num, position=positions[i]))
 
-        i_move = moved[i][ind]
-        copy = i_move
+            # If no match was found, the factor is reported from the scaled
+            # positions
+            i_move = np.floor(scaled_pos2[i])
+            copy = i_move
 
         matches.append(match)
         copy_indices.append(copy)

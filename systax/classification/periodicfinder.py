@@ -69,6 +69,7 @@ class PeriodicFinder():
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         self.disp_tensor_pbc = disp_tensor_pbc
+        self.vacuum_dir = vacuum_dir
         region = None
         possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
@@ -610,23 +611,19 @@ class PeriodicFinder():
         inside_pos = []
         for i_seed, cell in zip(neighbour_seeds, cells):
             seed_pos = orig_pos[i_seed]
+
+            i_pbc = ~np.array(self.vacuum_dir)
             i_indices, i_pos = systax.geometry.get_positions_within_basis(
                 system,
                 cell,
                 seed_pos,
                 0,
-                mask=[True, True, False]  # We ignore the third axis limits
+                mask=[True, True, False],  # We ignore the third axis limits
+                pbc=i_pbc,  # Do not consider periodicity in c-axis
             )
 
-            # Filter out positions that are too far
-            valid_indices = i_pos[:, 2] < self.max_cell_size
-            i_indices = i_indices[valid_indices]
-            i_pos = i_pos[valid_indices]
-
-            # print(i_pos)
             inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
             inside_pos.append(i_pos)
-        # print(inside_pos)
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
@@ -998,6 +995,9 @@ class PeriodicFinder():
         collection = LinkedUnitCollection(system, unit_cell, is_2d, vacuum_dir, tesselation_distance)
         multipliers = self._get_multipliers(periodic_indices)
 
+        # print("==========START===============")
+        # print(seed_index)
+
         # Start off the queue
         self._find_region_rec(
             system,
@@ -1232,6 +1232,7 @@ class PeriodicFinder():
             # Find out the atoms that match the seed_guesses in the original
             # system
             seed_guesses = seed_pos + dislocations
+            # print("===============")
             matches, _, _, factors = systax.geometry.get_matches(
                 system,
                 seed_guesses,
