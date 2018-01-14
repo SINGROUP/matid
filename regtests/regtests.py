@@ -1105,6 +1105,94 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
+    # def test_graphene_missing_atom_exciting(self):
+        # """Test a more realistic graphene with a vacancy defect from the
+        # exciting data in the NOMAD Archive.
+        # """
+        # positions = np.array([[0.0, 0.0, 0.0],
+            # [0.0, 9.833294145128265E-10, 0.0],
+            # [2.134121238221869E-10, -1.23213547309968E-10, 0.0],
+            # [2.8283321482383327E-10, 9.83786883934224E-10, 0.0],
+            # [7.159944277047908E-11, 1.2149852888233143E-10, 0.0],
+            # [9.239798421116619E-10, 3.6970883192833546E-10, 0.0],
+            # [7.159944277047908E-11, 8.618308856304952E-10, 0.0],
+            # [9.239798421116619E-10, 6.136207055601422E-10, 0.0],
+            # [2.8283321482383327E-10, -4.573464457464822E-13, 0.0],
+            # [4.2635394347838356E-10, -2.458942411245288E-10, 0.0],
+            # [1.0647740633039121E-9, -3.6912488204997373E-10, 0.0],
+            # [8.52284868807466E-10, 2.4537848124459853E-10, 0.0],
+            # [1.0647740633039121E-9, 1.2269778743003765E-10, 0.0],
+            # [8.52284868807466E-10, -4.918055758645343E-10, 0.0],
+            # [4.2635394347838356E-10, -5.328534954072828E-13, 0.0],
+            # [4.970111804163183E-10, 8.604516522176773E-10, 0.0],
+            # [7.132179717248617E-11, 3.686497656226703E-10, 0.0],
+            # [7.100794156171322E-10, 2.4589288839236865E-10, 0.0],
+            # [7.132179717248617E-11, 6.146797718658073E-10, 0.0],
+            # [7.100794156171322E-10, 7.374366490961087E-10, 0.0],
+            # [4.970111804163183E-10, 1.2287788527080025E-10, 0.0],
+            # [6.39163064087745E-10, 8.6063580825492E-10, 0.0],
+            # [8.637153048417516E-14, 4.916647072564134E-10, 0.0],
+            # [6.39163064087745E-10, 1.2269360625790666E-10, 0.0],
+            # [2.1331073578640276E-10, 1.2303793808046385E-10, 0.0],
+            # [8.517910281331687E-10, 4.916647072564134E-10, 0.0],
+            # [2.1331073578640276E-10, 8.602914764323629E-10, 0.0],
+            # [4.970778494398485E-10, -1.232134858221425E-10, 0.0],
+            # [9.231674598249378E-10, -3.6921643742207865E-10, 0.0],
+            # [9.231675663249753E-10, 1.227894042899681E-10, 0.0],
+            # [2.84056580755611E-10, 2.4557345913912146E-10, 0.0],
+            # [7.102992316947146E-10, 4.916647687442388E-10, 0.0],
+            # [2.84056580755611E-10, 7.377560783493561E-10, 0.0],
+            # [6.391754180921053E-10, -1.2321354730996796E-10, 0.0],
+            # [8.521187287488282E-10, -2.461564252122759E-10, 0.0],
+            # [8.521187287488282E-10, -2.706694076601711E-13, 0.0],
+            # [7.101400141385201E-10, -2.4618501705111326E-10, 0.0],
+            # [9.231328473127216E-10, -1.23213547309968E-10, 0.0],
+            # [7.101400141385201E-10, -2.4207756882281025E-13, 0.0],
+            # [2.84140396285193E-10, 4.916647687442387E-10, 0.0],
+            # [4.971359984603718E-10, 3.6869170031963166E-10, 0.0],
+            # [4.971361049604094E-10, 6.146377756810205E-10, 0.0],
+            # [2.1311743821817984E-10, 3.6878393205781663E-10, 0.0],
+            # [6.390654035532765E-10, 3.6862443263858213E-10, 0.0],
+            # [4.262295514344803E-10, 7.375859415363175E-10, 0.0],
+            # [6.390654035532765E-10, 6.147051048498954E-10, 0.0],
+            # [4.262295514344803E-10, 2.4574359595216E-10, 0.0],
+            # [2.1311743821817984E-10, 6.145456054306609E-10, 0.0],
+            # [4.2613753540200396E-10, 4.916647687442388E-10, 0.0]
+        # ])
+        # labels = ["C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C"]
+        # cell = np.array([
+            # [1.0650003758837873E-9, -6.148782545663813E-10, 0.0],
+            # [0.0, 1.2297565091327626E-9, 0.0],
+            # [0.0, 0.0, 2.0000003945832858E-9]
+        # ])
+        # pbc = True
+
+        # system = ase.Atoms(
+            # positions=1e10*positions,
+            # symbols=labels,
+            # cell=1e10*cell,
+            # pbc=pbc,
+        # )
+
+        # # system = system.repeat([2,2,2])
+        # # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
+        # # One vacancy
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 1)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+
     def test_graphene_shaken(self):
         """Test graphene that has randomly oriented but uniform length
         dislocations.
@@ -2387,8 +2475,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)

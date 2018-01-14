@@ -338,7 +338,6 @@ class PeriodicFinder():
         # Each subgraph represents a group of atoms that repeat periodically in
         # each cell. Here we calculate a mean position of these atoms in the
         # cell.
-        seed_pos = positions[seed_index]
         group_pos = []
         group_num = []
         group_indices = []
@@ -361,8 +360,7 @@ class PeriodicFinder():
             return None, None, None
 
         if n_spans == 3:
-            # proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
-            proto_cell, offset = self._find_proto_cell_3d_v2(
+            proto_cell, offset = self._find_proto_cell_3d(
                 seed_index,
                 seed_nodes,
                 neighbour_indices,
@@ -379,8 +377,7 @@ class PeriodicFinder():
                 best_adjacency_lists_sub_factors
             )
         elif n_spans == 2:
-            # proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
-            proto_cell, offset = self._find_proto_cell_2d_v2(
+            proto_cell, offset = self._find_proto_cell_2d(
                 seed_index,
                 seed_nodes,
                 neighbour_indices,
@@ -399,7 +396,7 @@ class PeriodicFinder():
 
         return proto_cell, offset, n_spans
 
-    def _find_proto_cell_3d_v2(
+    def _find_proto_cell_3d(
             self,
             seed_index,
             seed_nodes,
@@ -502,7 +499,7 @@ class PeriodicFinder():
 
         return proto_cell, offset
 
-    # def _find_proto_cell_3d(self, basis, pos, num, seed_index, seed_pos):
+    # def _find_proto_cell_3d_old(self, basis, pos, num, seed_index, seed_pos):
         # """
         # """
         # # Each subgraph represents a group of atoms that repeat periodically in
@@ -543,7 +540,7 @@ class PeriodicFinder():
 
         # return proto_cell, offset
 
-    def _find_proto_cell_2d_v2(
+    def _find_proto_cell_2d(
             self,
             seed_index,
             seed_nodes,
@@ -598,6 +595,13 @@ class PeriodicFinder():
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
+
+            # Update the third axis for each cell.
+            a = cells[i_node, 0]
+            b = cells[i_node, 1]
+            c = np.cross(a, b)
+            c_norm = c/np.linalg.norm(c)
+            c_norm = c_norm[None, :]
             cells[i_node, 2, :] = c_norm
 
         # Find the relative positions of atoms inside the cell
@@ -613,8 +617,16 @@ class PeriodicFinder():
                 0,
                 mask=[True, True, False]  # We ignore the third axis limits
             )
+
+            # Filter out positions that are too far
+            valid_indices = i_pos[:, 2] < self.max_cell_size
+            i_indices = i_indices[valid_indices]
+            i_pos = i_pos[valid_indices]
+
+            # print(i_pos)
             inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
             inside_pos.append(i_pos)
+        # print(inside_pos)
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
@@ -694,7 +706,7 @@ class PeriodicFinder():
 
         return proto_cell, offset
 
-    # def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
+    # def _find_proto_cell_2d_old(self, basis, pos, num, seed_index, seed_pos):
         # """
         # Args:
             # basis(np.ndarray): The basis cell vectors.

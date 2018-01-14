@@ -781,11 +781,11 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     cell_pos = []
     for i_dir in directions:
 
-        i_origin = origin - np.dot(i_dir, orig_basis)
-        vec_new = change_basis(cart_pos - i_origin, basis)
+        vec_new_cart = cart_pos + np.dot(i_dir, orig_basis)
+        vec_new_rel = change_basis(vec_new_cart - origin, basis)
 
         # If no positions are defined, find the atoms within the cell
-        for i_pos, pos in enumerate(vec_new):
+        for i_pos, pos in enumerate(vec_new_rel):
             if mask[0]:
                 x = 0 - a_prec <= pos[0] < 1 - a_prec
             else:
@@ -802,6 +802,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
                 indices.append(i_pos)
                 cell_pos.append(pos)
     cell_pos = np.array(cell_pos)
+    indices = np.array(indices)
 
     return indices, cell_pos
 
