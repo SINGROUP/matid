@@ -1154,10 +1154,11 @@ class PeriodicFinder():
             self.pos_tol_factor*self.pos_tol,
             )
 
-        # Correct the vacancy positions by the seed pos and cell periodicity
+        # Correct the vacancy positions by the seed pos, seed offset and cell
+        # periodicity
         for vacancy in vacancies:
             old_vac_pos = vacancy.position
-            old_vac_pos += seed_pos
+            old_vac_pos += seed_pos - seed_offset
             vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
             vacancy.position = new_vac_pos

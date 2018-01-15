@@ -1174,9 +1174,6 @@ class Material2DTests(unittest.TestCase):
             pbc=pbc,
         )
 
-        # system = system.repeat([2,2,2])
-        # view(system)
-
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
@@ -1194,8 +1191,12 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-        # # Check vacancy position
-        # #TODO
+        # Check vacancy position
+        vac_atom = vacancies[0]
+        vac_symbol = vac_atom.symbol
+        vac_pos = vac_atom.position
+        self.assertEqual(vac_symbol, "C")
+        self.assertTrue(np.allclose(vac_pos, [0.7123, 11.0639, 0], atol=1e-2))
 
     def test_graphene_shaken(self):
         """Test graphene that has randomly oriented but uniform length
@@ -2471,17 +2472,17 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
