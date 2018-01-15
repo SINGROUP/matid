@@ -21,15 +21,6 @@ from ase import Atoms
 class SymmetryAnalyzer(Analyzer):
     """A base class for analyzers that deal with 3D symmetry.
     """
-    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None, unitcollection=None, unit_cell=None):
-        """
-        Args:
-            system (ASE.Atoms): The system to inspect.
-            spglib_precision (float): The tolerance for the symmetry detection
-                done by spglib.
-        """
-        super(SymmetryAnalyzer, self).__init__(system, spglib_precision, vacuum_gaps, unitcollection, unit_cell)
-
     def reset(self):
         """Used to reset all the cached values.
         """
@@ -865,11 +856,6 @@ class SymmetryAnalyzer(Analyzer):
         if min_distance <= accuracy:
             return min_index
         else:
-            print(positions)
-            print(target_pos)
-            print(min_distance)
-            print(accuracy)
-            print(cell)
             return None
 
     def _find_wyckoff_ground_state(
@@ -1015,10 +1001,3 @@ class SymmetryAnalyzer(Analyzer):
             new_system.set_scaled_positions(wrapped_pos)
 
             return new_system, new_wyckoff_letters
-
-    def _get_vacuum_gaps(self, threshold=7.0):
-        # if self.vacuum_gaps is not None:
-            # return self.vacuum_gaps
-
-        gaps = systax.geometry.find_vacuum_directions(self.system, threshold=threshold)
-        return gaps

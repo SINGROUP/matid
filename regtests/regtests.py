@@ -2460,7 +2460,7 @@ class SurfaceTests(unittest.TestCase):
         # # Only adsorbate
         # adsorbates = classification.adsorbates
         # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
+        #t substitutions = classification.substitutions
         # vacancies = classification.vacancies
         # unknowns = classification.unknowns
         # self.assertEqual(len(interstitials), 0)
@@ -2472,16 +2472,16 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
