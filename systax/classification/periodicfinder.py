@@ -69,6 +69,7 @@ class PeriodicFinder():
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         self.disp_tensor_pbc = disp_tensor_pbc
+        self.vacuum_dir = vacuum_dir
         region = None
         possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
@@ -338,8 +339,6 @@ class PeriodicFinder():
         # Each subgraph represents a group of atoms that repeat periodically in
         # each cell. Here we calculate a mean position of these atoms in the
         # cell.
-        seed_pos = positions[seed_index]
-
         group_pos = []
         group_num = []
         group_indices = []
@@ -362,8 +361,7 @@ class PeriodicFinder():
             return None, None, None
 
         if n_spans == 3:
-            # proto_cell, offset = self._find_proto_cell_3d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
-            proto_cell, offset = self._find_proto_cell_3d_v2(
+            proto_cell, offset = self._find_proto_cell_3d(
                 seed_index,
                 seed_nodes,
                 neighbour_indices,
@@ -380,8 +378,7 @@ class PeriodicFinder():
                 best_adjacency_lists_sub_factors
             )
         elif n_spans == 2:
-            # proto_cell, offset = self._find_proto_cell_2d(best_spans, group_pos, group_num, seed_group_index, seed_pos)
-            proto_cell, offset = self._find_proto_cell_2d_v2(
+            proto_cell, offset = self._find_proto_cell_2d(
                 seed_index,
                 seed_nodes,
                 neighbour_indices,
@@ -400,7 +397,7 @@ class PeriodicFinder():
 
         return proto_cell, offset, n_spans
 
-    def _find_proto_cell_3d_v2(
+    def _find_proto_cell_3d(
             self,
             seed_index,
             seed_nodes,
@@ -503,7 +500,7 @@ class PeriodicFinder():
 
         return proto_cell, offset
 
-    # def _find_proto_cell_3d(self, basis, pos, num, seed_index, seed_pos):
+    # def _find_proto_cell_3d_old(self, basis, pos, num, seed_index, seed_pos):
         # """
         # """
         # # Each subgraph represents a group of atoms that repeat periodically in
@@ -544,7 +541,7 @@ class PeriodicFinder():
 
         # return proto_cell, offset
 
-    def _find_proto_cell_2d_v2(
+    def _find_proto_cell_2d(
             self,
             seed_index,
             seed_nodes,
@@ -569,7 +566,6 @@ class PeriodicFinder():
         c_norm = c_norm[None, :]
 
         basis = np.concatenate((best_spans, c_norm), axis=0)
-        # Find the seed positions copies that are within the neighbourhood
         orig_cell = system.get_cell()
         neighbour_seeds = seed_nodes
 
@@ -600,6 +596,13 @@ class PeriodicFinder():
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
+
+            # Update the third axis for each cell.
+            a = cells[i_node, 0]
+            b = cells[i_node, 1]
+            c = np.cross(a, b)
+            c_norm = c/np.linalg.norm(c)
+            c_norm = c_norm[None, :]
             cells[i_node, 2, :] = c_norm
 
         # Find the relative positions of atoms inside the cell
@@ -608,13 +611,17 @@ class PeriodicFinder():
         inside_pos = []
         for i_seed, cell in zip(neighbour_seeds, cells):
             seed_pos = orig_pos[i_seed]
+
+            i_pbc = ~np.array(self.vacuum_dir)
             i_indices, i_pos = systax.geometry.get_positions_within_basis(
                 system,
                 cell,
                 seed_pos,
                 0,
-                mask=[True, True, False]  # We ignore the third axis limits
+                mask=[True, True, False],  # We ignore the third axis limits
+                pbc=i_pbc,  # Do not consider periodicity in c-axis
             )
+
             inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
             inside_pos.append(i_pos)
 
@@ -631,7 +638,6 @@ class PeriodicFinder():
                         scaled_pos.append(pos)
                         break
             scaled_pos = np.array(scaled_pos)
-            # print(scaled_pos)
 
             # Only wrap the 2D positions
             scaled_pos_2d = scaled_pos[:, 0:2]
@@ -697,7 +703,7 @@ class PeriodicFinder():
 
         return proto_cell, offset
 
-    # def _find_proto_cell_2d(self, basis, pos, num, seed_index, seed_pos):
+    # def _find_proto_cell_2d_old(self, basis, pos, num, seed_index, seed_pos):
         # """
         # Args:
             # basis(np.ndarray): The basis cell vectors.
@@ -989,6 +995,9 @@ class PeriodicFinder():
         collection = LinkedUnitCollection(system, unit_cell, is_2d, vacuum_dir, tesselation_distance)
         multipliers = self._get_multipliers(periodic_indices)
 
+        # print("==========START===============")
+        # print(seed_index)
+
         # Start off the queue
         self._find_region_rec(
             system,
@@ -1145,10 +1154,11 @@ class PeriodicFinder():
             self.pos_tol_factor*self.pos_tol,
             )
 
-        # Correct the vacancy positions by the seed pos and cell periodicity
+        # Correct the vacancy positions by the seed pos, seed offset and cell
+        # periodicity
         for vacancy in vacancies:
             old_vac_pos = vacancy.position
-            old_vac_pos += seed_pos
+            old_vac_pos += seed_pos - seed_offset
             vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
             vacancy.position = new_vac_pos
@@ -1223,6 +1233,7 @@ class PeriodicFinder():
             # Find out the atoms that match the seed_guesses in the original
             # system
             seed_guesses = seed_pos + dislocations
+            # print("===============")
             matches, _, _, factors = systax.geometry.get_matches(
                 system,
                 seed_guesses,
