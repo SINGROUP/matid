@@ -1538,6 +1538,43 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(set(basis), set(range(len(system))))
 
+    def test_fluorographene(self):
+        system = Atoms(
+            scaled_positions=np.array([
+                [1.3012393333576103e-06, 0.9999449352451434, 0.07686917114285712],
+                [0.666645333381887, 0.9999840320410395, 0.10381504828571426],
+                [0.16664461721471663, 0.49999686527625936, 0.10381366714285713],
+                [0.5000035589866841, 0.49995279413001426, 0.07686989028571428],
+                [0.9999651360110703, 6.476326633588427e-05, 0.0026979231428571424],
+                [0.6665936880181591, 6.312126818602304e-05, 0.17797979399999994],
+                [0.16658826335530388, 0.5001281031872844, 0.1779785431428571],
+                [0.49997811077528137, 0.5001300794718694, 0.002698536571428571]
+            ]),
+            cell=np.array([
+                [4.359520614662661, 0.0, 0.0],
+                [0.0, 2.516978484830788, 0.0],
+                [0.0, 0.0, 18.521202373450003]
+            ]),
+            symbols=[6, 6, 6, 6, 9, 9, 9, 9],
+            pbc=True
+        )
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
 
 class Material3DTests(unittest.TestCase):
     """Tests detection of bulk 3D materials.
