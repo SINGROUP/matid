@@ -18,17 +18,17 @@ else:
 class Analyzer(ABC):
     """A base class for all classes that are used to analyze structures.
     """
-    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None, unitcollection=None, unit_cell=None):
+    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None):
         """
         Args:
             system (ASE.Atoms): The system to inspect.
             spglib_precision (float): The tolerance for the symmetry detection
                 done by spglib.
+            vacuum_gaps: The directions in which there is a vacuum gap that
+                separates periodic copies.
         """
         self.system = system
         self.vacuum_gaps = vacuum_gaps
-        self.unitcollection = unitcollection
-        self.unit_cell = unit_cell
         if spglib_precision is None:
             self.spglib_precision = SPGLIB_PRECISION
         else:

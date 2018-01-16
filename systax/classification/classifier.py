@@ -21,6 +21,7 @@ from systax.classification.classifications import \
     Class3D
 import systax.geometry
 from systax.analysis.class3danalyzer import Class3DAnalyzer
+from systax.analysis.class2danalyzer import Class2DAnalyzer
 from systax.symmetry import check_if_crystal
 from systax.classification.periodicfinder import PeriodicFinder
 
@@ -227,12 +228,13 @@ class Classifier():
                 n_region_atoms = len(region.get_basis_indices())
                 n_atoms = len(system)
                 coverage = n_region_atoms/n_atoms
-                analyzer = Class3DAnalyzer(region.cell)
 
                 if coverage >= 0.5:
                     if region.is_2d:
+                        analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
                         classification = Material2D(vacuum_dir, region, analyzer)
                     else:
+                        analyzer = Class3DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
                         classification = Surface(vacuum_dir, region, analyzer)
 
         # Bulk structures
