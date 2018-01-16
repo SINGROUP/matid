@@ -69,7 +69,7 @@ class PeriodicFinder():
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
         self.disp_tensor_pbc = disp_tensor_pbc
-        self.vacuum_dir = vacuum_dir
+        self.vacuum_dir = np.array(vacuum_dir)
         region = None
         possible_spans, neighbour_mask = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
@@ -327,7 +327,10 @@ class PeriodicFinder():
                 if source != target:
                     node_edges[target] += 1
             n_edges = np.array(list(node_edges.values()))
-            mean_edges = n_edges.mean()
+            if len(n_edges) != 0:
+                mean_edges = n_edges.mean()
+            else:
+                mean_edges = 0
 
             if mean_edges >= dim:
                 valid_graphs.append(graph)
@@ -1233,7 +1236,6 @@ class PeriodicFinder():
             # Find out the atoms that match the seed_guesses in the original
             # system
             seed_guesses = seed_pos + dislocations
-            # print("===============")
             matches, _, _, factors = systax.geometry.get_matches(
                 system,
                 seed_guesses,
@@ -1265,8 +1267,16 @@ class PeriodicFinder():
                 else:
                     i_seed_pos = seed_guess
 
-                # Store the indices and positions of new valid seeds
-                if (factor == 0).all():
+                # This test is performed to disallow the search from extending
+                # to neighbouring copies in the directions that are periodic.
+                # If this is not checked, then the same atoms can be included
+                # as e.g. substitutions from multiple different directions. It
+                # is however allowed for the search to be extended beyound the
+                # direction that has a vacuum gap. It will ensure that two same
+                # positions are not searched and will still allow the search to
+                # extend beyound cell boundaries.
+                if (factor[~self.vacuum_dir] == 0).all():
+
                     # Check if this index has already been used as a seed. The
                     # used_seed_indices is needed so that the same atom cannot
                     # become a seed point multiple times. This can otherwise

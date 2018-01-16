@@ -44,13 +44,14 @@ class Classifier():
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
-            cluster_threshold=3.0,
+            cluster_threshold=3.5,
             crystallinity_threshold=0.25,
             delaunay_threshold=1.5,
             delaunay_threshold_mode="relative",
             pos_tol_factor=2,
             n_edge_tol=0.95,
-            cell_size_tol=0.25
+            cell_size_tol=0.25,
+            max_n_atoms=1000
             ):
         """
         Args:
@@ -72,6 +73,8 @@ class Classifier():
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
+            max_n_atoms(int): The maximum number of atoms in the system. If the
+                system has more atoms than this, the a ValueError is raised.
         """
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
@@ -86,6 +89,7 @@ class Classifier():
         self.pos_tol_factor = pos_tol_factor
         self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
+        self.max_n_atoms = max_n_atoms
 
         # Check seed position
         if type(seed_position) == str:
@@ -118,9 +122,20 @@ class Classifier():
         Returns:
             Classification: One of the subclasses of the Classification base
             class that represents a classification.
+
+        Raises:
+            ValueError: If the system has more atoms than self.max_n_atoms
         """
         self.system = system
         classification = None
+
+        n_atoms = len(system)
+        if n_atoms > self.max_n_atoms:
+            raise ValueError(
+                "The system contains more atoms ({}) than the current allowed "
+                "limit of {}. If you wish you can increase this limit with the "
+                "max_n_atoms attribute.".format(n_atoms, self.max_n_atoms)
+            )
 
         # Calculate the displacement tensor for the original system. It will be
         # reused in multiple sections.

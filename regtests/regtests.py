@@ -18,6 +18,7 @@ import ase.lattice.hexagonal
 from ase.lattice.compounds import Zincblende
 from ase.lattice.cubic import SimpleCubicFactory
 import ase.io
+import json
 
 from systax import Classifier
 from systax import PeriodicFinder
@@ -43,6 +44,17 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+class ExceptionTests(unittest.TestCase):
+    """Tests for exceptions that arise from invalid arguments.
+    """
+    def test_too_many_atoms(self):
+        system = bcc100('Fe', size=(11, 10, 10), vacuum=8)
+
+        classifier = Classifier()
+        with self.assertRaises(ValueError):
+            classifier.classify(system)
 
 
 class GeometryTests(unittest.TestCase):
@@ -1793,6 +1805,29 @@ class Material3DTests(unittest.TestCase):
         # classifier = Classifier()
         # classification = classifier.classify(system)
 
+    def test_thin_sparse(self):
+        """Test a crystal that is very thin.
+        """
+        system = Atoms(
+            scaled_positions=np.array([
+                [0.875000071090061, 0.6250000710900608, 0.2499998578198783],
+                [0.12499992890993901, 0.37499992890993905, 0.750000142180122],
+                [0.624999928909939, 0.8749999289099393, 0.750000142180122],
+                [0.37500007109006084, 0.12500007109006087, 0.2499998578198783]
+            ]),
+            symbols=[5, 5, 51, 51],
+            cell=np.array([
+                [10.1, 0.0, 0.0],
+                [0.0, 10.1, 0.0],
+                [5.05, 5.05, 1.758333]
+            ]),
+            pbc=[True, True, True],
+        )
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Crystal)
+
     def test_si(self):
         si = ase.lattice.cubic.Diamond(
             size=(1, 1, 1),
@@ -1853,8 +1888,8 @@ class Material3DTests(unittest.TestCase):
             size=(1, 1, 1),
             symbol='C',
             pbc=(1, 1, 1),
-            latticeconstant=(2.461, 10))
-        # view(sys)
+            latticeconstant=(2.461, 12))
+
         classifier = Classifier()
         clas = classifier.classify(sys)
         self.assertIsInstance(clas, Unknown)
@@ -2155,6 +2190,37 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+
+    def test_cut_surface(self):
+        """Test a surface that has been cut by the cell boundary. Should still
+        be detected as single surface.
+        """
+        with open("./Ba20O52Ti20.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
     def test_zinc_blende(self):
         system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
         system = system.repeat((4, 4, 2))
@@ -2530,7 +2596,7 @@ class SurfaceTests(unittest.TestCase):
         # # Only adsorbate
         # adsorbates = classification.adsorbates
         # interstitials = classification.interstitials
-        #t substitutions = classification.substitutions
+        # substitutions = classification.substitutions
         # vacancies = classification.vacancies
         # unknowns = classification.unknowns
         # self.assertEqual(len(interstitials), 0)
@@ -2542,6 +2608,7 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))

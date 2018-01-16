@@ -136,6 +136,13 @@ def get_dimensionality(
     pos1 = seed_pos + disp_seed
     displacements_finite = get_displacement_tensor(pos1, pos1)
 
+    # clustered_sys = Atoms(
+        # positions=pos1,
+        # cell=cell,
+        # symbols=num,
+    # )
+    # view(clustered_sys)
+
     # For each basis direction, add the basis vector to the displacements to
     # get the distance between two neighbouring copies of the cluster. If the
     # minimum distance between two copies is bigger or equal to the vacuum gap,
@@ -683,7 +690,7 @@ def get_mic_positions(disp_tensor_rel, cell, pbc):
 
 
 def expand_pbc(pbc):
-    """Used to expand a pbc definition into a list of three booleans.
+    """Used to expand a pbc definition into an array of three booleans.
 
     Args:
         pbc(boolean or a list of booleans): The periodicity of the cell. This
