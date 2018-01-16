@@ -1105,6 +1105,39 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
+    def test_graphene_substitution(self):
+        """Test graphene with a substitution defect.
+        """
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        sys[0].number = 7
+        # view(sys)
+        sys.set_pbc([True, True, False])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
+
+        # One substitution
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 1)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
+        # Check substitution info
+        subst = substitutions[0]
+        index = subst.index
+        orig_num = subst.original_element
+        subst_num = subst.substitutional_element
+        self.assertEqual(index, 0)
+        self.assertEqual(orig_num, 6)
+        self.assertEqual(subst_num, 7)
+
     def test_graphene_missing_atom_exciting(self):
         """Test a more realistic graphene with a vacancy defect from the
         exciting data in the NOMAD Archive.
@@ -2472,16 +2505,16 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)

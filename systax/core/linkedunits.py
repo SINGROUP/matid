@@ -18,7 +18,14 @@ class LinkedUnitCollection(dict):
         """
         Args:
             system(ase.Atoms): A reference to the system from which this
-            LinkedUniCollection is gathered.
+                LinkedUniCollection is gathered.
+            cell(ase.Atoms): The prototype cell that is used in finding this
+                region.
+            is_2d(boolean): Whether this system represents a 2D-material or not.
+            vacuum_gaps(np.ndarray): A boolean array indicating the presence of
+                vacuum gaps in the basis directions of the original system.
+            delaunay_threshold(float): The maximum allowed size of a tetrahedra
+                edge in the Delaunay triangulation of the region..
         """
         self.system = system
         self.cell = cell
@@ -128,6 +135,18 @@ class LinkedUnitCollection(dict):
             _, outside_indices = self.get_inside_and_outside_indices()
             basis_elements = self.cell.get_atomic_numbers()
             num = self.system.get_atomic_numbers()
+
+            # In 2D materials the substitutional atoms have to be separately
+            # removed from the list of adsorbates. This is because sometimes
+            # the material is too thin for the substitutions to be considered
+            # to be within the triangulation.
+            if self.is_2d:
+                substitutions = self.get_substitutions()
+                outside_indices = set(outside_indices)
+                substitutions = set([x.index for x in substitutions])
+                outside_indices -= substitutions
+                outside_indices = np.array(list(outside_indices))
+
             if len(outside_indices) != 0:
                 outside_num = num[outside_indices]
                 adsorbate_mask = ~np.isin(outside_num, basis_elements)
@@ -180,7 +199,7 @@ class LinkedUnitCollection(dict):
         """
         if self._vacancies is None:
 
-            # Gather all cavancies
+            # Gather all vacancies
             all_vacancies = []
             for cell in self.values():
                 vacancies = cell.vacancies
