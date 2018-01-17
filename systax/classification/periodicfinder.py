@@ -272,6 +272,7 @@ class PeriodicFinder():
         # Find the best basis
         valid_span_metrics = metric[valid_span_indices]
         valid_spans = possible_spans[valid_span_indices]
+        # print(valid_spans)
         best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
         dim = len(best_combo)
 
@@ -281,6 +282,8 @@ class PeriodicFinder():
 
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
+        # print(seed_index)
+        # print(best_spans)
 
         # Get the adjacency lists corresponding to the best spans
         best_adjacency_lists = []
@@ -411,6 +414,8 @@ class PeriodicFinder():
                 best_adjacency_lists_sub_factors
             )
 
+        # print(proto_cell.get_cell())
+
         return proto_cell, offset, n_spans
 
     def _find_proto_cell_3d(
@@ -490,6 +495,7 @@ class PeriodicFinder():
                         pos = cell_pos[pos_index]
                         scaled_pos.append(pos)
                         break
+            # print(scaled_pos)
 
             # Find the copy with minimum distance from origin
             distances = np.linalg.norm(scaled_pos, axis=1)
