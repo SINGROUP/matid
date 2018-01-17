@@ -354,6 +354,7 @@ class PeriodicFinderTests(unittest.TestCase):
     max_cell_size = classifier.max_cell_size
     angle_tol = classifier.angle_tol
     delaunay_threshold = classifier.delaunay_threshold
+    bond_threshold = classifier.bond_threshold
     pos_tol = classifier.pos_tol
     pos_tol_factor = classifier.pos_tol_factor
     n_edge_tol = classifier.n_edge_tol
@@ -413,188 +414,6 @@ class PeriodicFinderTests(unittest.TestCase):
             [0, 0.5, 0.5],
         ])
         self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.08))
-
-    def test_cell_finding_nacl(self):
-        """Test the cell finding for system with multiple atoms in basis.
-        """
-        from ase.lattice.cubic import SimpleCubicFactory
-
-        # Create the system
-        class NaClFactory(SimpleCubicFactory):
-            "A factory for creating NaCl (B1, Rocksalt) lattices."
-
-            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
-                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
-                            [0.5, 0.5, 0.5]]
-            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
-
-        nacl = NaClFactory()
-        nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
-        nacl = nacl.repeat((4, 4, 2))
-        cell = nacl.get_cell()
-        cell[2, :] *= 3
-        nacl.set_cell(cell)
-        nacl.center()
-        # view(nacl)
-
-        # Calculate the diplacement tensor and the mean nearest neighbour
-        # distance
-        pos = nacl.get_positions()
-        cell = nacl.get_cell()
-        pbc = nacl.get_pbc()
-        disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
-        _, distances = systax.geometry.get_nearest_neighbours(nacl, dist_matrix_pbc)
-        pos_tol = PeriodicFinderTests.pos_tol*distances.mean()
-
-        # Find the seed atom nearest to center of mass
-        seed_vec = nacl.get_center_of_mass()
-        seed_index = systax.geometry.get_nearest_atom(nacl, seed_vec)
-
-        finder = PeriodicFinder(
-            pos_tol,
-            PeriodicFinderTests.angle_tol,
-            PeriodicFinderTests.max_cell_size,
-            PeriodicFinderTests.pos_tol_factor,
-            PeriodicFinderTests.cell_size_tol,
-            PeriodicFinderTests.n_edge_tol,
-        )
-
-        vacuum_dir = [False, False, True]
-        region = finder.get_region(nacl, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
-        region = region[1]
-
-        # Pristine
-        basis = region.get_basis_indices()
-        adsorbates = region.get_adsorbates()
-        interstitials = region.get_interstitials()
-        substitutions = region.get_substitutions()
-        vacancies = region.get_vacancies()
-        unknowns = region.get_unknowns()
-        self.assertEqual(set(basis), set(range(len(nacl))))
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-
-    def test_cell_finding_2D_flat(self):
-        """Test the cell finding for system with multiple atoms in basis.
-        """
-        graphene = Atoms(
-            symbols=[6, 6],
-            cell=np.array((
-                [2.4595121467478055, 0.0, 0.0],
-                [-1.2297560733739028, 2.13, 0.0],
-                [0.0, 0.0, 20.0]
-            )),
-            scaled_positions=np.array((
-                [0.3333333333333333, 0.6666666666666666, 0.5],
-                [0.6666666666666667, 0.33333333333333337, 0.5]
-            )),
-            pbc=True
-        )
-        system = graphene.repeat([5, 5, 1])
-        # view(graphene)
-
-        # Calculate the diplacement tensor and the mean nearest neighbour
-        # distance
-        pos = system.get_positions()
-        cell = system.get_cell()
-        pbc = system.get_pbc()
-        disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
-        _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
-        mean = distances.mean()
-        pos_tol = PeriodicFinderTests.pos_tol*mean
-
-        # Find the seed atom nearest to center of mass
-        seed_vec = system.get_center_of_mass()
-        seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
-
-        finder = PeriodicFinder(
-            pos_tol,
-            PeriodicFinderTests.angle_tol,
-            PeriodicFinderTests.max_cell_size,
-            PeriodicFinderTests.pos_tol_factor,
-            PeriodicFinderTests.cell_size_tol,
-            PeriodicFinderTests.n_edge_tol,
-        )
-
-        vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
-        region = region[1]
-
-        # Pristine
-        basis = region.get_basis_indices()
-        adsorbates = region.get_adsorbates()
-        interstitials = region.get_interstitials()
-        substitutions = region.get_substitutions()
-        vacancies = region.get_vacancies()
-        unknowns = region.get_unknowns()
-        self.assertEqual(set(basis), set(range(len(system))))
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-
-    def test_cell_finding_2D_finite(self):
-        """Test the cell finding for 2D system with finite thickness.
-        """
-        system = ase.build.mx2(
-            formula="MoS2",
-            kind="2H",
-            a=3.18,
-            thickness=3.19,
-            size=(5, 5, 1),
-            vacuum=8)
-        system.set_pbc(True)
-
-        # Calculate the diplacement tensor and the mean nearest neighbour
-        # distance
-        pos = system.get_positions()
-        cell = system.get_cell()
-        pbc = system.get_pbc()
-        disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
-        _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
-        mean = distances.mean()
-        pos_tol = PeriodicFinderTests.pos_tol*mean
-
-        # Find the seed atom nearest to center of mass
-        seed_vec = system.get_center_of_mass()
-        seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
-
-        finder = PeriodicFinder(
-            pos_tol,
-            PeriodicFinderTests.angle_tol,
-            PeriodicFinderTests.max_cell_size,
-            PeriodicFinderTests.pos_tol_factor,
-            PeriodicFinderTests.cell_size_tol,
-            PeriodicFinderTests.n_edge_tol,
-        )
-
-        vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
-        region = region[1]
-
-        # Pristine
-        basis = region.get_basis_indices()
-        adsorbates = region.get_adsorbates()
-        interstitials = region.get_interstitials()
-        substitutions = region.get_substitutions()
-        vacancies = region.get_vacancies()
-        unknowns = region.get_unknowns()
-        self.assertEqual(set(basis), set(range(len(system))))
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
 
     def test_cell_atoms_interstitional(self):
         """Tests that the correct cell is identified even if interstitial are
@@ -678,84 +497,10 @@ class PeriodicFinderTests(unittest.TestCase):
                 symbols=n_atoms*['C'],
                 pbc=(1, 1, 1))
 
-            # Calculate the diplacement tensor and the mean nearest neighbour
-            # distance
-            pos = system.get_positions()
-            cell = system.get_cell()
-            pbc = system.get_pbc()
-            disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-            dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
-            _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
-            mean = distances.mean()
-            pos_tol = PeriodicFinderTests.pos_tol*mean
+            classifier = Classifier()
+            classification = classifier.classify(system)
+            self.assertIsInstance(classification, Class3D)
 
-            finder = PeriodicFinder(
-                pos_tol,
-                PeriodicFinderTests.angle_tol,
-                PeriodicFinderTests.max_cell_size,
-                PeriodicFinderTests.pos_tol_factor,
-                PeriodicFinderTests.cell_size_tol,
-                PeriodicFinderTests.n_edge_tol,
-            )
-
-            # Find the seed atom nearest to center of mass
-            seed_vec = system.get_center_of_mass()
-            seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
-
-            vacuum_dir = [False, False, False]
-            region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
-            if region is not None:
-                region = region[1]
-                n_region_atoms = len(region.get_basis_indices())
-                self.assertTrue(n_region_atoms < 10)
-
-    def test_surface_substitution(self):
-        """Test how a surface where an atom at the surface has been substituted
-        is getting classified. The classification depends on the delaunay
-        threshold. Currently it is favoured that these kind of atoms are
-        classified as adsorbates. This is because this corresponds to lower
-        delaunay threshold which is faster.
-        """
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        labels = system.get_atomic_numbers()
-        labels[2] = 41
-        system.set_atomic_numbers(labels)
-        # view(system)
-
-        # Calculate the diplacement tensor and the mean nearest neighbour
-        # distance
-        pos = system.get_positions()
-        cell = system.get_cell()
-        pbc = system.get_pbc()
-        disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
-        _, distances = systax.geometry.get_nearest_neighbours(system, dist_matrix_pbc)
-        mean = distances.mean()
-        pos_tol = PeriodicFinderTests.pos_tol*mean
-
-        # Find the seed atom nearest to center of mass
-        seed_vec = system.get_center_of_mass()
-        seed_index = systax.geometry.get_nearest_atom(system, seed_vec)
-
-        finder = PeriodicFinder(
-            pos_tol,
-            PeriodicFinderTests.angle_tol,
-            PeriodicFinderTests.max_cell_size,
-            PeriodicFinderTests.pos_tol_factor,
-            PeriodicFinderTests.cell_size_tol,
-            PeriodicFinderTests.n_edge_tol,
-        )
-
-        vacuum_dir = [False, False, True]
-        region = finder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, tesselation_distance=PeriodicFinderTests.delaunay_threshold)
-        region = region[1]
-
-        substitutions = region.get_substitutions()
-        adsorbates = region.get_adsorbates()
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 1)
 
     # def test_nanocluster(self):
         # """Test the periodicity finder on an artificial nanocluster.
@@ -1038,6 +783,22 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
+    def test_layered_2d(self):
+        """A stacked two-dimensional material should be classified as Class2D.
+        """
+        with open("./mat2d_4.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Class2D)
+
     def test_graphene_primitive(self):
         sys = Material2DTests.graphene
         # view(sys)
@@ -1267,6 +1028,39 @@ class Material2DTests(unittest.TestCase):
             self.assertEqual(len(vacancies), 0)
             self.assertEqual(len(adsorbates), 0)
             self.assertEqual(len(unknowns), 0)
+
+    def test_chemisorption(self):
+        """Test the adsorption where there is sufficient distance between the
+        adsorbate and the surface to distinguish between them even if they
+        share the same elements.
+        """
+        with open("./mat2d_adsorbate_unknown.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # No defects or unknown atoms, one adsorbate cluster
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(adsorbates), 24)
+        self.assertTrue(np.array_equal(adsorbates, np.arange(50, 74)))
 
     def test_curved_2d(self):
         """Curved 2D-material
@@ -2606,6 +2400,41 @@ class SurfaceTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
 
 
+class FhiTests(unittest.TestCase):
+    """Tests from different FhiAims data in the NOMAD Archive.
+    """
+    def test_surface_1(self):
+        with open("./C2Ba16O44Zr12.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
+        view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # No defects or unknown atoms, one adsorbate cluster
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        print(adsorbates)
+        print(unknowns)
+
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(adsorbates), 3)
+        # self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
+
+
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
@@ -2618,8 +2447,10 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(FhiTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
