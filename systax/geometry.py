@@ -67,7 +67,9 @@ def get_dimensionality(
         system,
         cluster_threshold,
         disp_tensor=None,
-        disp_tensor_pbc=None
+        disp_tensor_pbc=None,
+        dist_matrix_radii_pbc=None,
+        radii_matrix=None
     ):
     """Used to calculate the dimensionality of a system.
 
@@ -81,6 +83,8 @@ def get_dimensionality(
         disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
             takes into account the periodic boundary conditions for the
                 system.
+        distances(np.ndarray): A precalculated array of the distances used for
+            clustering the system.
 
     Returns:
         int: The dimensionality of the system.
@@ -94,11 +98,6 @@ def get_dimensionality(
     pos = system.get_positions()
     num = system.get_atomic_numbers()
 
-    # Calculate a matrix containing the combined radii for each pair of atoms
-    # in an extended system
-    radii = covalent_radii[num]
-    radii_matrix = radii[:, None] + radii[None, :]
-
     # Calculate the displacements in the finite system taking into accout periodicity
     if pbc.any():
         if disp_tensor_pbc is not None:
@@ -110,13 +109,17 @@ def get_dimensionality(
             displacements_finite_pbc = disp_tensor
         else:
             displacements_finite_pbc = get_displacement_tensor(pos, pos)
+    if radii_matrix is None:
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+    if dist_matrix_radii_pbc is None:
+        dist_matrix_radii_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
+        dist_matrix_radii_pbc -= radii_matrix
 
     # Check the number of clusters. We don't want the clustering to hog all
     # resources, so the cpu's are limited to one
     db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    distances_finite_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
-    distances_finite_pbc_radii = distances_finite_pbc - radii_matrix
-    db.fit(distances_finite_pbc_radii)
+    db.fit(dist_matrix_radii_pbc)
     clusters_finite = db.labels_
     n_clusters_finite = len(np.unique(clusters_finite))
 
@@ -464,13 +467,11 @@ def get_extended_system(system, target_size):
     return extended_system
 
 
-def get_clusters(system, threshold=1.35):
+def get_clusters(system, distance_matrix, threshold):
     """
     """
-    distance_matrix = get_covalent_distances(system)
-
     # Detect clusters
-    db = DBSCAN(eps=threshold, min_samples=1, metric='precomputed', n_jobs=-1)
+    db = DBSCAN(eps=threshold, min_samples=1, metric='precomputed', n_jobs=1)
     db.fit(distance_matrix)
     clusters = db.labels_
 
@@ -683,7 +684,7 @@ def get_mic_positions(disp_tensor_rel, cell, pbc):
 
 
 def expand_pbc(pbc):
-    """Used to expand a pbc definition into a list of three booleans.
+    """Used to expand a pbc definition into an array of three booleans.
 
     Args:
         pbc(boolean or a list of booleans): The periodicity of the cell. This

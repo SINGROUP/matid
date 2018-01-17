@@ -14,7 +14,16 @@ class LinkedUnitCollection(dict):
     Essentially this is a special flavor of a regular dictionary: the keys can
     only be a sequence of three integers, and the values should be LinkedUnits.
     """
-    def __init__(self, system, cell, is_2d, vacuum_gaps, delaunay_threshold):
+    def __init__(
+            self,
+            system,
+            cell,
+            is_2d,
+            vacuum_gaps,
+            delaunay_threshold,
+            bond_threshold,
+            dist_matrix_radii_pbc
+        ):
         """
         Args:
             system(ase.Atoms): A reference to the system from which this
@@ -32,12 +41,16 @@ class LinkedUnitCollection(dict):
         self.is_2d = is_2d
         self.vacuum_gaps = vacuum_gaps
         self.delaunay_threshold = delaunay_threshold
+        self.bond_threshold = bond_threshold
+        self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self._decomposition = None
         self._inside_indices = None
         self._outside_indices = None
         self._adsorbates = None
         self._substitutions = None
         self._vacancies = None
+        self._clusters = None
+        self._basis_indices = None
         dict.__init__(self)
 
     def __setitem__(self, key, value):
@@ -88,12 +101,17 @@ class LinkedUnitCollection(dict):
             np.ndarray: Indices of the atoms in the original system that belong
             to this collection of LinkedUnits.
         """
-        indices = set()
-        for unit in self.values():
-            i_indices = [x for x in unit.basis_indices if x is not None]
-            indices.update(i_indices)
+        if self._basis_indices is None:
+            indices = set()
+            for unit in self.values():
+                i_indices = [x for x in unit.basis_indices if x is not None]
+                indices.update(i_indices)
 
-        return np.array(list(indices))
+            # Ensure that all the basis atoms belong to the same cluster.
+            clusters = self.get_clusters()
+
+            self._basis_indices = np.array(list(indices))
+        return self._basis_indices
 
     def get_invalid_indices(self):
         """Get the indices of atoms that do not belong to the basis of this
@@ -118,11 +136,27 @@ class LinkedUnitCollection(dict):
 
         return np.array(list(interstitials))
 
+    def get_clusters(self):
+        """Used to cluster the system in order to distinguish chemisorbed
+        adsorbates from the surface.
+        """
+        if self._clusters is None:
+            clusters = systax.geometry.get_clusters(
+                self.system,
+                self.dist_matrix_radii_pbc,
+                self.bond_threshold
+            )
+            clusters = [set(list(x)) for x in clusters]
+            self._clusters = clusters
+
+        return self._clusters
+
     def get_adsorbates(self):
         """Get the indices of the adsorbate atoms in the region.
 
-        All atoms that are outside the tesselation, and which are not part of
-        the elements present in the surface are labeled as adsorbate atoms.
+        All atoms that are outside the tesselation, and are either not part of
+        the elements present in the surface or further away than a certain
+        threshold, are labeled as adsorbate atoms.
 
         This function does not differentiate between different adsorbate
         molecules.
@@ -133,8 +167,12 @@ class LinkedUnitCollection(dict):
         if self._adsorbates is None:
 
             _, outside_indices = self.get_inside_and_outside_indices()
-            basis_elements = self.cell.get_atomic_numbers()
+            basis_elements = set(self.cell.get_atomic_numbers())
+            outside_indices = outside_indices
             num = self.system.get_atomic_numbers()
+
+            # Get the clustering for adsorbate detection
+            clusters = self.get_clusters()
 
             # In 2D materials the substitutional atoms have to be separately
             # removed from the list of adsorbates. This is because sometimes
@@ -148,9 +186,24 @@ class LinkedUnitCollection(dict):
                 outside_indices = np.array(list(outside_indices))
 
             if len(outside_indices) != 0:
-                outside_num = num[outside_indices]
-                adsorbate_mask = ~np.isin(outside_num, basis_elements)
-                adsorbates = outside_indices[adsorbate_mask]
+
+                basis_elements = set(basis_elements)
+                adsorbates = []
+                for index in outside_indices:
+                    i_num = num[index]
+                    # If the outside atom has element not belongin to basis it
+                    # is automatically adsorbate
+                    if i_num not in basis_elements:
+                        adsorbates.append(index)
+                    # Otherwise it is labeled as adsorbate if it belongs to a
+                    # cluster with only atoms that are also outside
+                    else:
+                        for cluster in clusters:
+                            if index in cluster:
+                                if cluster.issubset(outside_indices):
+                                    adsorbates.append(index)
+                adsorbates = np.array(adsorbates)
+
             else:
                 adsorbates = np.array([])
 

@@ -4,6 +4,7 @@ import numpy as np
 
 import ase.build
 from ase.visualize import view
+from ase.data import covalent_radii
 
 from systax.exceptions import SystaxError
 
@@ -44,13 +45,15 @@ class Classifier():
             pos_tol=0.3,
             pos_tol_mode="relative",
             angle_tol=20,
-            cluster_threshold=3.0,
+            cluster_threshold=3.5,
             crystallinity_threshold=0.25,
             delaunay_threshold=1.5,
+            bond_threshold=1.0,
             delaunay_threshold_mode="relative",
             pos_tol_factor=2,
             n_edge_tol=0.95,
-            cell_size_tol=0.25
+            cell_size_tol=0.25,
+            max_n_atoms=1000
             ):
         """
         Args:
@@ -72,6 +75,8 @@ class Classifier():
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
+            max_n_atoms(int): The maximum number of atoms in the system. If the
+                system has more atoms than this, the a ValueError is raised.
         """
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
@@ -83,9 +88,11 @@ class Classifier():
         self.delaunay_threshold = delaunay_threshold
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
+        self.bond_threshold = bond_threshold
         self.pos_tol_factor = pos_tol_factor
         self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
+        self.max_n_atoms = max_n_atoms
 
         # Check seed position
         if type(seed_position) == str:
@@ -118,9 +125,20 @@ class Classifier():
         Returns:
             Classification: One of the subclasses of the Classification base
             class that represents a classification.
+
+        Raises:
+            ValueError: If the system has more atoms than self.max_n_atoms
         """
         self.system = system
         classification = None
+
+        n_atoms = len(system)
+        if n_atoms > self.max_n_atoms:
+            raise ValueError(
+                "The system contains more atoms ({}) than the current allowed "
+                "limit of {}. If you wish you can increase this limit with the "
+                "max_n_atoms attribute.".format(n_atoms, self.max_n_atoms)
+            )
 
         # Calculate the displacement tensor for the original system. It will be
         # reused in multiple sections.
@@ -132,7 +150,15 @@ class Classifier():
             disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
         else:
             disp_tensor_pbc = disp_tensor
-        dist_matrix_pbc = np.linalg.norm(disp_tensor, axis=2)
+        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
+
+        # Calculate the distance matrix where the periodicity and the covalent
+        # radii have been taken into account
+        dist_matrix_radii_pbc = np.array(dist_matrix_pbc)
+        num = system.get_atomic_numbers()
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+        dist_matrix_radii_pbc -= radii_matrix
 
         # If pos_tol_mode or delaunay_threshold_mode is relative, get the
         # average distance to closest neighbours
@@ -159,7 +185,9 @@ class Classifier():
                 system,
                 self.cluster_threshold,
                 disp_tensor=disp_tensor,
-                disp_tensor_pbc=disp_tensor_pbc
+                disp_tensor_pbc=disp_tensor_pbc,
+                dist_matrix_radii_pbc=dist_matrix_radii_pbc,
+                radii_matrix=radii_matrix
             )
         except SystaxError:
             return Unknown()
@@ -219,23 +247,44 @@ class Classifier():
                 cell_size_tol=self.cell_size_tol,
                 n_edge_tol=self.n_edge_tol
             )
-            region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
+            region = periodicfinder.get_region(
+                system,
+                seed_index,
+                disp_tensor_pbc,
+                disp_tensor,
+                dist_matrix_radii_pbc,
+                vacuum_dir,
+                self.abs_delaunay_threshold,
+                self.bond_threshold
+
+            )
             if region is not None:
                 region = region[1]
 
-                # If the region covers less than 50% of the whole system,
-                # categorize as Class2D
-                n_region_atoms = len(region.get_basis_indices())
-                n_atoms = len(system)
-                coverage = n_region_atoms/n_atoms
+                # If the basis atoms in the region are split into multiple
+                # disconnected pieces (as indicated by clustering), then they
+                # cannot be classified
+                clusters = region.get_clusters()
+                basis_indices = set(list(region.get_basis_indices()))
+                split = True
+                for cluster in clusters:
+                    if basis_indices.issubset(cluster):
+                        split = False
 
-                if coverage >= 0.5:
-                    if region.is_2d:
-                        analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                        classification = Material2D(vacuum_dir, region, analyzer)
-                    else:
-                        analyzer = Class3DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                        classification = Surface(vacuum_dir, region, analyzer)
+                if not split:
+                    # If the region covers less than 50% of the whole system,
+                    # categorize as Class2D
+                    n_region_atoms = len(region.get_basis_indices())
+                    n_atoms = len(system)
+                    coverage = n_region_atoms/n_atoms
+
+                    if coverage >= 0.5:
+                        if region.is_2d:
+                            analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
+                            classification = Material2D(vacuum_dir, region, analyzer)
+                        else:
+                            analyzer = Class3DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
+                            classification = Surface(vacuum_dir, region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:
@@ -251,36 +300,42 @@ class Classifier():
             # cell. If above a certain threshold, try to find periodic
             # region to see if it is a crystal containing a defect.
             if not is_crystal:
-                primitive_system = analyzer.get_primitive_system()
-                n_atoms_prim = len(primitive_system)
-                if n_atoms_prim >= 20:
-                    periodicfinder = PeriodicFinder(
-                        pos_tol=self.abs_pos_tol,
-                        angle_tol=self.angle_tol,
-                        max_cell_size=self.max_cell_size,
-                        pos_tol_factor=self.pos_tol_factor,
-                        cell_size_tol=self.cell_size_tol,
-                        n_edge_tol=self.n_edge_tol
-                    )
+                pass
 
-                    # Get the index of the seed atom
-                    if self.seed_position == "cm":
-                        seed_vec = self.system.get_center_of_mass()
-                    else:
-                        seed_vec = self.seed_position
-                    seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+                # This section is currently disabled. Can be reenabled once
+                # more extensive testing is carried out on the detection of
+                # defects in crystals.
 
-                    region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
-                    if region is not None:
-                        region = region[1]
+                # primitive_system = analyzer.get_primitive_system()
+                # n_atoms_prim = len(primitive_system)
+                # if n_atoms_prim >= 20:
+                    # periodicfinder = PeriodicFinder(
+                        # pos_tol=self.abs_pos_tol,
+                        # angle_tol=self.angle_tol,
+                        # max_cell_size=self.max_cell_size,
+                        # pos_tol_factor=self.pos_tol_factor,
+                        # cell_size_tol=self.cell_size_tol,
+                        # n_edge_tol=self.n_edge_tol
+                    # )
 
-                        # If all the regions cover at least 80% of the structure,
-                        # then we consider it to be a defected crystal
-                        n_region_atoms = len(region.get_basis_indices())
-                        n_atoms = len(system)
-                        coverage = n_region_atoms/n_atoms
-                        if coverage >= 0.5:
-                            classification = Crystal(analyzer, region=region)
+                    # # Get the index of the seed atom
+                    # if self.seed_position == "cm":
+                        # seed_vec = self.system.get_center_of_mass()
+                    # else:
+                        # seed_vec = self.seed_position
+                    # seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+
+                    # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
+                    # if region is not None:
+                        # region = region[1]
+
+                        # # If all the regions cover at least 80% of the structure,
+                        # # then we consider it to be a defected crystal
+                        # n_region_atoms = len(region.get_basis_indices())
+                        # n_atoms = len(system)
+                        # coverage = n_region_atoms/n_atoms
+                        # if coverage >= 0.5:
+                            # classification = Crystal(analyzer, region=region)
 
             elif is_crystal:
                 classification = Crystal(analyzer)
