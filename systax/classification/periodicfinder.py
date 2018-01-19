@@ -183,8 +183,8 @@ class PeriodicFinder():
         n_neighbours = len(neighbour_pos)
         n_spans = len(possible_spans)
         metric = np.empty((len(possible_spans)), dtype=int)
-        metric_per_atom_per_span = np.zeros((n_neighbours, n_spans))
         adjacency_lists = []
+        # adjacency_lists_finite = []
         adjacency_lists_add = []
         adjacency_lists_add_factors = []
         adjacency_lists_sub = []
@@ -192,6 +192,7 @@ class PeriodicFinder():
 
         for i_span, span in enumerate(possible_spans):
             i_adj_list = defaultdict(list)
+            # i_adj_list_finite = defaultdict(list)
             i_adj_list_add = defaultdict(list)
             i_adj_list_add_factors = defaultdict(list)
             i_adj_list_sub = defaultdict(list)
@@ -209,18 +210,21 @@ class PeriodicFinder():
                 i_sub_factor = sub_factors[i_neigh]
                 if i_add is not None:
                     n_metric += 1
-                    metric_per_atom_per_span[i_neigh, i_span] += 1
                     i_adj_list[neighbour_indices[i_neigh]].append(i_add)
                     i_adj_list_add[neighbour_indices[i_neigh]].append(i_add)
                     i_adj_list_add_factors[neighbour_indices[i_neigh]].append(i_add_factor)
-                    i_adj_list_sub[neighbour_indices[i_neigh]].append(i_add)
-                    i_adj_list_sub_factors[neighbour_indices[i_neigh]].append(i_sub_factor)
+                    # if (i_add_factor == 0).all():
+                        # i_adj_list_finite[neighbour_indices[i_neigh]].append(i_add_factor)
                 if i_sub is not None:
                     n_metric += 1
-                    metric_per_atom_per_span[i_neigh, i_span] += 1
                     i_adj_list[neighbour_indices[i_neigh]].append(i_sub)
+                    i_adj_list_sub[neighbour_indices[i_neigh]].append(i_sub)
+                    i_adj_list_sub_factors[neighbour_indices[i_neigh]].append(i_sub_factor)
+                    # if (i_sub_factor == 0).all():
+                        # i_adj_list_finite[neighbour_indices[i_neigh]].append(i_sub_factor)
             metric[i_span] = n_metric
             adjacency_lists.append(i_adj_list)
+            # adjacency_lists_finite.append(i_adj_list_finite)
             adjacency_lists_add.append(i_adj_list_add)
             adjacency_lists_add_factors.append(i_adj_list_add_factors)
             adjacency_lists_sub.append(i_adj_list_sub)
@@ -238,6 +242,7 @@ class PeriodicFinder():
             metric = np.concatenate((metric, periodic_metric), axis=0)
             for i_per_span, per_span in enumerate(periodic_spans):
                 per_adjacency_list = defaultdict(list)
+                # per_adjacency_list_finite = defaultdict(list)
                 per_adjacency_list_add = defaultdict(list)
                 per_adjacency_list_add_factors = defaultdict(list)
                 per_adjacency_list_sub = defaultdict(list)
@@ -252,6 +257,7 @@ class PeriodicFinder():
                     per_adjacency_list_add_factors[i_neigh].extend([i_add_factor])
                     per_adjacency_list_sub_factors[i_neigh].extend([i_sub_factor])
                 adjacency_lists.append(per_adjacency_list)
+                # adjacency_lists_finite.append(per_adjacency_list_finite)
                 adjacency_lists_add.append(per_adjacency_list_add)
                 adjacency_lists_add_factors.append(per_adjacency_list_add_factors)
                 adjacency_lists_sub.append(per_adjacency_list_sub)
@@ -272,7 +278,9 @@ class PeriodicFinder():
         # Find the best basis
         valid_span_metrics = metric[valid_span_indices]
         valid_spans = possible_spans[valid_span_indices]
+        # print(n_neighbours)
         # print(valid_spans)
+        # print(valid_span_metrics)
         best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
         dim = len(best_combo)
 
@@ -284,6 +292,13 @@ class PeriodicFinder():
         n_spans = len(best_spans)
         # print(seed_index)
         # print(best_spans)
+
+        # Get the non-periodic adjacency lists corresponding to the best spans.
+        # adj_pbc = []
+        # for i_span in best_combo:
+            # original_span_index = valid_span_indices[i_span]
+            # i_adj_finite = adjacency_lists_finite[original_span_index]
+            # adj_pbc.append(i_adj_finite)
 
         # Get the adjacency lists corresponding to the best spans
         best_adjacency_lists = []
@@ -307,9 +322,8 @@ class PeriodicFinder():
         # Create a full periodicity graph for the found basis
         periodicity_graph = None
         full_adjacency_list = defaultdict(list)
-        for ii_span, i_span in enumerate(best_combo):
-            adjacency_list = best_adjacency_lists[ii_span]
-            for key, value in adjacency_list.items():
+        for i_adj in best_adjacency_lists:
+            for key, value in i_adj.items():
                 full_adjacency_list[key].extend(value)
         periodicity_graph = nx.MultiGraph(full_adjacency_list)
 
@@ -318,9 +332,9 @@ class PeriodicFinder():
         # nx.draw(periodicity_graph)
         # pos = nx.spring_layout(periodicity_graph)
         # nx.draw_networkx_nodes(periodicity_graph, pos)
+        # nx.draw_networkx_edges(periodicity_graph, pos)
         # data = periodicity_graph.nodes(data=True)
         # labels = {x[0]: x[0] for x in data}
-        # print(data)
         # nx.draw_networkx_labels(periodicity_graph, pos, labels, font_size=16)
         # plt.show()
 
@@ -453,16 +467,17 @@ class PeriodicFinder():
                 a_sub_neighbour = adjacency_sub[i_basis][node]
                 if a_add_neighbour and a_add_neighbour != node:
                     a_final_neighbour = a_add_neighbour
+                    i_factor = factors_add[i_basis][node]
                     multiplier = 1
                 elif a_sub_neighbour and a_sub_neighbour != node:
                     a_final_neighbour = a_sub_neighbour
+                    i_factor = factors_sub[i_basis][node]
                     multiplier = -1
                 else:
                     a_final_neighbour = None
 
                 if a_final_neighbour is not None:
-                    a_factor = factors_add[i_basis][node]
-                    a_correction = np.dot(a_factor, orig_cell)
+                    a_correction = np.dot(i_factor, orig_cell)
                     a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
@@ -482,6 +497,9 @@ class PeriodicFinder():
             )
             inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
             inside_pos.append(i_pos)
+
+        # print(len(inside_pos))
+        # print(len(group_indices))
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
@@ -604,16 +622,17 @@ class PeriodicFinder():
                 a_sub_neighbour = adjacency_sub[i_basis][node]
                 if a_add_neighbour and a_add_neighbour != node:
                     a_final_neighbour = a_add_neighbour
+                    i_factor = factors_add[i_basis][node]
                     multiplier = 1
                 elif a_sub_neighbour and a_sub_neighbour != node:
                     a_final_neighbour = a_sub_neighbour
+                    i_factor = factors_sub[i_basis][node]
                     multiplier = -1
                 else:
                     a_final_neighbour = None
 
                 if a_final_neighbour is not None:
-                    a_factor = factors_add[i_basis][node]
-                    a_correction = np.dot(a_factor, orig_cell)
+                    a_correction = np.dot(i_factor, orig_cell)
                     a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
@@ -1216,7 +1235,8 @@ class PeriodicFinder():
         # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
         # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
         # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
-        # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='20y,20x', show_unit_cell=2)
+        # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
+        # raise Exception("")
 
         # Save the updated cell shape for the new cells in the queue
         new_sys = Atoms(
