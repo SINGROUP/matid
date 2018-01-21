@@ -53,7 +53,8 @@ class Classifier():
             pos_tol_factor=2,
             n_edge_tol=0.95,
             cell_size_tol=0.25,
-            max_n_atoms=1000
+            max_n_atoms=1000,
+            coverage_threshold=0.5
             ):
         """
         Args:
@@ -77,6 +78,9 @@ class Classifier():
                 crystals.
             max_n_atoms(int): The maximum number of atoms in the system. If the
                 system has more atoms than this, the a ValueError is raised.
+            coverage_threshold(float): The fraction of atoms that have to
+                belong to a region in order for the system to be considered surface
+                or 2D-material.
         """
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
@@ -147,9 +151,17 @@ class Classifier():
         pbc = system.get_pbc()
         disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         if pbc.any():
-            disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+            disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
+                pos,
+                pos,
+                cell,
+                pbc,
+                mic=True,
+                return_factors=True
+            )
         else:
             disp_tensor_pbc = disp_tensor
+            disp_factors = np.zeros(disp_tensor.shape)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
 
         # Calculate the distance matrix where the periodicity and the covalent
@@ -251,6 +263,7 @@ class Classifier():
                 system,
                 seed_index,
                 disp_tensor_pbc,
+                disp_factors,
                 disp_tensor,
                 dist_matrix_radii_pbc,
                 vacuum_dir,
@@ -278,7 +291,7 @@ class Classifier():
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
 
-                    if coverage >= 0.5:
+                    if coverage >= self.coverage_threshold:
                         if region.is_2d:
                             analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
                             classification = Material2D(vacuum_dir, region, analyzer)
@@ -334,7 +347,7 @@ class Classifier():
                         # n_region_atoms = len(region.get_basis_indices())
                         # n_atoms = len(system)
                         # coverage = n_region_atoms/n_atoms
-                        # if coverage >= 0.5:
+                        # if coverage >= self.coverage_threshold:
                             # classification = Crystal(analyzer, region=region)
 
             elif is_crystal:

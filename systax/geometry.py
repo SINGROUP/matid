@@ -610,7 +610,7 @@ def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False):
     return distance_matrix
 
 
-def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False):
+def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False, return_factors=False):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
 
@@ -620,8 +620,10 @@ def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False):
     Args:
         pos1(np.ndarray): 2D array of positions
         pos2(np.ndarray): 2D array of positions
-        pbc(boolean or a list of booleans): Periodicity of the axes
         cell(np.ndarray): Cell for taking into account the periodicity
+        pbc(boolean or a list of booleans): Periodicity of the axes
+        mic(boolean): Whether to return the displacement to the nearest
+            periodic copy
 
     Returns:
         np.ndarray: 3D displacement tensor
@@ -658,11 +660,17 @@ def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False):
         rel_pos1 = to_scaled(cell, pos1)
         rel_pos2 = to_scaled(cell, pos2)
         disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
+
+        if return_factors:
+            factors = np.floor(disp_tensor + 0.5)
         disp_tensor = get_mic_positions(disp_tensor, cell, pbc)
     else:
         disp_tensor = pos1[:, None, :] - pos2[None, :, :]
 
-    return disp_tensor
+    if return_factors:
+        return disp_tensor, factors
+    else:
+        return disp_tensor
 
 
 def get_mic_positions(disp_tensor_rel, cell, pbc):
