@@ -746,6 +746,8 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
         sequence of int: Indices of the atoms within this cell in the given
             system.
         np.ndarray: Relative positions of the found atoms.
+        np.ndarray: The index of the periodic copy in which the position was
+            found.
     """
     # If the search extend beyound the cell boundary and periodic boundaries
     # allow, we must divide the search area into multiple regions
@@ -793,6 +795,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     a_prec, b_prec, c_prec = tolerance/np.linalg.norm(basis, axis=1)
     orig_basis = system.get_cell()
     cell_pos = []
+    factors = []
     for i_dir in directions:
 
         vec_new_cart = cart_pos + np.dot(i_dir, orig_basis)
@@ -815,10 +818,12 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
             if x and y and z:
                 indices.append(i_pos)
                 cell_pos.append(pos)
+                factors.append(i_dir)
     cell_pos = np.array(cell_pos)
     indices = np.array(indices)
+    factors = np.array(factors)
 
-    return indices, cell_pos
+    return indices, cell_pos, factors
 
 
 def get_matches(
@@ -852,18 +857,15 @@ def get_matches(
     # Calculate displacement tensor
     disp_tensor = get_displacement_tensor(scaled_pos2, scaled_pos1)
 
-    # Calculate distance matrix and keep track of the index of the copy was
-    # found to be the closest
-    pos_mask = disp_tensor > 0.5
-    neg_mask = disp_tensor < -0.5
-    disp_tensor[pos_mask] = disp_tensor[pos_mask] - 1
-    disp_tensor[neg_mask] = disp_tensor[neg_mask] + 1
+    # Calculate the factors
+    factors = np.floor(disp_tensor + 0.5)
+
+    # # Wrap the displacement tensor
+    disp_tensor -= factors
+
+    # Calculate the cartesian distance_matrix
     disp_tensor = np.dot(disp_tensor, cell)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
-
-    moved = np.zeros(disp_tensor.shape)
-    moved[pos_mask] = 1
-    moved[neg_mask] = -1
 
     min_ind = np.argmin(distance_matrix, axis=1)
     matches = []
@@ -889,7 +891,7 @@ def get_matches(
 
             # If a match was found the factor is reported based on the
             # displacement tensor
-            i_move = moved[i][ind]
+            i_move = factors[i][ind]
             copy = i_move
         else:
             vacancies.append(Atom(b_num, position=positions[i]))
