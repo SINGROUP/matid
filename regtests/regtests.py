@@ -60,6 +60,65 @@ class ExceptionTests(unittest.TestCase):
 class GeometryTests(unittest.TestCase):
     """Tests for the geometry module.
     """
+
+    def test_matches_non_orthogonal(self):
+        """Test that the correct factor is returned when finding matches that
+        are in the neighbouring cells.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
+        system = system[[0, 12]]
+        # view(system)
+
+        searched_pos = system.get_positions()[0][None, :]
+        basis = np.array([[1.59, -2.75396078, 0]])
+        searched_pos += basis
+
+        matches, subst, vac, factors = systax.geometry.get_matches(
+            system,
+            searched_pos,
+            numbers=[system.get_atomic_numbers()[0]],
+            tolerance=0.2
+        )
+
+        # Make sure that the atom is found in the correct copy
+        self.assertEqual(tuple(factors[0]), (0, -1, 0))
+
+        # Make sure that the correct atom is found
+        self.assertTrue(np.array_equal(matches, [1]))
+
+    def test_displacement_non_orthogonal(self):
+        """Test that the correct displacement is returned when the cell in
+        non-orthorhombic.
+        """
+        positions = np.array([
+            [1.56909, 2.71871, 6.45326],
+            [3.9248, 4.07536, 6.45326]
+        ])
+        cell = np.array([
+            [4.7077, -2.718, 0.],
+            [0., 8.15225, 0.],
+            [0., 0., 50.]
+        ])
+
+        # Fully periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(
+            positions[0, :],
+            positions[1, :],
+            cell,
+            pbc=True,
+            mic=True)
+
+        # The minimum image should be within the same cell
+        expected = np.linalg.norm(positions[0, :] - positions[1, :])
+        self.assertTrue(np.allclose(dist_mat[0], expected))
+
     def test_distance_matrix(self):
         pos1 = np.array([
             [0, 0, 0],
@@ -979,6 +1038,7 @@ class Material2DTests(unittest.TestCase):
             cell=1e10*cell,
             pbc=pbc,
         )
+        view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -1771,8 +1831,42 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-    def test_surface_with_one_basis_vector_as_span(self):
-        with open("./C2H4Ru36.json", "r") as fin:
+    # def test_surface_with_one_basis_vector_as_span(self):
+        # with open("./C2H4Ru36.json", "r") as fin:
+            # data = json.load(fin)
+        # system = Atoms(
+            # scaled_positions=data["positions"],
+            # cell=1e10*np.array(data["normalizedCell"]),
+            # symbols=data["labels"],
+            # pbc=True,
+        # )
+        # view(system)
+        # # view(system.repeat([2, 1, 1]))
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # view(classification.region.recreate_valid())
+
+        # # Only adsorbates
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 6)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertTrue(np.array_equal(adsorbates, np.arange(0, 6)))
+
+    def test_cut_surface(self):
+        """Test a surface that has been cut by the cell boundary. Should still
+        be detected as single surface.
+        """
+        with open("./Ba20O52Ti20.json", "r") as fin:
             data = json.load(fin)
         system = Atoms(
             scaled_positions=data["positions"],
@@ -1780,15 +1874,43 @@ class SurfaceTests(unittest.TestCase):
             symbols=data["labels"],
             pbc=True,
         )
-        view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertIsInstance(classification, Surface)
 
-        # view(classification.region.recreate_valid())
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # Only adsorbates
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
+    def test_zinc_blende(self):
+        system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
+        system = system.repeat((4, 4, 2))
+        cell = system.get_cell()
+        cell[2, :] *= 3
+        system.set_cell(cell)
+        system.center()
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Check that the right cell is found
+        analyzer = classification.cell_analyzer
+        space_group = analyzer.get_space_group_number()
+        self.assertEqual(space_group, 216)
+
+        # No defects or unknown atoms
         adsorbates = classification.adsorbates
         interstitials = classification.interstitials
         substitutions = classification.substitutions
@@ -1797,425 +1919,364 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(interstitials), 0)
         self.assertEqual(len(substitutions), 0)
         self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 6)
+        self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
-        self.assertTrue(np.array_equal(adsorbates, np.arange(0, 6)))
 
-    # def test_cut_surface(self):
-        # """Test a surface that has been cut by the cell boundary. Should still
-        # be detected as single surface.
-        # """
-        # with open("./Ba20O52Ti20.json", "r") as fin:
-            # data = json.load(fin)
-        # system = Atoms(
-            # scaled_positions=data["positions"],
-            # cell=1e10*np.array(data["normalizedCell"]),
-            # symbols=data["labels"],
-            # pbc=True,
-        # )
+    def test_bcc_pristine_thin_surface(self):
+        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
+    def test_bcc_pristine_small_surface(self):
+        system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_zinc_blende(self):
-        # system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
-        # system = system.repeat((4, 4, 2))
-        # cell = system.get_cell()
-        # cell[2, :] *= 3
-        # system.set_cell(cell)
-        # system.center()
-        # # view(system)
+    def test_bcc_pristine_big_surface(self):
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Check that the right cell is found
-        # analyzer = classification.cell_analyzer
-        # space_group = analyzer.get_space_group_number()
-        # self.assertEqual(space_group, 216)
+    def test_bcc_substitution(self):
+        """Surface with substitutional point defect.
+        """
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        labels = system.get_atomic_numbers()
+        sub_index = 42
+        labels[sub_index] = 41
+        system.set_atomic_numbers(labels)
+        # view(system)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-    # def test_bcc_pristine_thin_surface(self):
-        # system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # One substitutional defect
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertTrue(len(substitutions), 1)
+        subst = substitutions[0]
+        self.assertEqual(subst.index, sub_index)
+        self.assertEqual(subst.original_element, 26)
+        self.assertEqual(subst.substitutional_element, 41)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+    def test_bcc_vacancy(self):
+        """Surface with vacancy point defect.
+        """
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        vac_index = 42
 
-    # def test_bcc_pristine_small_surface(self):
-        # system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Get the vacancy atom
+        vac_true = ase.Atom(
+            system[vac_index].symbol,
+            system[vac_index].position,
+        )
+        del system[vac_index]
+        # view(system)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-    # def test_bcc_pristine_big_surface(self):
-        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # One vacancy
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertTrue(len(vacancies), 1)
+        vac_found = vacancies[0]
+        self.assertTrue(np.allclose(vac_true.position, vac_found.position))
+        self.assertEqual(vac_true.symbol, vac_found.symbol)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+    def test_bcc_interstitional(self):
+        """Surface with interstitional atom.
+        """
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
-    # def test_bcc_substitution(self):
-        # """Surface with substitutional point defect.
-        # """
-        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # labels = system.get_atomic_numbers()
-        # sub_index = 42
-        # labels[sub_index] = 41
-        # system.set_atomic_numbers(labels)
-        # # view(system)
+        # Add an interstitionl atom
+        interstitional = ase.Atom(
+            "C",
+            [8, 8, 9],
+        )
+        system += interstitional
+        # view(system)
 
-        # # Classified as surface
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # # One substitutional defect
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertTrue(len(substitutions), 1)
-        # subst = substitutions[0]
-        # self.assertEqual(subst.index, sub_index)
-        # self.assertEqual(subst.original_element, 26)
-        # self.assertEqual(subst.substitutional_element, 41)
+        # One interstitional
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertTrue(len(interstitials), 1)
+        int_found = interstitials[0]
+        self.assertEqual(int_found, 75)
 
-    # def test_bcc_vacancy(self):
-        # """Surface with vacancy point defect.
-        # """
-        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-        # vac_index = 42
+    def test_bcc_dislocated_big_surface(self):
+        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
 
-        # # Get the vacancy atom
-        # vac_true = ase.Atom(
-            # system[vac_index].symbol,
-            # system[vac_index].position,
-        # )
-        # del system[vac_index]
-        # # view(system)
+        # Run multiple times with random displacements
+        rng = RandomState(47)
+        for i in range(10):
+            sys = system.copy()
+            systax.geometry.make_random_displacement(sys, 0.2, rng)
+            # view(sys)
 
-        # # Classified as surface
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+            # Classified as surface
+            classifier = Classifier()
+            classification = classifier.classify(sys)
+            self.assertIsInstance(classification, Surface)
 
-        # # One vacancy
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertTrue(len(vacancies), 1)
-        # vac_found = vacancies[0]
-        # self.assertTrue(np.allclose(vac_true.position, vac_found.position))
-        # self.assertEqual(vac_true.symbol, vac_found.symbol)
+            # No defects or unknown atoms
+            adsorbates = classification.adsorbates
+            interstitials = classification.interstitials
+            substitutions = classification.substitutions
+            vacancies = classification.vacancies
+            unknowns = classification.unknowns
+            # print(unknowns)
+            self.assertEqual(len(interstitials), 0)
+            self.assertEqual(len(substitutions), 0)
+            self.assertEqual(len(vacancies), 0)
+            self.assertEqual(len(adsorbates), 0)
+            self.assertEqual(len(unknowns), 0)
 
-    # def test_bcc_interstitional(self):
-        # """Surface with interstitional atom.
-        # """
-        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+    def test_curved_surface(self):
+        # Create an Fe 100 surface as an ASE Atoms object
+        system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
 
-        # # Add an interstitionl atom
-        # interstitional = ase.Atom(
-            # "C",
-            # [8, 8, 9],
-        # )
-        # system += interstitional
-        # # view(system)
+        # Bulge the surface
+        cell_width = np.linalg.norm(system.get_cell()[0, :])
+        for atom in system:
+            pos = atom.position
+            distortion_z = 0.9*np.sin(pos[0]/cell_width*2.0*np.pi)
+            pos += np.array((0, 0, distortion_z))
+        # view(system)
 
-        # # Classified as surface
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Classified as surface
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # # One interstitional
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertTrue(len(interstitials), 1)
-        # int_found = interstitials[0]
-        # self.assertEqual(int_found, 75)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_bcc_dislocated_big_surface(self):
-        # system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+    def test_surface_ads(self):
+        """Test a surface with an adsorbate.
+        """
+        # Create an Fe 100 surface as an ASE Atoms object
+        system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
 
-        # # Run multiple times with random displacements
-        # rng = RandomState(47)
-        # for i in range(10):
-            # sys = system.copy()
-            # systax.geometry.make_random_displacement(sys, 0.2, rng)
-            # # view(sys)
+        # Add a H2O molecule on top of the surface
+        h2o = molecule("H2O")
+        h2o.rotate(180, [1, 0, 0])
+        h2o.translate([7.2, 7.2, 13.5])
+        system += h2o
+        # view(system)
 
-            # # Classified as surface
-            # classifier = Classifier()
-            # classification = classifier.classify(sys)
-            # self.assertIsInstance(classification, Surface)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-            # # No defects or unknown atoms
-            # adsorbates = classification.adsorbates
-            # interstitials = classification.interstitials
-            # substitutions = classification.substitutions
-            # vacancies = classification.vacancies
-            # unknowns = classification.unknowns
-            # # print(unknowns)
-            # self.assertEqual(len(interstitials), 0)
-            # self.assertEqual(len(substitutions), 0)
-            # self.assertEqual(len(vacancies), 0)
-            # self.assertEqual(len(adsorbates), 0)
-            # self.assertEqual(len(unknowns), 0)
+        # No defects or unknown atoms, one adsorbate cluster
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-    # def test_curved_surface(self):
-        # # Create an Fe 100 surface as an ASE Atoms object
-        # system = bcc100('Fe', size=(12, 12, 3), vacuum=8)
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(adsorbates), 3)
+        self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
 
-        # # Bulge the surface
-        # cell_width = np.linalg.norm(system.get_cell()[0, :])
-        # for atom in system:
-            # pos = atom.position
-            # distortion_z = 0.9*np.sin(pos[0]/cell_width*2.0*np.pi)
-            # pos += np.array((0, 0, distortion_z))
-        # # view(system)
+    def test_nacl(self):
+        """Test the detection for an imperfect NaCl surface with adsorbate and
+        defects.
+        """
 
-        # # Classified as surface
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Create the system
+        class NaClFactory(SimpleCubicFactory):
+            "A factory for creating NaCl (B1, Rocksalt) lattices."
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
+                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                            [0.5, 0.5, 0.5]]
+            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
 
-    # def test_surface_ads(self):
-        # """Test a surface with an adsorbate.
+        nacl = NaClFactory()
+        nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
+        nacl = nacl.repeat((4, 4, 2))
+        cell = nacl.get_cell()
+        cell[2, :] *= 3
+        nacl.set_cell(cell)
+        nacl.center()
+
+        # Add vacancy
+        vac_index = 17
+        vac_true = ase.Atom(
+            nacl[vac_index].symbol,
+            nacl[vac_index].position,
+        )
+        del nacl[vac_index]
+
+        # Shake the atoms
+        rng = RandomState(8)
+        systax.geometry.make_random_displacement(nacl, 0.5, rng)
+
+        # Add adsorbate
+        h2o = molecule("H2O")
+        h2o.rotate(-45, [0, 0, 1])
+        h2o.translate([11.5, 11.5, 22.5])
+        nacl += h2o
+
+        # Add substitution
+        symbols = nacl.get_atomic_numbers()
+        subst_num = 39
+        symbols[subst_num] = 15
+        nacl.set_atomic_numbers(symbols)
+
+        # view(nacl)
+
+        classifier = Classifier()
+        classification = classifier.classify(nacl)
+        self.assertIsInstance(classification, Surface)
+
+        # Detect adsorbate
+        adsorbates = classification.adsorbates
+        self.assertEqual(len(adsorbates), 3)
+        self.assertTrue(np.array_equal(adsorbates, np.array([256, 257, 255])))
+
+        # Detect vacancy
+        vacancies = classification.vacancies
+        self.assertEqual(len(vacancies), 1)
+        vac_found = vacancies[0]
+        vacancy_disp = np.linalg.norm(vac_true.position - vac_found.position)
+        self.assertTrue(vacancy_disp <= 1)
+        self.assertEqual(vac_true.symbol, vac_found.symbol)
+
+        # Detect substitution
+        substitutions = classification.substitutions
+        self.assertTrue(len(substitutions), 1)
+        found_subst = substitutions[0]
+        self.assertEqual(found_subst.index, subst_num)
+        self.assertEqual(found_subst.original_element, 11)
+        self.assertEqual(found_subst.substitutional_element, 15)
+
+        # No unknown atoms
+        unknowns = classification.unknowns
+        self.assertEqual(len(unknowns), 0)
+
+        # No interstitials
+        interstitials = classification.interstitials
+        self.assertEqual(len(interstitials), 0)
+
+    # def test_adsorbate_in_kink(self):
+        # """Test a surface with an adsorbate inside a kink.
         # """
         # # Create an Fe 100 surface as an ASE Atoms object
         # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
 
+        # # Remove a range of atoms to form a kink
+        # del system[86:89]
+
         # # Add a H2O molecule on top of the surface
         # h2o = molecule("H2O")
         # h2o.rotate(180, [1, 0, 0])
-        # h2o.translate([7.2, 7.2, 13.5])
+        # h2o.translate([7.2, 6.0, 12.0])
         # system += h2o
-        # # view(system)
+        # view(system)
 
+        # # Classified as surface
         # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
-        # # No defects or unknown atoms, one adsorbate cluster
+        # # Only adsorbate
         # adsorbates = classification.adsorbates
         # interstitials = classification.interstitials
         # substitutions = classification.substitutions
         # vacancies = classification.vacancies
         # unknowns = classification.unknowns
-
         # self.assertEqual(len(interstitials), 0)
         # self.assertEqual(len(substitutions), 0)
         # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(adsorbates), 3)
-        # self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
-
-    # def test_nacl(self):
-        # """Test the detection for an imperfect NaCl surface with adsorbate and
-        # defects.
-        # """
-
-        # # Create the system
-        # class NaClFactory(SimpleCubicFactory):
-            # "A factory for creating NaCl (B1, Rocksalt) lattices."
-
-            # bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
-                            # [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
-                            # [0.5, 0.5, 0.5]]
-            # element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
-
-        # nacl = NaClFactory()
-        # nacl = nacl(symbol=["Na", "Cl"], latticeconstant=5.64)
-        # nacl = nacl.repeat((4, 4, 2))
-        # cell = nacl.get_cell()
-        # cell[2, :] *= 3
-        # nacl.set_cell(cell)
-        # nacl.center()
-
-        # # Add vacancy
-        # vac_index = 17
-        # vac_true = ase.Atom(
-            # nacl[vac_index].symbol,
-            # nacl[vac_index].position,
-        # )
-        # del nacl[vac_index]
-
-        # # Shake the atoms
-        # rng = RandomState(8)
-        # systax.geometry.make_random_displacement(nacl, 0.5, rng)
-
-        # # Add adsorbate
-        # h2o = molecule("H2O")
-        # h2o.rotate(-45, [0, 0, 1])
-        # h2o.translate([11.5, 11.5, 22.5])
-        # nacl += h2o
-
-        # # Add substitution
-        # symbols = nacl.get_atomic_numbers()
-        # subst_num = 39
-        # symbols[subst_num] = 15
-        # nacl.set_atomic_numbers(symbols)
-
-        # # view(nacl)
-
-        # classifier = Classifier()
-        # classification = classifier.classify(nacl)
-        # self.assertIsInstance(classification, Surface)
-
-        # # Detect adsorbate
-        # adsorbates = classification.adsorbates
-        # self.assertEqual(len(adsorbates), 3)
-        # self.assertTrue(np.array_equal(adsorbates, np.array([256, 257, 255])))
-
-        # # Detect vacancy
-        # vacancies = classification.vacancies
-        # self.assertEqual(len(vacancies), 1)
-        # vac_found = vacancies[0]
-        # vacancy_disp = np.linalg.norm(vac_true.position - vac_found.position)
-        # self.assertTrue(vacancy_disp <= 1)
-        # self.assertEqual(vac_true.symbol, vac_found.symbol)
-
-        # # Detect substitution
-        # substitutions = classification.substitutions
-        # self.assertTrue(len(substitutions), 1)
-        # found_subst = substitutions[0]
-        # self.assertEqual(found_subst.index, subst_num)
-        # self.assertEqual(found_subst.original_element, 11)
-        # self.assertEqual(found_subst.substitutional_element, 15)
-
-        # # No unknown atoms
-        # unknowns = classification.unknowns
         # self.assertEqual(len(unknowns), 0)
-
-        # # No interstitials
-        # interstitials = classification.interstitials
-        # self.assertEqual(len(interstitials), 0)
-
-    # # def test_adsorbate_in_kink(self):
-        # # """Test a surface with an adsorbate inside a kink.
-        # # """
-        # # # Create an Fe 100 surface as an ASE Atoms object
-        # # system = bcc100('Fe', size=(5, 5, 4), vacuum=8)
-
-        # # # Remove a range of atoms to form a kink
-        # # del system[86:89]
-
-        # # # Add a H2O molecule on top of the surface
-        # # h2o = molecule("H2O")
-        # # h2o.rotate(180, [1, 0, 0])
-        # # h2o.translate([7.2, 6.0, 12.0])
-        # # system += h2o
-        # # view(system)
-
-        # # # Classified as surface
-        # # classifier = Classifier()
-        # # classification = classifier.classify(system)
-        # # self.assertIsInstance(classification, Surface)
-
-        # # # Only adsorbate
-        # # adsorbates = classification.adsorbates
-        # # interstitials = classification.interstitials
-        # # substitutions = classification.substitutions
-        # # vacancies = classification.vacancies
-        # # unknowns = classification.unknowns
-        # # self.assertEqual(len(interstitials), 0)
-        # # self.assertEqual(len(substitutions), 0)
-        # # self.assertEqual(len(vacancies), 0)
-        # # self.assertEqual(len(adsorbates), 3)
-        # # self.assertEqual(len(unknowns), 0)
 
 
 class FhiTests(unittest.TestCase):
@@ -2230,7 +2291,7 @@ class FhiTests(unittest.TestCase):
             symbols=data["labels"],
             pbc=True,
         )
-        view(system)
+        # view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -2255,18 +2316,18 @@ class FhiTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(FhiTests))
 

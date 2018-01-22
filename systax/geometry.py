@@ -12,6 +12,7 @@ import time
 from ase.data import covalent_radii
 from ase import Atom, Atoms
 from ase.visualize import view
+import ase.geometry
 
 from systax.data.element_data import get_covalent_radii
 from systax.exceptions import SystaxError
@@ -250,18 +251,6 @@ def get_tetrahedra_decomposition(system, vacuum_gaps, max_distance):
     # The QJ options makes sure that all positions are included in the
     # tesselation
     tri = Delaunay(tesselation_pos, qhull_options="QJ")
-
-    # valid_simplex_indices = set()
-    # print(simplices)
-    # for i_simplex, simplex in enumerate(simplices):
-        # for i, j in itertools.combinations(simplex, 2):
-            # distance = distance_matrix[i, j]
-            # if distance >= max_distance:
-                # break
-        # else:
-            # valid_simplex_indices.add(i_simplex)
-    # end = time.time()
-    # print("Filtering: {}".format(end-start))
 
     # Remove invalid simplices from the surface until only valid simplices are
     # found on the surface
@@ -610,7 +599,7 @@ def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False):
     return distance_matrix
 
 
-def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False, return_factors=False):
+def get_displacement_tensor_old(pos1, pos2, cell=None, pbc=None, mic=False, return_factors=False, return_distances=False):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
 
@@ -662,15 +651,167 @@ def get_displacement_tensor(pos1, pos2, cell=None, pbc=None, mic=False, return_f
         disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
 
         if return_factors:
-            factors = np.floor(disp_tensor + 0.5)
+            factors = np.floor(np.array(disp_tensor) + 0.5)
         disp_tensor = get_mic_positions(disp_tensor, cell, pbc)
     else:
         disp_tensor = pos1[:, None, :] - pos2[None, :, :]
 
-    if return_factors:
+    if return_distances:
+        dist_matrix = np.linalg.norm(disp_tensor, axis=2)
+
+    if return_factors and return_distances:
+        return disp_tensor, factors, dist_matrix
+    elif return_factors:
         return disp_tensor, factors
+    elif return_distances:
+        return disp_tensor, dist_matrix
     else:
         return disp_tensor
+
+
+def get_displacement_tensor(
+        pos1,
+        pos2,
+        cell=None,
+        pbc=None,
+        mic=False,
+        return_factors=False,
+        return_distances=False
+    ):
+    """Given an array of positions, calculates the 3D displacement tensor
+    between the positions.
+
+    The displacement tensor is a matrix where the entry A[i, j, :] is the
+    vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1
+
+    Args:
+        pos1(np.ndarray): 2D array of positions
+        pos2(np.ndarray): 2D array of positions
+        cell(np.ndarray): Cell for taking into account the periodicity
+        pbc(boolean or a list of booleans): Periodicity of the axes
+        mic(boolean): Whether to return the displacement to the nearest
+            periodic copy
+
+    Returns:
+        np.ndarray: 3D displacement tensor
+        (optional) np.ndarray: The indices of the periodic copies in which the
+            minimum image was found
+        (optional) np.ndarray: The lengths of the displacement vectors
+    """
+    # Make 1D into 2D
+    shape1 = pos1.shape
+    shape2 = pos2.shape
+    if len(shape1) == 1:
+        n_cols1 = len(pos1)
+        pos1 = np.reshape(pos1, (-1, n_cols1))
+    if len(shape2) == 1:
+        n_cols2 = len(pos2)
+        pos2 = np.reshape(pos2, (-1, n_cols2))
+
+    # Calculate the pairwise distance vectors
+    disp_tensor = pos1[:, None, :] - pos2[None, :, :]
+    tensor_shape = np.array(disp_tensor.shape)
+
+    # If minimum image convention is used, get the corrected vectors
+    if mic:
+        flattened_disp = np.reshape(disp_tensor, (-1, 3))
+        D, D_len, factors = find_mic(flattened_disp, cell, pbc)
+        disp_tensor = np.reshape(D, tensor_shape)
+        if return_factors:
+            factors = np.reshape(factors, tensor_shape)
+        if return_distances:
+            lengths = np.reshape(D_len, (tensor_shape[0], tensor_shape[1]))
+
+    if return_factors and return_distances:
+        return disp_tensor, factors, lengths
+    elif return_factors:
+        return disp_tensor, factors
+    elif return_distances:
+        return disp_tensor, lengths
+    else:
+        return disp_tensor
+
+
+def find_mic(D, cell, pbc=True):
+    """Finds the minimum-image representation of vector(s) D"""
+
+    cell = ase.geometry.complete_cell(cell)
+    n_vectors = len(D)
+
+    # Calculate the 4 unique unit cell diagonal lengths
+    diags = np.sqrt((np.dot([[1, 1, 1],
+                             [-1, 1, 1],
+                             [1, -1, 1],
+                             [-1, -1, 1],
+                             ], cell)**2).sum(1))
+
+    Dr = np.dot(D, np.linalg.inv(cell))
+
+    # calculate 'mic' vectors (D) and lengths (D_len) using simple method
+    # return mic vectors and lengths for only orthorhombic cells,
+    # as the results may be wrong for non-orthorhombic cells
+    if (max(diags) - min(diags)) / max(diags) < 1e-9:
+
+        factors = np.floor(Dr + 0.5)*pbc
+        D = np.dot(Dr - factors, cell)
+        D_len = np.linalg.norm(D, axis=1)
+        return D, D_len, factors
+    # Non-orthorhombic cell
+    else:
+        D_len = np.linalg.norm(D, axis=1)
+
+    # The cutoff radius is the longest direct distance between atoms
+    # or half the longest lattice diagonal, whichever is smaller
+    cutoff = min(max(D_len), max(diags) / 2.)
+
+    # The number of neighboring images to search in each direction is
+    # equal to the ceiling of the cutoff distance (defined above) divided
+    # by the length of the projection of the lattice vector onto its
+    # corresponding surface normal. a's surface normal vector is e.g.
+    # b x c / (|b| |c|), so this projection is (a . (b x c)) / (|b| |c|).
+    # The numerator is just the lattice volume, so this can be simplified
+    # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
+    # for vectorization purposes.
+    latt_len = np.linalg.norm(cell, axis=1)
+    V = abs(np.linalg.det(cell))
+    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
+                               (V * latt_len)), dtype=int)
+
+    # Construct a list of translation vectors. For example, if we are
+    # searching only the nearest images (27 total), tvecs will be a
+    # 27x3 array of translation vectors. This is the only nested loop
+    # in the routine, and it takes a very small fraction of the total
+    # execution time, so it is not worth optimizing further.
+    tvecs = []
+    tvec_factors = []
+    for i in range(-n[0], n[0] + 1):
+        latt_a = i * cell[0]
+        for j in range(-n[1], n[1] + 1):
+            latt_ab = latt_a + j * cell[1]
+            for k in range(-n[2], n[2] + 1):
+                tvecs.append(latt_ab + k * cell[2])
+                tvec_factors.append([i, j, k])
+    tvecs = np.array(tvecs)
+    tvec_factors = np.array(tvec_factors)
+
+    # Translate the direct displacement vectors by each translation
+    # vector, and calculate the corresponding lengths.
+    D_trans = tvecs[np.newaxis] + D[:, np.newaxis]
+    D_trans_len = np.linalg.norm(D_trans, axis=2)
+
+    # Find mic distances and corresponding vector(s) for each given pair
+    # of atoms. For symmetrical systems, there may be more than one
+    # translation vector corresponding to the MIC distance; this finds the
+    # first one in D_trans_len.
+    D_min_ind = D_trans_len.argmin(axis=1)
+    D_min_len = D_trans_len[list(range(n_vectors)), D_min_ind]
+    D_min = D_trans[list(range(n_vectors)), D_min_ind]
+    factors = tvec_factors[D_min_ind, :]
+
+    # Negate the factors because of the order of the displacement
+    factors *= -1
+
+    return D_min, D_min_len, factors
 
 
 def get_mic_positions(disp_tensor_rel, cell, pbc):
@@ -681,11 +822,15 @@ def get_mic_positions(disp_tensor_rel, cell, pbc):
     for i, periodic in enumerate(pbc):
         if periodic:
             i_disp_tensor = disp_tensor_rel[:, :, i]
-            pos_mask = i_disp_tensor > 0.5
-            i_disp_tensor[pos_mask] = i_disp_tensor[pos_mask] - 1
-            neg_mask = i_disp_tensor < -0.5
-            i_disp_tensor[neg_mask] = i_disp_tensor[neg_mask] + 1
+            factors = np.floor(i_disp_tensor + 0.5)
+            i_disp_tensor -= factors
             wrapped_disp_tensor[:, :, i] = i_disp_tensor
+
+            # pos_mask = i_disp_tensor > 0.5
+            # i_disp_tensor[pos_mask] = i_disp_tensor[pos_mask] - 1
+            # neg_mask = i_disp_tensor < -0.5
+            # i_disp_tensor[neg_mask] = i_disp_tensor[neg_mask] + 1
+            # wrapped_disp_tensor[:, :, i] = i_disp_tensor
     disp_tensor_cart = np.dot(wrapped_disp_tensor, cell)
 
     return disp_tensor_cart
@@ -857,12 +1002,90 @@ def get_matches(
             the number of the periodic copy where the match was found.
     """
     orig_num = system.get_atomic_numbers()
+    orig_pos = system.get_positions()
     cell = system.get_cell()
+    pbc = system.get_pbc()
+    pbc = expand_pbc(pbc)
+    scaled_pos2 = to_scaled(cell, positions, wrap=False)
 
+    disp_tensor, factors, dist_matrix = get_displacement_tensor(
+        positions,
+        orig_pos,
+        cell,
+        pbc,
+        mic=True,
+        return_factors=True,
+        return_distances=True
+    )
+
+    min_ind = np.argmin(dist_matrix, axis=1)
+    matches = []
+    substitutions = []
+    vacancies = []
+    copy_indices = []
+
+    for i, ind in enumerate(min_ind):
+        distance = dist_matrix[i, ind]
+        a_num = orig_num[ind]
+        b_num = numbers[i]
+        match = None
+        copy = None
+        if distance <= tolerance:
+            if a_num == b_num:
+                match = ind
+            else:
+                # Wrap the substitute position
+                # subst_pos = np.array(scaled_pos2[i])
+                # subst_pos %= 1
+                # subst_pos_cart = np.dot(subst_pos, cell)
+                subst_pos_cart = orig_pos[i]
+                substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+
+            # If a match was found the factor is reported based on the
+            # displacement tensor
+            i_move = factors[i][ind]
+            copy = i_move
+        else:
+            vacancies.append(Atom(b_num, position=positions[i]))
+
+            # If no match was found, the factor is reported from the scaled
+            # positions
+            copy = np.floor(scaled_pos2[i])
+
+        matches.append(match)
+        copy_indices.append(copy)
+
+    return matches, substitutions, vacancies, copy_indices
+
+
+def get_matches_old(
+        system,
+        positions,
+        numbers,
+        tolerance):
+    """Given a system and a list of cartesian positions and atomic numbers,
+    returns a list of indices for the atoms corresponding to the given
+    positions with some tolerance.
+
+    Args:
+        system(ASE.Atoms): System where to search the positions
+        positions(np.ndarray): Positions to match in the system.
+        tolerance(float): Maximum allowed distance that is required for a
+            match in position.
+
+    Returns:
+        np.ndarray: indices of matched atoms
+        list: list of substitutions
+        list: list of vacancies
+        np.ndarray: for each searched position, an integer array representing
+            the number of the periodic copy where the match was found.
+    """
+    orig_num = system.get_atomic_numbers()
+    cell = system.get_cell()
     scaled_pos1 = system.get_scaled_positions()
     scaled_pos2 = to_scaled(cell, positions, wrap=False)
 
-    # Calculate displacement tensor
+    # Calculate displacement tensor and the factors
     disp_tensor = get_displacement_tensor(scaled_pos2, scaled_pos1)
 
     # Calculate the factors

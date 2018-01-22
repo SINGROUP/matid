@@ -127,6 +127,8 @@ class PeriodicFinder():
 
         return region
 
+    #===========================================================================
+    # NEW
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
 
@@ -157,7 +159,7 @@ class PeriodicFinder():
         combined_mask = (distance_mask) & (identical_elem_mask)
         combined_mask[seed_index] = False  # Ignore self
         bases = seed_spans[combined_mask]
-        neighbour_factors = self.disp_factors[distance_mask, :]
+        neighbour_factors = self.disp_factors[distance_mask, seed_index, :]
 
         return bases, distance_mask, neighbour_factors
 
@@ -215,6 +217,18 @@ class PeriodicFinder():
                 i_sub = sub_indices[i_neigh]
                 i_add_factor = add_factors[i_neigh]
                 i_sub_factor = sub_factors[i_neigh]
+
+                # New
+                # if i_add is not None:
+                    # n_metric += 1
+                    # i_adj_list[(neighbour_indices[i_neigh], tuple(neighbour_factors[i_neigh]))].append((i_add, tuple(i_add_factor)))
+                    # i_adj_list_add[(neighbour_indices[i_neigh], tuple(neighbour_factors[i_neigh]))].append((i_add, tuple(i_add_factor)))
+                # if i_sub is not None:
+                    # n_metric += 1
+                    # i_adj_list[(neighbour_indices[i_neigh], tuple(neighbour_factors[i_neigh]))].append((i_sub, tuple(i_sub_factor)))
+                    # i_adj_list_sub[(neighbour_indices[i_neigh], tuple(neighbour_factors[i_neigh]))].append((i_sub, tuple(i_sub_factor)))
+
+                # Old
                 if i_add is not None:
                     n_metric += 1
                     i_adj_list[neighbour_indices[i_neigh]].append(i_add)
@@ -225,6 +239,7 @@ class PeriodicFinder():
                     i_adj_list[neighbour_indices[i_neigh]].append(i_sub)
                     i_adj_list_sub[neighbour_indices[i_neigh]].append(i_sub)
                     i_adj_list_sub_factors[neighbour_indices[i_neigh]].append(i_sub_factor)
+
             metric[i_span] = n_metric
             adjacency_lists.append(i_adj_list)
             adjacency_lists_add.append(i_adj_list_add)
@@ -248,7 +263,22 @@ class PeriodicFinder():
                 per_adjacency_list_add_factors = defaultdict(list)
                 per_adjacency_list_sub = defaultdict(list)
                 per_adjacency_list_sub_factors = defaultdict(list)
+                i_factor = np.array((0, 0, 0))
+                i_factor[i_per_span] = 1
                 for i_neigh in neighbour_indices:
+
+                    # New
+                    # per_adjacency_list[(i_neigh, (0, 0, 0))].append((i_neigh, tuple(i_factor)))
+                    # per_adjacency_list[(i_neigh, (0, 0, 0))].append((i_neigh, tuple(-i_factor)))
+                    # per_adjacency_list_add[(i_neigh, (0, 0, 0))].append((i_neigh, tuple(i_factor)))
+                    # per_adjacency_list_sub[(i_neigh, (0, 0, 0))].append((i_neigh, tuple(-i_factor)))
+                    # i_add_factor = np.zeros((3))
+                    # i_add_factor[i_per_span] = 1
+                    # i_sub_factor = -1*i_add_factor
+                    # per_adjacency_list_add_factors[i_neigh].extend([i_add_factor])
+                    # per_adjacency_list_sub_factors[i_neigh].extend([i_sub_factor])
+
+                    # Old
                     per_adjacency_list[i_neigh].extend([i_neigh, i_neigh])
                     per_adjacency_list_add[i_neigh].extend([i_neigh])
                     per_adjacency_list_sub[i_neigh].extend([i_neigh])
@@ -257,6 +287,7 @@ class PeriodicFinder():
                     i_sub_factor = -1*i_add_factor
                     per_adjacency_list_add_factors[i_neigh].extend([i_add_factor])
                     per_adjacency_list_sub_factors[i_neigh].extend([i_sub_factor])
+
                 adjacency_lists.append(per_adjacency_list)
                 adjacency_lists_add.append(per_adjacency_list_add)
                 adjacency_lists_add_factors.append(per_adjacency_list_add_factors)
@@ -291,9 +322,12 @@ class PeriodicFinder():
         best_adjacency_lists_add_factors = []
         best_adjacency_lists_sub = []
         best_adjacency_lists_sub_factors = []
+        # print("=========")
         for i_span in best_combo:
             original_span_index = valid_span_indices[i_span]
+            # print(original_span_index)
             i_adjacency_list = adjacency_lists[original_span_index]
+            # print(i_adjacency_list[(20, (0, 0, 0))])
             i_adjacency_list_add = adjacency_lists_add[original_span_index]
             i_adjacency_list_add_factor = adjacency_lists_add_factors[original_span_index]
             i_adjacency_list_sub = adjacency_lists_sub[original_span_index]
@@ -311,15 +345,6 @@ class PeriodicFinder():
             for key, value in i_adj.items():
                 full_adjacency_list_pbc[key].extend(value)
         periodicity_graph_pbc = nx.MultiGraph(full_adjacency_list_pbc)
-
-        # Create a full periodicity graph for the found basis
-        # periodicity_graph_pbc = None
-        # full_adjacency_list_pbc = defaultdict(list)
-        # for i_adj, i_factor in zip(best_adjacency_lists_add, best_adjacency_lists_add_factors):
-            # for key in i_adj.keys():
-
-                # full_adjacency_list_pbc[node].extend(value)
-        # periodicity_graph_pbc = nx.MultiGraph(full_adjacency_list_pbc)
 
         # import matplotlib.pyplot as plt
         # plt.subplot(111)
@@ -562,6 +587,7 @@ class PeriodicFinder():
         # and the factors that tell in which periodic cell copy the match was
         # found originally.
         cells = np.zeros((len(neighbour_seeds), 3, 3))
+        # print(basis)
         for i_node, node in enumerate(neighbour_seeds):
 
             # Handle each basis
@@ -580,6 +606,10 @@ class PeriodicFinder():
                     a_final_neighbour = None
 
                 if a_final_neighbour is not None:
+                    # print("=================================")
+                    # print(node)
+                    # print(a_final_neighbour)
+                    # print(i_factor)
                     a_correction = np.dot(i_factor, orig_cell)
                     a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
                 else:
@@ -593,6 +623,8 @@ class PeriodicFinder():
             c_norm = c/np.linalg.norm(c)
             c_norm = c_norm[None, :]
             cells[i_node, 2, :] = c_norm
+
+        # print(cells)
 
         # Find the relative positions of atoms inside the cell
         orig_pos = system.get_positions()
@@ -691,6 +723,580 @@ class PeriodicFinder():
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
+
+
+    #===========================================================================
+    # OLD
+    # def _find_possible_bases(self, system, seed_index):
+        # """Finds all the possible vectors that might span a cell.
+        # """
+        # # Calculate a displacement tensor that takes into account the
+        # # periodicity of the system
+        # disp_tensor = self.disp_tensor_pbc
+
+        # # If the search radius exceeds beyond the periodic boundaries, extend the system
+        # # Get the vectors that span from the seed to all other atoms
+        # # disp_tensor = syscache["disp_tensor"]
+        # seed_spans = disp_tensor[:, seed_index]
+        # atomic_numbers = system.get_atomic_numbers()
+
+        # # Find indices of atoms that are identical to seed atom
+        # seed_element = atomic_numbers[seed_index]
+        # identical_elem_mask = (atomic_numbers == seed_element)
+
+        # # Only keep spans that are smaller than the maximum vector length
+        # seed_span_lengths = np.linalg.norm(seed_spans, axis=1)
+        # distance_mask = (seed_span_lengths < self.max_cell_size)
+        # # syscache["neighbour_mask"] = distance_mask
+
+        # # Form a combined mask and filter spans with it
+        # combined_mask = (distance_mask) & (identical_elem_mask)
+        # combined_mask[seed_index] = False  # Ignore self
+        # bases = seed_spans[combined_mask]
+
+        # return bases, distance_mask
+
+    # def _find_proto_cell(
+            # self,
+            # system,
+            # seed_index,
+            # possible_spans,
+            # neighbour_mask,
+            # vacuum_dir,
+            # disp_tensor
+        # ):
+        # """Used to find the best candidate for a unit cell basis that could
+        # generate a periodic region in the structure.
+
+        # Args:
+
+        # Returns:
+            # ase.Atoms: A system representing the best cell that was found
+            # np.ndarray: Position of the seed atom in the cell
+        # """
+        # vacuum_dir = np.array(vacuum_dir)
+        # positions = system.get_positions()
+        # numbers = system.get_atomic_numbers()
+
+        # # Find how many and which of the neighbouring atoms have a periodic
+        # # copy in the found directions
+        # neighbour_pos = positions[neighbour_mask]
+        # neighbour_num = numbers[neighbour_mask]
+        # neighbour_indices = np.where(neighbour_mask)[0]
+        # n_neighbours = len(neighbour_pos)
+        # n_spans = len(possible_spans)
+        # metric = np.empty((len(possible_spans)), dtype=int)
+        # metric_per_atom_per_span = np.zeros((n_neighbours, n_spans))
+        # adjacency_lists = []
+        # adjacency_lists_add = []
+        # adjacency_lists_add_factors = []
+        # adjacency_lists_sub = []
+        # adjacency_lists_sub_factors = []
+
+        # for i_span, span in enumerate(possible_spans):
+            # i_adj_list = defaultdict(list)
+            # i_adj_list_add = defaultdict(list)
+            # i_adj_list_add_factors = defaultdict(list)
+            # i_adj_list_sub = defaultdict(list)
+            # i_adj_list_sub_factors = defaultdict(list)
+            # add_pos = neighbour_pos + span
+            # sub_pos = neighbour_pos - span
+            # add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
+            # sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
+
+            # n_metric = 0
+            # for i_neigh in range(n_neighbours):
+                # i_add = add_indices[i_neigh]
+                # i_sub = sub_indices[i_neigh]
+                # i_add_factor = add_factors[i_neigh]
+                # i_sub_factor = sub_factors[i_neigh]
+                # if i_add is not None:
+                    # n_metric += 1
+                    # metric_per_atom_per_span[i_neigh, i_span] += 1
+                    # i_adj_list[neighbour_indices[i_neigh]].append(i_add)
+                    # i_adj_list_add[neighbour_indices[i_neigh]].append(i_add)
+                    # i_adj_list_add_factors[neighbour_indices[i_neigh]].append(i_add_factor)
+                    # i_adj_list_sub[neighbour_indices[i_neigh]].append(i_add)
+                    # i_adj_list_sub_factors[neighbour_indices[i_neigh]].append(i_sub_factor)
+                # if i_sub is not None:
+                    # n_metric += 1
+                    # metric_per_atom_per_span[i_neigh, i_span] += 1
+                    # i_adj_list[neighbour_indices[i_neigh]].append(i_sub)
+            # metric[i_span] = n_metric
+            # adjacency_lists.append(i_adj_list)
+            # adjacency_lists_add.append(i_adj_list_add)
+            # adjacency_lists_add_factors.append(i_adj_list_add_factors)
+            # adjacency_lists_sub.append(i_adj_list_sub)
+            # adjacency_lists_sub_factors.append(i_adj_list_sub_factors)
+
+        # # Get the spans that come from the periodicity if they are smaller than
+        # # the maximum cell size
+        # periodic_spans = system.get_cell()[~vacuum_dir]
+        # periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
+        # periodic_spans = periodic_spans[periodic_span_lengths < self.max_cell_size]
+        # n_periodic_spans = len(periodic_spans)
+        # if n_periodic_spans != 0:
+            # periodic_metric = 2*n_neighbours*np.ones((n_periodic_spans))
+            # possible_spans = np.concatenate((possible_spans, periodic_spans), axis=0)
+            # metric = np.concatenate((metric, periodic_metric), axis=0)
+            # for i_per_span, per_span in enumerate(periodic_spans):
+                # per_adjacency_list = defaultdict(list)
+                # per_adjacency_list_add = defaultdict(list)
+                # per_adjacency_list_add_factors = defaultdict(list)
+                # per_adjacency_list_sub = defaultdict(list)
+                # per_adjacency_list_sub_factors = defaultdict(list)
+                # for i_neigh in neighbour_indices:
+                    # per_adjacency_list[i_neigh].extend([i_neigh, i_neigh])
+                    # per_adjacency_list_add[i_neigh].extend([i_neigh])
+                    # per_adjacency_list_sub[i_neigh].extend([i_neigh])
+                    # i_add_factor = np.zeros((3))
+                    # i_add_factor[i_per_span] = 1
+                    # i_sub_factor = -1*i_add_factor
+                    # per_adjacency_list_add_factors[i_neigh].extend([i_add_factor])
+                    # per_adjacency_list_sub_factors[i_neigh].extend([i_sub_factor])
+                # adjacency_lists.append(per_adjacency_list)
+                # adjacency_lists_add.append(per_adjacency_list_add)
+                # adjacency_lists_add_factors.append(per_adjacency_list_add_factors)
+                # adjacency_lists_sub.append(per_adjacency_list_sub)
+                # adjacency_lists_sub_factors.append(per_adjacency_list_sub_factors)
+
+        # # Find the directions that are most repeat the neighbours above some
+        # # preset threshold. This is used to eliminate directions that are
+        # # caused by pure chance. The maximum score that a direction can get is
+        # # 2*n_neighbours. We specify that the score must be above 25% percent
+        # # of this maximum score to be considered a valid direction.
+        # # span_lengths = np.linalg.norm(possible_spans, axis=1)
+        # # normed_spans = possible_spans/span_lengths[:, np.newaxis]
+        # # dots = np.inner(possible_spans, possible_spans)
+        # valid_span_indices = np.where(metric > 0.5*n_neighbours)[0]
+        # if len(valid_span_indices) == 0:
+            # return None, None, None
+
+        # # Find the best basis
+        # valid_span_metrics = metric[valid_span_indices]
+        # valid_spans = possible_spans[valid_span_indices]
+        # # print(valid_spans)
+        # best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
+        # dim = len(best_combo)
+
+        # # Currently 1D is not handled
+        # if dim == 1:
+            # return None, None, 1
+
+        # best_spans = valid_spans[best_combo]
+        # n_spans = len(best_spans)
+        # # print(seed_index)
+        # # print(best_spans)
+
+        # # Get the adjacency lists corresponding to the best spans
+        # best_adjacency_lists = []
+        # best_adjacency_lists_add = []
+        # best_adjacency_lists_add_factors = []
+        # best_adjacency_lists_sub = []
+        # best_adjacency_lists_sub_factors = []
+        # for i_span in best_combo:
+            # original_span_index = valid_span_indices[i_span]
+            # i_adjacency_list = adjacency_lists[original_span_index]
+            # i_adjacency_list_add = adjacency_lists_add[original_span_index]
+            # i_adjacency_list_add_factor = adjacency_lists_add_factors[original_span_index]
+            # i_adjacency_list_sub = adjacency_lists_sub[original_span_index]
+            # i_adjacency_list_sub_factor = adjacency_lists_sub_factors[original_span_index]
+            # best_adjacency_lists.append(i_adjacency_list)
+            # best_adjacency_lists_add.append(i_adjacency_list_add)
+            # best_adjacency_lists_add_factors.append(i_adjacency_list_add_factor)
+            # best_adjacency_lists_sub.append(i_adjacency_list_sub)
+            # best_adjacency_lists_sub_factors.append(i_adjacency_list_sub_factor)
+
+        # # Create a full periodicity graph for the found basis
+        # periodicity_graph = None
+        # full_adjacency_list = defaultdict(list)
+        # for ii_span, i_span in enumerate(best_combo):
+            # adjacency_list = best_adjacency_lists[ii_span]
+            # for key, value in adjacency_list.items():
+                # full_adjacency_list[key].extend(value)
+        # periodicity_graph = nx.MultiGraph(full_adjacency_list)
+
+        # # import matplotlib.pyplot as plt
+        # # plt.subplot(111)
+        # # # nx.draw(periodicity_graph)
+        # # pos = nx.spring_layout(periodicity_graph)
+        # # nx.draw_networkx_nodes(periodicity_graph, pos)
+        # # nx.draw_networkx_edges(periodicity_graph, pos)
+        # # data = periodicity_graph.nodes(data=True)
+        # # labels = {x[0]: x[0] for x in data}
+        # # nx.draw_networkx_labels(periodicity_graph, pos, labels, font_size=16)
+        # # plt.show()
+
+        # # Get all disconnected subgraphs
+        # graphs = list(nx.connected_component_subgraphs(periodicity_graph))
+
+        # # Eliminate subgraphs that do not have enough periodicity
+        # valid_graphs = []
+        # for graph in graphs:
+
+            # # The periodicity is measured by the average degree of the nodes.
+            # # The graph allows multiple edges, and edges that have the same
+            # # source and target due to periodicity.
+            # edges = graph.edges()
+            # node_edges = defaultdict(lambda: 0)
+            # for edge in edges:
+                # source = edge[0]
+                # target = edge[1]
+                # node_edges[source] += 1
+                # if source != target:
+                    # node_edges[target] += 1
+            # n_edges = np.array(list(node_edges.values()))
+            # if len(n_edges) != 0:
+                # mean_edges = n_edges.mean()
+            # else:
+                # mean_edges = 0
+
+            # if mean_edges >= dim:
+                # valid_graphs.append(graph)
+
+        # # If no valid graphs found, no region can be tracked.
+        # if len(valid_graphs) == 0:
+            # return None, None, None
+
+        # # Each subgraph represents a group of atoms that repeat periodically in
+        # # each cell. Here we calculate a mean position of these atoms in the
+        # # cell.
+        # group_pos = []
+        # group_num = []
+        # group_indices = []
+        # seed_nodes = None
+        # seed_group_index = None
+        # for i_graph, graph in enumerate(valid_graphs):
+            # nodes = graph.nodes(data=True)
+            # nodes = [node[0] for node in nodes]
+            # if seed_index in set(nodes):
+                # seed_group_index = i_graph
+                # seed_nodes = nodes
+            # nodes = np.array(nodes)
+            # graph_pos = positions[nodes]
+            # group_pos.append(graph_pos)
+            # group_indices.append(nodes)
+            # group_num.append(numbers[nodes[0]])
+
+        # # If the seed atom is not in a valid graph, no region could be found.
+        # if seed_group_index is None:
+            # return None, None, None
+
+        # if n_spans == 3:
+            # proto_cell, offset = self._find_proto_cell_3d(
+                # seed_index,
+                # seed_nodes,
+                # neighbour_indices,
+                # best_combo,
+                # best_spans,
+                # disp_tensor,
+                # system,
+                # group_indices,
+                # group_num,
+                # seed_group_index,
+                # best_adjacency_lists_add,
+                # best_adjacency_lists_add_factors,
+                # best_adjacency_lists_sub,
+                # best_adjacency_lists_sub_factors
+            # )
+        # elif n_spans == 2:
+            # proto_cell, offset = self._find_proto_cell_2d(
+                # seed_index,
+                # seed_nodes,
+                # neighbour_indices,
+                # best_combo,
+                # best_spans,
+                # disp_tensor,
+                # system,
+                # group_indices,
+                # group_num,
+                # seed_group_index,
+                # best_adjacency_lists_add,
+                # best_adjacency_lists_add_factors,
+                # best_adjacency_lists_sub,
+                # best_adjacency_lists_sub_factors
+            # )
+
+        # # print(proto_cell.get_cell())
+
+        # return proto_cell, offset, n_spans
+
+    # def _find_proto_cell_3d(
+            # self,
+            # seed_index,
+            # seed_nodes,
+            # neighbours,
+            # best_span_indices,
+            # best_spans,
+            # disp_tensor,
+            # system,
+            # group_indices,
+            # group_num,
+            # seed_group_index,
+            # adjacency_add,
+            # factors_add,
+            # adjacency_sub,
+            # factors_sub
+        # ):
+
+        # # Find the seed positions copies that are within the neighbourhood
+        # orig_cell = system.get_cell()
+        # neighbour_seeds = seed_nodes
+
+        # # Find the cells in which the copies of the seed atom are at the
+        # # origin. Here we are reusing information from the displacement tensor
+        # # and the factors that tell in which periodic cell copy the match was
+        # # found originally.
+        # cells = np.zeros((len(neighbour_seeds), 3, 3))
+        # for i_node, node in enumerate(neighbour_seeds):
+
+            # # Handle each basis
+            # for i_basis in range(3):
+                # a_add_neighbour = adjacency_add[i_basis][node]
+                # a_sub_neighbour = adjacency_sub[i_basis][node]
+                # if a_add_neighbour and a_add_neighbour != node:
+                    # a_final_neighbour = a_add_neighbour
+                    # multiplier = 1
+                # elif a_sub_neighbour and a_sub_neighbour != node:
+                    # a_final_neighbour = a_sub_neighbour
+                    # multiplier = -1
+                # else:
+                    # a_final_neighbour = None
+
+                # if a_final_neighbour is not None:
+                    # a_factor = factors_add[i_basis][node]
+                    # a_correction = np.dot(a_factor, orig_cell)
+                    # a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
+                # else:
+                    # a = best_spans[i_basis, :]
+                # cells[i_node, i_basis, :] = a
+
+        # # Find the relative positions of atoms inside the cell
+        # orig_pos = system.get_positions()
+        # inside_indices = []
+        # inside_pos = []
+        # for i_seed, cell in zip(neighbour_seeds, cells):
+            # seed_pos = orig_pos[i_seed]
+            # i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
+                # system,
+                # cell,
+                # seed_pos,
+                # 0,
+            # )
+            # inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
+            # inside_pos.append(i_pos)
+
+        # # For each node in a network, find the first relative position. Wrap
+        # # and average these positions to get a robust final estimate.
+        # averaged_rel_pos = np.zeros((len(group_indices), 3))
+        # for i_group, group in enumerate(group_indices):
+            # scaled_pos = []
+            # for index in group:
+                # for cell_ind, cell_pos in zip(inside_indices, inside_pos):
+                    # if index in cell_ind:
+                        # pos_index = cell_ind[index]
+                        # pos = cell_pos[pos_index]
+                        # scaled_pos.append(pos)
+                        # break
+            # # print(scaled_pos)
+
+            # # Find the copy with minimum distance from origin
+            # distances = np.linalg.norm(scaled_pos, axis=1)
+            # min_dist_index = np.argmin(distances)
+            # min_dist_pos = scaled_pos[min_dist_index]
+
+            # # All the other copies are moved periodically to be near the
+            # # position that is closest to origin.
+            # distances = scaled_pos - min_dist_pos
+            # displacement = np.rint(distances)
+            # final_pos = scaled_pos - displacement
+
+            # # The average position is calculated
+            # group_avg = np.mean(final_pos, axis=0)
+            # averaged_rel_pos[i_group, :] = group_avg
+
+        # offset = averaged_rel_pos[seed_group_index]
+
+        # proto_cell = Atoms(
+            # scaled_positions=averaged_rel_pos,
+            # symbols=group_num,
+            # cell=best_spans
+        # )
+
+        # return proto_cell, offset
+
+    # def _find_proto_cell_2d(
+            # self,
+            # seed_index,
+            # seed_nodes,
+            # neighbours,
+            # best_span_indices,
+            # best_spans,
+            # disp_tensor,
+            # system,
+            # group_indices,
+            # group_num,
+            # seed_group_index,
+            # adjacency_add,
+            # factors_add,
+            # adjacency_sub,
+            # factors_sub
+        # ):
+        # # We need to make the third basis vector
+        # a = best_spans[0]
+        # b = best_spans[1]
+        # c = np.cross(a, b)
+        # c_norm = c/np.linalg.norm(c)
+        # c_norm = c_norm[None, :]
+
+        # basis = np.concatenate((best_spans, c_norm), axis=0)
+        # orig_cell = system.get_cell()
+        # neighbour_seeds = seed_nodes
+
+        # # Find the cells in which the copies of the seed atom are at the
+        # # origin. Here we are reusing information from the displacement tensor
+        # # and the factors that tell in which periodic cell copy the match was
+        # # found originally.
+        # cells = np.zeros((len(neighbour_seeds), 3, 3))
+        # for i_node, node in enumerate(neighbour_seeds):
+
+            # # Handle each basis
+            # for i_basis in range(2):
+                # a_add_neighbour = adjacency_add[i_basis][node]
+                # a_sub_neighbour = adjacency_sub[i_basis][node]
+                # if a_add_neighbour and a_add_neighbour != node:
+                    # a_final_neighbour = a_add_neighbour
+                    # multiplier = 1
+                # elif a_sub_neighbour and a_sub_neighbour != node:
+                    # a_final_neighbour = a_sub_neighbour
+                    # multiplier = -1
+                # else:
+                    # a_final_neighbour = None
+
+                # if a_final_neighbour is not None:
+                    # a_factor = factors_add[i_basis][node]
+                    # a_correction = np.dot(a_factor, orig_cell)
+                    # a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
+                # else:
+                    # a = best_spans[i_basis, :]
+                # cells[i_node, i_basis, :] = a
+
+            # # Update the third axis for each cell.
+            # a = cells[i_node, 0]
+            # b = cells[i_node, 1]
+            # c = np.cross(a, b)
+            # c_norm = c/np.linalg.norm(c)
+            # c_norm = c_norm[None, :]
+            # cells[i_node, 2, :] = c_norm
+
+        # # Find the relative positions of atoms inside the cell
+        # orig_pos = system.get_positions()
+        # inside_indices = []
+        # inside_pos = []
+        # for i_seed, cell in zip(neighbour_seeds, cells):
+            # seed_pos = orig_pos[i_seed]
+
+            # i_pbc = ~np.array(self.vacuum_dir)
+            # i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
+                # system,
+                # cell,
+                # seed_pos,
+                # 0,
+                # mask=[True, True, False],  # We ignore the third axis limits
+                # pbc=i_pbc,  # Do not consider periodicity in c-axis
+            # )
+            # # print(i_indices)
+            # # print(i_pos)
+
+            # inside_indices.append(i_indices)
+            # inside_pos.append(i_pos)
+
+        # # For each node in a network, find the first relative position. Wrap
+        # # and average these positions to get a robust final estimate.
+        # averaged_rel_pos = np.zeros((len(group_indices), 3))
+        # for i_group, group in enumerate(group_indices):
+            # # print("========================")
+            # # print(group)
+            # scaled_pos = []
+            # for group_index in group:
+                # for cell_indices, cell_positions in zip(inside_indices, inside_pos):
+                    # for cell_index, cell_pos in zip(cell_indices, cell_positions):
+                        # if group_index == cell_index:
+                            # scaled_pos.append(cell_pos)
+                            # break
+                    # # if index in cell_ind:
+                        # # pos_index = cell_ind[index]
+                        # # pos = cell_pos[pos_index]
+                        # # scaled_pos.append(pos)
+                        # # break
+            # scaled_pos = np.array(scaled_pos)
+            # # print(scaled_pos)
+
+            # # Only wrap the 2D positions
+            # scaled_pos_2d = scaled_pos[:, 0:2]
+            # scaled_pos_2d %= 1
+
+            # # Find the copy with minimum distance from origin
+            # distances = np.linalg.norm(scaled_pos_2d, axis=1)
+            # min_dist_index = np.argmin(distances)
+            # min_dist_pos = scaled_pos_2d[min_dist_index]
+
+            # # All the other copies are moved periodically to be near the
+            # # position that is closest to origin.
+            # distances = scaled_pos_2d - min_dist_pos
+            # displacement = np.rint(distances)
+            # final_pos_2d = scaled_pos_2d - displacement
+
+            # # The average position is calculated
+            # scaled_pos[:, 0:2] = final_pos_2d
+            # group_avg = np.mean(scaled_pos, axis=0)
+            # averaged_rel_pos[i_group, :] = group_avg
+            # # print(group_avg)
+
+        # # print(averaged_rel_pos)
+
+        # # Grow the cell to fit all atoms
+        # c_comp = averaged_rel_pos[:, 2]
+        # min_index = np.argmin(c_comp, axis=0)
+        # max_index = np.argmax(c_comp, axis=0)
+        # pos_min_rel = np.array([0, 0, c_comp[min_index]])
+        # pos_max_rel = np.array([0, 0, c_comp[max_index]])
+        # pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
+        # pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
+        # c_real_cart = pos_max_cart-pos_min_cart
+
+        # # We demand a minimum size for the c-vector even if the system seems to
+        # # be purely 2-dimensional. This is done because the 3D-space cannot be
+        # # searched properly if one dimension is flat.
+        # c_size = np.linalg.norm(c_real_cart)
+        # min_size = 2*self.pos_tol
+        # if c_size < min_size:
+            # c_inflated_cart = min_size*c_norm
+            # c_new_cart = c_inflated_cart
+        # else:
+            # c_new_cart = c_real_cart
+        # new_basis = np.array(basis)
+        # new_basis[2, :] = c_new_cart
+
+        # new_scaled_pos = averaged_rel_pos - pos_min_rel
+        # new_scaled_pos[:, 2] /= np.linalg.norm(c_new_cart)
+
+        # if c_size < min_size:
+            # offset_cart = (c_real_cart-c_inflated_cart)/2
+            # offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
+            # new_scaled_pos -= offset_rel
+
+        # # Create translated system
+        # # group_seed_pos = pos[seed_index]
+        # proto_cell = Atoms(
+            # cell=new_basis,
+            # scaled_positions=new_scaled_pos,
+            # symbols=group_num
+        # )
+        # offset = proto_cell.get_positions()[seed_group_index]
+
+        # return proto_cell, offset
+
 
     def _find_best_basis(self, valid_spans, valid_span_metrics):
         """Used to choose the best basis from a set of valid ones.
