@@ -150,23 +150,8 @@ class Classifier():
         pos = system.get_positions()
         cell = system.get_cell()
         pbc = system.get_pbc()
-        # print("===")
-        # print(pos[20] - pos[23])
-        # print("===")
         disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        # print("===")
-        # print(disp_tensor[20, 23, :])
-        # print("===")
         if pbc.any():
-            # disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor_old(
-                # pos,
-                # pos,
-                # cell,
-                # pbc,
-                # mic=True,
-                # return_factors=True
-            # )
-
             disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
                 pos,
                 pos,
@@ -175,16 +160,6 @@ class Classifier():
                 mic=True,
                 return_factors=True
             )
-
-            # print(cell)
-            # print("==================")
-            # print("OLD")
-            # print(disp_tensor_pbc)
-            # print(disp_factors)
-            # print("==================")
-            # print("NEW")
-            # print(disp_tensor_pbc)
-            # print(factors_new)
         else:
             disp_tensor_pbc = disp_tensor
             disp_factors = np.zeros(disp_tensor.shape)
