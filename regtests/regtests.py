@@ -60,7 +60,6 @@ class ExceptionTests(unittest.TestCase):
 class GeometryTests(unittest.TestCase):
     """Tests for the geometry module.
     """
-
     def test_matches_non_orthogonal(self):
         """Test that the correct factor is returned when finding matches that
         are in the neighbouring cells.
@@ -842,21 +841,21 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
-    # def test_layered_2d(self):
-        # """A stacked two-dimensional material should be classified as Class2D.
-        # """
-        # with open("./mat2d_4.json", "r") as fin:
-            # data = json.load(fin)
-        # system = Atoms(
-            # scaled_positions=data["positions"],
-            # cell=1e10*np.array(data["normalizedCell"]),
-            # symbols=data["labels"],
-            # pbc=True,
-        # )
+    def test_layered_2d(self):
+        """A stacked two-dimensional material should be classified as Class2D.
+        """
+        with open("./mat2d_4.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Class2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Class2D)
 
     def test_graphene_primitive(self):
         sys = Material2DTests.graphene
@@ -877,570 +876,571 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    # def test_graphene_supercell(self):
-        # sys = Material2DTests.graphene.repeat([5, 5, 1])
-        # classifier = Classifier()
-        # classification = classifier.classify(sys)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_supercell(self):
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_graphene_partial_pbc(self):
-        # sys = Material2DTests.graphene.copy()
-        # sys.set_pbc([True, True, False])
-        # classifier = Classifier()
-        # classification = classifier.classify(sys)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_partial_pbc(self):
+        sys = Material2DTests.graphene.copy()
+        sys.set_pbc([True, True, False])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
 
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_graphene_missing_atom(self):
-        # """Test graphene with a vacancy defect.
-        # """
-        # sys = Material2DTests.graphene.repeat([5, 5, 1])
-        # del sys[24]
-        # # view(sys)
-        # sys.set_pbc([True, True, False])
-        # classifier = Classifier()
-        # classification = classifier.classify(sys)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_missing_atom(self):
+        """Test graphene with a vacancy defect.
+        """
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        del sys[24]
+        # view(sys)
+        sys.set_pbc([True, True, False])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One vacancy
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 1)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # One vacancy
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 1)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_graphene_substitution(self):
-        # """Test graphene with a substitution defect.
-        # """
-        # sys = Material2DTests.graphene.repeat([5, 5, 1])
-        # sys[0].number = 7
-        # # view(sys)
-        # sys.set_pbc([True, True, False])
-        # classifier = Classifier()
-        # classification = classifier.classify(sys)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_substitution(self):
+        """Test graphene with a substitution defect.
+        """
+        sys = Material2DTests.graphene.repeat([5, 5, 1])
+        sys[0].number = 7
+        # view(sys)
+        sys.set_pbc([True, True, False])
+        classifier = Classifier()
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One substitution
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
+        # One substitution
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 1)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 1)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Check substitution info
-        # subst = substitutions[0]
-        # index = subst.index
-        # orig_num = subst.original_element
-        # subst_num = subst.substitutional_element
-        # self.assertEqual(index, 0)
-        # self.assertEqual(orig_num, 6)
-        # self.assertEqual(subst_num, 7)
+        # Check substitution info
+        subst = substitutions[0]
+        index = subst.index
+        orig_num = subst.original_element
+        subst_num = subst.substitutional_element
+        self.assertEqual(index, 0)
+        self.assertEqual(orig_num, 6)
+        self.assertEqual(subst_num, 7)
 
-    # def test_graphene_missing_atom_exciting(self):
-        # """Test a more realistic graphene with a vacancy defect from the
-        # exciting data in the NOMAD Archive.
-        # """
-        # positions = np.array([[0.0, 0.0, 0.0],
-            # [0.0, 9.833294145128265E-10, 0.0],
-            # [2.134121238221869E-10, -1.23213547309968E-10, 0.0],
-            # [2.8283321482383327E-10, 9.83786883934224E-10, 0.0],
-            # [7.159944277047908E-11, 1.2149852888233143E-10, 0.0],
-            # [9.239798421116619E-10, 3.6970883192833546E-10, 0.0],
-            # [7.159944277047908E-11, 8.618308856304952E-10, 0.0],
-            # [9.239798421116619E-10, 6.136207055601422E-10, 0.0],
-            # [2.8283321482383327E-10, -4.573464457464822E-13, 0.0],
-            # [4.2635394347838356E-10, -2.458942411245288E-10, 0.0],
-            # [1.0647740633039121E-9, -3.6912488204997373E-10, 0.0],
-            # [8.52284868807466E-10, 2.4537848124459853E-10, 0.0],
-            # [1.0647740633039121E-9, 1.2269778743003765E-10, 0.0],
-            # [8.52284868807466E-10, -4.918055758645343E-10, 0.0],
-            # [4.2635394347838356E-10, -5.328534954072828E-13, 0.0],
-            # [4.970111804163183E-10, 8.604516522176773E-10, 0.0],
-            # [7.132179717248617E-11, 3.686497656226703E-10, 0.0],
-            # [7.100794156171322E-10, 2.4589288839236865E-10, 0.0],
-            # [7.132179717248617E-11, 6.146797718658073E-10, 0.0],
-            # [7.100794156171322E-10, 7.374366490961087E-10, 0.0],
-            # [4.970111804163183E-10, 1.2287788527080025E-10, 0.0],
-            # [6.39163064087745E-10, 8.6063580825492E-10, 0.0],
-            # [8.637153048417516E-14, 4.916647072564134E-10, 0.0],
-            # [6.39163064087745E-10, 1.2269360625790666E-10, 0.0],
-            # [2.1331073578640276E-10, 1.2303793808046385E-10, 0.0],
-            # [8.517910281331687E-10, 4.916647072564134E-10, 0.0],
-            # [2.1331073578640276E-10, 8.602914764323629E-10, 0.0],
-            # [4.970778494398485E-10, -1.232134858221425E-10, 0.0],
-            # [9.231674598249378E-10, -3.6921643742207865E-10, 0.0],
-            # [9.231675663249753E-10, 1.227894042899681E-10, 0.0],
-            # [2.84056580755611E-10, 2.4557345913912146E-10, 0.0],
-            # [7.102992316947146E-10, 4.916647687442388E-10, 0.0],
-            # [2.84056580755611E-10, 7.377560783493561E-10, 0.0],
-            # [6.391754180921053E-10, -1.2321354730996796E-10, 0.0],
-            # [8.521187287488282E-10, -2.461564252122759E-10, 0.0],
-            # [8.521187287488282E-10, -2.706694076601711E-13, 0.0],
-            # [7.101400141385201E-10, -2.4618501705111326E-10, 0.0],
-            # [9.231328473127216E-10, -1.23213547309968E-10, 0.0],
-            # [7.101400141385201E-10, -2.4207756882281025E-13, 0.0],
-            # [2.84140396285193E-10, 4.916647687442387E-10, 0.0],
-            # [4.971359984603718E-10, 3.6869170031963166E-10, 0.0],
-            # [4.971361049604094E-10, 6.146377756810205E-10, 0.0],
-            # [2.1311743821817984E-10, 3.6878393205781663E-10, 0.0],
-            # [6.390654035532765E-10, 3.6862443263858213E-10, 0.0],
-            # [4.262295514344803E-10, 7.375859415363175E-10, 0.0],
-            # [6.390654035532765E-10, 6.147051048498954E-10, 0.0],
-            # [4.262295514344803E-10, 2.4574359595216E-10, 0.0],
-            # [2.1311743821817984E-10, 6.145456054306609E-10, 0.0],
-            # [4.2613753540200396E-10, 4.916647687442388E-10, 0.0]
-        # ])
-        # labels = ["C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C"]
-        # cell = np.array([
-            # [1.0650003758837873E-9, -6.148782545663813E-10, 0.0],
-            # [0.0, 1.2297565091327626E-9, 0.0],
-            # [0.0, 0.0, 2.0000003945832858E-9]
-        # ])
-        # pbc = True
+    def test_graphene_missing_atom_exciting(self):
+        """Test a more realistic graphene with a vacancy defect from the
+        exciting data in the NOMAD Archive.
+        """
+        positions = np.array([[0.0, 0.0, 0.0],
+            [0.0, 9.833294145128265E-10, 0.0],
+            [2.134121238221869E-10, -1.23213547309968E-10, 0.0],
+            [2.8283321482383327E-10, 9.83786883934224E-10, 0.0],
+            [7.159944277047908E-11, 1.2149852888233143E-10, 0.0],
+            [9.239798421116619E-10, 3.6970883192833546E-10, 0.0],
+            [7.159944277047908E-11, 8.618308856304952E-10, 0.0],
+            [9.239798421116619E-10, 6.136207055601422E-10, 0.0],
+            [2.8283321482383327E-10, -4.573464457464822E-13, 0.0],
+            [4.2635394347838356E-10, -2.458942411245288E-10, 0.0],
+            [1.0647740633039121E-9, -3.6912488204997373E-10, 0.0],
+            [8.52284868807466E-10, 2.4537848124459853E-10, 0.0],
+            [1.0647740633039121E-9, 1.2269778743003765E-10, 0.0],
+            [8.52284868807466E-10, -4.918055758645343E-10, 0.0],
+            [4.2635394347838356E-10, -5.328534954072828E-13, 0.0],
+            [4.970111804163183E-10, 8.604516522176773E-10, 0.0],
+            [7.132179717248617E-11, 3.686497656226703E-10, 0.0],
+            [7.100794156171322E-10, 2.4589288839236865E-10, 0.0],
+            [7.132179717248617E-11, 6.146797718658073E-10, 0.0],
+            [7.100794156171322E-10, 7.374366490961087E-10, 0.0],
+            [4.970111804163183E-10, 1.2287788527080025E-10, 0.0],
+            [6.39163064087745E-10, 8.6063580825492E-10, 0.0],
+            [8.637153048417516E-14, 4.916647072564134E-10, 0.0],
+            [6.39163064087745E-10, 1.2269360625790666E-10, 0.0],
+            [2.1331073578640276E-10, 1.2303793808046385E-10, 0.0],
+            [8.517910281331687E-10, 4.916647072564134E-10, 0.0],
+            [2.1331073578640276E-10, 8.602914764323629E-10, 0.0],
+            [4.970778494398485E-10, -1.232134858221425E-10, 0.0],
+            [9.231674598249378E-10, -3.6921643742207865E-10, 0.0],
+            [9.231675663249753E-10, 1.227894042899681E-10, 0.0],
+            [2.84056580755611E-10, 2.4557345913912146E-10, 0.0],
+            [7.102992316947146E-10, 4.916647687442388E-10, 0.0],
+            [2.84056580755611E-10, 7.377560783493561E-10, 0.0],
+            [6.391754180921053E-10, -1.2321354730996796E-10, 0.0],
+            [8.521187287488282E-10, -2.461564252122759E-10, 0.0],
+            [8.521187287488282E-10, -2.706694076601711E-13, 0.0],
+            [7.101400141385201E-10, -2.4618501705111326E-10, 0.0],
+            [9.231328473127216E-10, -1.23213547309968E-10, 0.0],
+            [7.101400141385201E-10, -2.4207756882281025E-13, 0.0],
+            [2.84140396285193E-10, 4.916647687442387E-10, 0.0],
+            [4.971359984603718E-10, 3.6869170031963166E-10, 0.0],
+            [4.971361049604094E-10, 6.146377756810205E-10, 0.0],
+            [2.1311743821817984E-10, 3.6878393205781663E-10, 0.0],
+            [6.390654035532765E-10, 3.6862443263858213E-10, 0.0],
+            [4.262295514344803E-10, 7.375859415363175E-10, 0.0],
+            [6.390654035532765E-10, 6.147051048498954E-10, 0.0],
+            [4.262295514344803E-10, 2.4574359595216E-10, 0.0],
+            [2.1311743821817984E-10, 6.145456054306609E-10, 0.0],
+            [4.2613753540200396E-10, 4.916647687442388E-10, 0.0]
+        ])
+        labels = ["C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C", "C"]
+        cell = np.array([
+            [1.0650003758837873E-9, -6.148782545663813E-10, 0.0],
+            [0.0, 1.2297565091327626E-9, 0.0],
+            [0.0, 0.0, 2.0000003945832858E-9]
+        ])
+        pbc = True
 
-        # system = ase.Atoms(
-            # positions=1e10*positions,
-            # symbols=labels,
-            # cell=1e10*cell,
-            # pbc=pbc,
-        # )
+        system = ase.Atoms(
+            positions=1e10*positions,
+            symbols=labels,
+            cell=1e10*cell,
+            pbc=pbc,
+        )
         # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
-        # # view(classification.region.recreate_valid())
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+        # view(classification.region.recreate_valid())
 
-        # # One vacancy
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 1)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # One vacancy
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 1)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Check vacancy position
-        # vac_atom = vacancies[0]
-        # vac_symbol = vac_atom.symbol
-        # vac_pos = vac_atom.position
-        # self.assertEqual(vac_symbol, "C")
-        # self.assertTrue(np.allclose(vac_pos, [0.7123, 11.0639, 0], atol=1e-2))
+        # Check vacancy position
+        vac_atom = vacancies[0]
+        vac_symbol = vac_atom.symbol
+        vac_pos = vac_atom.position
+        self.assertEqual(vac_symbol, "C")
+        self.assertTrue(np.allclose(vac_pos, [0.7123, 11.0639, 0], atol=1e-2))
 
-    # def test_graphene_shaken(self):
-        # """Test graphene that has randomly oriented but uniform length
-        # dislocations.
-        # """
-        # # Run multiple times with random displacements
-        # rng = RandomState(4)
-        # for i in range(30):
-            # system = Material2DTests.graphene.repeat([5, 5, 1])
-            # systax.geometry.make_random_displacement(system, 0.2, rng)
-            # classifier = Classifier()
-            # classification = classifier.classify(system)
-            # self.assertIsInstance(classification, Material2D)
+    def test_graphene_shaken(self):
+        """Test graphene that has randomly oriented but uniform length
+        dislocations.
+        """
+        # Run multiple times with random displacements
+        rng = RandomState(4)
+        for i in range(15):
+            system = Material2DTests.graphene.repeat([5, 5, 1])
+            systax.geometry.make_random_displacement(system, 0.2, rng)
+            classifier = Classifier()
+            classification = classifier.classify(system)
+            self.assertIsInstance(classification, Material2D)
 
-            # # Pristine
-            # adsorbates = classification.adsorbates
-            # interstitials = classification.interstitials
-            # substitutions = classification.substitutions
-            # vacancies = classification.vacancies
-            # unknowns = classification.unknowns
-            # self.assertEqual(len(interstitials), 0)
-            # self.assertEqual(len(substitutions), 0)
-            # self.assertEqual(len(vacancies), 0)
-            # self.assertEqual(len(adsorbates), 0)
-            # self.assertEqual(len(unknowns), 0)
+            # Pristine
+            adsorbates = classification.adsorbates
+            interstitials = classification.interstitials
+            substitutions = classification.substitutions
+            vacancies = classification.vacancies
+            unknowns = classification.unknowns
+            self.assertEqual(len(interstitials), 0)
+            self.assertEqual(len(substitutions), 0)
+            self.assertEqual(len(vacancies), 0)
+            self.assertEqual(len(adsorbates), 0)
+            self.assertEqual(len(unknowns), 0)
 
-    # def test_chemisorption(self):
-        # """Test the adsorption where there is sufficient distance between the
-        # adsorbate and the surface to distinguish between them even if they
-        # share the same elements.
-        # """
-        # with open("./mat2d_adsorbate_unknown.json", "r") as fin:
-            # data = json.load(fin)
-        # system = Atoms(
-            # scaled_positions=data["positions"],
-            # cell=1e10*np.array(data["normalizedCell"]),
-            # symbols=data["labels"],
-            # pbc=True,
-        # )
-        # # view(system)
+    def test_chemisorption(self):
+        """Test the adsorption where there is sufficient distance between the
+        adsorbate and the surface to distinguish between them even if they
+        share the same elements.
+        """
+        with open("./mat2d_adsorbate_unknown.json", "r") as fin:
+            data = json.load(fin)
+        system = Atoms(
+            scaled_positions=data["positions"],
+            cell=1e10*np.array(data["normalizedCell"]),
+            symbols=data["labels"],
+            pbc=True,
+        )
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # No defects or unknown atoms, one adsorbate cluster
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
+        # No defects or unknown atoms, one adsorbate cluster
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(adsorbates), 24)
-        # self.assertTrue(np.array_equal(adsorbates, np.arange(50, 74)))
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(adsorbates), 24)
+        self.assertTrue(np.array_equal(adsorbates, np.arange(50, 74)))
 
-    # def test_curved_2d(self):
-        # """Curved 2D-material
-        # """
-        # graphene = Atoms(
-            # symbols=[6, 6],
-            # cell=np.array((
-                # [2.4595121467478055, 0.0, 0.0],
-                # [-1.2297560733739028, 2.13, 0.0],
-                # [0.0, 0.0, 20.0]
-            # )),
-            # scaled_positions=np.array((
-                # [0.3333333333333333, 0.6666666666666666, 0.5],
-                # [0.6666666666666667, 0.33333333333333337, 0.5]
-            # )),
-            # pbc=True
-        # )
-        # graphene = graphene.repeat([5, 5, 1])
+    def test_curved_2d(self):
+        """Curved 2D-material
+        """
+        graphene = Atoms(
+            symbols=[6, 6],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [-1.2297560733739028, 2.13, 0.0],
+                [0.0, 0.0, 20.0]
+            )),
+            scaled_positions=np.array((
+                [0.3333333333333333, 0.6666666666666666, 0.5],
+                [0.6666666666666667, 0.33333333333333337, 0.5]
+            )),
+            pbc=True
+        )
+        graphene = graphene.repeat([5, 5, 1])
 
-        # # Bulge the surface
-        # cell_width = np.linalg.norm(graphene.get_cell()[0, :])
-        # for atom in graphene:
-            # pos = atom.position
-            # distortion_z = 0.4*np.sin(pos[0]/cell_width*2.0*np.pi)
-            # pos += np.array((0, 0, distortion_z))
+        # Bulge the surface
+        cell_width = np.linalg.norm(graphene.get_cell()[0, :])
+        for atom in graphene:
+            pos = atom.position
+            distortion_z = 0.4*np.sin(pos[0]/cell_width*2.0*np.pi)
+            pos += np.array((0, 0, distortion_z))
+        # view(graphene)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(graphene)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(graphene)
+        self.assertIsInstance(classification, Material2D)
 
-    # def test_mos2_pristine_supercell(self):
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
-        # # view(system)
+    def test_mos2_pristine_supercell(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_mos2_pristine_primitive(self):
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(1, 1, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
-        # # view(system)
+    def test_mos2_pristine_primitive(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(1, 1, 1),
+            vacuum=8)
+        system.set_pbc(True)
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-    # def test_mos2_substitution(self):
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
+    def test_mos2_substitution(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
 
-        # symbols = system.get_atomic_numbers()
-        # symbols[25] = 6
-        # system.set_atomic_numbers(symbols)
+        symbols = system.get_atomic_numbers()
+        symbols[25] = 6
+        system.set_atomic_numbers(symbols)
 
-        # # view(system)
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One substitution
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(substitutions), 1)
+        # One substitution
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(substitutions), 1)
 
-    # def test_mos2_vacancy(self):
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
+    def test_mos2_vacancy(self):
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
 
-        # del system[25]
-        # # view(system)
+        del system[25]
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One vacancy
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 1)
+        # One vacancy
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 1)
 
-    # def test_mos2_adsorption(self):
-        # """Test adsorption on mos2 surface.
-        # """
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
+    def test_mos2_adsorption(self):
+        """Test adsorption on mos2 surface.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
 
-        # ads = molecule("C6H6")
-        # ads.translate([4.9, 5.5, 13])
-        # system += ads
+        ads = molecule("C6H6")
+        ads.translate([4.9, 5.5, 13])
+        system += ads
 
-        # # view(system)
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One adsorbate
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 12)
-        # self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
+        # One adsorbate
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 12)
+        self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
 
-    # def test_2d_split(self):
-        # """A simple 2D system where the system has been split by the cell
-        # boundary.
-        # """
-        # system = Atoms(
-            # symbols=["H", "C"],
-            # cell=np.array((
-                # [2, 0.0, 0.0],
-                # [0.0, 2, 0.0],
-                # [0.0, 0.0, 15]
-            # )),
-            # positions=np.array((
-                # [0, 0, 0],
-                # [0, 0, 13.8],
-            # )),
-            # pbc=True
-        # )
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+    def test_2d_split(self):
+        """A simple 2D system where the system has been split by the cell
+        boundary.
+        """
+        system = Atoms(
+            symbols=["H", "C"],
+            cell=np.array((
+                [2, 0.0, 0.0],
+                [0.0, 2, 0.0],
+                [0.0, 0.0, 15]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [0, 0, 13.8],
+            )),
+            pbc=True
+        )
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # basis = classification.basis_indices
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(set(basis), set(range(len(system))))
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
 
-    # def test_graphene_rectangular(self):
-        # system = Atoms(
-            # symbols=["C", "C", "C", "C"],
-            # cell=np.array((
-                # [4.26, 0.0, 0.0],
-                # [0.0, 15, 0.0],
-                # [0.0, 0.0, 2.4595121467478055]
-            # )),
-            # positions=np.array((
-                # [2.84, 7.5, 6.148780366869514e-1],
-                # [3.55, 7.5, 1.8446341100608543],
-                # [7.1e-1, 7.5, 1.8446341100608543],
-                # [1.42, 7.5, 6.148780366869514e-1],
-            # )),
-            # pbc=True
-        # )
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+    def test_graphene_rectangular(self):
+        system = Atoms(
+            symbols=["C", "C", "C", "C"],
+            cell=np.array((
+                [4.26, 0.0, 0.0],
+                [0.0, 15, 0.0],
+                [0.0, 0.0, 2.4595121467478055]
+            )),
+            positions=np.array((
+                [2.84, 7.5, 6.148780366869514e-1],
+                [3.55, 7.5, 1.8446341100608543],
+                [7.1e-1, 7.5, 1.8446341100608543],
+                [1.42, 7.5, 6.148780366869514e-1],
+            )),
+            pbc=True
+        )
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # basis = classification.basis_indices
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(set(basis), set(range(len(system))))
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
 
-    # def test_boron_nitride(self):
-        # system = Atoms(
-            # symbols=["B", "N"],
-            # cell=np.array((
-                # [2.412000008147063, 0.0, 0.0],
-                # [-1.2060000067194177, 2.0888532824002019, 0.0],
-                # [0.0, 0.0, 15.875316320100001]
-            # )),
-            # positions=np.array((
-                # [0, 0, 0],
-                # [-1.3823924100453746E-9, 1.3925688618963122, 0.0]
-            # )),
-            # pbc=True
-        # )
-        # # view(system)
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+    def test_boron_nitride(self):
+        system = Atoms(
+            symbols=["B", "N"],
+            cell=np.array((
+                [2.412000008147063, 0.0, 0.0],
+                [-1.2060000067194177, 2.0888532824002019, 0.0],
+                [0.0, 0.0, 15.875316320100001]
+            )),
+            positions=np.array((
+                [0, 0, 0],
+                [-1.3823924100453746E-9, 1.3925688618963122, 0.0]
+            )),
+            pbc=True
+        )
+        # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # basis = classification.basis_indices
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(set(basis), set(range(len(system))))
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
 
-    # def test_fluorographene(self):
-        # system = Atoms(
-            # scaled_positions=np.array([
-                # [1.3012393333576103e-06, 0.9999449352451434, 0.07686917114285712],
-                # [0.666645333381887, 0.9999840320410395, 0.10381504828571426],
-                # [0.16664461721471663, 0.49999686527625936, 0.10381366714285713],
-                # [0.5000035589866841, 0.49995279413001426, 0.07686989028571428],
-                # [0.9999651360110703, 6.476326633588427e-05, 0.0026979231428571424],
-                # [0.6665936880181591, 6.312126818602304e-05, 0.17797979399999994],
-                # [0.16658826335530388, 0.5001281031872844, 0.1779785431428571],
-                # [0.49997811077528137, 0.5001300794718694, 0.002698536571428571]
-            # ]),
-            # cell=np.array([
-                # [4.359520614662661, 0.0, 0.0],
-                # [0.0, 2.516978484830788, 0.0],
-                # [0.0, 0.0, 18.521202373450003]
-            # ]),
-            # symbols=[6, 6, 6, 6, 9, 9, 9, 9],
-            # pbc=True
-        # )
+    def test_fluorographene(self):
+        system = Atoms(
+            scaled_positions=np.array([
+                [1.3012393333576103e-06, 0.9999449352451434, 0.07686917114285712],
+                [0.666645333381887, 0.9999840320410395, 0.10381504828571426],
+                [0.16664461721471663, 0.49999686527625936, 0.10381366714285713],
+                [0.5000035589866841, 0.49995279413001426, 0.07686989028571428],
+                [0.9999651360110703, 6.476326633588427e-05, 0.0026979231428571424],
+                [0.6665936880181591, 6.312126818602304e-05, 0.17797979399999994],
+                [0.16658826335530388, 0.5001281031872844, 0.1779785431428571],
+                [0.49997811077528137, 0.5001300794718694, 0.002698536571428571]
+            ]),
+            cell=np.array([
+                [4.359520614662661, 0.0, 0.0],
+                [0.0, 2.516978484830788, 0.0],
+                [0.0, 0.0, 18.521202373450003]
+            ]),
+            symbols=[6, 6, 6, 6, 9, 9, 9, 9],
+            pbc=True
+        )
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
 
 class Material3DTests(unittest.TestCase):
@@ -2282,18 +2282,18 @@ class FhiTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(FhiTests))
 

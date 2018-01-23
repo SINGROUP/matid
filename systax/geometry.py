@@ -884,7 +884,14 @@ def change_basis(positions, basis, offset=None):
     return pos_prime
 
 
-def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, True, True], pbc=True):
+def get_positions_within_basis(
+        system,
+        basis,
+        origin,
+        tolerance,
+        mask=[True, True, True],
+        pbc=True
+    ):
     """Used to return the indices of positions that are inside a certain basis.
     Also takes periodic boundaries into account.
 
@@ -894,6 +901,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
         origin(np.ndarray): New origin of the basis in cartesian coordinates.
         tolerance(float): The tolerance for the end points of the cell.
         mask(sequence of bool): Mask for selecting the basis's to consider.
+        pbc(sequence of bool): The periodicity of the system.
 
     Returns:
         sequence of int: Indices of the atoms within this cell in the given
@@ -907,6 +915,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
 
     # Transform positions into the new basis
     cart_pos = system.get_positions()
+    orig_cell = system.get_cell()
 
     pbc = expand_pbc(pbc)
 
@@ -921,8 +930,7 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
     max_bc = origin + basis[1, :] + basis[2, :]
     max_abc = origin + basis[0, :] + basis[1, :] + basis[2, :]
     vectors = np.array((max_a, max_b, max_c, max_ab, max_ac, max_bc, max_abc))
-    cell = system.get_cell()
-    rel_vectors = to_scaled(cell, vectors, wrap=False, pbc=system.get_pbc())
+    rel_vectors = to_scaled(orig_cell, vectors, wrap=False, pbc=system.get_pbc())
 
     directions = set()
     directions.add((0, 0, 0))
@@ -957,21 +965,23 @@ def get_positions_within_basis(system, basis, origin, tolerance, mask=[True, Tru
         # If no positions are defined, find the atoms within the cell
         for i_pos, pos in enumerate(vec_new_rel):
             if mask[0]:
-                x = 0 - a_prec <= pos[0] < 1 - a_prec
+                x = 0 - a_prec <= pos[0] <= 1 - a_prec
             else:
                 x = True
             if mask[1]:
-                y = 0 - b_prec <= pos[1] < 1 - b_prec
+                y = 0 - b_prec <= pos[1] <= 1 - b_prec
             else:
                 y = True
             if mask[2]:
-                z = 0 - c_prec <= pos[2] < 1 - c_prec
+                z = 0 - c_prec <= pos[2] <= 1 - c_prec
             else:
                 z = True
+
             if x and y and z:
                 indices.append(i_pos)
                 cell_pos.append(pos)
                 factors.append(i_dir)
+
     cell_pos = np.array(cell_pos)
     indices = np.array(indices)
     factors = np.array(factors)
