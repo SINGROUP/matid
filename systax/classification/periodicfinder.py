@@ -261,9 +261,9 @@ class PeriodicFinder():
                         per_adjacency_list_add[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor + i_factor)))
                         per_adjacency_list_sub[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor - i_factor)))
 
-                adjacency_lists.append(per_adjacency_list)
-                adjacency_lists_add.append(per_adjacency_list_add)
-                adjacency_lists_sub.append(per_adjacency_list_sub)
+                    adjacency_lists.append(per_adjacency_list)
+                    adjacency_lists_add.append(per_adjacency_list_add)
+                    adjacency_lists_sub.append(per_adjacency_list_sub)
 
         # Find the directions that are most repeat the neighbours above some
         # preset threshold. This is used to eliminate directions that are
