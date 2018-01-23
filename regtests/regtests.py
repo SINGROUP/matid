@@ -841,6 +841,29 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
+    def test_seed_not_in_cell(self):
+        """In this case the seed atom is not in the cells when creating
+        the prototype cell. If the seed atom is directly at the cell border, it
+        might not be found. This tests that the code forces the seed atom to be
+        found correctly.
+        """
+        with open("./PKPif9Fqbl30oVX-710UwCHGMd83y.json", "r") as fin:
+            data = json.load(fin)
+
+        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        system = Atoms(
+            positions=1e10*np.array(section_system["atom_positions"]),
+            cell=1e10*np.array(section_system["simulation_cell"]),
+            symbols=section_system["atom_labels"],
+            pbc=True,
+        )
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
     def test_layered_2d(self):
         """A stacked two-dimensional material should be classified as Class2D.
         """
@@ -1068,7 +1091,7 @@ class Material2DTests(unittest.TestCase):
         dislocations.
         """
         # Run multiple times with random displacements
-        rng = RandomState(4)
+        rng = RandomState(7)
         for i in range(15):
             system = Material2DTests.graphene.repeat([5, 5, 1])
             systax.geometry.make_random_displacement(system, 0.2, rng)
@@ -2246,7 +2269,7 @@ class SurfaceTests(unittest.TestCase):
 
 
 class FhiTests(unittest.TestCase):
-    """Tests from different FhiAims data in the NOMAD Archive.
+    """Tests from different FhiAims systems in the NOMAD Archive.
     """
     def test_surface_1(self):
         with open("./C2Ba16O44Zr12.json", "r") as fin:
@@ -2280,6 +2303,44 @@ class FhiTests(unittest.TestCase):
         self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
 
 
+class ExcitingTests(unittest.TestCase):
+    """Tests from different Exciting systems in the NOMAD Archive.
+    """
+    def test_1(self):
+        with open("./PKPif9Fqbl30oVX-710UwCHGMd83y.json", "r") as fin:
+            data = json.load(fin)
+
+        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        system = Atoms(
+            positions=1e10*np.array(section_system["atom_positions"]),
+            cell=1e10*np.array(section_system["simulation_cell"]),
+            symbols=section_system["atom_labels"],
+            pbc=True,
+        )
+        view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # # No defects or unknown atoms, one adsorbate cluster
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # print(adsorbates)
+        # print(unknowns)
+
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(adsorbates), 3)
+        # self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
+
+
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
@@ -2296,6 +2357,7 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(FhiTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExcitingTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

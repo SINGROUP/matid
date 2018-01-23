@@ -888,7 +888,8 @@ def get_positions_within_basis(
         system,
         basis,
         origin,
-        tolerance,
+        tolerance_low,
+        tolerance_high,
         mask=[True, True, True],
         pbc=True
     ):
@@ -953,7 +954,8 @@ def get_positions_within_basis(
     # If the new cell is overflowing beyound the boundaries of the original
     # system, we have to also check the periodic copies.
     indices = []
-    a_prec, b_prec, c_prec = tolerance/np.linalg.norm(basis, axis=1)
+    a_prec_low, b_prec_low, c_prec_low = tolerance_low/np.linalg.norm(basis, axis=1)
+    a_prec_high, b_prec_high, c_prec_high = tolerance_high/np.linalg.norm(basis, axis=1)
     orig_basis = system.get_cell()
     cell_pos = []
     factors = []
@@ -965,15 +967,15 @@ def get_positions_within_basis(
         # If no positions are defined, find the atoms within the cell
         for i_pos, pos in enumerate(vec_new_rel):
             if mask[0]:
-                x = 0 - a_prec <= pos[0] <= 1 - a_prec
+                x = 0 - a_prec_low <= pos[0] <= 1 - a_prec_high
             else:
                 x = True
             if mask[1]:
-                y = 0 - b_prec <= pos[1] <= 1 - b_prec
+                y = 0 - b_prec_low <= pos[1] <= 1 - b_prec_high
             else:
                 y = True
             if mask[2]:
-                z = 0 - c_prec <= pos[2] <= 1 - c_prec
+                z = 0 - c_prec_low <= pos[2] <= 1 - c_prec_high
             else:
                 z = True
 

@@ -477,47 +477,37 @@ class PeriodicFinder():
         orig_pos = system.get_positions()
         inside_nodes = []
         inside_pos = []
+        index_cell_map = {}
         for i_node, cell in zip(seed_nodes, cells):
             i_seed, i_seed_factor = i_node
             seed_pos = orig_pos[i_seed]
-            i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
-                system,
-                cell,
-                seed_pos,
-                0,
-            )
+
+            if i_seed in index_cell_map:
+                i_indices, i_pos, i_factors = index_cell_map[i_seed]
+            else:
+                i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
+                    system,
+                    cell,
+                    seed_pos,
+                    1e-8,
+                    -1e-8,
+                )
+
+                # Here we ensure that the seed atom is included in the cell
+                # positions. The search might miss the seed atom which is
+                # exactly at the border of the cell
+                # if i_seed not in i_indices:
+                    # i_indices = np.append(i_indices, [i_seed], axis=0)
+                    # i_pos = np.append(i_pos, np.array([[0, 0, 0.5]]), axis=0)
+                    # i_factors = np.append(i_factors, [[0, 0, 0]], axis=0)
+
+                index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
             # Add the seed node factor
             final_factors = []
             for factor in i_factors:
                 i_final_factor = tuple(np.array(i_seed_factor) + factor)
                 final_factors.append(i_final_factor)
-
-            # Correct the relative position with the factor
-            # final_positions = []
-            # for pos, factor in zip(i_pos, final_factors):
-                # i_cart_pos = systax.geometry.to_cartesian(cell, pos)
-                # i_correction = np.dot(factor, orig_cell)
-                # i_cart_pos += i_correction
-                # i_corrected_rel_pos = systax.geometry.to_scaled(cell, i_cart_pos)
-                # final_positions.append(i_corrected_rel_pos)
-
-            # for i, index in enumerate(i_indices):
-                # if index == 21:
-                    # print("21")
-                    # print(i_indices[i])
-                    # print(final_positions[i])
-                    # print(final_factors[i])
-                # if index == 35:
-                    # print("35")
-                    # print(i_indices[i])
-                    # print(i_pos[i])
-                    # print(final_factors[i])
-                # if index == 19:
-                    # print("19")
-                    # print(i_indices[i])
-                    # print(final_positions[i])
-                    # print(final_factors[i])
 
             # Create nodes (index+factor) that were found
             i_cell_nodes = list(zip(i_indices, final_factors))
@@ -538,10 +528,6 @@ class PeriodicFinder():
                         break
             scaled_pos = np.array(scaled_pos)
 
-            # print(found_nodes)
-            # print(scaled_pos)
-            # raise Exception("")
-
             # Find the copy with minimum distance from origin
             distances = np.linalg.norm(scaled_pos, axis=1)
             min_dist_index = np.argmin(distances)
@@ -556,54 +542,6 @@ class PeriodicFinder():
             # The average position is calculated
             group_avg = np.mean(final_pos, axis=0)
             averaged_rel_pos[i_group, :] = group_avg
-
-        offset = averaged_rel_pos[seed_group_index]
-
-        #=======================================================================
-        # OLD
-        # Find the relative positions of atoms inside the cell
-        # orig_pos = system.get_positions()
-        # inside_indices = []
-        # inside_pos = []
-        # for i_node, cell in zip(seed_nodes, cells):
-            # i_seed, i_factor = i_node
-            # seed_pos = orig_pos[i_seed]
-            # i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
-                # system,
-                # cell,
-                # seed_pos,
-                # 0,
-            # )
-            # inside_indices.append(OrderedDict(zip(i_indices, range(len(i_indices)))))
-            # inside_pos.append(i_pos)
-
-        # For each node in a network, find the first relative position. Wrap
-        # and average these positions to get a robust final estimate.
-        # averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
-        # for i_group, group in enumerate(group_data_pbc["ind"]):
-            # scaled_pos = []
-            # for index in group:
-                # for cell_ind, cell_pos in zip(inside_indices, inside_pos):
-                    # if index in cell_ind:
-                        # pos_index = cell_ind[index]
-                        # pos = cell_pos[pos_index]
-                        # scaled_pos.append(pos)
-                        # break
-
-            # # Find the copy with minimum distance from origin
-            # distances = np.linalg.norm(scaled_pos, axis=1)
-            # min_dist_index = np.argmin(distances)
-            # min_dist_pos = scaled_pos[min_dist_index]
-
-            # # All the other copies are moved periodically to be near the
-            # # position that is closest to origin.
-            # distances = scaled_pos - min_dist_pos
-            # displacement = np.rint(distances)
-            # final_pos = scaled_pos - displacement
-
-            # # The average position is calculated
-            # group_avg = np.mean(final_pos, axis=0)
-            # averaged_rel_pos[i_group, :] = group_avg
 
         offset = averaged_rel_pos[seed_group_index]
 
@@ -676,24 +614,6 @@ class PeriodicFinder():
                 else:
                     a_final_neighbour = None
 
-                # a_add_neighbour = adjacency_add[i_basis][node]
-                # a_sub_neighbour = adjacency_sub[i_basis][node]
-
-                # if a_add_neighbour and a_add_neighbour != node:
-                    # a_final_neighbour = a_add_neighbour
-                    # i_factor = factors_add[i_basis][node]
-                    # multiplier = 1
-                # elif a_sub_neighbour and a_sub_neighbour != node:
-                    # a_final_neighbour = a_sub_neighbour
-                    # i_factor = factors_sub[i_basis][node]
-                    # multiplier = -1
-                # else:
-                    # a_final_neighbour = None
-
-                # if a_final_neighbour is not None:
-                    # a_correction = np.dot(i_factor, orig_cell)
-                    # a = multiplier*disp_tensor[a_final_neighbour, node, :] + a_correction
-
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
                     a = multiplier*disp_tensor[a_final_neighbour, node_index, :] + a_correction
@@ -725,15 +645,22 @@ class PeriodicFinder():
             if i_seed in index_cell_map:
                 i_indices, i_pos, i_factors = index_cell_map[i_seed]
             else:
-                # i_pbc = ~np.array(self.vacuum_dir)
                 i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
                     system,
                     cell,
                     search_coord,
-                    0,
-                    # mask=[True, True, False],  # We ignore the third axis limits
-                    # pbc=i_pbc,  # Do not consider periodicity in c-axis
+                    1e-8,
+                    -1e-8,
                 )
+
+                # Here we ensure that the seed atom is included in the cell
+                # positions. The search might miss the seed atom which is
+                # exactly at the border of the cell
+                # if i_seed not in i_indices:
+                    # i_indices = np.append(i_indices, [i_seed], axis=0)
+                    # i_pos = np.append(i_pos, np.array([[0, 0, 0.5]]), axis=0)
+                    # i_factors = np.append(i_factors, [[0, 0, 0]], axis=0)
+
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
             # Add the seed node factor
