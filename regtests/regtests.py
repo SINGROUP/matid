@@ -1875,7 +1875,7 @@ class SurfaceTests(unittest.TestCase):
         """Test surface where on top there are adsorbates with high
         connectivity in two directions.
         """
-        with open("./Pco9uqwtiOFxd3L6GjX6RLRqVHxZs.json", "r") as fin:
+        with open("./P8Wnwz4dfyea6UAD0WEBadXv83wyf.json", "r") as fin:
             data = json.load(fin)
 
         section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
@@ -2382,6 +2382,34 @@ class NomadTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Material2D)
 
+    # def test_4(self):
+        # with open("./P8Wnwz4dfyea6UAD0WEBadXv83wyf.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # # view(system)
+        # # basis = np.array([
+            # # [0.00000000e+00, -2.71672000e+00, 0.00000000e+00],
+            # # [1.56954000e+00, -3.86000000e-03, -2.15044000e+00],
+            # # [4.70770000e+00, -2.71800000e+00, 0.00000000e+00]
+        # # ])
+        # # pos = system.get_positions()
+        # # seed_pos = pos[27]
+        # # test_pos = pos + basis[1,:]
+        # # print()
+        # # basis =
+        # # view(system.repeat((2, 1, 1)))
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
 
 if __name__ == '__main__':

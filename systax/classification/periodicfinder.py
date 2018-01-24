@@ -329,7 +329,24 @@ class PeriodicFinder():
         # periodic boundaries into account
         graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
 
-        # print(graphs[0].nodes())
+        # Filter out the basis atoms by checking how many were found with
+        # respect to the number of copies of the seed atom. This equals to
+        # checking that the number of nodes in the subgraph is similar to the
+        # graph corresponding to the one where the seed atom is.
+        subgraph_size = []
+        target_size = None
+        for graph in graphs:
+            nodes = graph.nodes()
+            indices = set([node[0] for node in nodes])
+            n_nodes = len(nodes)
+            if seed_index in indices:
+                target_size = n_nodes
+            subgraph_size.append(n_nodes)
+        temp_graphs = []
+        for i_graph, graph_size in enumerate(subgraph_size):
+            if graph_size >= 0.5*target_size:
+                temp_graphs.append(graphs[i_graph])
+        graphs = temp_graphs
 
         # Eliminate subgraphs that do not have enough periodicity
         valid_graphs = []
@@ -465,6 +482,7 @@ class PeriodicFinder():
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
 
+
         # Find the relative positions of atoms inside the cell
         orig_pos = system.get_positions()
         inside_nodes = []
@@ -508,8 +526,11 @@ class PeriodicFinder():
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
-        averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
+        # averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
+        averaged_rel_pos = []
+        averaged_rel_num = []
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
+            group_num = group_data_pbc["num"][i_group]
             scaled_pos = []
             for group_node in nodes:
                 for cell_nodes, cell_positions in zip(inside_nodes, inside_pos):
@@ -518,28 +539,34 @@ class PeriodicFinder():
                         pos = cell_positions[pos_index]
                         scaled_pos.append(pos)
                         break
-            scaled_pos = np.array(scaled_pos)
 
-            # Find the copy with minimum distance from origin
-            distances = np.linalg.norm(scaled_pos, axis=1)
-            min_dist_index = np.argmin(distances)
-            min_dist_pos = scaled_pos[min_dist_index]
+            # The basis location corresponding to this group is only added is
+            # at least one occurrence is found in a cell.
+            if len(scaled_pos) != 0:
+                scaled_pos = np.array(scaled_pos)
 
-            # All the other copies are moved periodically to be near the
-            # position that is closest to origin.
-            distances = scaled_pos - min_dist_pos
-            displacement = np.rint(distances)
-            final_pos = scaled_pos - displacement
+                # Find the copy with minimum distance from origin
+                distances = np.linalg.norm(scaled_pos, axis=1)
+                min_dist_index = np.argmin(distances)
+                min_dist_pos = scaled_pos[min_dist_index]
 
-            # The average position is calculated
-            group_avg = np.mean(final_pos, axis=0)
-            averaged_rel_pos[i_group, :] = group_avg
+                # All the other copies are moved periodically to be near the
+                # position that is closest to origin.
+                distances = scaled_pos - min_dist_pos
+                displacement = np.rint(distances)
+                final_pos = scaled_pos - displacement
 
+                # The average position is calculated
+                group_avg = np.mean(final_pos, axis=0)
+                averaged_rel_pos.append(group_avg)
+                averaged_rel_num.append(group_num)
+
+        averaged_rel_pos = np.array(averaged_rel_pos)
         offset = averaged_rel_pos[seed_group_index]
 
         proto_cell = Atoms(
             scaled_positions=averaged_rel_pos,
-            symbols=group_data_pbc["num"],
+            symbols=averaged_rel_num,
             cell=best_spans
         )
 
@@ -668,9 +695,11 @@ class PeriodicFinder():
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
-        averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
+        averaged_rel_pos = []
+        averaged_rel_num = []
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             scaled_pos = []
+            group_num = group_data_pbc["num"][i_group]
 
             for group_node in nodes:
                 for cell_nodes, cell_positions in zip(inside_nodes, inside_pos):
@@ -680,30 +709,35 @@ class PeriodicFinder():
                         scaled_pos.append(pos)
                         break
 
-            scaled_pos = np.array(scaled_pos)
+            # The basis location corresponding to this group is only added is
+            # at least one occurrence is found in a cell.
+            if len(scaled_pos) != 0:
+                scaled_pos = np.array(scaled_pos)
 
-            # Only wrap the 2D positions
-            scaled_pos_2d = scaled_pos[:, 0:2]
-            scaled_pos_2d %= 1
+                # Only wrap the 2D positions
+                scaled_pos_2d = scaled_pos[:, 0:2]
+                scaled_pos_2d %= 1
 
-            # Find the copy with minimum distance from origin
-            distances = np.linalg.norm(scaled_pos_2d, axis=1)
-            min_dist_index = np.argmin(distances)
-            min_dist_pos = scaled_pos_2d[min_dist_index]
+                # Find the copy with minimum distance from origin
+                distances = np.linalg.norm(scaled_pos_2d, axis=1)
+                min_dist_index = np.argmin(distances)
+                min_dist_pos = scaled_pos_2d[min_dist_index]
 
-            # All the other copies are moved periodically to be near the
-            # position that is closest to origin.
-            distances = scaled_pos_2d - min_dist_pos
-            displacement = np.rint(distances)
-            final_pos_2d = scaled_pos_2d - displacement
+                # All the other copies are moved periodically to be near the
+                # position that is closest to origin.
+                distances = scaled_pos_2d - min_dist_pos
+                displacement = np.rint(distances)
+                final_pos_2d = scaled_pos_2d - displacement
 
-            # The average position is calculated
-            scaled_pos[:, 0:2] = final_pos_2d
-            group_avg = np.mean(scaled_pos, axis=0)
-            averaged_rel_pos[i_group, :] = group_avg
+                # The average position is calculated
+                scaled_pos[:, 0:2] = final_pos_2d
+                group_avg = np.mean(scaled_pos, axis=0)
+                averaged_rel_pos.append(group_avg)
+                averaged_rel_num.append(group_num)
 
         # Move the seed positions back to the origin now that the search has
         # been performed
+        averaged_rel_pos = np.array(averaged_rel_pos)
         averaged_rel_pos -= np.array([0, 0, 0.5])
 
         # Grow the cell to fit all atoms
@@ -742,7 +776,7 @@ class PeriodicFinder():
         proto_cell = Atoms(
             cell=new_basis,
             scaled_positions=new_scaled_pos,
-            symbols=group_data_pbc["num"]
+            symbols=averaged_rel_num
         )
         offset = proto_cell.get_positions()[seed_group_index]
 

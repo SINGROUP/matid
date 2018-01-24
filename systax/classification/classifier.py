@@ -51,7 +51,7 @@ class Classifier():
             bond_threshold=1.0,
             delaunay_threshold_mode="relative",
             pos_tol_factor=2,
-            n_edge_tol=0.95,
+            n_edge_tol=0.98,
             cell_size_tol=0.25,
             max_n_atoms=1000,
             coverage_threshold=0.5
