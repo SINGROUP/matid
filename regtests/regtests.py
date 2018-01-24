@@ -263,6 +263,27 @@ class DimensionalityTests(unittest.TestCase):
     classifier = Classifier()
     cluster_threshold = classifier.cluster_threshold
 
+    # def test_non_orthogonal_crystal(self):
+        # """Test a system that has a non-orthogonal cell.
+        # """
+        # with open("./PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 3)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
+
     def test_atom(self):
         system = Atoms(
             positions=[[0, 0, 0]],
@@ -2268,42 +2289,7 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(interstitials), 0)
 
 
-class FhiTests(unittest.TestCase):
-    """Tests from different FhiAims systems in the NOMAD Archive.
-    """
-    def test_surface_1(self):
-        with open("./C2Ba16O44Zr12.json", "r") as fin:
-            data = json.load(fin)
-        system = Atoms(
-            scaled_positions=data["positions"],
-            cell=1e10*np.array(data["normalizedCell"]),
-            symbols=data["labels"],
-            pbc=True,
-        )
-        # view(system)
-
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-
-        # No defects or unknown atoms, one adsorbate cluster
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        print(adsorbates)
-        print(unknowns)
-
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(adsorbates), 3)
-        self.assertTrue(np.array_equal(adsorbates, np.array([100, 101, 102])))
-
-
-class ExcitingTests(unittest.TestCase):
+class NomadTests(unittest.TestCase):
     """Tests from different Exciting systems in the NOMAD Archive.
     """
     # def test_1(self):
@@ -2324,8 +2310,31 @@ class ExcitingTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Material2D)
 
-    def test_2(self):
-        with open("./Pd9dxfjnDcG7yWF5Dr1Ooj5N7ndZd.json", "r") as fin:
+    # def test_2(self):
+        # with open("./Pd9dxfjnDcG7yWF5Dr1Ooj5N7ndZd.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # view(system)
+        # # view(system.repeat((3, 3, 3)))
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
+    def test_3(self):
+        """If a low enough value for the cluster threshold is used, this
+        crystal is classified as 2D. When this happens, the algorithm can't
+        find the atoms inside the cell.
+        """
+        with open("./PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
             data = json.load(fin)
 
         section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
@@ -2336,7 +2345,7 @@ class ExcitingTests(unittest.TestCase):
             symbols=section_system["atom_labels"],
             pbc=True,
         )
-        view(system)
+        # view(system)
         # view(system.repeat((3, 3, 3)))
 
         classifier = Classifier()
@@ -2359,8 +2368,7 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(FhiTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExcitingTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

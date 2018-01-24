@@ -194,9 +194,7 @@ class PeriodicFinder():
         metric = np.empty((len(possible_spans)), dtype=int)
         adjacency_lists = []
         adjacency_lists_add = []
-        # adjacency_lists_add_factors = []
         adjacency_lists_sub = []
-        # adjacency_lists_sub_factors = []
         neighbour_nodes = list(zip(neighbour_indices, neighbour_factors))
 
         for i_span, span in enumerate(possible_spans):
@@ -239,15 +237,19 @@ class PeriodicFinder():
         # the maximum cell size
         periodic_spans = system.get_cell()
         periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
-        periodic_filter = periodic_span_lengths < self.max_cell_size
+        periodic_filter = periodic_span_lengths <= self.max_cell_size
         n_periodic_spans = periodic_filter.sum()
-        valid_periodic_spans = periodic_spans[periodic_filter]
         if n_periodic_spans != 0:
-            periodic_metric = 2*n_neighbours*np.ones((n_periodic_spans))
-            possible_spans = np.concatenate((possible_spans, valid_periodic_spans), axis=0)
-            metric = np.concatenate((metric, periodic_metric), axis=0)
             for i_per_span, per_span in enumerate(periodic_spans):
                 if periodic_filter[i_per_span] and not vacuum_dir[i_per_span]:
+
+                    # Add the basis to the spans and add a full metric score
+                    # for it.
+                    possible_spans = np.concatenate((possible_spans, [per_span]), axis=0)
+                    metric = np.concatenate((metric, [2*n_neighbours]), axis=0)
+
+                    # Create the adjacency lists for the periodic span. There
+                    # is full periodicity to neighbouring cells.
                     per_adjacency_list = defaultdict(list)
                     per_adjacency_list_add = defaultdict(list)
                     per_adjacency_list_sub = defaultdict(list)
@@ -427,12 +429,8 @@ class PeriodicFinder():
             group_data_pbc,
             seed_group_index,
             adjacency_add,
-            # factors_add,
             adjacency_sub,
-            # factors_sub
         ):
-
-        # print(group_data_pbc["nodes"][0])
 
         # Find the seed positions copies that are within the neighbourhood
         orig_cell = system.get_cell()
