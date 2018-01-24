@@ -263,26 +263,26 @@ class DimensionalityTests(unittest.TestCase):
     classifier = Classifier()
     cluster_threshold = classifier.cluster_threshold
 
-    # def test_non_orthogonal_crystal(self):
-        # """Test a system that has a non-orthogonal cell.
-        # """
-        # with open("./PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
-            # data = json.load(fin)
+    def test_non_orthogonal_crystal(self):
+        """Test a system that has a non-orthogonal cell.
+        """
+        with open("./PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
+            data = json.load(fin)
 
-        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
 
-        # system = Atoms(
-            # positions=1e10*np.array(section_system["atom_positions"]),
-            # cell=1e10*np.array(section_system["simulation_cell"]),
-            # symbols=section_system["atom_labels"],
-            # pbc=True,
-        # )
+        system = Atoms(
+            positions=1e10*np.array(section_system["atom_positions"]),
+            cell=1e10*np.array(section_system["simulation_cell"]),
+            symbols=section_system["atom_labels"],
+            pbc=True,
+        )
 
-        # dimensionality, gaps = systax.geometry.get_dimensionality(
-            # system,
-            # DimensionalityTests.cluster_threshold)
-        # self.assertEqual(dimensionality, 3)
-        # self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
+        dimensionality = systax.geometry.get_dimensionality_new(
+            system,
+            DimensionalityTests.cluster_threshold
+        )
+        self.assertEqual(dimensionality, 3)
 
     def test_atom(self):
         system = Atoms(
@@ -291,11 +291,10 @@ class DimensionalityTests(unittest.TestCase):
             cell=[10, 10, 10],
             pbc=True,
         )
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
-        self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
     def test_atom_no_pbc(self):
         system = Atoms(
@@ -304,11 +303,10 @@ class DimensionalityTests(unittest.TestCase):
             cell=[1, 1, 1],
             pbc=False,
         )
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
-        self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
     def test_molecule(self):
         system = molecule("H2O")
@@ -316,11 +314,10 @@ class DimensionalityTests(unittest.TestCase):
         system.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
         system.set_pbc([True, True, True])
         system.center()
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
-        self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
 
     def test_2d_centered(self):
         graphene = Atoms(
@@ -337,12 +334,10 @@ class DimensionalityTests(unittest.TestCase):
             pbc=True
         )
         system = graphene.repeat([2, 1, 1])
-        # view(sys)
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
     def test_2d_partial_pbc(self):
         graphene = Atoms(
@@ -359,12 +354,10 @@ class DimensionalityTests(unittest.TestCase):
             pbc=[True, True, False]
         )
         system = graphene.repeat([2, 1, 1])
-        # view(sys)
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
     def test_surface_split(self):
         """Test a surface that has been split by the cell boundary
@@ -373,12 +366,10 @@ class DimensionalityTests(unittest.TestCase):
         system.translate([0, 0, 9])
         system.set_pbc(True)
         system.wrap(pbc=True)
-        # view(sys)
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
     def test_surface_wavy(self):
         """Test a surface with a high amplitude wave. This would break a
@@ -394,12 +385,11 @@ class DimensionalityTests(unittest.TestCase):
         pos_new[:, 2] = z_new
         system.set_positions(pos_new)
         system.set_pbc(True)
-        # view(sys)
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        # view(system)
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
 
     def test_crystal(self):
         system = ase.lattice.cubic.Diamond(
@@ -407,11 +397,10 @@ class DimensionalityTests(unittest.TestCase):
             symbol='Si',
             pbc=True,
             latticeconstant=5.430710)
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
 
     def test_graphite(self):
         system = ase.lattice.hexagonal.Graphite(
@@ -419,11 +408,152 @@ class DimensionalityTests(unittest.TestCase):
             symbol='C',
             pbc=True,
             latticeconstant=(2.461, 6.708))
-        dimensionality, gaps = systax.geometry.get_dimensionality(
+        dimensionality = systax.geometry.get_dimensionality_new(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
-        self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
+
+
+    # def test_atom(self):
+        # system = Atoms(
+            # positions=[[0, 0, 0]],
+            # symbols=["H"],
+            # cell=[10, 10, 10],
+            # pbc=True,
+        # )
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 0)
+        # self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
+
+    # def test_atom_no_pbc(self):
+        # system = Atoms(
+            # positions=[[0, 0, 0]],
+            # symbols=["H"],
+            # cell=[1, 1, 1],
+            # pbc=False,
+        # )
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 0)
+        # self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
+
+    # def test_molecule(self):
+        # system = molecule("H2O")
+        # gap = 10
+        # system.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
+        # system.set_pbc([True, True, True])
+        # system.center()
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 0)
+        # self.assertTrue(np.array_equal(gaps, np.array((True, True, True))))
+
+    # def test_2d_centered(self):
+        # graphene = Atoms(
+            # symbols=[6, 6],
+            # cell=np.array((
+                # [2.4595121467478055, 0.0, 0.0],
+                # [-1.2297560733739028, 2.13, 0.0],
+                # [0.0, 0.0, 20.0]
+            # )),
+            # scaled_positions=np.array((
+                # [0.3333333333333333, 0.6666666666666666, 0.5],
+                # [0.6666666666666667, 0.33333333333333337, 0.5]
+            # )),
+            # pbc=True
+        # )
+        # system = graphene.repeat([2, 1, 1])
+        # # view(sys)
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 2)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
+
+    # def test_2d_partial_pbc(self):
+        # graphene = Atoms(
+            # symbols=[6, 6],
+            # cell=np.array((
+                # [2.4595121467478055, 0.0, 0.0],
+                # [-1.2297560733739028, 2.13, 0.0],
+                # [0.0, 0.0, 1.0]
+            # )),
+            # scaled_positions=np.array((
+                # [0.3333333333333333, 0.6666666666666666, 0.5],
+                # [0.6666666666666667, 0.33333333333333337, 0.5]
+            # )),
+            # pbc=[True, True, False]
+        # )
+        # system = graphene.repeat([2, 1, 1])
+        # # view(sys)
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 2)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
+
+    # def test_surface_split(self):
+        # """Test a surface that has been split by the cell boundary
+        # """
+        # system = bcc100('Fe', size=(5, 1, 3), vacuum=8)
+        # system.translate([0, 0, 9])
+        # system.set_pbc(True)
+        # system.wrap(pbc=True)
+        # # view(sys)
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 2)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
+
+    # def test_surface_wavy(self):
+        # """Test a surface with a high amplitude wave. This would break a
+        # regular linear vacuum gap search.
+        # """
+        # system = bcc100('Fe', size=(15, 15, 3), vacuum=8)
+        # pos = system.get_positions()
+        # x_len = np.linalg.norm(system.get_cell()[0, :])
+        # x = pos[:, 0]
+        # z = pos[:, 2]
+        # z_new = z + 3*np.sin(4*(x/x_len)*np.pi)
+        # pos_new = np.array(pos)
+        # pos_new[:, 2] = z_new
+        # system.set_positions(pos_new)
+        # system.set_pbc(True)
+        # # view(sys)
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 2)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, True))))
+
+    # def test_crystal(self):
+        # system = ase.lattice.cubic.Diamond(
+            # size=(1, 1, 1),
+            # symbol='Si',
+            # pbc=True,
+            # latticeconstant=5.430710)
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 3)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
+
+    # def test_graphite(self):
+        # system = ase.lattice.hexagonal.Graphite(
+            # size=(1, 1, 1),
+            # symbol='C',
+            # pbc=True,
+            # latticeconstant=(2.461, 6.708))
+        # dimensionality, gaps = systax.geometry.get_dimensionality(
+            # system,
+            # DimensionalityTests.cluster_threshold)
+        # self.assertEqual(dimensionality, 3)
+        # self.assertTrue(np.array_equal(gaps, np.array((False, False, False))))
 
 
 class PeriodicFinderTests(unittest.TestCase):
@@ -2414,18 +2544,18 @@ class NomadTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 

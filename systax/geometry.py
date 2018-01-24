@@ -66,153 +66,102 @@ def get_nearest_neighbours(system, dist_matrix_pbc):
 
 def get_dimensionality_new(
         system,
-        cluster_threshold
+        cluster_threshold,
+        dist_matrix_radii_pbc=None
     ):
-    """Used to calculate the dimensionality of a system.
+    """Used to calculate the dimensionality of a system with the topology
+    scaling algorithm.
 
     Args:
         system (ASE.Atoms): The system for which the dimensionality is
             evaluated.
         cluster_threshold(float): The epsilon value for the DBSCAN algorithm
             that is used to identify clusters within the unit cell.
-        disp_tensor (np.ndarray): A precalculated displacement tensor for the
-            system.
-        disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
-            takes into account the periodic boundary conditions for the
-                system.
-        distances(np.ndarray): A precalculated array of the distances used for
-            clustering the system.
+        dist_matrix_radii_pbc (np.ndarray): A precalculated distance matrix
+            that takes in to account the periodicity and has the covalent radii of
+            the atoms already subtracted.
 
     Returns:
         int: The dimensionality of the system.
-        np.ndarray: Boolean array indicating the presence of vacuum gaps.
 
     Raises:
-        SystaxError: If the dimensionality can't be detected
+        SystaxError: If the dimensionality can't be evaluated because the
+        system has multiple disconnected components in the original cell.
     """
-
     # 1x1x1 system
-    # pos = system.get_positions()
-    # cell = system.get_cell()
-    # num = system.get_atomic_numbers()
-    # pbc = system.get_pbc()
-    # displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-    # dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
-    # radii = covalent_radii[num]
-    # radii_matrix = radii[:, None] + radii[None, :]
-    # dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
+    if dist_matrix_radii_pbc is None:
+        pos = system.get_positions()
+        cell = system.get_cell()
+        num = system.get_atomic_numbers()
+        pbc = system.get_pbc()
+        displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+        dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
 
-    # # Check the number of clusters. We don't want the clustering to hog all
-    # # resources, so the cpu's are limited to one
-    # db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    # db.fit(dist_matrix_radii_pbc)
-    # clusters_finite = db.labels_
-    # n_clusters_finite = len(np.unique(clusters_finite))
-    # print(n_clusters_finite)
+    # Check the number of clusters. We don't want the clustering to hog all
+    # resources, so the cpu's are limited to one
+    db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
+    db.fit(dist_matrix_radii_pbc)
+    clusters_1x = db.labels_
+    n_clusters_1x = len(np.unique(clusters_1x))
 
-    # # 2x2x2 system
-    # system = system.repeat((2, 2, 2))
-    # pos = system.get_positions()
-    # cell = system.get_cell()
-    # num = system.get_atomic_numbers()
-    # pbc = system.get_pbc()
-    # displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-    # dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
-    # radii = covalent_radii[num]
-    # radii_matrix = radii[:, None] + radii[None, :]
-    # dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
+    # If the system consists of multiple components that are not connected
+    # according to the clustering done here, then we cannot assess the
+    # dimensionality.
+    if n_clusters_1x > 1:
+        raise SystaxError(
+            "Could not determine the dimensionality because there are more than"
+            " one energetically isolated components in the unit cell"
+        )
 
-    # # Check the number of clusters. We don't want the clustering to hog all
-    # # resources, so the cpu's are limited to one
-    # db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    # db.fit(dist_matrix_radii_pbc)
-    # clusters_finite = db.labels_
-    # n_clusters_finite = len(np.unique(clusters_finite))
-    # print(n_clusters_finite)
+    # 2x2x2 system
+    n_periodic = pbc.sum()
+    if n_periodic > 0:
 
-    # Calculate the displacements in the finite system taking into account
-    # periodicity
-    # if pbc.any():
-        # if disp_tensor_pbc is not None:
-            # displacements_finite_pbc = disp_tensor_pbc
-        # else:
-            # displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-    # else:
-        # if disp_tensor is not None:
-            # displacements_finite_pbc = disp_tensor
-        # else:
-            # displacements_finite_pbc = get_displacement_tensor(pos, pos)
-    # if radii_matrix is None:
-        # radii = covalent_radii[num]
-        # radii_matrix = radii[:, None] + radii[None, :]
-    # if dist_matrix_radii_pbc is None:
-        # dist_matrix_radii_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
-        # dist_matrix_radii_pbc -= radii_matrix
+        repeats = np.array([1, 1, 1])
+        repeats[pbc] = 2
+        system = system.repeat(repeats)
+        pos = system.get_positions()
+        cell = system.get_cell()
+        num = system.get_atomic_numbers()
+        displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+        dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+        dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
 
-    # # Check the number of clusters. We don't want the clustering to hog all
-    # # resources, so the cpu's are limited to one
-    # db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    # db.fit(dist_matrix_radii_pbc)
-    # clusters_finite = db.labels_
-    # n_clusters_finite = len(np.unique(clusters_finite))
+        # Check the number of clusters. We don't want the clustering to hog all
+        # resources, so the cpu's are limited to one
+        db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
+        db.fit(dist_matrix_radii_pbc)
+        clusters_2x = db.labels_
+        n_clusters_2x = len(np.unique(clusters_2x))
 
-    # # If the system consists of multiple components that are not connected
-    # # according to the clustering done here, then we cannot assess the
-    # # dimensionality.
-    # if n_clusters_finite > 1:
-        # raise SystaxError(
-            # "Could not determine the dimensionality because there are more than"
-            # " one energetically isolated components in the unit cell"
-        # )
-
-    # Bring the one cluster together and calculate internal displacements
-    # without pbc
-    # seed_pos = pos[0, :]
-    # disp_seed = displacements_finite_pbc[0, :, :]
-    # pos1 = seed_pos + disp_seed
-    # displacements_finite = get_displacement_tensor(pos1, pos1)
-
-    # clustered = Atoms(
-        # positions=pos1,
-        # symbols=num,
-        # cell=cell,
-        # pbc=pbc
-    # )
-    # view(clustered)
-    # view(clustered.repeat((2, 1, 1)))
-    # view(clustered.repeat((1, 2, 1)))
-    # view(clustered.repeat((1, 1, 2)))
-
-    # For each basis direction, add the basis vector to the displacements to
-    # get the distance between two neighbouring copies of the cluster. If the
-    # minimum distance between two copies is bigger or equal to the vacuum gap,
-    # then remove one dimension.
-    # dim = 3
-    # vacuum_gaps = np.array((False, False, False))
-    # for i_basis, basis in enumerate(cell):
-
-        # # If the system is not periodic in this direction, reduce the
-        # # periodicity
-        # i_pbc = pbc[i_basis]
-        # if not i_pbc:
-            # dim -= 1
-            # vacuum_gaps[i_basis] = True
-            # continue
-
-        # # If system is periodic in this direction, calculate the distance
-        # # between the periodicly repeated cluster by also taking radii into
-        # # account
-        # disp = np.array(displacements_finite)
-        # disp += basis
-        # dist = np.linalg.norm(disp, axis=2)
-        # dist -= radii_matrix
-        # min_dist = dist.min()
-        # print(min_dist)
-        # if min_dist >= cluster_threshold:
-            # vacuum_gaps[i_basis] = True
-            # dim -= 1
-
-    # return dim, vacuum_gaps
+        if n_periodic == 1:
+            if n_clusters_2x == 1:
+                return 1
+            elif n_clusters_2x == 2:
+                return 0
+        elif n_periodic == 2:
+            if n_clusters_2x == 1:
+                return 2
+            elif n_clusters_2x == 2:
+                return 1
+            elif n_clusters_2x == 4:
+                return 0
+        elif n_periodic == 3:
+            if n_clusters_2x == 1:
+                return 3
+            elif n_clusters_2x == 2:
+                return 2
+            elif n_clusters_2x == 4:
+                return 1
+            elif n_clusters_2x == 8:
+                return 0
+    else:
+        return 0
 
 
 def get_dimensionality(
