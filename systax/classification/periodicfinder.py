@@ -964,7 +964,6 @@ class PeriodicFinder():
             system,
             unit_cell,
             is_2d,
-            vacuum_dir,
             tesselation_distance,
             bond_threshold,
             dist_matrix_radii_pbc

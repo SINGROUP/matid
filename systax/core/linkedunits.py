@@ -19,7 +19,6 @@ class LinkedUnitCollection(dict):
             system,
             cell,
             is_2d,
-            vacuum_gaps,
             delaunay_threshold,
             bond_threshold,
             dist_matrix_radii_pbc
@@ -31,15 +30,12 @@ class LinkedUnitCollection(dict):
             cell(ase.Atoms): The prototype cell that is used in finding this
                 region.
             is_2d(boolean): Whether this system represents a 2D-material or not.
-            vacuum_gaps(np.ndarray): A boolean array indicating the presence of
-                vacuum gaps in the basis directions of the original system.
             delaunay_threshold(float): The maximum allowed size of a tetrahedra
                 edge in the Delaunay triangulation of the region..
         """
         self.system = system
         self.cell = cell
         self.is_2d = is_2d
-        self.vacuum_gaps = vacuum_gaps
         self.delaunay_threshold = delaunay_threshold
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
@@ -303,7 +299,6 @@ class LinkedUnitCollection(dict):
             # Perform tetrahedra decomposition
             self._decomposition = systax.geometry.get_tetrahedra_decomposition(
                 valid_sys,
-                self.vacuum_gaps,
                 self.delaunay_threshold
             )
 

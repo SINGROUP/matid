@@ -666,10 +666,8 @@ class DelaunayTests(unittest.TestCase):
     def test_surface(self):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
         # view(system)
-        vacuum_gaps = [False, False, True]
         decomposition = systax.geometry.get_tetrahedra_decomposition(
             system,
-            vacuum_gaps,
             DelaunayTests.delaunay_threshold
         )
 
@@ -700,10 +698,8 @@ class DelaunayTests(unittest.TestCase):
         system.set_pbc(True)
         # view(system)
 
-        vacuum_gaps = [False, False, True]
         decomposition = systax.geometry.get_tetrahedra_decomposition(
             system,
-            vacuum_gaps,
             DelaunayTests.delaunay_threshold
         )
 

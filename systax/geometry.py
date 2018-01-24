@@ -323,7 +323,7 @@ def get_dimensionality(
     return dim, vacuum_gaps
 
 
-def get_tetrahedra_decomposition(system, vacuum_gaps, max_distance):
+def get_tetrahedra_decomposition(system, max_distance):
     """Used to decompose a series of 3D atomic coordinates into non-overlapping
     tetrahedron that together represent the atomic structure.
 
@@ -486,43 +486,43 @@ def get_moments_of_inertia(system, weight=True):
     return evals, evecs
 
 
-def find_vacuum_directions(system, threshold):
-    """Searches for vacuum gaps that are separating the periodic copies.
+# def find_vacuum_directions(system, threshold):
+    # """Searches for vacuum gaps that are separating the periodic copies.
 
-    TODO: Implement a n^2 search that allows the detection of more complex
-    vacuum boundaries.
+    # TODO: Implement a n^2 search that allows the detection of more complex
+    # vacuum boundaries.
 
-    Returns:
-        np.ndarray: An array with a boolean for each lattice basis
-        direction indicating if there is enough vacuum to separate the
-        copies in that direction.
-    """
-    rel_pos = system.get_scaled_positions()
-    pbc = system.get_pbc()
+    # Returns:
+        # np.ndarray: An array with a boolean for each lattice basis
+        # direction indicating if there is enough vacuum to separate the
+        # copies in that direction.
+    # """
+    # rel_pos = system.get_scaled_positions()
+    # pbc = system.get_pbc()
 
-    # Find the maximum vacuum gap for all basis vectors
-    gaps = np.empty(3, dtype=bool)
-    for axis in range(3):
-        if not pbc[axis]:
-            gaps[axis] = True
-            continue
-        comp = rel_pos[:, axis]
-        ind = np.sort(comp)
-        ind_rolled = np.roll(ind, 1, axis=0)
-        distances = ind - ind_rolled
+    # # Find the maximum vacuum gap for all basis vectors
+    # gaps = np.empty(3, dtype=bool)
+    # for axis in range(3):
+        # if not pbc[axis]:
+            # gaps[axis] = True
+            # continue
+        # comp = rel_pos[:, axis]
+        # ind = np.sort(comp)
+        # ind_rolled = np.roll(ind, 1, axis=0)
+        # distances = ind - ind_rolled
 
-        # The first distance is from first to last, so it needs to be
-        # wrapped around
-        distances[0] += 1
+        # # The first distance is from first to last, so it needs to be
+        # # wrapped around
+        # distances[0] += 1
 
-        # Find maximum gap in cartesian coordinates
-        max_gap = np.max(distances)
-        basis = system.get_cell()[axis, :]
-        max_gap_cartesian = np.linalg.norm(max_gap*basis)
-        has_vacuum_gap = max_gap_cartesian >= threshold
-        gaps[axis] = has_vacuum_gap
+        # # Find maximum gap in cartesian coordinates
+        # max_gap = np.max(distances)
+        # basis = system.get_cell()[axis, :]
+        # max_gap_cartesian = np.linalg.norm(max_gap*basis)
+        # has_vacuum_gap = max_gap_cartesian >= threshold
+        # gaps[axis] = has_vacuum_gap
 
-    return gaps
+    # return gaps
 
 
 def get_center_of_mass(system, weight=True):
@@ -1372,48 +1372,48 @@ def translate(system, translation, relative=False):
         system.set_positions(cart_pos)
 
 
-def get_surface_normal_direction(system):
-    """Used to estimate a normal vector for a 2D like structure.
+# def get_surface_normal_direction(system):
+    # """Used to estimate a normal vector for a 2D like structure.
 
-    Args:
-        system (ase.Atoms): The system to examine.
+    # Args:
+        # system (ase.Atoms): The system to examine.
 
-    Returns:
-        np.ndarray: The estimated surface normal vector
-    """
-    repeated = get_extended_system(system, 15)
-    # vectors = system.get_cell()
+    # Returns:
+        # np.ndarray: The estimated surface normal vector
+    # """
+    # repeated = get_extended_system(system, 15)
+    # # vectors = system.get_cell()
 
-    # Get the eigenvalues and eigenvectors of the moment of inertia tensor
-    val, vec = get_moments_of_inertia(repeated)
-    sorted_indices = np.argsort(val)
-    val = val[sorted_indices]
-    vec = vec[sorted_indices]
+    # # Get the eigenvalues and eigenvectors of the moment of inertia tensor
+    # val, vec = get_moments_of_inertia(repeated)
+    # sorted_indices = np.argsort(val)
+    # val = val[sorted_indices]
+    # vec = vec[sorted_indices]
 
-    # If the moment of inertia is not significantly bigger in one
-    # direction, then the system cannot be described as a surface.
-    moment_limit = 1.5
-    if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
-        raise ValueError(
-            "The given system could not be identified as a surface. Make"
-            " sure that you provide a surface system with a sufficient"
-            " vacuum gap between the layers (at least ~8 angstroms of vacuum"
-            " between layers.)"
-        )
+    # # If the moment of inertia is not significantly bigger in one
+    # # direction, then the system cannot be described as a surface.
+    # moment_limit = 1.5
+    # if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
+        # raise ValueError(
+            # "The given system could not be identified as a surface. Make"
+            # " sure that you provide a surface system with a sufficient"
+            # " vacuum gap between the layers (at least ~8 angstroms of vacuum"
+            # " between layers.)"
+        # )
 
-    # The biggest component is the orhogonal one
-    orthogonal_dir = vec[-1]
+    # # The biggest component is the orhogonal one
+    # orthogonal_dir = vec[-1]
 
-    return orthogonal_dir
+    # return orthogonal_dir
 
-    # Find out the cell direction that corresponds to the orthogonal one
-    # cell = repeated.get_cell()
-    # dots = np.abs(np.dot(orthogonal_dir, vectors.T))
-    # orthogonal_vector_index = np.argmax(dots)
-    # orthogonal_vector = vectors[orthogonal_vector_index]
-    # orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
+    # # Find out the cell direction that corresponds to the orthogonal one
+    # # cell = repeated.get_cell()
+    # # dots = np.abs(np.dot(orthogonal_dir, vectors.T))
+    # # orthogonal_vector_index = np.argmax(dots)
+    # # orthogonal_vector = vectors[orthogonal_vector_index]
+    # # orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
 
-    return orthogonal_dir
+    # return orthogonal_dir
 
 
 def get_closest_direction(vec, directions, normalized=False):
