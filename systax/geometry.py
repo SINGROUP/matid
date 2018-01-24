@@ -873,6 +873,11 @@ def get_displacement_tensor(
             factors = np.reshape(factors, tensor_shape)
         if return_distances:
             lengths = np.reshape(D_len, (tensor_shape[0], tensor_shape[1]))
+    else:
+        if return_factors:
+            factors = np.zeros((tensor_shape[0], tensor_shape[1], 3))
+        if return_distances:
+            lengths = np.linalg.norm(disp_tensor, axis=2)
 
     if return_factors and return_distances:
         return disp_tensor, factors, lengths
@@ -928,23 +933,15 @@ def find_mic(D, cell, pbc=True):
     V = abs(np.linalg.det(cell))
     n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
                                (V * latt_len)), dtype=int)
+    n0 = range(-n[0], n[0] + 1)
+    n1 = range(-n[1], n[1] + 1)
+    n2 = range(-n[2], n[2] + 1)
 
     # Construct a list of translation vectors. For example, if we are
     # searching only the nearest images (27 total), tvecs will be a
-    # 27x3 array of translation vectors. This is the only nested loop
-    # in the routine, and it takes a very small fraction of the total
-    # execution time, so it is not worth optimizing further.
-    tvecs = []
-    tvec_factors = []
-    for i in range(-n[0], n[0] + 1):
-        latt_a = i * cell[0]
-        for j in range(-n[1], n[1] + 1):
-            latt_ab = latt_a + j * cell[1]
-            for k in range(-n[2], n[2] + 1):
-                tvecs.append(latt_ab + k * cell[2])
-                tvec_factors.append([i, j, k])
-    tvecs = np.array(tvecs)
-    tvec_factors = np.array(tvec_factors)
+    # 27x3 array of translation vectors.
+    tvec_factors = cartesian((n0, n1, n2))
+    tvecs = np.dot(tvec_factors, cell)
 
     # Translate the direct displacement vectors by each translation
     # vector, and calculate the corresponding lengths.
@@ -1147,7 +1144,9 @@ def get_matches(
         system,
         positions,
         numbers,
-        tolerance):
+        tolerance,
+        mic=True
+    ):
     """Given a system and a list of cartesian positions and atomic numbers,
     returns a list of indices for the atoms corresponding to the given
     positions with some tolerance.
@@ -1157,6 +1156,7 @@ def get_matches(
         positions(np.ndarray): Positions to match in the system.
         tolerance(float): Maximum allowed distance that is required for a
             match in position.
+        mic(boolean): Whether to find the minimum image copy.
 
     Returns:
         np.ndarray: indices of matched atoms
@@ -1177,7 +1177,7 @@ def get_matches(
         orig_pos,
         cell,
         pbc,
-        mic=True,
+        mic=mic,
         return_factors=True,
         return_distances=True
     )
@@ -1565,3 +1565,49 @@ class Intervals(object):
         """Returns the added up lengths of merged intervals in order to account for overlap.
         """
         return self._add_up(self.get_merged_intervals())
+
+
+def cartesian(arrays, out=None):
+    """
+    Generate a cartesian product of input arrays.
+
+    Args:
+        arrays(sequence of arrays): The arrays from which the product is
+            created.
+        out(ndarray): Array to place the cartesian product in.
+
+    Returns:
+        ndarray: 2-D array of shape (M, len(arrays)) containing cartesian
+        products formed of input arrays.
+
+    Example:
+    --------
+    >>> cartesian(([1, 2, 3], [4, 5], [6, 7]))
+    array([[1, 4, 6],
+           [1, 4, 7],
+           [1, 5, 6],
+           [1, 5, 7],
+           [2, 4, 6],
+           [2, 4, 7],
+           [2, 5, 6],
+           [2, 5, 7],
+           [3, 4, 6],
+           [3, 4, 7],
+           [3, 5, 6],
+           [3, 5, 7]])
+    """
+
+    arrays = [np.asarray(x) for x in arrays]
+    dtype = arrays[0].dtype
+
+    n = np.prod([x.size for x in arrays])
+    if out is None:
+        out = np.zeros([n, len(arrays)], dtype=dtype)
+
+    m = int(n / arrays[0].size)
+    out[:, 0] = np.repeat(arrays[0], m)
+    if arrays[1:]:
+        cartesian(arrays[1:], out=out[0:m, 1:])
+        for j in range(1, arrays[0].size):
+            out[j*m:(j+1)*m, 1:] = out[0:m, 1:]
+    return out

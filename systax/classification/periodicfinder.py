@@ -1204,7 +1204,9 @@ class PeriodicFinder():
                 system,
                 seed_guesses,
                 len(dislocations)*[seed_atomic_number],
-                self.pos_tol_factor*self.pos_tol)
+                self.pos_tol_factor*self.pos_tol,
+                mic=True
+            )
 
             for match, factor, seed_guess, multiplier, disloc, test_cell_index in zip(
                     matches,
