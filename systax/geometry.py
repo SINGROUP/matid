@@ -751,74 +751,74 @@ def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False):
     return distance_matrix
 
 
-def get_displacement_tensor_old(pos1, pos2, cell=None, pbc=None, mic=False, return_factors=False, return_distances=False):
-    """Given an array of positions, calculates the 3D displacement tensor
-    between the positions.
+# def get_displacement_tensor_old(pos1, pos2, cell=None, pbc=None, mic=False, return_factors=False, return_distances=False):
+    # """Given an array of positions, calculates the 3D displacement tensor
+    # between the positions.
 
-    The displacement tensor is a matrix where the entry A[i, j, :] is the
-    vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1
+    # The displacement tensor is a matrix where the entry A[i, j, :] is the
+    # vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1
 
-    Args:
-        pos1(np.ndarray): 2D array of positions
-        pos2(np.ndarray): 2D array of positions
-        cell(np.ndarray): Cell for taking into account the periodicity
-        pbc(boolean or a list of booleans): Periodicity of the axes
-        mic(boolean): Whether to return the displacement to the nearest
-            periodic copy
+    # Args:
+        # pos1(np.ndarray): 2D array of positions
+        # pos2(np.ndarray): 2D array of positions
+        # cell(np.ndarray): Cell for taking into account the periodicity
+        # pbc(boolean or a list of booleans): Periodicity of the axes
+        # mic(boolean): Whether to return the displacement to the nearest
+            # periodic copy
 
-    Returns:
-        np.ndarray: 3D displacement tensor
-    """
-    if mic and cell is not None and pbc is not None:
-        pbc = expand_pbc(pbc)
-        if pbc.any():
-            if cell is None:
-                raise ValueError(
-                    "When using periodic boundary conditions you must provide "
-                    "the cell."
-                )
-    elif not mic and cell is None and pbc is None:
-        pass
-    else:
-        raise ValueError(
-            "Invalid arguments given. Either supply only cartesian positions, "
-            "or if you wish to apply the minimum image convention please supply"
-            " also cell, periodic boundary conditions and set mic to True"
-        )
+    # Returns:
+        # np.ndarray: 3D displacement tensor
+    # """
+    # if mic and cell is not None and pbc is not None:
+        # pbc = expand_pbc(pbc)
+        # if pbc.any():
+            # if cell is None:
+                # raise ValueError(
+                    # "When using periodic boundary conditions you must provide "
+                    # "the cell."
+                # )
+    # elif not mic and cell is None and pbc is None:
+        # pass
+    # else:
+        # raise ValueError(
+            # "Invalid arguments given. Either supply only cartesian positions, "
+            # "or if you wish to apply the minimum image convention please supply"
+            # " also cell, periodic boundary conditions and set mic to True"
+        # )
 
-    # Make 1D into 2D
-    shape1 = pos1.shape
-    shape2 = pos2.shape
-    if len(shape1) == 1:
-        n_cols1 = len(pos1)
-        pos1 = np.reshape(pos1, (-1, n_cols1))
-    if len(shape2) == 1:
-        n_cols2 = len(pos2)
-        pos2 = np.reshape(pos2, (-1, n_cols2))
+    # # Make 1D into 2D
+    # shape1 = pos1.shape
+    # shape2 = pos2.shape
+    # if len(shape1) == 1:
+        # n_cols1 = len(pos1)
+        # pos1 = np.reshape(pos1, (-1, n_cols1))
+    # if len(shape2) == 1:
+        # n_cols2 = len(pos2)
+        # pos2 = np.reshape(pos2, (-1, n_cols2))
 
-    # Add new axes so that broadcasting works nicely
-    if mic:
-        rel_pos1 = to_scaled(cell, pos1)
-        rel_pos2 = to_scaled(cell, pos2)
-        disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
+    # # Add new axes so that broadcasting works nicely
+    # if mic:
+        # rel_pos1 = to_scaled(cell, pos1)
+        # rel_pos2 = to_scaled(cell, pos2)
+        # disp_tensor = rel_pos1[:, None, :] - rel_pos2[None, :, :]
 
-        if return_factors:
-            factors = np.floor(np.array(disp_tensor) + 0.5)
-        disp_tensor = get_mic_positions(disp_tensor, cell, pbc)
-    else:
-        disp_tensor = pos1[:, None, :] - pos2[None, :, :]
+        # if return_factors:
+            # factors = np.floor(np.array(disp_tensor) + 0.5)
+        # disp_tensor = get_mic_positions(disp_tensor, cell, pbc)
+    # else:
+        # disp_tensor = pos1[:, None, :] - pos2[None, :, :]
 
-    if return_distances:
-        dist_matrix = np.linalg.norm(disp_tensor, axis=2)
+    # if return_distances:
+        # dist_matrix = np.linalg.norm(disp_tensor, axis=2)
 
-    if return_factors and return_distances:
-        return disp_tensor, factors, dist_matrix
-    elif return_factors:
-        return disp_tensor, factors
-    elif return_distances:
-        return disp_tensor, dist_matrix
-    else:
-        return disp_tensor
+    # if return_factors and return_distances:
+        # return disp_tensor, factors, dist_matrix
+    # elif return_factors:
+        # return disp_tensor, factors
+    # elif return_distances:
+        # return disp_tensor, dist_matrix
+    # else:
+        # return disp_tensor
 
 
 def get_displacement_tensor(
@@ -966,26 +966,26 @@ def find_mic(D, cell, pbc=True):
     return D_min, D_min_len, factors
 
 
-def get_mic_positions(disp_tensor_rel, cell, pbc):
-    """Used to wrap positions so that the minimum image convention is valid,
-    i.e. the distances are to the nearest periodic neighbour.
-    """
-    wrapped_disp_tensor = np.array(disp_tensor_rel)
-    for i, periodic in enumerate(pbc):
-        if periodic:
-            i_disp_tensor = disp_tensor_rel[:, :, i]
-            factors = np.floor(i_disp_tensor + 0.5)
-            i_disp_tensor -= factors
-            wrapped_disp_tensor[:, :, i] = i_disp_tensor
-
-            # pos_mask = i_disp_tensor > 0.5
-            # i_disp_tensor[pos_mask] = i_disp_tensor[pos_mask] - 1
-            # neg_mask = i_disp_tensor < -0.5
-            # i_disp_tensor[neg_mask] = i_disp_tensor[neg_mask] + 1
+# def get_mic_positions(disp_tensor_rel, cell, pbc):
+    # """Used to wrap positions so that the minimum image convention is valid,
+    # i.e. the distances are to the nearest periodic neighbour.
+    # """
+    # wrapped_disp_tensor = np.array(disp_tensor_rel)
+    # for i, periodic in enumerate(pbc):
+        # if periodic:
+            # i_disp_tensor = disp_tensor_rel[:, :, i]
+            # factors = np.floor(i_disp_tensor + 0.5)
+            # i_disp_tensor -= factors
             # wrapped_disp_tensor[:, :, i] = i_disp_tensor
-    disp_tensor_cart = np.dot(wrapped_disp_tensor, cell)
 
-    return disp_tensor_cart
+            # # pos_mask = i_disp_tensor > 0.5
+            # # i_disp_tensor[pos_mask] = i_disp_tensor[pos_mask] - 1
+            # # neg_mask = i_disp_tensor < -0.5
+            # # i_disp_tensor[neg_mask] = i_disp_tensor[neg_mask] + 1
+            # # wrapped_disp_tensor[:, :, i] = i_disp_tensor
+    # disp_tensor_cart = np.dot(wrapped_disp_tensor, cell)
+
+    # return disp_tensor_cart
 
 
 def expand_pbc(pbc):

@@ -295,18 +295,12 @@ class PeriodicFinder():
         best_adjacency_lists_sub = []
         for i_span in best_combo:
             original_span_index = valid_span_indices[i_span]
-            # print(original_span_index)
             i_adjacency_list = adjacency_lists[original_span_index]
-            # print(i_adjacency_list[(20, (0, 0, 0))])
             i_adjacency_list_add = adjacency_lists_add[original_span_index]
-            # i_adjacency_list_add_factor = adjacency_lists_add_factors[original_span_index]
             i_adjacency_list_sub = adjacency_lists_sub[original_span_index]
-            # i_adjacency_list_sub_factor = adjacency_lists_sub_factors[original_span_index]
             best_adjacency_lists.append(i_adjacency_list)
             best_adjacency_lists_add.append(i_adjacency_list_add)
-            # best_adjacency_lists_add_factors.append(i_adjacency_list_add_factor)
             best_adjacency_lists_sub.append(i_adjacency_list_sub)
-            # best_adjacency_lists_sub_factors.append(i_adjacency_list_sub_factor)
 
         # Create a full periodicity graph for the found basis
         periodicity_graph_pbc = None
@@ -352,7 +346,7 @@ class PeriodicFinder():
                     degrees.append(i_degree)
             mean_degree = np.array(degrees).mean()
 
-            if mean_degree > dim:
+            if mean_degree > (dim-1)*2:
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
@@ -1246,6 +1240,7 @@ class PeriodicFinder():
                 # positions are not searched and will still allow the search to
                 # extend beyound cell boundaries.
                 if (factor[~self.vacuum_dir] == 0).all():
+                # if True:
 
                     # Check if this index has already been used as a seed. The
                     # used_seed_indices is needed so that the same atom cannot
