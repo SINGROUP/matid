@@ -985,8 +985,10 @@ class PeriodicFinder():
             number_to_index_map[number] = number_indices
             number_to_pos_map[number] = positions[number_indices]
 
-        searched_coords = set()
-        used_seed_indices = set()
+        searched_cell_indices = set()
+        # used_seed_indices = set()
+        used_indices = set()
+        searched_vacancy_positions = []
         queue = deque()
         collection = LinkedUnitCollection(
             system,
@@ -1009,9 +1011,10 @@ class PeriodicFinder():
             seed_number,
             unit_cell,
             seed_position,
-            searched_coords,
+            searched_cell_indices,
             (0, 0, 0),
-            used_seed_indices,
+            used_indices,
+            searched_vacancy_positions,
             periodic_indices,
             queue,
             multipliers)
@@ -1034,9 +1037,10 @@ class PeriodicFinder():
                     seed_number,
                     queue_cell,
                     seed_position,
-                    searched_coords,
+                    searched_cell_indices,
                     queue_index,
-                    used_seed_indices,
+                    used_indices,
+                    searched_vacancy_positions,
                     periodic_indices,
                     queue,
                     multipliers)
@@ -1081,9 +1085,10 @@ class PeriodicFinder():
             seed_atomic_number,
             unit_cell,
             seed_offset,
-            searched_coords,
+            searched_cell_indices,
             cell_index,
-            used_seed_indices,
+            used_indices,
+            searched_vacancy_positions,
             periodic_indices,
             queue,
             multipliers):
@@ -1110,10 +1115,10 @@ class PeriodicFinder():
                 that are periodic
         """
         # Check if this cell has already been searched
-        if tuple(cell_index) in searched_coords:
+        if tuple(cell_index) in searched_cell_indices:
             return
         else:
-            searched_coords.add(tuple(cell_index))
+            searched_cell_indices.add(tuple(cell_index))
 
         # Try to get the scaled positions for atoms in this new cell. If the
         # cell is non-invertible, then this cell is not processed.
@@ -1138,9 +1143,9 @@ class PeriodicFinder():
             dislocations,
             multipliers,
             old_basis,
-            used_seed_indices,
+            used_indices,
             cell_index,
-            searched_coords)
+            searched_cell_indices)
 
         # Translate the original system to the seed position
         match_system = system.copy()
@@ -1154,8 +1159,27 @@ class PeriodicFinder():
             self.pos_tol_factor*self.pos_tol,
             )
 
+        # Add all the matches into the lists containing already searched
+        # locations.
+        used_indices.update(matches)
+
+        # Only allow substitutions that have not been added already.
+        # subst_indices = [subst.index for subst in substitutions]
+        valid_substitutions = []
+        new_subst = []
+        for subst in substitutions:
+            subst_ind = subst.index
+            if subst_ind not in used_indices:
+                valid_substitutions.append(subst)
+            new_subst.append(subst_ind)
+        used_indices.update(new_subst)
+
         # Correct the vacancy positions by the seed pos, seed offset and cell
-        # periodicity
+        # periodicity. Add the vacancy only if it has not already been added
+        # before.
+        new_vacancy_pos = []
+        valid_vacancies = []
+        vacancy_pos_array = np.array(searched_vacancy_positions)
         for vacancy in vacancies:
             old_vac_pos = vacancy.position
             old_vac_pos += seed_pos - seed_offset
@@ -1163,9 +1187,20 @@ class PeriodicFinder():
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
             vacancy.position = new_vac_pos
 
+            # Check if this vacancy has already been found
+            if len(searched_vacancy_positions) != 0:
+                vac_dist = np.linalg.norm(vacancy_pos_array - new_vac_pos, axis=1)
+                if vac_dist.min() > self.pos_tol:
+                    new_vacancy_pos.append(new_vac_pos)
+                    valid_vacancies.append(vacancy)
+            else:
+                new_vacancy_pos.append(new_vac_pos)
+                valid_vacancies.append(vacancy)
+        searched_vacancy_positions.extend(new_vacancy_pos)
+
         # If there are maches or substitutional atoms in the unit, add it to
         # the collection
-        new_unit = LinkedUnit(cell_index, seed_index, seed_pos, new_cell, matches, substitutions, vacancies)
+        new_unit = LinkedUnit(cell_index, seed_index, seed_pos, new_cell, matches, valid_substitutions, valid_vacancies)
         collection[cell_index] = new_unit
 
         # Save a snapshot of the process
@@ -1200,7 +1235,7 @@ class PeriodicFinder():
             dislocations,
             multipliers,
             old_cell,
-            used_seed_indices,
+            used_indices,
             cell_index,
             searched_coords,
         ):
@@ -1275,9 +1310,8 @@ class PeriodicFinder():
                 # direction that has a vacuum gap. It will ensure that two same
                 # positions are not searched and will still allow the search to
                 # extend beyound cell boundaries.
-                if (factor[~self.vacuum_dir] == 0).all():
-                # if True:
-
+                # if (factor[~self.vacuum_dir] == 0).all():
+                if True:
                     # Check if this index has already been used as a seed. The
                     # used_seed_indices is needed so that the same atom cannot
                     # become a seed point multiple times. This can otherwise
@@ -1285,14 +1319,14 @@ class PeriodicFinder():
                     # structures.
                     add = True
                     if match is not None:
-                        if match in used_seed_indices:
+                        if match in used_indices:
                             add = False
                     if add:
                         new_seed_indices.append(match)
                         new_seed_pos.append(i_seed_pos)
                         new_cell_indices.append(test_cell_index)
                         if match is not None:
-                            used_seed_indices.add(match)
+                            used_indices.add(match)
 
                 # Store the cell basis vector
                 for i in range(3):

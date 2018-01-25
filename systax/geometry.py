@@ -1148,10 +1148,7 @@ def get_matches(
                 match = ind
             else:
                 # Wrap the substitute position
-                # subst_pos = np.array(scaled_pos2[i])
-                # subst_pos %= 1
-                # subst_pos_cart = np.dot(subst_pos, cell)
-                subst_pos_cart = orig_pos[i]
+                subst_pos_cart = orig_pos[ind]
                 substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
 
             # If a match was found the factor is reported based on the
