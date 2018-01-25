@@ -54,7 +54,8 @@ class Classifier():
             n_edge_tol=0.98,
             cell_size_tol=0.25,
             max_n_atoms=1000,
-            coverage_threshold=0.5
+            coverage_threshold=0.5,
+            max_vacancy_ratio=0.25
             ):
         """
         Args:
@@ -98,6 +99,7 @@ class Classifier():
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
         self.coverage_threshold = coverage_threshold
+        self.max_vacancy_ratio = max_vacancy_ratio
 
         # Check seed position
         if type(seed_position) == str:
@@ -120,7 +122,7 @@ class Classifier():
         if delaunay_threshold_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'delaunay_threshold_mode'.".format(delaunay_threshold_mode))
 
-    def classify(self, system):
+    def classify(self, input_system):
         """A function that analyzes the system and breaks it into different
         components.
 
@@ -134,6 +136,10 @@ class Classifier():
         Raises:
             ValueError: If the system has more atoms than self.max_n_atoms
         """
+        # First wrap the positions so that they are not outside the cell.
+        system = input_system.copy()
+        system.wrap()
+
         self.system = system
         classification = None
 
@@ -291,8 +297,10 @@ class Classifier():
                     n_region_atoms = len(region.get_basis_indices())
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
+                    n_vacancies = len(region.get_vacancies())
+                    vacancy_ratio = n_vacancies/n_region_atoms
 
-                    if coverage >= self.coverage_threshold:
+                    if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
                         if region.is_2d:
                             analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
                             classification = Material2D(vacuum_dir, region, analyzer)

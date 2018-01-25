@@ -2605,6 +2605,40 @@ class NomadTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
+    # def test_6(self):
+        # """Surface with a relatively big unit cell.
+        # """
+        # with open("./Pwf1I3LmgToiTGVzGWuPGMsk8qhG2.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # system.wrap()
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # print(classification)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
 
 if __name__ == '__main__':
     suites = []

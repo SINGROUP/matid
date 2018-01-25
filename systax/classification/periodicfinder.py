@@ -529,6 +529,7 @@ class PeriodicFinder():
         # averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
         averaged_rel_pos = []
         averaged_rel_num = []
+        new_group_index = None
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             group_num = group_data_pbc["num"][i_group]
             scaled_pos = []
@@ -560,6 +561,10 @@ class PeriodicFinder():
                 group_avg = np.mean(final_pos, axis=0)
                 averaged_rel_pos.append(group_avg)
                 averaged_rel_num.append(group_num)
+
+            if i_group == seed_group_index:
+                new_group_index = len(averaged_rel_num) - 1
+        seed_group_index = new_group_index
 
         averaged_rel_pos = np.array(averaged_rel_pos)
         offset = averaged_rel_pos[seed_group_index]
@@ -608,6 +613,7 @@ class PeriodicFinder():
         # and the factors that tell in which periodic cell copy the match was
         # found originally.
         cells = np.zeros((len(seed_nodes), 3, 3))
+        c_norms = np.zeros((len(seed_nodes), 3))
         for i_node, node in enumerate(seed_nodes):
 
             node_index = node[0]
@@ -645,6 +651,8 @@ class PeriodicFinder():
             b = cells[i_node, 1]
             c = np.cross(a, b)
             c_norm = c/np.linalg.norm(c)
+            # print(c_norm)
+            c_norms[i_node, :] = c_norm
             c_norm = c_norm[None, :]
             c = 2*c_norm*cutoff
             cells[i_node, 2, :] = c
@@ -654,12 +662,12 @@ class PeriodicFinder():
         inside_nodes = []
         inside_pos = []
         index_cell_map = {}
-        search_offset = -c_norm*cutoff
 
-        for i_node, cell in zip(seed_nodes, cells):
+        for i_unit, (i_node, cell) in enumerate(zip(seed_nodes, cells)):
             i_seed, i_seed_factor = i_node
             seed_pos = orig_pos[i_seed]
-            search_coord = (seed_pos + search_offset)[0, :]
+            search_offset = -c_norms[i_unit, :]*cutoff
+            search_coord = (seed_pos + search_offset)
 
             if i_seed in index_cell_map:
                 i_indices, i_pos, i_factors = index_cell_map[i_seed]
@@ -682,6 +690,10 @@ class PeriodicFinder():
 
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
+            # print(search_coord)
+            # print(cell)
+            # print(i_indices)
+
             # Add the seed node factor
             final_factors = []
             for factor in i_factors:
@@ -697,6 +709,7 @@ class PeriodicFinder():
         # and average these positions to get a robust final estimate.
         averaged_rel_pos = []
         averaged_rel_num = []
+        new_group_index = None
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             scaled_pos = []
             group_num = group_data_pbc["num"][i_group]
@@ -734,6 +747,10 @@ class PeriodicFinder():
                 group_avg = np.mean(scaled_pos, axis=0)
                 averaged_rel_pos.append(group_avg)
                 averaged_rel_num.append(group_num)
+
+            if i_group == seed_group_index:
+                new_group_index = len(averaged_rel_num) - 1
+        seed_group_index = new_group_index
 
         # Move the seed positions back to the origin now that the search has
         # been performed
