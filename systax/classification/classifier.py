@@ -200,13 +200,10 @@ class Classifier():
 
         # Get the system dimensionality
         try:
-            dimensionality, vacuum_dir = systax.geometry.get_dimensionality(
+            dimensionality = systax.geometry.get_dimensionality(
                 system,
                 self.cluster_threshold,
-                disp_tensor=disp_tensor,
-                disp_tensor_pbc=disp_tensor_pbc,
-                dist_matrix_radii_pbc=dist_matrix_radii_pbc,
-                radii_matrix=radii_matrix
+                dist_matrix_radii_pbc
             )
         except SystaxError:
             return Unknown()
@@ -231,24 +228,24 @@ class Classifier():
         # 1D structures
         elif dimensionality == 1:
 
-            classification = Class1D(vacuum_dir)
+            classification = Class1D()
 
             # Find out the dimensions of the system
-            is_small = True
-            dimensions = systax.geometry.get_dimensions(system, vacuum_dir)
-            for i, has_vacuum in enumerate(vacuum_dir):
-                if has_vacuum:
-                    dimension = dimensions[i]
-                    if dimension > 15:
-                        is_small = False
+            # is_small = True
+            # dimensions = systax.geometry.get_dimensions(system)
+            # for i, has_vacuum in enumerate(vacuum_dir):
+                # if has_vacuum:
+                    # dimension = dimensions[i]
+                    # if dimension > 15:
+                        # is_small = False
 
-            if is_small:
-                classification = Material1D(vacuum_dir)
+            # if is_small:
+                # classification = Material1D(vacuum_dir)
 
         # 2D structures
         elif dimensionality == 2:
 
-            classification = Class2D(vacuum_dir)
+            classification = Class2D()
 
             # Get the index of the seed atom
             if self.seed_position == "cm":
@@ -273,7 +270,6 @@ class Classifier():
                 disp_factors,
                 disp_tensor,
                 dist_matrix_radii_pbc,
-                vacuum_dir,
                 self.abs_delaunay_threshold,
                 self.bond_threshold
 
@@ -302,16 +298,20 @@ class Classifier():
 
                     if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
                         if region.is_2d:
-                            analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                            classification = Material2D(vacuum_dir, region, analyzer)
+                            # The Class2DAnalyzer needs to know which direcion
+                            # in the cell is not periodic. Now that the cell
+                            # has been found, we know that the third axis is
+                            # set as the non-periodic one.
+                            analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=[False, False, True])
+                            classification = Material2D(region, analyzer)
                         else:
-                            analyzer = Class3DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                            classification = Surface(vacuum_dir, region, analyzer)
+                            analyzer = Class3DAnalyzer(region.cell)
+                            classification = Surface(region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:
 
-            classification = Class3D(vacuum_dir)
+            classification = Class3D()
 
             # Check the number of symmetries
             analyzer = Class3DAnalyzer(system)
@@ -347,7 +347,7 @@ class Classifier():
                         # seed_vec = self.seed_position
                     # seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
-                    # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
+                    # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, self.abs_delaunay_threshold)
                     # if region is not None:
                         # region = region[1]
 

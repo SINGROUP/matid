@@ -4,12 +4,7 @@ __metaclass__ = type
 
 
 class Classification():
-
-    def __init__(
-            self,
-            vacuum_dir=None,
-            ):
-        self.vacuum_dir = vacuum_dir
+    pass
 
 
 #===============================================================================
@@ -53,11 +48,10 @@ class Class2D(Classification):
     """
     def __init__(
             self,
-            vacuum_dir=None,
             region=None,
             cell_analyzer=None
             ):
-        super().__init__(vacuum_dir)
+        super().__init__()
         self.region = region
         if region is not None:
             self.basis_indices = region.get_basis_indices()
@@ -73,7 +67,6 @@ class Class2D(Classification):
             self.adsorbates = ()
             self.vacancies = ()
             self.unknowns = ()
-        self.vacuum_dir = vacuum_dir
         self.cell_analyzer = cell_analyzer
 
 
@@ -92,6 +85,10 @@ class Material2D(Class2D):
 class Class3D(Classification):
     """All structures that periodically extend infinitely without vacuum gaps.
     """
+    pass
+
+
+class Crystal(Class3D):
     def __init__(
             self,
             cell_analyzer,
@@ -111,11 +108,6 @@ class Class3D(Classification):
             self.vacancies = ()
             self.unknowns = ()
         self.cell_analyzer = cell_analyzer
-
-
-class Crystal(Class3D):
-    """
-    """
 
 
 #===============================================================================

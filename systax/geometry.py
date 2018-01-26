@@ -64,10 +64,10 @@ def get_nearest_neighbours(system, dist_matrix_pbc):
     return columns, distances
 
 
-def get_dimensionality_new(
+def get_dimensionality(
         system,
         cluster_threshold,
-        dist_matrix_radii_pbc=None
+        dist_matrix_radii_mic_1x=None
     ):
     """Used to calculate the dimensionality of a system with the topology
     scaling algorithm.
@@ -88,22 +88,42 @@ def get_dimensionality_new(
         SystaxError: If the dimensionality can't be evaluated because the
         system has multiple disconnected components in the original cell.
     """
+    system_1x = system
+    pbc = system_1x.get_pbc()
+    num_1x = system_1x.get_atomic_numbers()
+    cell_1x = system_1x.get_cell()
+
+    # When calculating the displacement tensor we can ignore neighbouring
+    # copies that are farther away than the clustering cutoff. The maximum mic
+    # distance to allow is cluster_threshold + 2*max_radii
+    radii = covalent_radii[num_1x]
+    max_radii = radii.max()
+    max_distance = cluster_threshold*2*max_radii
+    # cell_lens_1x = np.linalg.norm(cell_1x, axis=1)
+    # print(cell_lens_1x)
+    # mic_copies_1x = np.ceil(mic_cutoff/cell_lens_1x)
+    # print(mic_copies_1x)
+
     # 1x1x1 system
-    if dist_matrix_radii_pbc is None:
-        pos = system.get_positions()
-        cell = system.get_cell()
-        num = system.get_atomic_numbers()
-        pbc = system.get_pbc()
-        displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-        dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
+    if dist_matrix_radii_mic_1x is None:
+        pos_1x = system.get_positions()
+        displacements_mic_1x, dist_matrix_mic_1x = get_displacement_tensor(
+            pos_1x,
+            pos_1x,
+            cell_1x,
+            pbc,
+            mic=True,
+            max_distance=max_distance,
+            return_distances=True
+        )
+        radii_1x = covalent_radii[num_1x]
+        radii_matrix_1x = radii_1x[:, None] + radii_1x[None, :]
+        dist_matrix_radii_mic_1x = dist_matrix_mic_1x - radii_matrix_1x
 
     # Check the number of clusters. We don't want the clustering to hog all
     # resources, so the cpu's are limited to one
     db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    db.fit(dist_matrix_radii_pbc)
+    db.fit(dist_matrix_radii_mic_1x)
     clusters_1x = db.labels_
     n_clusters_1x = len(np.unique(clusters_1x))
 
@@ -122,20 +142,27 @@ def get_dimensionality_new(
 
         repeats = np.array([1, 1, 1])
         repeats[pbc] = 2
-        system = system.repeat(repeats)
-        pos = system.get_positions()
-        cell = system.get_cell()
-        num = system.get_atomic_numbers()
-        displacements_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-        dist_matrix_pbc = np.linalg.norm(displacements_pbc, axis=2)
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-        dist_matrix_radii_pbc = dist_matrix_pbc - radii_matrix
+        system_2x = system.repeat(repeats)
+        pos_2x = system_2x.get_positions()
+        cell_2x = system_2x.get_cell()
+        num_2x = system_2x.get_atomic_numbers()
+        displacements_mic_2x, dist_matrix_mic_2x = get_displacement_tensor(
+            pos_2x,
+            pos_2x,
+            cell_2x,
+            pbc,
+            mic=True,
+            max_distance=max_distance,
+            return_distances=True
+        )
+        radii_2x = covalent_radii[num_2x]
+        radii_matrix_2x = radii_2x[:, None] + radii_2x[None, :]
+        dist_matrix_radii_mic_2x = dist_matrix_mic_2x - radii_matrix_2x
 
         # Check the number of clusters. We don't want the clustering to hog all
         # resources, so the cpu's are limited to one
         db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-        db.fit(dist_matrix_radii_pbc)
+        db.fit(dist_matrix_radii_mic_2x)
         clusters_2x = db.labels_
         n_clusters_2x = len(np.unique(clusters_2x))
 
@@ -164,112 +191,112 @@ def get_dimensionality_new(
         return 0
 
 
-def get_dimensionality(
-        system,
-        cluster_threshold,
-        disp_tensor=None,
-        disp_tensor_pbc=None,
-        dist_matrix_radii_pbc=None,
-        radii_matrix=None
-    ):
-    """Used to calculate the dimensionality of a system.
+# def get_dimensionality_old(
+        # system,
+        # cluster_threshold,
+        # disp_tensor=None,
+        # disp_tensor_pbc=None,
+        # dist_matrix_radii_pbc=None,
+        # radii_matrix=None
+    # ):
+    # """Used to calculate the dimensionality of a system.
 
-    Args:
-        system (ASE.Atoms): The system for which the dimensionality is
-            evaluated.
-        cluster_threshold(float): The epsilon value for the DBSCAN algorithm
-            that is used to identify clusters within the unit cell.
-        disp_tensor (np.ndarray): A precalculated displacement tensor for the
-            system.
-        disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
-            takes into account the periodic boundary conditions for the
-                system.
-        distances(np.ndarray): A precalculated array of the distances used for
-            clustering the system.
+    # Args:
+        # system (ASE.Atoms): The system for which the dimensionality is
+            # evaluated.
+        # cluster_threshold(float): The epsilon value for the DBSCAN algorithm
+            # that is used to identify clusters within the unit cell.
+        # disp_tensor (np.ndarray): A precalculated displacement tensor for the
+            # system.
+        # disp_tensor_pbc (np.ndarray): A precalculated displacement tensor that
+            # takes into account the periodic boundary conditions for the
+                # system.
+        # distances(np.ndarray): A precalculated array of the distances used for
+            # clustering the system.
 
-    Returns:
-        int: The dimensionality of the system.
-        np.ndarray: Boolean array indicating the presence of vacuum gaps.
+    # Returns:
+        # int: The dimensionality of the system.
+        # np.ndarray: Boolean array indicating the presence of vacuum gaps.
 
-    Raises:
-        SystaxError: If the dimensionality can't be detected
-    """
-    cell = system.get_cell()
-    pbc = expand_pbc(system.get_pbc())
-    pos = system.get_positions()
-    num = system.get_atomic_numbers()
+    # Raises:
+        # SystaxError: If the dimensionality can't be detected
+    # """
+    # cell = system.get_cell()
+    # pbc = expand_pbc(system.get_pbc())
+    # pos = system.get_positions()
+    # num = system.get_atomic_numbers()
 
-    # Calculate the displacements in the finite system taking into account
-    # periodicity
-    if pbc.any():
-        if disp_tensor_pbc is not None:
-            displacements_finite_pbc = disp_tensor_pbc
-        else:
-            displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
-    else:
-        if disp_tensor is not None:
-            displacements_finite_pbc = disp_tensor
-        else:
-            displacements_finite_pbc = get_displacement_tensor(pos, pos)
-    if radii_matrix is None:
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-    if dist_matrix_radii_pbc is None:
-        dist_matrix_radii_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
-        dist_matrix_radii_pbc -= radii_matrix
+    # # Calculate the displacements in the finite system taking into account
+    # # periodicity
+    # if pbc.any():
+        # if disp_tensor_pbc is not None:
+            # displacements_finite_pbc = disp_tensor_pbc
+        # else:
+            # displacements_finite_pbc = get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+    # else:
+        # if disp_tensor is not None:
+            # displacements_finite_pbc = disp_tensor
+        # else:
+            # displacements_finite_pbc = get_displacement_tensor(pos, pos)
+    # if radii_matrix is None:
+        # radii = covalent_radii[num]
+        # radii_matrix = radii[:, None] + radii[None, :]
+    # if dist_matrix_radii_pbc is None:
+        # dist_matrix_radii_pbc = np.linalg.norm(displacements_finite_pbc, axis=2)
+        # dist_matrix_radii_pbc -= radii_matrix
 
-    # Check the number of clusters. We don't want the clustering to hog all
-    # resources, so the cpu's are limited to one
-    db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    db.fit(dist_matrix_radii_pbc)
-    clusters_finite = db.labels_
-    n_clusters_finite = len(np.unique(clusters_finite))
+    # # Check the number of clusters. We don't want the clustering to hog all
+    # # resources, so the cpu's are limited to one
+    # db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
+    # db.fit(dist_matrix_radii_pbc)
+    # clusters_finite = db.labels_
+    # n_clusters_finite = len(np.unique(clusters_finite))
 
-    # If the system consists of multiple components that are not connected
-    # according to the clustering done here, then we cannot assess the
-    # dimensionality.
-    if n_clusters_finite > 1:
-        raise SystaxError(
-            "Could not determine the dimensionality because there are more than"
-            " one energetically isolated components in the unit cell"
-        )
+    # # If the system consists of multiple components that are not connected
+    # # according to the clustering done here, then we cannot assess the
+    # # dimensionality.
+    # if n_clusters_finite > 1:
+        # raise SystaxError(
+            # "Could not determine the dimensionality because there are more than"
+            # " one energetically isolated components in the unit cell"
+        # )
 
-    # Bring the one cluster together and calculate internal displacements
-    # without pbc
-    seed_pos = pos[0, :]
-    disp_seed = displacements_finite_pbc[0, :, :]
-    pos1 = seed_pos + disp_seed
-    displacements_finite = get_displacement_tensor(pos1, pos1)
+    # # Bring the one cluster together and calculate internal displacements
+    # # without pbc
+    # seed_pos = pos[0, :]
+    # disp_seed = displacements_finite_pbc[0, :, :]
+    # pos1 = seed_pos + disp_seed
+    # displacements_finite = get_displacement_tensor(pos1, pos1)
 
-    # For each basis direction, add the basis vector to the displacements to
-    # get the distance between two neighbouring copies of the cluster. If the
-    # minimum distance between two copies is bigger or equal to the vacuum gap,
-    # then remove one dimension.
-    dim = 3
-    vacuum_gaps = np.array((False, False, False))
-    for i_basis, basis in enumerate(cell):
+    # # For each basis direction, add the basis vector to the displacements to
+    # # get the distance between two neighbouring copies of the cluster. If the
+    # # minimum distance between two copies is bigger or equal to the vacuum gap,
+    # # then remove one dimension.
+    # dim = 3
+    # vacuum_gaps = np.array((False, False, False))
+    # for i_basis, basis in enumerate(cell):
 
-        # If the system is not periodic in this direction, reduce the
-        # periodicity
-        i_pbc = pbc[i_basis]
-        if not i_pbc:
-            dim -= 1
-            vacuum_gaps[i_basis] = True
-            continue
+        # # If the system is not periodic in this direction, reduce the
+        # # periodicity
+        # i_pbc = pbc[i_basis]
+        # if not i_pbc:
+            # dim -= 1
+            # vacuum_gaps[i_basis] = True
+            # continue
 
-        # If system is periodic in this direction, calculate the distance
-        # between the periodicly repeated cluster by also taking radii into
-        # account
-        disp = np.array(displacements_finite)
-        disp += basis
-        dist = np.linalg.norm(disp, axis=2)
-        dist -= radii_matrix
-        min_dist = dist.min()
-        if min_dist >= cluster_threshold:
-            vacuum_gaps[i_basis] = True
-            dim -= 1
+        # # If system is periodic in this direction, calculate the distance
+        # # between the periodicly repeated cluster by also taking radii into
+        # # account
+        # disp = np.array(displacements_finite)
+        # disp += basis
+        # dist = np.linalg.norm(disp, axis=2)
+        # dist -= radii_matrix
+        # min_dist = dist.min()
+        # if min_dist >= cluster_threshold:
+            # vacuum_gaps[i_basis] = True
+            # dim -= 1
 
-    return dim, vacuum_gaps
+    # return dim, vacuum_gaps
 
 
 def get_tetrahedra_decomposition(system, max_distance):
@@ -776,6 +803,7 @@ def get_displacement_tensor(
         cell=None,
         pbc=None,
         mic=False,
+        max_distance=None,
         return_factors=False,
         return_distances=False
     ):
@@ -792,6 +820,9 @@ def get_displacement_tensor(
         pbc(boolean or a list of booleans): Periodicity of the axes
         mic(boolean): Whether to return the displacement to the nearest
             periodic copy
+        mic_copies(np.ndarray): The maximum number of periodic copies to
+            consider in each direction. If not specified, the maximum possible
+            number of copies is determined and used.
 
     Returns:
         np.ndarray: 3D displacement tensor
@@ -816,7 +847,7 @@ def get_displacement_tensor(
     # If minimum image convention is used, get the corrected vectors
     if mic:
         flattened_disp = np.reshape(disp_tensor, (-1, 3))
-        D, D_len, factors = find_mic(flattened_disp, cell, pbc)
+        D, D_len, factors = find_mic(flattened_disp, cell, pbc, max_distance)
         disp_tensor = np.reshape(D, tensor_shape)
         if return_factors:
             factors = np.reshape(factors, tensor_shape)
@@ -838,8 +869,23 @@ def get_displacement_tensor(
         return disp_tensor
 
 
-def find_mic(D, cell, pbc=True):
-    """Finds the minimum-image representation of vector(s) D"""
+def find_mic(D, cell, pbc, max_distance=None):
+    """Finds the minimum-image representation of vector(s) D.
+
+    Args:
+        D(np.ndarray): A nx3 array of vectors.
+        cell(np.ndarray): A valid ase Atoms cell definition.
+        pbc(np.ndarray): A 3x1 boolean array for the periodic boundary
+            conditions.
+        mic_copies(np.ndarray): The maximum number of periodic copies to
+            consider in each direction. If not specified, the maximum possible
+            number of copies is determined and used.
+
+    Returns:
+        np.ndarray: The minimum image versions of the given vectors.
+        np.ndarray: The shifts corresponding to the indices of the neighbouring
+            cells in which the vectors were found.
+    """
 
     cell = ase.geometry.complete_cell(cell)
     n_vectors = len(D)
@@ -868,7 +914,10 @@ def find_mic(D, cell, pbc=True):
 
     # The cutoff radius is the longest direct distance between atoms
     # or half the longest lattice diagonal, whichever is smaller
-    cutoff = min(max(D_len), max(diags) / 2.)
+    if max_distance is None:
+        max_distance = max(D_len)
+
+    mic_cutoff = min(max_distance, max(diags) / 2.)
 
     # The number of neighboring images to search in each direction is
     # equal to the ceiling of the cutoff distance (defined above) divided
@@ -880,11 +929,12 @@ def find_mic(D, cell, pbc=True):
     # for vectorization purposes.
     latt_len = np.linalg.norm(cell, axis=1)
     V = abs(np.linalg.det(cell))
-    n = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
-                               (V * latt_len)), dtype=int)
-    n0 = range(-n[0], n[0] + 1)
-    n1 = range(-n[1], n[1] + 1)
-    n2 = range(-n[2], n[2] + 1)
+    mic_copies = pbc * np.array(np.ceil(mic_cutoff * np.prod(latt_len) /
+                            (V * latt_len)), dtype=int)
+    print(mic_copies)
+    n0 = range(-mic_copies[0], mic_copies[0] + 1)
+    n1 = range(-mic_copies[1], mic_copies[1] + 1)
+    n2 = range(-mic_copies[2], mic_copies[2] + 1)
 
     # Construct a list of translation vectors. For example, if we are
     # searching only the nearest images (27 total), tvecs will be a
@@ -910,6 +960,54 @@ def find_mic(D, cell, pbc=True):
     factors *= -1
 
     return D_min, D_min_len, factors
+
+
+def get_mic_vector(w, v, cell):
+    """Used to calculate the minimum image version of a vector in the given
+    cell.
+
+    Args:
+        rel_vector(np.ndarray): Relative vector in the cell basis:
+
+    Returns:
+        np.ndarray: The MIC version of the given vector
+        np.ndarray: The shift that corresponds to the neighbouring cell in
+            which the copy was found.
+    """
+    # Get the original shift
+    dvw = w-v
+    cart_vec = to_cartesian(dvw, cell)
+
+    orig_shift = np.array([0, 0, 0])
+    for i in range(0, 3):
+        if dvw[i] < -0.5 or dvw[i] > 0.5:
+            k = np.floor(dvw[i] + 0.5)
+            dvw[i] -= k
+            orig_shift[i] = -k
+
+    # cart_vec = to_cartesian(dvw, cell)
+
+    # Figure out in which block of 2x2x2 cells we are testing
+    init_val = np.array([0, 0, 0])
+    init_val[dvw > 0] = -1
+
+    # Figure out the minimum vector in this block of 8 cells
+    a_range = range(init_val[0], init_val[0]+2)
+    b_range = range(init_val[1], init_val[1]+2)
+    c_range = range(init_val[2], init_val[2]+2)
+    multipliers = cartesian((a_range, b_range, c_range))
+
+    vec_copies = cart_vec + np.dot(multipliers, cell)
+    squared_len = np.sum(vec_copies**2)
+    min_index = np.argmin(squared_len)
+    min_shift = multipliers[min_index]
+
+    shift = orig_shift + min_shift
+
+    addition = np.dot(shift, cell)
+    result = cart_vec + addition
+
+    return result, shift
 
 
 # def get_mic_positions(disp_tensor_rel, cell, pbc):

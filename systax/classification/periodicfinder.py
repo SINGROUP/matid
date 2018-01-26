@@ -57,7 +57,6 @@ class PeriodicFinder():
             disp_factors,
             disp_tensor,
             dist_matrix_radii_pbc,
-            vacuum_dir,
             tesselation_distance,
             bond_threshold
         ):
@@ -69,8 +68,6 @@ class PeriodicFinder():
                 regions.
             seed_index(int): The index of the atom from which the search is
                 initiated.
-            vacuum_dir(sequence three booleans): The cell basis directions that
-                have a vacuum gap.
 
         Returns:
             list of tuples: A list of tuples containing the following information:
@@ -81,7 +78,6 @@ class PeriodicFinder():
         """
         self.disp_tensor_pbc = disp_tensor_pbc
         self.disp_factors = disp_factors
-        self.vacuum_dir = np.array(vacuum_dir)
         region = None
         possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
@@ -90,7 +86,6 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            vacuum_dir,
             disp_tensor
         )
 
@@ -107,7 +102,6 @@ class PeriodicFinder():
         # Find a region that is spanned by the found unit cell
         unit_collection = self._find_periodic_region(
             system,
-            vacuum_dir,
             dim == 2,
             tesselation_distance,
             bond_threshold,
@@ -168,7 +162,6 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            vacuum_dir,
             disp_tensor
         ):
         """Used to find the best candidate for a unit cell basis that could
@@ -180,7 +173,6 @@ class PeriodicFinder():
             ase.Atoms: A system representing the best cell that was found
             np.ndarray: Position of the seed atom in the cell
         """
-        vacuum_dir = np.array(vacuum_dir)
         positions = system.get_positions()
         numbers = system.get_atomic_numbers()
 
@@ -241,7 +233,7 @@ class PeriodicFinder():
         n_periodic_spans = periodic_filter.sum()
         if n_periodic_spans != 0:
             for i_per_span, per_span in enumerate(periodic_spans):
-                if periodic_filter[i_per_span] and not vacuum_dir[i_per_span]:
+                if periodic_filter[i_per_span]:
 
                     # Add the basis to the spans and add a full metric score
                     # for it.
@@ -959,7 +951,6 @@ class PeriodicFinder():
     def _find_periodic_region(
             self,
             system,
-            vacuum_dir,
             is_2d,
             tesselation_distance,
             bond_threshold,
@@ -975,8 +966,6 @@ class PeriodicFinder():
         Args:
             system(ASE.Atoms): Original system from which the periodic
                 region is searched
-            vacuum_dir(sequence of boolean): The vacuum directions in the
-                original simulation cell
             is_2d(boolean): Is the system a 2D material with cells in only one plane
             seed_index(int): Index of the atom from which the search is started
             unit_cell(ASE.Atoms): Repeating unit from which the searched region
@@ -1319,31 +1308,21 @@ class PeriodicFinder():
                 else:
                     i_seed_pos = seed_guess
 
-                # This test is performed to disallow the search from extending
-                # to neighbouring copies in the directions that are periodic.
-                # If this is not checked, then the same atoms can be included
-                # as e.g. substitutions from multiple different directions. It
-                # is however allowed for the search to be extended beyound the
-                # direction that has a vacuum gap. It will ensure that two same
-                # positions are not searched and will still allow the search to
-                # extend beyound cell boundaries.
-                # if (factor[~self.vacuum_dir] == 0).all():
-                if True:
-                    # Check if this index has already been used as a seed. The
-                    # used_seed_indices is needed so that the same atom cannot
-                    # become a seed point multiple times. This can otherwise
-                    # become a problem in e.g. random systems, or "looped"
-                    # structures.
-                    add = True
+                # Check if this index has already been used as a seed. The
+                # used_seed_indices is needed so that the same atom cannot
+                # become a seed point multiple times. This can otherwise
+                # become a problem in e.g. random systems, or "looped"
+                # structures.
+                add = True
+                if match is not None:
+                    if match in used_indices:
+                        add = False
+                if add:
+                    new_seed_indices.append(match)
+                    new_seed_pos.append(i_seed_pos)
+                    new_cell_indices.append(test_cell_index)
                     if match is not None:
-                        if match in used_indices:
-                            add = False
-                    if add:
-                        new_seed_indices.append(match)
-                        new_seed_pos.append(i_seed_pos)
-                        new_cell_indices.append(test_cell_index)
-                        if match is not None:
-                            used_indices.add(match)
+                        used_indices.add(match)
 
                 # Store the cell basis vector
                 for i in range(3):

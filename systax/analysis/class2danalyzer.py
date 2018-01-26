@@ -14,7 +14,7 @@ __metaclass__ = type
 class Class2DAnalyzer(SymmetryAnalyzer):
     """Class for analyzing any 2D structure, like surfaces or 2D materials.
     """
-    def __init__(self, system=None, spglib_precision=None, vacuum_gaps=None):
+    def __init__(self, system, vacuum_gaps, spglib_precision=None):
         """
         Args:
             system (ASE.Atoms): The system to inspect.
@@ -23,21 +23,21 @@ class Class2DAnalyzer(SymmetryAnalyzer):
             vacuum_gaps: The directions in which there is a vacuum gap that
                 separates periodic copies.
         """
-
+        vacuum_gaps = np.array(vacuum_gaps)
         if vacuum_gaps.sum() != 1:
             raise SystaxError(
                 "The given vacuum gaps do not contain exactly one direction in "
                 "which there is a vacuum gap."
             )
         super().__init__(system, spglib_precision, vacuum_gaps)
+        self.vacuum_index = np.where(vacuum_gaps == True)[0]
 
         # Break any possible symmetries in the nonperiodic direction
-        self.vacuum_index = np.where(vacuum_gaps == True)[0]
         # view(system)
-        centered_system = self.get_centered_system(system)
+        # centered_system = self.get_centered_system(system)
         # view(centered_system)
-        self.thickness = self.get_thickness(centered_system)
-        self.system = self.break_vacuum_symmetry(system, self.thickness)
+        # self.thickness = self.get_thickness(centered_system)
+        # self.system = self.break_vacuum_symmetry(system, self.thickness)
 
     def get_conventional_system(self):
         """Returns an conventional description for this system. This
