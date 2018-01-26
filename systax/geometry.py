@@ -931,7 +931,9 @@ def find_mic(D, cell, pbc, max_distance=None):
     V = abs(np.linalg.det(cell))
     mic_copies = pbc * np.array(np.ceil(mic_cutoff * np.prod(latt_len) /
                             (V * latt_len)), dtype=int)
-    print(mic_copies)
+    # print(mic_copies)
+    # if 0 in mic_copies:
+        # print(mic_copies)
     n0 = range(-mic_copies[0], mic_copies[0] + 1)
     n1 = range(-mic_copies[1], mic_copies[1] + 1)
     n2 = range(-mic_copies[2], mic_copies[2] + 1)
@@ -1225,6 +1227,7 @@ def get_matches(
         cell,
         pbc,
         mic=mic,
+        max_distance=tolerance,
         return_factors=True,
         return_distances=True
     )

@@ -1154,23 +1154,25 @@ class PeriodicFinder():
             searched_cell_indices)
 
         # Translate the original system to the seed position
-        match_system = system.copy()
-        match_system.translate(-seed_pos+seed_offset)
+        # match_system = system.copy()
+        # match_system.translate(-seed_pos+seed_offset)
+
+        # Translate the searched positions
+        test_pos = unit_cell.get_positions() + seed_pos - seed_offset
 
         # Find the atoms that match the positions in the original basis
         matches, substitutions, vacancies, _ = systax.geometry.get_matches(
-            match_system,
-            unit_cell.get_positions(),
+            system,
+            test_pos,
             cell_num,
             self.pos_tol_factor*self.pos_tol,
-            )
+        )
 
         # Add all the matches into the lists containing already searched
         # locations.
         used_indices.update(matches)
 
         # Only allow substitutions that have not been added already.
-        # subst_indices = [subst.index for subst in substitutions]
         valid_substitutions = []
         new_subst = []
         for subst in substitutions:
@@ -1188,10 +1190,10 @@ class PeriodicFinder():
         vacancy_pos_array = np.array(searched_vacancy_positions)
         for vacancy in vacancies:
             old_vac_pos = vacancy.position
-            old_vac_pos += seed_pos - seed_offset
+
+            # Wrap the position to be inside the cell
             vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
-            vacancy.position = new_vac_pos
 
             # Check if this vacancy has already been found
             if len(searched_vacancy_positions) != 0:
@@ -1204,7 +1206,7 @@ class PeriodicFinder():
                 valid_vacancies.append(vacancy)
         searched_vacancy_positions.extend(new_vacancy_pos)
 
-        # If there are maches or substitutional atoms in the unit, add it to
+        # If there are matches or substitutional atoms in the unit, add them to
         # the collection
         new_unit = LinkedUnit(cell_index, seed_index, seed_pos, new_cell, matches, valid_substitutions, valid_vacancies)
         collection[cell_index] = new_unit
