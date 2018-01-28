@@ -21,16 +21,13 @@ from systax.classification.classifications import \
     Class2D, \
     Class3D
 import systax.geometry
+from systax.data import constants
 from systax.analysis.class3danalyzer import Class3DAnalyzer
 from systax.analysis.class2danalyzer import Class2DAnalyzer
 from systax.symmetry import check_if_crystal
 from systax.classification.periodicfinder import PeriodicFinder
 
 __metaclass__ = type
-
-
-class SystemCache(dict):
-    pass
 
 
 class Classifier():
@@ -41,21 +38,21 @@ class Classifier():
     def __init__(
             self,
             seed_position="cm",
-            max_cell_size=8,
-            pos_tol=0.3,
+            max_cell_size=None,
+            pos_tol=None,
             pos_tol_mode="relative",
-            angle_tol=20,
-            cluster_threshold=3.5,
-            crystallinity_threshold=0.25,
-            delaunay_threshold=1.5,
-            bond_threshold=1.0,
+            angle_tol=None,
+            cluster_threshold=None,
+            crystallinity_threshold=None,
+            delaunay_threshold=None,
+            bond_threshold=None,
             delaunay_threshold_mode="relative",
-            pos_tol_factor=2,
-            n_edge_tol=0.98,
-            cell_size_tol=0.25,
-            max_n_atoms=1000,
-            coverage_threshold=0.5,
-            max_vacancy_ratio=0.25
+            pos_tol_factor=None,
+            n_edge_tol=None,
+            cell_size_tol=None,
+            max_n_atoms=None,
+            coverage_threshold=None,
+            max_vacancy_ratio=None
             ):
         """
         Args:
@@ -63,26 +60,77 @@ class Classifier():
                 a 3D vector from which the closest atom will be used as a seed, or
                 then provide a valid option as a string. Valid options are:
                     - 'cm': One seed nearest to center of mass
-            max_cell_size(float): The maximum cell size
-            pos_tol(float): The position tolerance in angstroms for finding translationally
-                repeated units.
-            pos_tol_mode(str): The mode for calculting the position tolerance.
+            max_cell_size(float): The maximum size of cell basis vectors.
+            pos_tol(float): The position tolerance for finding translationally
+                repeated units. The units depend on 'pos_tol_mode'.
+            pos_tol_mode(str): The mode for calculating the position tolerance.
                 One of the following:
                     - "relative": Tolerance relative to the average nearest
                       neighbour distance.
                     - "absolute": Absolute tolerance in angstroms.
+            angle_tol(float): The angle below which vectors in the cell basis are
+                considered to be parallel.
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
-                perfomed the connectivity that is required for .
+                perfomed.
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
             max_n_atoms(int): The maximum number of atoms in the system. If the
-                system has more atoms than this, the a ValueError is raised.
+                system has more atoms than this, a ValueError is raised. If
+                undefined, there is no maximum.
+            bond_threshold(float): The clustering threshold when determining
+                the connectivity of atoms in a surface or 2D-material.
+            delaunay_threshold(str): The maximum length of an edge in the
+                Delaunay triangulation.
+            delaunay_threshold_mode(str): The mode for calculating the maximum
+                length of an edge in the Delaunay triangulation.
+                One of the following:
+                    - "relative": Tolerance relative to the average nearest
+                      neighbour distance.
+                    - "absolute": Absolute tolerance in angstroms.
+            pos_tol_factor(float): The factor for multiplying the position
+                tolerance when searching neighbouring cell seed atoms.
+            n_edge_tol(float): The minimum fraction of edges that have to be in the
+                periodicity graph for the cell to be considered valid. Given
+                relative to the cell with maximum number of edges.
+            cell_size_tol(float): The tolerance for cell sizes to be considered
+                equal. Given relative to the smallest cell size.
             coverage_threshold(float): The fraction of atoms that have to
                 belong to a region in order for the system to be considered surface
                 or 2D-material.
+            max_vacancy_ratio(float): Maximum fraction of vacancy atoms/atoms
+                in the region for the system to be considered valid. If too
+                many vacancies are found, the classification will be left more
+                generic, e.g. Class2D.
         """
+        if max_cell_size is None:
+            max_cell_size = constants.MAX_CELL_SIZE
+        if pos_tol_mode == "relative" and pos_tol is None:
+            pos_tol = constants.REL_POS_TOL
+        if angle_tol is None:
+            angle_tol = constants.ANGLE_TOL
+        if crystallinity_threshold is None:
+            crystallinity_threshold = constants.CRYSTALLINITY_THRESHOLD
+        if cluster_threshold is None:
+            cluster_threshold = constants.CLUSTER_THRESHOLD
+        if delaunay_threshold is None:
+            delaunay_threshold = constants.DELAUNAY_THRESHOLD
+        if bond_threshold is None:
+            bond_threshold = constants.BOND_THRESHOLD
+        if pos_tol_factor is None:
+            pos_tol_factor = constants.POS_TOL_FACTOR
+        if n_edge_tol is None:
+            n_edge_tol = constants.N_EDGE_TOL
+        if cell_size_tol is None:
+            cell_size_tol = constants.CELL_SIZE_TOL
+        if max_n_atoms is None:
+            max_n_atoms = constants.MAX_N_ATOMS
+        if coverage_threshold is None:
+            coverage_threshold = constants.COVERAGE_THRESHOLD
+        if max_vacancy_ratio is None:
+            max_vacancy_ratio = constants.MAX_VACANCY_RATIO
+
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
         self.abs_pos_tol = None
@@ -256,7 +304,6 @@ class Classifier():
 
             # Run the region detection on the whole system.
             periodicfinder = PeriodicFinder(
-                pos_tol=self.abs_pos_tol,
                 angle_tol=self.angle_tol,
                 max_cell_size=self.max_cell_size,
                 pos_tol_factor=self.pos_tol_factor,
@@ -266,13 +313,13 @@ class Classifier():
             region = periodicfinder.get_region(
                 system,
                 seed_index,
+                self.abs_pos_tol,
+                self.abs_delaunay_threshold,
+                self.bond_threshold,
                 disp_tensor_pbc,
                 disp_factors,
                 disp_tensor,
                 dist_matrix_radii_pbc,
-                self.abs_delaunay_threshold,
-                self.bond_threshold
-
             )
             if region is not None:
                 region = region[1]

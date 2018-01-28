@@ -11,8 +11,10 @@ import networkx as nx
 
 from ase import Atoms
 from ase.visualize import view
+from ase.data import covalent_radii
 
 import systax.geometry
+from systax.data import constants
 from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
 
 
@@ -21,28 +23,27 @@ class PeriodicFinder():
     """
     def __init__(
             self,
-            pos_tol,
-            angle_tol,
-            max_cell_size,
-            pos_tol_factor,
-            cell_size_tol,
-            n_edge_tol
+            angle_tol=constants.ANGLE_TOL,
+            max_cell_size=constants.MAX_CELL_SIZE,
+            pos_tol_factor=constants.POS_TOL_FACTOR,
+            cell_size_tol=constants.CELL_SIZE_TOL,
+            n_edge_tol=constants.N_EDGE_TOL
         ):
         """
         Args:
-            pos_tol(float): The positions tolerance for finding atoms in
-                angstroms.
-            angle_tol(float): The angle tolerance for separating parallel
-                directions. Directions that have angle smaller than this value
-                are considered to be parallel.
-            max_cell_size(float): Guess for the maximum cell basis vector
-                lengths. In angstroms.
-            pos_tol_factor(float): A factor that is used to multiply the
-                position tolerance when finding atoms in adjacent unit cell.
-            cell_size_tol(float):
-            n_edge_tol(float):
+            pos_tol(float): The position tolerance for finding translationally
+                repeated units. The units depend on 'pos_tol_mode'.
+            angle_tol(float): The angle below which vectors in the cell basis are
+                considered to be parallel.
+            max_cell_size(float): The maximum size of cell basis vectors.
+            pos_tol_factor(float): The factor for multiplying the position
+                tolerance when searching neighbouring cell seed atoms.
+            cell_size_tol(float): The tolerance for cell sizes to be considered
+                equal. Given relative to the smallest cell size.
+            n_edge_tol(float): The minimum fraction of edges that have to be in the
+                periodicity graph for the cell to be considered valid. Given
+                relative to the cell with maximum number of edges.
         """
-        self.pos_tol = pos_tol
         self.angle_tol = angle_tol
         self.max_cell_size = max_cell_size
         self.pos_tol_factor = pos_tol_factor
@@ -53,12 +54,13 @@ class PeriodicFinder():
             self,
             system,
             seed_index,
-            disp_tensor_pbc,
-            disp_factors,
-            disp_tensor,
-            dist_matrix_radii_pbc,
-            tesselation_distance,
-            bond_threshold
+            pos_tol,
+            delaunay_threshold=None,
+            bond_threshold=None,
+            disp_tensor_mic=None,
+            disp_factors=None,
+            disp_tensor=None,
+            dist_matrix_radii_mic=None,
         ):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
@@ -68,6 +70,8 @@ class PeriodicFinder():
                 regions.
             seed_index(int): The index of the atom from which the search is
                 initiated.
+            pos_tol(float): The tolerance that is allowed in the search. Given
+                as absolute value in angstroms.
 
         Returns:
             list of tuples: A list of tuples containing the following information:
@@ -76,8 +80,45 @@ class PeriodicFinder():
                     representing the region
                 unit cell: An ASE.Atoms object representing the unit cell of the region.
         """
-        self.disp_tensor_pbc = disp_tensor_pbc
+        if delaunay_threshold is None:
+            delaunay_threshold = constants.DELAUNAY_THRESHOLD
+        if bond_threshold is None:
+            bond_threshold = constants.BOND_THRESHOLD
+
+        # If the distance information is not given, calculate it here.
+        pbc = system.get_pbc()
+        if disp_tensor_mic is None and disp_factors is None and disp_tensor is None and dist_matrix_radii_mic is None:
+            pos = system.get_positions()
+            cell = system.get_cell()
+            pbc = system.get_pbc()
+            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+            if pbc.any():
+                disp_tensor_mic, disp_factors = systax.geometry.get_displacement_tensor(
+                    pos,
+                    pos,
+                    cell,
+                    pbc,
+                    mic=True,
+                    return_factors=True
+                )
+            else:
+                disp_tensor_mic = disp_tensor
+                disp_factors = np.zeros(disp_tensor.shape)
+            dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
+
+            # Calculate the distance matrix where the periodicity and the covalent
+            # radii have been taken into account
+            dist_matrix_radii_mic = np.array(dist_matrix_mic)
+            num = system.get_atomic_numbers()
+            radii = covalent_radii[num]
+            radii_matrix = radii[:, None] + radii[None, :]
+            dist_matrix_radii_mic -= radii_matrix
+
+        self.disp_tensor_mic = disp_tensor_mic
+        self.disp_tensor = disp_tensor
         self.disp_factors = disp_factors
+        self.dist_matrix_radii_mic = dist_matrix_radii_mic
+        self.pos_tol = pos_tol
         region = None
         possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
@@ -86,7 +127,6 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            disp_tensor
         )
 
         # 1D is not handled
@@ -103,13 +143,12 @@ class PeriodicFinder():
         unit_collection = self._find_periodic_region(
             system,
             dim == 2,
-            tesselation_distance,
+            delaunay_threshold,
             bond_threshold,
             seed_index,
             proto_cell,
             offset,
             periodic_indices,
-            dist_matrix_radii_pbc
         )
 
         i_indices = unit_collection.get_basis_indices()
@@ -132,7 +171,7 @@ class PeriodicFinder():
         """
         # Calculate a displacement tensor that takes into account the
         # periodicity of the system
-        disp_tensor = self.disp_tensor_pbc
+        disp_tensor = self.disp_tensor_mic
 
         # If the search radius exceeds beyond the periodic boundaries, extend the system
         # Get the vectors that span from the seed to all other atoms
@@ -162,7 +201,6 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            disp_tensor
         ):
         """Used to find the best candidate for a unit cell basis that could
         generate a periodic region in the structure.
@@ -394,7 +432,6 @@ class PeriodicFinder():
                 neighbour_indices,
                 best_combo,
                 best_spans,
-                disp_tensor,
                 system,
                 group_data_pbc,
                 seed_group_index,
@@ -408,7 +445,6 @@ class PeriodicFinder():
                 neighbour_indices,
                 best_combo,
                 best_spans,
-                disp_tensor,
                 system,
                 group_data_pbc,
                 seed_group_index,
@@ -427,7 +463,6 @@ class PeriodicFinder():
             neighbours,
             best_span_indices,
             best_spans,
-            disp_tensor,
             system,
             group_data_pbc,
             seed_group_index,
@@ -469,7 +504,7 @@ class PeriodicFinder():
 
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    a = multiplier*disp_tensor[a_final_neighbour, node_index, :] + a_correction
+                    a = multiplier*self.disp_tensor[a_final_neighbour, node_index, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
@@ -576,7 +611,6 @@ class PeriodicFinder():
             neighbours,
             best_span_indices,
             best_spans,
-            disp_tensor,
             system,
             group_data_pbc,
             seed_group_index,
@@ -633,7 +667,7 @@ class PeriodicFinder():
 
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    a = multiplier*disp_tensor[a_final_neighbour, node_index, :] + a_correction
+                    a = multiplier*self.disp_tensor[a_final_neighbour, node_index, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
@@ -958,7 +992,6 @@ class PeriodicFinder():
             unit_cell,
             seed_position,
             periodic_indices,
-            dist_matrix_radii_pbc
         ):
         """Used to find atoms that are generated by a given unit cell and a
         given origin.
@@ -1002,7 +1035,7 @@ class PeriodicFinder():
             is_2d,
             tesselation_distance,
             bond_threshold,
-            dist_matrix_radii_pbc
+            self.dist_matrix_radii_mic
         )
         multipliers = self._get_multipliers(periodic_indices)
 
@@ -1057,6 +1090,7 @@ class PeriodicFinder():
         """Used to calculate the multipliers that are used to multiply the cell
         basis vectors to find new unit cells.
         """
+        # OLD
         # Here we decide the new seed points where the search is extended. The
         # directions depend on the directions that were found to be periodic
         # for the seed atom.
@@ -1065,7 +1099,7 @@ class PeriodicFinder():
         mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
         if n_periodic_dim == 2:
             for multiplier in mult_gen:
-                if multiplier != (0, 0):
+                # if multiplier != (0, 0):
                     multipliers.append(multiplier)
         elif n_periodic_dim == 3:
             for multiplier in mult_gen:
@@ -1077,6 +1111,27 @@ class PeriodicFinder():
             multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
             multis[:, periodic_indices] = multipliers
             multipliers = multis
+
+        # New
+        # Here we decide the new seed points where the search is extended.
+        # n_periodic_dim = len(periodic_indices)
+        # if n_periodic_dim == 3:
+            # multipliers = np.array([
+                # [1, 0, 0],
+                # [0, 1, 0],
+                # [0, 0, 1],
+                # [-1, 0, 0],
+                # [0, -1, 0],
+                # [0, 0, -1],
+            # ])
+
+        # if n_periodic_dim == 2:
+            # multipliers = np.array([
+                # [1, 0, 0],
+                # [0, 1, 0],
+                # [-1, 0, 0],
+                # [0, -1, 0],
+            # ])
 
         return multipliers
 
