@@ -1,0 +1,2741 @@
+{
+  "type": "nomad_info_data_json_2_0",
+  "mainFileUri": "nmd://RKCXk_Rmd6E3xY1k5Vw73Ins3P2Ub/data/SrSnO3/001/SrO/CO2/tight-rel/hartree_potential/PBE-tight-relax.out",
+  "parserInfo": {
+    "name":"FhiAimsParser",
+    "version":"1.0",
+    "parserId":"FhiAimsParser2.0.0-17-g1384da3",
+    "versionInfo":{
+      "nomadCoreVersion":{
+        "pythonCommonVersion":"1.3.0-34-g62c6d3d",
+        "name":"nomadCore",
+        "buildTime":"1510306970128",
+        "scalaVersion":"2.11.8",
+        "version":"1.9.0-1-g84f0e9ef-dirty",
+        "metaInfoVersion":"1.6.0-141-gaa994db",
+        "sbtVersion":"0.13.13"
+      },
+      "name":"fhiAims",
+      "buildTime":"1510306970803",
+      "scalaVersion":"2.11.8",
+      "version":"2.0.0-17-g1384da3",
+      "sbtVersion":"0.13.13"
+    }
+  },
+  "sections": {
+    "section_run-0": {
+    "type": "nomad_section_1_0",
+    "gIndex": 0,
+    "name": "section_run",
+    "program_version": "160328",
+    "program_compilation_host": "draco02",
+    "time_run_wall_start": 2.51124674103E8,
+    "program_name": "FHI-aims",
+    "time_run_cpu1_start": 0.420026,
+    "x_fhi_aims_number_of_tasks": "32",
+    "x_fhi_aims_program_compilation_date": "2016/12/15",
+    "x_fhi_aims_program_execution_time": "125114.103",
+    "program_basis_set_type": "numeric AOs",
+    "x_fhi_aims_program_execution_date": "20161216",
+    "x_fhi_aims_program_compilation_time": "15:01:23",
+    "sections": {
+      "x_fhi_aims_section_parallel_tasks-0": {
+          "type": "nomad_section_1_0",
+          "name": "x_fhi_aims_section_parallel_tasks",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "x_fhi_aims_section_parallel_task_assignement": [{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 0,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 0,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 1,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 1,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 2,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 2,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 3,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 3,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 4,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 4,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 5,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 5,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 6,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 6,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 7,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 7,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 8,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 8,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 9,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 9,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 10,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 10,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 11,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 11,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 12,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 12,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 13,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 13,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 14,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 14,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 15,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 15,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 16,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 16,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 17,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 17,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 18,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 18,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 19,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 19,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 20,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 20,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 21,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 21,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 22,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 22,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 23,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 23,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 24,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 24,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 25,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 25,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 26,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 26,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 27,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 27,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 28,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 28,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 29,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 29,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 30,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 30,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 31,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 31,
+                "x_fhi_aims_parallel_task_host": "dra0613"
+              }]
+        },
+      "section_basis_set_atom_centered-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-1": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 1,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-2": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 2,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-3": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 3,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-4": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 4,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-5": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 5,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-6": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 6,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-7": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 7,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-8": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 8,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-9": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 9,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-10": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 10,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-11": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 11,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-12": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 12,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-13": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 13,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-14": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 14,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-15": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 15,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-16": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 16,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-17": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 17,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-18": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 18,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-19": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 19,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-20": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 20,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "hydrogenic basis"
+        },
+      "section_basis_set_atom_centered-21": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 21,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-22": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 22,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-23": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 23,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-24": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 24,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-25": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 25,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-26": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 26,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-27": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 27,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-28": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 28,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-29": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 29,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-30": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 30,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-31": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 31,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-32": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 32,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-33": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 33,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-34": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 34,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-35": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 35,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-36": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 36,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-37": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 37,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-38": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 38,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-39": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 39,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-40": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 40,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-41": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 41,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-42": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 42,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-43": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 43,
+          "references": {
+            "section_run": 0}
+        },
+      "section_topology-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_topology",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "section_atom_type": [{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 0,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 8.0,
+                "atom_type_mass": 2.65676241887308E-26,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 0,
+                      "references": {
+                        "section_atom_type": 0},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["O"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 0,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 1,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [4.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 2,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 3,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [3.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 4,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.8],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 5,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [7.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 6,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.4],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 7,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [11.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 8,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.2],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 9,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [5.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 10,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["g"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [17.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 11,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [0.75],
+                            "x_fhi_aims_controlInOut_basis_func_n": [1]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 1,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 38.0,
+                "atom_type_mass": 1.4549640807884003E-25,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 1,
+                      "references": {
+                        "section_atom_type": 1},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [5.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["Sr"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 12,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 13,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 14,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 15,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 16,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 17,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 18,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 19,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 20,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 21,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 2,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 50.0,
+                "atom_type_mass": 1.9712255881122E-25,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 2,
+                      "references": {
+                        "section_atom_type": 2},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["Sn"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 22,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 23,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 24,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 25,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 26,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 27,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 28,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.3],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 29,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [3.7],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 30,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [7.4],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 31,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 3,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 6.0,
+                "atom_type_mass": 1.99442331489674E-26,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 3,
+                      "references": {
+                        "section_atom_type": 3},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["C"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 32,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 33,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 34,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 35,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 36,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.7],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 37,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 38,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [4.9],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 39,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [9.8],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 40,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [5.2],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 41,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [4.3],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 42,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["g"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [14.4],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 43,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.2],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          }]
+                    }]
+              }]
+        },
+      "section_system-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_system",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "atom_positions": [[5.876741000000001E-10, 2.34178E-11, 2.20742E-10],
+             
+            [
+            2.779278E-10, 3.141567E-10, 2.2074400000000001E-10],
+             
+            [
+            5.7732E-10, 2.898093E-10, 8.176983000000001E-10],
+             
+            [
+            5.763604E-10, 2.909884E-10, 4.060348E-10],
+             
+            [
+            2.88285E-10, 5.805444E-10, 8.176978E-10],
+             
+            [
+            2.892457E-10, 5.817229E-10, 4.060324E-10],
+             
+            [
+            5.357209000000001E-10, 3.012837E-10, 6.125034000000001E-10],
+             
+            [
+            2.5375860000000003E-10, 5.670072E-10, 2.031143E-10],
+             
+            [
+            4.607176E-10, 4.630595E-10, 3.796331E-10],
+             
+            [
+            5.742425E-10, 1.9083300000000002E-11, 1.0207017000000001E-9],
+             
+            [
+            2.913617E-10, 3.09817E-10, 1.0207017000000001E-9],
+             
+            [
+            5.782797000000001E-10, 2.886304E-10, 1.2293641E-9],
+             
+            [
+            2.8732530000000003E-10, 5.793649000000001E-10, 1.2293632000000002E-9],
+             
+            [
+            5.427975000000001E-10, 3.033475E-10, 1.432283E-9],
+             
+            [
+            2.466897E-10, 5.690697E-10, 1.0228935E-9],
+             
+            [
+            4.600439E-10, 4.618531E-10, 1.1975459000000002E-9],
+             
+            [
+            4.548045E-10, 4.567918E-10, 8.489073E-10],
+             
+            [
+            5.876741000000001E-10, 6.048879E-10, 2.20742E-10],
+             
+            [
+            2.8520370000000005E-10, 8.512688000000001E-10, 6.146962000000001E-10],
+             
+            [
+            5.7732E-10, 8.712794000000001E-10, 8.176983000000001E-10],
+             
+            [
+            5.763604E-10, 8.724586000000001E-10, 4.060348E-10],
+             
+            [
+            5.357209000000001E-10, 8.827539E-10, 6.125034000000001E-10],
+             
+            [
+            3.2988270000000004E-10, 5.920177E-10, 6.125021000000001E-10],
+             
+            [
+            4.607176E-10, 1.0445296000000002E-9, 3.796331E-10],
+             
+            [
+            4.048896E-10, 7.537949000000001E-10, 3.796315E-10],
+             
+            [
+            5.742425E-10, 6.005534E-10, 1.0207017000000001E-9],
+             
+            [
+            2.986429E-10, 8.469336999999999E-10, 1.4146517E-9],
+             
+            [
+            5.782797000000001E-10, 8.701005000000001E-10, 1.2293641E-9],
+             
+            [
+            5.427975000000001E-10, 8.848177E-10, 1.432283E-9],
+             
+            [
+            3.22807E-10, 5.940839000000001E-10, 1.4322823E-9],
+             
+            [
+            4.108005000000001E-10, 7.475268E-10, 8.489068E-10],
+             
+            [
+            4.600439E-10, 1.0433233E-9, 1.1975459000000002E-9],
+             
+            [
+            4.0556270000000003E-10, 7.525878E-10, 1.1975466000000002E-9],
+             
+            [
+            4.548045E-10, 1.0382619E-9, 8.489073E-10],
+             
+            [
+            5.803992E-10, 5.605356E-10, 6.146963999999999E-10],
+             
+            [
+            8.559974E-10, 3.141567E-10, 2.2074400000000001E-10],
+             
+            [
+            8.663546E-10, 5.805444E-10, 8.176978E-10],
+             
+            [
+            8.673152E-10, 5.817229E-10, 4.060324E-10],
+             
+            [
+            6.118444000000001E-10, 2.762664E-10, 2.031166E-10],
+             
+            [
+            8.318282000000001E-10, 5.670072E-10, 2.031143E-10],
+             
+            [
+            7.490783E-10, 4.0850130000000004E-10, 4.378505E-10],
+             
+            [
+            6.998347E-10, 1.228262E-10, 7.864899999999999E-10],
+             
+            [
+            7.438398E-10, 4.135615E-10, 7.864899999999999E-10],
+             
+            [
+            6.945976E-10, 1.17765E-10, 4.3784840000000005E-10],
+             
+            [
+            5.669602E-10, 5.561985E-10, 1.414651E-9],
+             
+            [
+            8.694313E-10, 3.09817E-10, 1.0207017000000001E-9],
+             
+            [
+            8.653949000000001E-10, 5.793649000000001E-10, 1.2293632000000002E-9],
+             
+            [
+            6.189153E-10, 2.783343E-10, 1.022894E-9],
+             
+            [
+            8.247593E-10, 5.690697E-10, 1.0228935E-9],
+             
+            [
+            7.497515E-10, 4.0729400000000003E-10, 1.255766E-9],
+             
+            [
+            6.939250000000001E-10, 1.165597E-10, 1.2557681000000001E-9],
+             
+            [
+            5.803992E-10, 1.1420057E-9, 6.146963999999999E-10],
+             
+            [
+            8.632733000000001E-10, 8.512688000000001E-10, 6.146962000000001E-10],
+             
+            [
+            6.118444000000001E-10, 8.577365000000001E-10, 2.031166E-10],
+             
+            [
+            9.079522000000001E-10, 5.920177E-10, 6.125021000000001E-10],
+             
+            [
+            7.490783E-10, 9.899714E-10, 4.378505E-10],
+             
+            [
+            6.998347E-10, 7.042964E-10, 7.864899999999999E-10],
+             
+            [
+            7.438398E-10, 9.950317E-10, 7.864899999999999E-10],
+             
+            [
+            9.829592E-10, 7.537949000000001E-10, 3.796315E-10],
+             
+            [
+            6.945976E-10, 6.992351E-10, 4.3784840000000005E-10],
+             
+            [
+            5.669602E-10, 1.1376686E-9, 1.414651E-9],
+             
+            [
+            8.767125E-10, 8.469336999999999E-10, 1.4146517E-9],
+             
+            [
+            6.189153E-10, 8.598044E-10, 1.022894E-9],
+             
+            [
+            9.008765999999999E-10, 5.940839000000001E-10, 1.4322823E-9],
+             
+            [
+            9.888700000000001E-10, 7.475268E-10, 8.489068E-10],
+             
+            [
+            7.497515E-10, 9.887641E-10, 1.255766E-9],
+             
+            [
+            9.836323E-10, 7.525878E-10, 1.1975466000000002E-9],
+             
+            [
+            6.939250000000001E-10, 6.980298000000001E-10, 1.2557681000000001E-9]],
+          "simulation_cell": [[5.780696E-10, 5.814702E-10, 0.0],
+             
+            [
+            5.780696E-10, -5.814702E-10, 0.0],
+             
+            [
+            0.0, 0.0, 2.5000000000000002E-8]],
+          "configuration_periodic_dimensions": [
+              [true, true, true]
+              ],
+          "atom_labels": ["Sr", "Sr", "Sn", "Sn", "Sn", "Sn", "O", "O", "O", "Sr", "Sr", "Sn", "Sn", "O", "O", "O", "O", "Sr", "Sr", "Sn", "Sn", "O", "O", "O", "O", "Sr", "Sr", "Sn", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "Sn", "Sn", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "Sn", "O", "O", "O", "O", "Sr", "Sr", "O", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "O", "O", "O", "O", "O", "O"]
+        },
+      "section_method-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_method",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "x_fhi_aims_controlIn_sc_accuracy_rho": 1.0E-6,
+          "x_fhi_aims_controlIn_relativistic": "atomic_zora",
+          "x_fhi_aims_controlIn_sc_accuracy_eev": 1.0E-4,
+          "x_fhi_aims_controlIn_sc_iter_limit": 400,
+          "x_fhi_aims_controlInOut_relativistic": "on-site free-atom approximation to ZORA",
+          "x_fhi_aims_controlIn_spin": "none",
+          "x_fhi_aims_controlIn_occupation_type": "gaussian",
+          "x_fhi_aims_controlIn_xc": "pbe",
+          "x_fhi_aims_controlIn_occupation_width": 0.01,
+          "relativity_method": "scalar_relativistic_atomic_ZORA",
+          "x_fhi_aims_controlIn_sc_accuracy_etot": 1.0E-6,
+          "x_fhi_aims_controlInOut_xc": "PBE gradient-corrected functionals",
+          "x_fhi_aims_controlInOut_number_of_spin_channels": 1,
+          "x_fhi_aims_controlIn_k_grid": [8, 8, 1],
+          "x_fhi_aims_controlInOut_k_grid": [8, 8, 1],
+          "section_XC_functionals": [{
+                "type": "nomad_section_1_0",
+                "name": "section_XC_functionals",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 0},
+                "XC_functional_name": "GGA_C_PBE"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_XC_functionals",
+                "gIndex": 1,
+                "references": {
+                  "section_method": 0},
+                "XC_functional_name": "GGA_X_PBE"
+              }],
+          "x_fhi_aims_section_controlIn_basis_set": [{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.1817,0.3417,0.4949,0.6251,0.8014],
+                "x_fhi_aims_controlIn_nucleus": 8.0,
+                "x_fhi_aims_controlIn_mass": 15.9994,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "O",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [50,110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 36.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 0,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 1,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 4.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 2,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 3,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 3.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 4,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.8,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 5,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 7.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 6,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.4,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 7,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 11.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 8,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.2,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 9,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 5.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 10,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "g",
+                      "x_fhi_aims_controlIn_basis_func_radius": 17.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 11,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 0.75,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 1
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 1,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 5.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.6981,0.9394,1.123,1.2482],
+                "x_fhi_aims_controlIn_nucleus": 38.0,
+                "x_fhi_aims_controlIn_mass": 87.62,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "Sr",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 57.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 12,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 13,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 14,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 15,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 16,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 17,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 18,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 19,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 20,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 5.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 21,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 2,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.1666,0.9058,0.9669],
+                "x_fhi_aims_controlIn_nucleus": 50.0,
+                "x_fhi_aims_controlIn_mass": 118.71,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "Sn",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [110,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 63.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 22,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 23,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 24,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 25,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 26,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 27,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 28,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.3,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 29,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 3.7,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 30,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 7.4,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 31,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 3,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.2187,0.4416,0.6335,0.7727,0.8772],
+                "x_fhi_aims_controlIn_nucleus": 6.0,
+                "x_fhi_aims_controlIn_mass": 12.0107,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "C",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [50,110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 34.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 32,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 33,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 34,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 35,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 36,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.7,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 37,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 38,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 4.9,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 39,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 9.8,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 40,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 5.2,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 41,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 4.3,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 42,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "g",
+                      "x_fhi_aims_controlIn_basis_func_radius": 14.4,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 43,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.2,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    }]
+              }]
+        },
+      "section_single_configuration_calculation-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_single_configuration_calculation",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "energy_free_per_atom": -8.297522638168766E-15,
+          "number_of_scf_iterations": 30,
+          "energy_correction_hartree": -1.1019294382858595E-15,
+          "single_configuration_calculation_to_system_ref": 0,
+          "energy_free": -5.642315393954441E-13,
+          "energy_hartree_fock_X_scaled": 0.0,
+          "energy_correction_entropy": 0.0,
+          "energy_C": -3.2250621232357932E-16,
+          "energy_total_T0_per_atom": -8.297522638168766E-15,
+          "electronic_kinetic_energy": 5.84482410725476E-13,
+          "x_fhi_aims_energy_X_LDA": -1.6328758977669848E-14,
+          "energy_sum_eigenvalues": -3.4026363172162314E-13,
+          "energy_X": -1.7220440681027577E-14,
+          "energy_XC_functional": -1.7542946893351155E-14,
+          "energy_hartree_error": -3.356834603624895E-20,
+          "energy_sum_eigenvalues_per_atom": -5.0038769370823626E-15,
+          "energy_total_T0": -5.642315393954441E-13,
+          "energy_total": -5.642315393954441E-13,
+          "single_configuration_to_calculation_method_ref": 1,
+          "energy_electrostatic": -1.1311710032275684E-12,
+          "single_configuration_calculation_converged": 1,
+          "x_fhi_aims_energy_C_LDA": -5.925300835213085E-16,
+          "energy_XC_potential": 2.284357902777889E-14,
+          "section_eigenvalues": [{
+                "type": "nomad_section_1_0",
+                "name": "section_eigenvalues",
+                "gIndex": 0,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "eigenvalues_kpoints": [[[0.0, 0.0, 0.0]]],
+                "eigenvalues_values": [[[-4.805480749167283E-15, -4.805480749167283E-15, -4.805480749167283E-15, -4.805480749167283E-15, -4.80544569674916E-15, -4.80544569674916E-15, -4.80544569674916E-15, -4.80544569674916E-15, -4.805445690340454E-15, -4.805445690340454E-15, -4.805445688738278E-15, -4.805445688738278E-15, -2.6006016353948034E-15, -2.6006016353948034E-15, -2.600601630588274E-15, -2.600601630588274E-15, -2.600601619373038E-15, -2.600601619373038E-15, -2.600601619373038E-15, -2.600601619373038E-15, -2.6004881083702407E-15, -2.6004881083702407E-15, -2.6004881067680642E-15, -2.6004881067680642E-15, -2.6004881019615343E-15, -2.6004881019615343E-15, -2.600488100359358E-15, -2.600488100359358E-15, -7.056928447182027E-16, -7.056928447182027E-16, -7.056928447182027E-16, -7.056928447182027E-16, -7.056595370703206E-16, -7.056595370703206E-16, -7.056595370703206E-16, -7.056595370703206E-16, -7.05659532263791E-16, -7.05659532263791E-16, -7.05659529059438E-16, -7.05659529059438E-16, -6.331850448857104E-16, -6.331850448857104E-16, -6.331850448857104E-16, -6.331850432835339E-16, -6.331848638397625E-16, -6.33184862237586E-16, -6.33184862237586E-16, -6.331848606354094E-16, -6.331847997527013E-16, -6.331847997527013E-16, -6.331847997527013E-16, -6.331847981505248E-16, -6.331520320383098E-16, -6.331520304361333E-16, -6.331520304361333E-16, -6.331520288339568E-16, -6.331520240274271E-16, -6.331520240274271E-16, -6.331520224252506E-16, -6.331520224252506E-16, -6.331518910467751E-16, -6.331518894445985E-16, -6.331518894445985E-16, -6.33151887842422E-16, -6.33151884638069E-16, -6.331518830358924E-16, -6.331518814337159E-16, -6.331518814337159E-16, -6.33150360968189E-16, -6.33150360968189E-16, -6.33150360968189E-16, -6.33150360968189E-16, -6.331503545594828E-16, -6.331503545594828E-16, -6.331503529573063E-16, -6.331503513551298E-16, -3.462215954426166E-16, -3.462215954426166E-16, -3.462215890339105E-16, -3.462215890339105E-16, -3.4622157942085135E-16, -3.4622157942085135E-16, -3.4622157942085135E-16, -3.4622157942085135E-16, -3.4610957766834513E-16, -3.4610957766834513E-16, -3.4610957606616863E-16, -3.4610957606616863E-16, -3.46109571259639E-16, -3.46109571259639E-16, -3.46109571259639E-16, -3.46109571259639E-16, -3.0749026437762025E-16, -3.0749026437762025E-16, -3.074902595710906E-16, -3.074902595710906E-16, -3.074902483558549E-16, -3.074902483558549E-16, -3.074902483558549E-16, -3.074902483558549E-16, -3.0748893617327685E-16, -3.0748893617327685E-16, -3.0748893136674726E-16, -3.0748893136674726E-16, -3.0748892015151152E-16, -3.0748892015151152E-16, -3.0748892015151152E-16, -3.0748892015151152E-16, -3.0748817674160163E-16, -3.0748817674160163E-16, -3.074881703328955E-16, -3.074881703328955E-16, -3.0748816071983634E-16, -3.0748816071983634E-16, -3.0748816071983634E-16, -3.0748816071983634E-16, -3.073774487194368E-16, -3.073774487194368E-16, -3.0737744711726026E-16, -3.0737744711726026E-16, -3.0737744231073067E-16, -3.0737744231073067E-16, -3.0737744231073067E-16, -3.0737744231073067E-16, -3.07376977679537E-16, -3.07376977679537E-16, -3.0737697607736043E-16, -3.0737697447518393E-16, -3.0737697127083084E-16, -3.0737697127083084E-16, -3.0737696966865434E-16, -3.0737696966865434E-16, -3.0737641211122187E-16, -3.0737641211122187E-16, -3.0737641050904537E-16, -3.0737641050904537E-16, -3.073764057025157E-16, -3.073764057025157E-16, -3.073764057025157E-16, -3.0737640410033923E-16, -1.3526265605432697E-16, -1.3526265605432697E-16, -1.3526265605432697E-16, -1.3526265605432697E-16, -1.352298995551711E-16, -1.352298995551711E-16, -1.352298995551711E-16, -1.352298995551711E-16, -1.35229893146465E-16, -1.35229893146465E-16, -1.3522989154428846E-16, -1.3522989154428846E-16, -1.1174120175234182E-16, -1.1174120175234182E-16, -1.1174120175234182E-16, -1.1174120175234182E-16, -1.1174069866891138E-16, -1.1174069866891138E-16, -1.1174069866891138E-16, -1.1174069706673485E-16, -1.117405016011982E-16, -1.117405016011982E-16, -1.117405016011982E-16, -1.117405016011982E-16, -1.1170998494483128E-16, -1.1170998494483128E-16, -1.1170998494483128E-16, -1.1170998494483128E-16, -1.1170997853612516E-16, -1.1170997853612516E-16, -1.1170997693394864E-16, -1.1170997693394864E-16, -1.1170960843334674E-16, -1.1170960843334674E-16, -1.1170960843334674E-16, -1.1170960843334674E-16, -1.1170960362681714E-16, -1.1170960362681714E-16, -1.117096004224641E-16, -1.117096004224641E-16, -1.117044894793334E-16, -1.117044894793334E-16, -1.1170448787715687E-16, -1.1170448787715687E-16, -1.1170448307062727E-16, -1.1170448307062727E-16, -1.117044798662742E-16, -1.117044798662742E-16, -8.150374387190267E-17, -8.150374387190267E-17, -8.150373906537309E-17, -8.150373906537309E-17, -8.150373105449043E-17, -8.150373105449043E-17, -8.150372785013738E-17, -8.150372785013738E-17, -8.150095448256394E-17, -8.150095448256394E-17, -8.150095448256394E-17, -8.150095448256394E-17, -8.150095127821088E-17, -8.150095127821088E-17, -8.150094326732824E-17, -8.150094326732824E-17, -8.150024792271421E-17, -8.150024792271421E-17, -8.150024311618463E-17, -8.150024311618463E-17, -8.150024151400809E-17, -8.150024151400809E-17, -8.150022869659586E-17, -8.150022869659586E-17, -8.149462428309391E-17, -8.149462428309391E-17, -8.149462428309391E-17, -8.149462428309391E-17, -8.149462268091738E-17, -8.149462268091738E-17, -8.149461467003473E-17, -8.149461467003473E-17, -8.141822930179045E-17, -8.141822930179045E-17, -8.141822289308433E-17, -8.141822289308433E-17, -8.141821808655474E-17, -8.141821808655474E-17, -8.141821808655474E-17, -8.141821808655474E-17, -7.560300141203305E-17, -7.560300141203305E-17, -7.560300141203305E-17, -7.560300141203305E-17, -7.560276909643621E-17, -7.560276909643621E-17, -7.560276909643621E-17, -7.560276909643621E-17, -7.560254959825159E-17, -7.560254959825159E-17, -7.560254799607505E-17, -7.560254799607505E-17, -7.560136558979592E-17, -7.560136558979592E-17, -7.560136558979592E-17, -7.560136558979592E-17, -7.560104355231339E-17, -7.560104355231339E-17, -7.560104355231339E-17, -7.560104355231339E-17, -7.557238702289781E-17, -7.557238702289781E-17, -7.557238702289781E-17, -7.557238702289781E-17, -7.557238061419168E-17, -7.557238061419168E-17, -7.557237901201516E-17, -7.557237901201516E-17, -7.557086655737084E-17, -7.557086655737084E-17, -7.557086655737084E-17, -7.557086655737084E-17, -7.557086014866473E-17, -7.557086014866473E-17, -7.557085854648819E-17, -7.557085854648819E-17, -7.556895516077056E-17, -7.556895516077056E-17, -7.556895516077056E-17, -7.556895516077056E-17, -7.556894875206443E-17, -7.556894875206443E-17, -7.556894714988791E-17, -7.556894714988791E-17, -7.556868599511351E-17, -7.556868599511351E-17, -7.556868599511351E-17, -7.556868599511351E-17, -7.556867958640739E-17, -7.556867958640739E-17, -7.556867798423086E-17, -7.556867798423086E-17, -7.556608566260532E-17, -7.556608566260532E-17, -7.556608566260532E-17, -7.556608566260532E-17, -7.55660792538992E-17, -7.55660792538992E-17, -7.556607765172267E-17, -7.556607765172267E-17, -5.289382657810996E-17, -5.289382657810996E-17, -5.289382177158037E-17, -5.289382177158037E-17, -5.289381215852119E-17, -5.289381215852119E-17, -5.289381215852119E-17, -5.289381215852119E-17, -5.2782217358853635E-17, -5.2782217358853635E-17, -5.27822157566771E-17, -5.27822157566771E-17, -5.278221095014751E-17, -5.278221095014751E-17, -5.278221095014751E-17, -5.278221095014751E-17, -4.044660683842564E-17, -4.044660683842564E-17, -4.044660203189605E-17, -4.044660203189605E-17, -4.044659241883687E-17, -4.044659241883687E-17, -4.044659081666034E-17, -4.044659081666034E-17, -4.044248283603742E-17, -4.044248283603742E-17, -4.04424764273313E-17, -4.04424764273313E-17, -4.044246681427212E-17, -4.044246681427212E-17, -4.044246681427212E-17, -4.044246681427212E-17, -4.044044326531473E-17, -4.044044326531473E-17, -4.044043845878514E-17, -4.044043845878514E-17, -4.044042884572596E-17, -4.044042884572596E-17, -4.044042884572596E-17, -4.044042884572596E-17, -4.033293241362214E-17, -4.033293241362214E-17, -4.0332930811445614E-17, -4.0332930811445614E-17, -4.033292600491602E-17, -4.033292600491602E-17, -4.033292600491602E-17, -4.033292600491602E-17, -4.033165067239814E-17, -4.033165067239814E-17, -4.033164907022161E-17, -4.033164907022161E-17, -4.033164426369202E-17, -4.033164426369202E-17, -4.033164426369202E-17, -4.033164426369202E-17, -4.0330176669990544E-17, -4.0330176669990544E-17, -4.033017346563748E-17, -4.033017346563748E-17, -4.033017026128442E-17, -4.033017026128442E-17, -4.033016865910789E-17, -4.033016865910789E-17, -2.118801236016254E-17, -2.118801236016254E-17, -2.118801236016254E-17, -2.118801236016254E-17, -2.115637738457769E-17, -2.115637738457769E-17, -2.115637738457769E-17, -2.115637738457769E-17, -2.11563725780481E-17, -2.115637097587157E-17, -2.1156369373695044E-17, -2.1156369373695044E-17, -1.991563906233345E-17, -1.991563906233345E-17, -1.9915632653627333E-17, -1.9915632653627333E-17, -1.991562304056815E-17, -1.991562304056815E-17, -1.991562304056815E-17, -1.991562304056815E-17, -1.991536028361723E-17, -1.991536028361723E-17, -1.991535547708764E-17, -1.991535547708764E-17, -1.9915344261851932E-17, -1.9915344261851932E-17, -1.9915344261851932E-17, -1.9915344261851932E-17, -1.99137404831454E-17, -1.99137404831454E-17, -1.991373407443928E-17, -1.991373407443928E-17, -1.99137244613801E-17, -1.99137244613801E-17, -1.99137244613801E-17, -1.99137244613801E-17, -1.991058099102824E-17, -1.991058099102824E-17, -1.991057618449865E-17, -1.991057618449865E-17, -1.991056496926294E-17, -1.991056496926294E-17, -1.991056496926294E-17, -1.991056496926294E-17, -1.9910351879784452E-17, -1.9910351879784452E-17, -1.991034707325486E-17, -1.991034707325486E-17, -1.991033585801915E-17, -1.991033585801915E-17, -1.991033585801915E-17, -1.991033585801915E-17, -1.980286506073981E-17, -1.980286506073981E-17, -1.980286345856328E-17, -1.980286345856328E-17, -1.980285865203369E-17, -1.980285865203369E-17, -1.980285865203369E-17, -1.980285865203369E-17, -1.9802743295323533E-17, -1.9802743295323533E-17, -1.9802741693147E-17, -1.9802741693147E-17, -1.980273688661741E-17, -1.980273688661741E-17, -1.980273688661741E-17, -1.980273688661741E-17, -1.98015400607495E-17, -1.98015400607495E-17, -1.980153845857297E-17, -1.980153845857297E-17, -1.980153365204338E-17, -1.980153365204338E-17, -1.980153365204338E-17, -1.980153365204338E-17, -1.9800641239716173E-17, -1.9800641239716173E-17, -1.980063963753964E-17, -1.980063963753964E-17, -1.980063483101005E-17, -1.980063483101005E-17, -1.980063483101005E-17, -1.980063483101005E-17, -1.9800497043828473E-17, -1.9800497043828473E-17, -1.980049383947541E-17, -1.980049383947541E-17, -1.980048903294582E-17, -1.980048903294582E-17, -1.980048903294582E-17, -1.980048903294582E-17, -1.410599155343004E-17, -1.4105989951253512E-17, -1.4105989951253512E-17, -1.410598354254739E-17, -1.410523532610788E-17, -1.410523212175482E-17, -1.410523212175482E-17, -1.41052257130487E-17, -1.410474666226623E-17, -1.4104745060089698E-17, -1.4104743457913172E-17, -1.410474185573664E-17, -1.4077327013131812E-17, -1.4077327013131812E-17, -1.4077327013131812E-17, -1.4077320604425692E-17, -1.4077320604425692E-17, -1.407731900224916E-17, -1.407731900224916E-17, -1.407731099136651E-17, -1.407638333115564E-17, -1.407638012680258E-17, -1.407638012680258E-17, -1.407637692244952E-17, -1.407637532027299E-17, -1.407637371809646E-17, -1.407637211591993E-17, -1.407636570721381E-17, -1.406778444971913E-17, -1.40677828475426E-17, -1.40677828475426E-17, -1.40677828475426E-17, -1.406777804101301E-17, -1.406777804101301E-17, -1.406777643883648E-17, -1.4067774836659952E-17, -5.97512190309834E-18, -5.9751106878626295E-18, -5.97311277372972E-18, -5.9731079672001305E-18, -5.97309995631748E-18, -5.97309835414095E-18, -5.97123822718962E-18, -5.97122701195391E-18, -5.86784817353219E-18, -5.86669300425406E-18, -5.86568203086363E-18, -5.86568203086363E-18, -5.8646870792385005E-18, -5.86468547706197E-18, -5.86373859073274E-18, -5.86281093052187E-18, -4.00250293324398E-18, -3.99075417274949E-18, -3.99075257057296E-18, -3.98703071449377E-18, -3.9765781148120496E-18, -3.9765685017528706E-18, -3.96341463244157E-18, -3.96257509193985E-18, -3.96257509193985E-18, -3.96021668808769E-18, -3.96021668808769E-18, -3.94978331452433E-18, -3.94751943908744E-18, -3.94751783691091E-18, -3.94388730489393E-18, -3.9252363679082E-18, -3.92168434254119E-18, -3.9157562893801904E-18, -3.9157562893801904E-18, -3.9112493668013E-18, -3.909224215667381E-18, -3.9092226134908506E-18, -3.90063494729005E-18, -3.89873316374894E-18, -3.89873316374894E-18, -3.89781351442072E-18, -3.8977702556544106E-18, -3.89764849023813E-18, -3.89741617464128E-18, -3.89674806702827E-18, -3.89661829072934E-18, -3.89661829072934E-18, -3.89484147695757E-18, -3.89441369582406E-18, -3.89441369582406E-18, -3.89322007430921E-18, -3.87485913127541E-18, -3.8748511203927606E-18, -3.8721642703519506E-18, -3.8721642703519506E-18, -3.87215305511624E-18, -3.87215145293971E-18, -3.86935565489486E-18, -3.8693476440122095E-18, -3.86657107208572E-18, -3.86652300678982E-18, -3.86577318817378E-18, -3.86577158599725E-18, -3.86575235987889E-18, -3.86575235987889E-18, -3.86558573351977E-18, -3.86553766822387E-18, -3.8635846150338E-18, -3.86356058238585E-18, -3.86277231153309E-18, -3.86277231153309E-18, -3.8627290527667796E-18, -3.8627290527667796E-18, -3.8626393308811E-18, -3.86258005034949E-18, -3.51665251358066E-18, -3.5034009115010304E-18, -3.47579861424219E-18, -3.44954534962161E-18, -3.4495437474450804E-18, -3.42416847556294E-18, -3.42416687338641E-18, -3.3940635785642403E-18, -3.3936101626062497E-18, -3.3936101626062497E-18, -3.39028083977691E-18, -3.3902776354238504E-18, -3.3870973150118E-18, -3.37988111192068E-18, -3.3742670853595603E-18, -3.3636574723779E-18, -3.36365587020137E-18, -3.35723915319872E-18, -3.3572375510221898E-18, -3.35550880254632E-18, -3.34559453417868E-18, -3.322753905567E-18, -3.322753905567E-18, -3.31535825870452E-18, -3.2962587122903903E-18, -3.29035308960081E-18, -3.23087549027762E-18, -3.2299958953626497E-18, -3.22558350119903E-18, -3.19389565378869E-18, -3.19389405161216E-18, -3.18890327172121E-18, -3.18529036364606E-18, -3.1838660287108897E-18, -3.18074819318351E-18, -3.1345702612358504E-18, -3.1345686590593203E-18, -3.1332853156587898E-18, -3.1115934476191203E-18, -3.11159184544259E-18, -3.09787400999273E-18, -3.09745103538881E-18, -3.0879469242128503E-18, -3.0873557210732805E-18, -3.08735251672022E-18, -3.08692633776324E-18, -3.08692473558671E-18, -3.08678214187554E-18, -3.08375402823384E-18, -3.08108960866445E-18, -3.05948906468699E-18, -3.05948746251046E-18, -3.05683906470637E-18, -3.05683906470637E-18, -3.04276714824338E-18, -3.04191318815289E-18, -3.0000306914821604E-18, -2.9973903045607203E-18, -2.9875769733144698E-18, -2.9857024267743703E-18, -2.98170018980243E-18, -2.98170018980243E-18, -2.97875538934029E-18, -2.97875538934029E-18, -2.97623837001166E-18, -2.9734185393188603E-18, -2.9720791197397805E-18, -2.967711586519E-18, -2.967711586519E-18, -2.966750280601E-18, -2.9589364656641897E-18, -2.95238676800955E-18, -2.95166098204146E-18, -2.9516593798649297E-18, -2.9447443859614502E-18, -2.94010928926016E-18, -2.94010768708363E-18, -2.939833714897E-18, -2.93983211272047E-18, -2.9336765504922097E-18, -2.92605980326859E-18, -2.9234130076410304E-18, -2.9234114054645003E-18, -2.9127312967155197E-18, -2.91200871510049E-18, -2.91200871510049E-18, -2.9104017320409E-18, -2.90780941041536E-18, -2.00019723446525E-18, -1.89152480478841E-18, -1.7909898297074403E-18, -1.73022568263066E-18, -1.73022568263066E-18, -1.64259143296925E-18, -1.64259143296925E-18, -1.5184435801891401E-18, -1.51844197801261E-18, -1.46001059996351E-18, -1.4324948202372901E-18, -1.4257560657521102E-18, -1.40893641654017E-18, -1.4052626257568802E-18, -1.39919838759083E-18, -1.39137976612443E-18, -1.3893546149905102E-18, -1.38748807933306E-18, -1.38748647715653E-18, -1.35622160435011E-18, -1.35622000217358E-18, -1.3406917072448203E-18, -1.3406917072448203E-18, -1.28063091566471E-18, -1.28063091566471E-18, -1.2288485702151102E-18, -1.1974250819322201E-18, -1.19275473734727E-18, -1.15057583801849E-18, -1.1425986010756201E-18, -1.14259699889909E-18, -1.1181702155227101E-18, -1.11816861334618E-18, -1.10906985283231E-18, -1.10451326278099E-18, -1.10451326278099E-18, -1.06060401279981E-18, -1.05720419420315E-18, -1.0572009898500901E-18, -1.0467628097571401E-18, -1.0439269572990399E-18, -1.03740609882194E-18, -1.0374044966454101E-18, -1.02254591150619E-18, -1.0198334266409E-18, -1.01619167938821E-18, -1.0091997810112902E-18, -1.0091997810112902E-18, -9.9169279806798E-19, -9.7150857814304E-19, -9.6872719968696E-19, -9.6385978738882E-19, -9.6385978738882E-19, -9.5023327600117E-19, -9.428296182560401E-19, -9.4282801607951E-19, -9.3225685533457E-19, -9.3100074893505E-19, -9.175793161432401E-19, -9.0578249035285E-19, -9.0578088817632E-19, -8.9559264762205E-19, -8.9314452188421E-19, -8.931413175311502E-19, -8.8692647477128E-19, -8.8692647477128E-19, -8.849557976393801E-19, -8.755830649388799E-19, -8.719797699229101E-19, -8.719797699229101E-19, -8.6804802871829E-19, -8.6448318593904E-19, -8.632543165405301E-19, -8.6153518112384E-19, -8.615335789473101E-19, -8.5260785349868E-19, -8.526062513221501E-19, -8.4967106391919E-19, -8.488171038287001E-19, -8.4446719454975E-19, -8.444639901966901E-19, -8.3963983666486E-19, -8.388355440468E-19, -8.388355440468E-19, -8.3769960088703E-19, -8.3654122725584E-19, -8.322345767432E-19, -8.2810256347233E-19, -8.1531719476293E-19, -8.0877230363788E-19, -8.0876429275523E-19, -7.9757469186971E-19, -7.975714875166499E-19, -7.9720619126781E-19, -7.9592124569075E-19, -7.92436511738E-19, -7.924333073849399E-19, -7.873784404327901E-19, -7.759917718340799E-19, -7.739858468185201E-19, -7.739826424654601E-19, -7.738352422247001E-19, -7.738320378716401E-19, -7.6996919025781E-19, -7.6520912378718E-19, -7.6520752161065E-19, -7.641420742182E-19, -7.589077634946899E-19, -7.5679769700468E-19, -7.5568578649286E-19, -7.545258106851401E-19, -7.4527804775398E-19, -7.3410927516335E-19, -7.2771018210253E-19, -7.256385678492401E-19, -7.256353634961801E-19, -7.167913490505801E-19, -7.1611523055492E-19, -7.125551943052601E-19, -7.125551943052601E-19, -3.9807998499686E-19, -2.8465710190857004E-19, -1.8265453312612E-19, -8.118068259857E-20, -5.607617855000001E-21, 2.784743026793E-20, 2.784903244446E-20, 7.089150492291E-20, 7.089310709944E-20, 7.264749039979E-20, 7.264909257632001E-20, 9.771995091776E-20, 9.771995091776E-20, 1.6775108704406002E-19, 1.7276109305337E-19, 1.7754198781889001E-19, 1.7754198781889001E-19, 1.9578276761294001E-19, 1.971478220165E-19, 2.4169473825662E-19, 2.4169634043315E-19, 2.4639231984258003E-19, 2.5279782160952E-19, 2.5837179375739E-19, 2.7372224709132E-19, 2.9948204134066004E-19, 3.0259667251498E-19, 3.0373902438087E-19, 3.0373902438087E-19, 3.0625764588603E-19, 3.3015410883098E-19, 3.3034476783805005E-19, 3.5936819567899997E-19, 3.6091109167739E-19, 3.6836762124801004E-19, 3.9564788102432E-19, 4.0587777816837E-19, 4.1400882405811997E-19, 4.1401202841118E-19, 4.1680462210297003E-19, 4.4354815274173E-19, 4.4355616362438E-19, 4.5406483948465E-19, 4.5406804383771E-19, 4.5587209461049E-19, 4.7423463982082E-19, 4.7818400496727E-19, 4.8451580661383E-19, 4.8542904723593E-19, 4.8543385376552E-19, 4.8657620563141E-19, 4.86581012161E-19, 4.9565093349733E-19, 5.109597302414801E-19, 5.3291275305554E-19, 5.3291755958513E-19, 5.3640229353788E-19, 5.3640389571441E-19, 5.4068811575563E-19, 5.4675235392168E-19, 5.4754543130403005E-19, 5.4754703348056E-19, 5.553111809449401E-19, 5.5897375649252E-19, 5.589753586690499E-19, 5.7285661612497E-19, 5.755594879310801E-19, 5.8303844797312E-19, 5.8504917951827005E-19, 5.8780812750293E-19, 5.9537040072453E-19, 5.9537200290106E-19, 6.0201302461791E-19, 6.1120631354705E-19, 6.1120951790011E-19, 6.3063751050289E-19, 6.3550972933062E-19, 6.3553376197857E-19, 6.7509630703386E-19, 6.7509790921039E-19, 6.826153214891501E-19, 6.8262173019527E-19, 6.879073105677401E-19, 6.8946622833143E-19, 7.0707094404307E-19, 7.0903841682191E-19, 7.090432233515001E-19, 7.134652305743E-19, 7.1347003710389E-19, 7.258228181501901E-19, 7.2582602250325E-19, 7.3615044806257E-19, 7.538641117782501E-19, 7.636902604367401E-19, 7.7247659652726E-19, 7.833361490476E-19, 7.8333935340066E-19, 8.0288911141972E-19, 8.0289391794931E-19, 8.1097850071969E-19, 8.109833072492799E-19, 8.1762112461307E-19, 8.1762272678960005E-19, 8.2952209187791E-19, 8.3092239416513E-19, 8.317555259607301E-19, 8.3855996968364E-19, 8.4769237590464E-19, 8.476955802577E-19, 8.587137482545101E-19, 8.587153504310401E-19, 8.7618708549069E-19, 8.7618868766722E-19, 8.9160322806235E-19, 8.9174101524393E-19, 9.0382943716278E-19, 9.2417227256419E-19, 9.2417387474072E-19, 9.245936449915801E-19, 9.251303741291301E-19, 9.3860467874643E-19, 9.6203170396809E-19, 9.6694077285601E-19, 9.6991601467222E-19, 1.00980219938657E-18, 1.01226634688971E-18, 1.01226955124277E-18, 1.01867665518624E-18, 1.03208206621275E-18, 1.06597130417531E-18, 1.06977487125753E-18, 1.06977807561059E-18, 1.082110028362E-18, 1.1044283474249001E-18, 1.10443315395449E-18, 1.10710878875959E-18, 1.10711039093612E-18, 1.13711755516649E-18, 1.13711915734302E-18, 1.1372601488776601E-18, 1.14729137613199E-18, 1.14984364334428E-18, 1.15305600728693E-18, 1.17695727676147E-18, 1.176958878938E-18, 1.19534866114934E-18, 1.20972979768262E-18, 1.20973139985915E-18, 1.24445697397037E-18, 1.2464324576318601E-18, 1.24643405980839E-18, 1.25113805010047E-18, 1.2554126570825101E-18, 1.2554158614355699E-18, 1.25978339465635E-18, 1.26984185891169E-18, 1.2734099060440002E-18, 1.27341150822053E-18, 1.29758034117558E-18, 1.30090165312227E-18, 1.3022779227615402E-18, 1.3401133215174902E-18, 1.34231150771665E-18, 1.3499570941178101E-18, 1.35612387158178E-18, 1.37823871422537E-18, 1.3782419185784299E-18, 1.42077169456728E-18, 1.42132444547013E-18, 1.45715071485746E-18, 1.46911256483044E-18, 1.4691157691835E-18, 1.47364672441034E-18, 1.47364832658687E-18, 1.4773573652538201E-18, 1.49775787901031E-18, 1.5322046744053099E-18, 1.5322094809349E-18, 1.53800295126738E-18, 1.5380045534439101E-18, 1.5515878060652502E-18, 1.56344070803419E-18, 1.5792173403251001E-18, 1.57921894250163E-18, 1.61035243683259E-18, 1.6144492022198E-18, 1.61445080439633E-18, 1.61847707401622E-18, 1.6664013783815801E-18, 1.66640298055811E-18, 1.66845216433998E-18, 1.66946313773041E-18, 1.70443865138031E-18, 1.7147438508212701E-18, 1.7156715110321401E-18, 1.7156747153852E-18, 1.71640851223594E-18, 1.7227803682957502E-18, 1.73906008401708E-18, 1.7390632883701402E-18, 1.775692248199E-18, 1.79148810660827E-18, 1.7914897087848E-18, 1.79637314284824E-18, 1.80546549465599E-18, 1.82982338444158E-18, 1.82982498661811E-18, 1.84698269507788E-18, 1.85078465998357E-18, 1.86925775537447E-18, 1.91144626776243E-18, 1.91145107429202E-18, 1.96543320811731E-18, 1.9654380146469E-18, 1.9670081476463E-18, 1.97814968323592E-18, 1.99260772424264E-18, 1.99505424780395E-18, 2.0039719623699297E-18, 2.0172491992740403E-18, 2.0417592958299802E-18, 2.0417673067126303E-18, 2.05184499708633E-18, 2.05313955572257E-18, 2.0531459644286904E-18, 2.06554681077089E-18, 2.1006809398972604E-18, 2.12545058905106E-18, 2.14020182836277E-18, 2.15081464569749E-18, 2.1508178500505502E-18, 2.16878145330491E-18, 2.17674266848248E-18, 2.18274442176386E-18, 2.1864582669604003E-18, 2.1864582669604003E-18, 2.2168611687936802E-18, 2.21686437314674E-18, 2.24375370184973E-18, 2.24376011055585E-18, 2.25318251072878E-18, 2.26896555172581E-18, 2.27099070285973E-18, 2.2709955093893202E-18, 2.29924989249587E-18, 2.2992514946724E-18, 2.33442567821202E-18, 2.34120769146351E-18, 2.36220421488916E-18, 2.40710360996588E-18, 2.40711162084853E-18, 2.4100580234872003E-18, 2.41005962566373E-18, 2.41192455914465E-18, 2.41437108270596E-18, 2.43986171129826E-18, 2.44165935336492E-18, 2.48190762997505E-18, 2.50980152336235E-18, 2.51375409286186E-18, 2.51897238182007E-18, 2.51897718834966E-18, 2.52648018103965E-18, 2.52648338539271E-18, 2.5275215957841503E-18, 2.5366059367092503E-18, 2.5981599568153197E-18, 2.6090403376305502E-18, 2.6294392492105102E-18, 2.63308580299279E-18, 2.64666264690801E-18, 2.64667065779066E-18]]],
+                "eigenvalues_occupation": [[[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]]
+              }],
+          "section_scf_iteration": [{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 0,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.413710050259787E-13,
+                "energy_correction_hartree_scf_iteration": 0.0,
+                "energy_free_scf_iteration": -5.642433858798966E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844768703199598E-13,
+                "energy_hartree_error_scf_iteration": 0.0,
+                "energy_XC_potential_scf_iteration": 2.2814542752589032E-14,
+                "energy_total_scf_iteration": -5.642433858798966E-13,
+                "x_fhi_aims_scf_time_start": "125115.115",
+                "energy_total_T0_per_atom_scf_iteration": -8.29769685117502E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0201618386181346E-15,
+                "energy_XC_scf_iteration": -1.7520313236544645E-14,
+                "energy_free_per_atom_scf_iteration": -8.29769685117502E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642433858798966E-13,
+                "energy_electrostatic_scf_iteration": -1.13119994296331E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 1,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.411709745317034E-13,
+                "energy_correction_hartree_scf_iteration": -1.9663359644006112E-16,
+                "energy_free_scf_iteration": -5.642383758272576E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.84502423288938E-13,
+                "energy_hartree_error_scf_iteration": 2.88361654481236E-21,
+                "energy_XC_potential_scf_iteration": 2.282216799048789E-14,
+                "energy_total_scf_iteration": -5.642383758272576E-13,
+                "x_fhi_aims_scf_time_start": "125641.905",
+                "energy_total_T0_per_atom_scf_iteration": -8.297623173930516E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0172202137019206E-15,
+                "energy_XC_scf_iteration": -1.7526325319639706E-14,
+                "energy_free_per_atom_scf_iteration": -8.297623173930516E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642383758272576E-13,
+                "energy_electrostatic_scf_iteration": -1.1312144737965574E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 5.01000600931E-18
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 2,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4061766452221717E-13,
+                "energy_correction_hartree_scf_iteration": -7.477654891206437E-16,
+                "energy_free_scf_iteration": -5.64232035798686E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.845520637080534E-13,
+                "energy_hartree_error_scf_iteration": 5.24266607411395E-21,
+                "energy_XC_potential_scf_iteration": 2.2841721579067503E-14,
+                "energy_total_scf_iteration": -5.64232035798686E-13,
+                "x_fhi_aims_scf_time_start": "125840.812",
+                "energy_total_T0_per_atom_scf_iteration": -8.297529938215358E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.009083301796887E-15,
+                "energy_XC_scf_iteration": -1.7541716996455046E-14,
+                "energy_free_per_atom_scf_iteration": -8.297529938215358E-15,
+                "energy_correction_entropy_scf_iteration": -0.0,
+                "energy_total_T0_scf_iteration": -5.64232035798686E-13,
+                "energy_electrostatic_scf_iteration": -1.1312423825102843E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 6.33981252921E-18
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 3,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4049640171263036E-13,
+                "energy_correction_hartree_scf_iteration": -8.683911242510288E-16,
+                "energy_free_scf_iteration": -5.642319153301291E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.845163064951694E-13,
+                "energy_hartree_error_scf_iteration": -1.2684692742784391E-20,
+                "energy_XC_potential_scf_iteration": 2.28386649661388E-14,
+                "energy_total_scf_iteration": -5.642319153301291E-13,
+                "x_fhi_aims_scf_time_start": "130041.419",
+                "energy_total_T0_per_atom_scf_iteration": -8.297528166619875E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.007300025186259E-15,
+                "energy_XC_scf_iteration": -1.7539177089424256E-14,
+                "energy_free_per_atom_scf_iteration": -8.297528166619875E-15,
+                "energy_correction_entropy_scf_iteration": -0.0,
+                "energy_total_T0_scf_iteration": -5.642319153301291E-13,
+                "energy_electrostatic_scf_iteration": -1.1312090447358725E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.204676532907E-19
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 4,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4027012671689504E-13,
+                "energy_correction_hartree_scf_iteration": -1.0952423509095823E-15,
+                "energy_free_scf_iteration": -5.642315519556846E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.845057875155789E-13,
+                "energy_hartree_error_scf_iteration": -2.3536280843593758E-20,
+                "energy_XC_potential_scf_iteration": 2.2842761919350766E-14,
+                "energy_total_scf_iteration": -5.642315519556846E-13,
+                "x_fhi_aims_scf_time_start": "130242.023",
+                "energy_total_T0_per_atom_scf_iteration": -8.29752282287729E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003972451718998E-15,
+                "energy_XC_scf_iteration": -1.754233443727006E-14,
+                "energy_free_per_atom_scf_iteration": -8.29752282287729E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315519556846E-13,
+                "energy_electrostatic_scf_iteration": -1.131195005033995E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 3.63373637004E-19
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 5,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402177633137395E-13,
+                "energy_correction_hartree_scf_iteration": -1.1479572071226465E-15,
+                "energy_free_scf_iteration": -5.642315415986178E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844979998026403E-13,
+                "energy_hartree_error_scf_iteration": -2.971860582861088E-20,
+                "energy_XC_potential_scf_iteration": 2.2844312637953635E-14,
+                "energy_total_scf_iteration": -5.642315415986178E-13,
+                "x_fhi_aims_scf_time_start": "130442.533",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522670567981E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0032024016732995E-15,
+                "energy_XC_scf_iteration": -1.7543523345747126E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522670567981E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315415986178E-13,
+                "energy_electrostatic_scf_iteration": -1.131186018055511E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.035646908992E-20
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 6,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4024572050705945E-13,
+                "energy_correction_hartree_scf_iteration": -1.119908730413291E-15,
+                "energy_free_scf_iteration": -5.642315396737566E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844934638662611E-13,
+                "energy_hartree_error_scf_iteration": -3.078027689097967E-20,
+                "energy_XC_potential_scf_iteration": 2.2843887770862003E-14,
+                "energy_total_scf_iteration": -5.642315396737566E-13,
+                "x_fhi_aims_scf_time_start": "130643.434",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522642260727E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003613536868781E-15,
+                "energy_XC_scf_iteration": -1.754318783718516E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522642260727E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315396737566E-13,
+                "energy_electrostatic_scf_iteration": -1.1311818157028325E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.92421401253E-21
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 7,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402631914304693E-13,
+                "energy_correction_hartree_scf_iteration": -1.102416900613673E-15,
+                "energy_free_scf_iteration": -5.642315395556505E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844875352171882E-13,
+                "energy_hartree_error_scf_iteration": -3.21890562942199E-20,
+                "energy_XC_potential_scf_iteration": 2.2843788863613358E-14,
+                "energy_total_scf_iteration": -5.642315395556505E-13,
+                "x_fhi_aims_scf_time_start": "130843.414",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522640523967E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003870462212761E-15,
+                "energy_XC_scf_iteration": -1.7543109718220253E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522640523967E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315395556505E-13,
+                "energy_electrostatic_scf_iteration": -1.1311759650546184E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.181124537916E-22
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 8,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026672481872936E-13,
+                "energy_correction_hartree_scf_iteration": -1.0988382644996086E-15,
+                "energy_free_scf_iteration": -5.642315394414971E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844830338517169E-13,
+                "energy_hartree_error_scf_iteration": -3.302842536305119E-20,
+                "energy_XC_potential_scf_iteration": 2.2843585949086972E-14,
+                "energy_total_scf_iteration": -5.642315394414971E-13,
+                "x_fhi_aims_scf_time_start": "131043.984",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638844885E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003922423804914E-15,
+                "energy_XC_scf_iteration": -1.7542951937392842E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638844885E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315394414971E-13,
+                "energy_electrostatic_scf_iteration": -1.1311716213558211E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.141550777625E-22
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 9,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026474987493086E-13,
+                "energy_correction_hartree_scf_iteration": -1.10081533317992E-15,
+                "energy_free_scf_iteration": -5.642315394201657E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844828945921512E-13,
+                "energy_hartree_error_scf_iteration": -3.309669250281796E-20,
+                "energy_XC_potential_scf_iteration": 2.284359650645137E-14,
+                "energy_total_scf_iteration": -5.642315394201657E-13,
+                "x_fhi_aims_scf_time_start": "131243.839",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638532461E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0038933805132884E-15,
+                "energy_XC_scf_iteration": -1.754296034854405E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638532461E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315394201657E-13,
+                "energy_electrostatic_scf_iteration": -1.1311714736637727E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 2.1324969614300002E-23
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 10,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402628092453685E-13,
+                "energy_correction_hartree_scf_iteration": -1.1027490990052278E-15,
+                "energy_free_scf_iteration": -5.642315394092485E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.84482092108738E-13,
+                "energy_hartree_error_scf_iteration": -3.3334921733240193E-20,
+                "energy_XC_potential_scf_iteration": 2.284356697014279E-14,
+                "energy_total_scf_iteration": -5.642315394092485E-13,
+                "x_fhi_aims_scf_time_start": "131442.478",
+                "energy_total_T0_per_atom_scf_iteration": -8.29752263837064E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003864841843183E-15,
+                "energy_XC_scf_iteration": -1.754293766505531E-14,
+                "energy_free_per_atom_scf_iteration": -8.29752263837064E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315394092485E-13,
+                "energy_electrostatic_scf_iteration": -1.1311706938529312E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.091723087542E-23
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 11,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026332361857587E-13,
+                "energy_correction_hartree_scf_iteration": -1.102234402597172E-15,
+                "energy_free_scf_iteration": -5.642315394076718E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844820712915478E-13,
+                "energy_hartree_error_scf_iteration": -3.336150825057901E-20,
+                "energy_XC_potential_scf_iteration": 2.2843565613515837E-14,
+                "energy_total_scf_iteration": -5.642315394076718E-13,
+                "x_fhi_aims_scf_time_start": "131643.211",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638348212E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003872406155975E-15,
+                "energy_XC_scf_iteration": -1.7542936630052475E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638348212E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315394076718E-13,
+                "energy_electrostatic_scf_iteration": -1.1311706740691689E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.576862140826E-24
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 12,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026416401486253E-13,
+                "energy_correction_hartree_scf_iteration": -1.1013946231212095E-15,
+                "energy_free_scf_iteration": -5.642315394056933E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.84482106624459E-13,
+                "energy_hartree_error_scf_iteration": -3.343367188366674E-20,
+                "energy_XC_potential_scf_iteration": 2.2843568456389035E-14,
+                "energy_total_scf_iteration": -5.642315394056933E-13,
+                "x_fhi_aims_scf_time_start": "131843.721",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638319372E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003884764924355E-15,
+                "energy_XC_scf_iteration": -1.7542938854136256E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638319372E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315394056933E-13,
+                "energy_electrostatic_scf_iteration": -1.1311707071760159E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.97868801455E-24
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 13,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026380571741906E-13,
+                "energy_correction_hartree_scf_iteration": -1.1017544846863227E-15,
+                "energy_free_scf_iteration": -5.642315393991307E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844822709511933E-13,
+                "energy_hartree_error_scf_iteration": -3.35320166834312E-20,
+                "energy_XC_potential_scf_iteration": 2.2843575209723326E-14,
+                "energy_total_scf_iteration": -5.642315393991307E-13,
+                "x_fhi_aims_scf_time_start": "132045.031",
+                "energy_total_T0_per_atom_scf_iteration": -8.29752263822324E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003879495844799E-15,
+                "energy_XC_scf_iteration": -1.75429440367864E-14,
+                "energy_free_per_atom_scf_iteration": -8.29752263822324E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393991307E-13,
+                "energy_electrostatic_scf_iteration": -1.131170866313536E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 6.56251506688E-24
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 14,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636845856299E-13,
+                "energy_correction_hartree_scf_iteration": -1.1018759416756098E-15,
+                "energy_free_scf_iteration": -5.642315393982111E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844823274558756E-13,
+                "energy_hartree_error_scf_iteration": -3.354116991794709E-20,
+                "energy_XC_potential_scf_iteration": 2.284357657414647E-14,
+                "energy_total_scf_iteration": -5.642315393982111E-13,
+                "x_fhi_aims_scf_time_start": "132245.676",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638208821E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003877714495265E-15,
+                "energy_XC_scf_iteration": -1.754294507509132E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638208821E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393982111E-13,
+                "energy_electrostatic_scf_iteration": -1.131170921778997E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 9.18367586996E-25
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 15,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402635735765155E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019875243948664E-15,
+                "energy_free_scf_iteration": -5.6423153939621E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844823975032481E-13,
+                "energy_hartree_error_scf_iteration": -3.356455208222591E-20,
+                "energy_XC_potential_scf_iteration": 2.284357889044833E-14,
+                "energy_total_scf_iteration": -5.6423153939621E-13,
+                "x_fhi_aims_scf_time_start": "132445.861",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638179982E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0038760820071575E-15,
+                "energy_XC_scf_iteration": -1.7542946815785624E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638179982E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.6423153939621E-13,
+                "energy_electrostatic_scf_iteration": -1.1311709900836725E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 2.0011184859700003E-24
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 16,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402635958860787E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019652498280403E-15,
+                "energy_free_scf_iteration": -5.642315393959055E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824035785269E-13,
+                "energy_hartree_error_scf_iteration": -3.3566785516308733E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579003499507E-14,
+                "energy_total_scf_iteration": -5.642315393959055E-13,
+                "x_fhi_aims_scf_time_start": "132646.357",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638175175E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876410089652E-15,
+                "energy_XC_scf_iteration": -1.7542946893536045E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638175175E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393959055E-13,
+                "energy_electrostatic_scf_iteration": -1.1311709960808949E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 3.05214628965E-25
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 17,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636396764648E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019214841346783E-15,
+                "energy_free_scf_iteration": -5.642315393955675E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824122815082E-13,
+                "energy_hartree_error_scf_iteration": -3.3567926265998093E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579056467462E-14,
+                "energy_total_scf_iteration": -5.642315393955675E-13,
+                "x_fhi_aims_scf_time_start": "132847.625",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638170369E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003877054065282E-15,
+                "energy_XC_scf_iteration": -1.75429469214748E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638170369E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393955675E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710047556024E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 3.36617288953E-25
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 18,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636414318302E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019197441373209E-15,
+                "energy_free_scf_iteration": -5.64231539395529E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824145876074E-13,
+                "energy_hartree_error_scf_iteration": -3.3567416773861554E-20,
+                "energy_XC_potential_scf_iteration": 2.284357910799506E-14,
+                "energy_total_scf_iteration": -5.64231539395529E-13,
+                "x_fhi_aims_scf_time_start": "133047.875",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0038770798795505E-15,
+                "energy_XC_scf_iteration": -1.754294695759587E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.64231539395529E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710070255405E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 3.85804108424E-26
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 19,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363549854597E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019256743918724E-15,
+                "energy_free_scf_iteration": -5.642315393955066E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824140294315E-13,
+                "energy_hartree_error_scf_iteration": -3.356741997821461E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579091484634E-14,
+                "energy_total_scf_iteration": -5.642315393955066E-13,
+                "x_fhi_aims_scf_time_start": "133248.365",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876992625017E-15,
+                "energy_XC_scf_iteration": -1.7542946944091124E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393955066E-13,
+                "energy_electrostatic_scf_iteration": -1.131171006480847E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 2.2590689073000002E-26
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 20,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026362997687047E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019311872233618E-15,
+                "energy_free_scf_iteration": -5.642315393954842E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824124326111E-13,
+                "energy_hartree_error_scf_iteration": -3.356750970010029E-20,
+                "energy_XC_potential_scf_iteration": 2.284357904918397E-14,
+                "energy_total_scf_iteration": -5.642315393954842E-13,
+                "x_fhi_aims_scf_time_start": "133448.701",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876911425108E-15,
+                "energy_XC_scf_iteration": -1.7542946910612044E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954842E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710049174816E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 2.3087363797300002E-26
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 21,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363306524193E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019280922797326E-15,
+                "energy_free_scf_iteration": -5.642315393954762E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824108968912E-13,
+                "energy_hartree_error_scf_iteration": -3.356776604834509E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579019058242E-14,
+                "energy_total_scf_iteration": -5.642315393954762E-13,
+                "x_fhi_aims_scf_time_start": "133650.155",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876956842005E-15,
+                "energy_XC_scf_iteration": -1.7542946887050435E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954762E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710034053169E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 8.50114866818E-27
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 22,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636323368733E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019288181698423E-15,
+                "energy_free_scf_iteration": -5.642315393954634E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.84482410231448E-13,
+                "energy_hartree_error_scf_iteration": -3.356796151388175E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579007171695E-14,
+                "energy_total_scf_iteration": -5.642315393954634E-13,
+                "x_fhi_aims_scf_time_start": "133850.412",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876946129853E-15,
+                "energy_XC_scf_iteration": -1.7542946877629637E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954634E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710027492817E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.192660208932E-26
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 23,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636320871164E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019290685531838E-15,
+                "energy_free_scf_iteration": -5.642315393954634E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824102800757E-13,
+                "energy_hartree_error_scf_iteration": -3.356801118135418E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579009877772E-14,
+                "energy_total_scf_iteration": -5.642315393954634E-13,
+                "x_fhi_aims_scf_time_start": "134050.820",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876942457665E-15,
+                "energy_XC_scf_iteration": -1.7542946879707657E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954634E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710027958298E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 8.88246668232E-28
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 24,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363141395714E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019297438978282E-15,
+                "energy_free_scf_iteration": -5.642315393954585E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824103903839E-13,
+                "energy_hartree_error_scf_iteration": -3.356812012935822E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579019796843E-14,
+                "energy_total_scf_iteration": -5.642315393954585E-13,
+                "x_fhi_aims_scf_time_start": "134251.219",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876932557816E-15,
+                "energy_XC_scf_iteration": -1.7542946887439763E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954585E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710028984028E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 3.99743044235E-27
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 25,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363130391E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019298547091635E-15,
+                "energy_free_scf_iteration": -5.642315393954585E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824104450438E-13,
+                "energy_hartree_error_scf_iteration": -3.356818261424289E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579023065286E-14,
+                "energy_total_scf_iteration": -5.642315393954585E-13,
+                "x_fhi_aims_scf_time_start": "134451.421",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876930939618E-15,
+                "energy_XC_scf_iteration": -1.7542946889943967E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954585E-13,
+                "energy_electrostatic_scf_iteration": -1.13117100295056E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": -4.44123334116E-28
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 26,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636317806345E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019293790774258E-15,
+                "energy_free_scf_iteration": -5.642315393954473E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824106425841E-13,
+                "energy_hartree_error_scf_iteration": -3.356833321883671E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579027174866E-14,
+                "energy_total_scf_iteration": -5.642315393954473E-13,
+                "x_fhi_aims_scf_time_start": "134652.430",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876937950742E-15,
+                "energy_XC_scf_iteration": -1.7542946892948047E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954473E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710031450834E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 1.230792010346E-26
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 27,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636318097492E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019293501965917E-15,
+                "energy_free_scf_iteration": -5.642315393954393E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824107082734E-13,
+                "energy_hartree_error_scf_iteration": -3.356834443407242E-20,
+                "energy_XC_potential_scf_iteration": 2.284357902811855E-14,
+                "energy_total_scf_iteration": -5.642315393954393E-13,
+                "x_fhi_aims_scf_time_start": "134852.520",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876938378523E-15,
+                "energy_XC_scf_iteration": -1.75429468936498E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954393E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710032100629E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": 7.35879680229E-27
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 28,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.402636317699367E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019293900411198E-15,
+                "energy_free_scf_iteration": -5.642315393954408E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824107193043E-13,
+                "energy_hartree_error_scf_iteration": -3.356834603624895E-20,
+                "energy_XC_potential_scf_iteration": 2.284357902819866E-14,
+                "energy_total_scf_iteration": -5.642315393954408E-13,
+                "x_fhi_aims_scf_time_start": "135052.976",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876937793729E-15,
+                "energy_XC_scf_iteration": -1.754294689370107E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954408E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710032210442E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": -1.90338571764E-27
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 29,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363170562054E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019294543252489E-15,
+                "energy_free_scf_iteration": -5.642315393954425E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.844824107275123E-13,
+                "energy_hartree_error_scf_iteration": -3.356834603624895E-20,
+                "energy_XC_potential_scf_iteration": 2.2843579027959934E-14,
+                "energy_total_scf_iteration": -5.642315393954425E-13,
+                "x_fhi_aims_scf_time_start": "135253.400",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.003876936846843E-15,
+                "energy_XC_scf_iteration": -1.7542946893494387E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954425E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710032294604E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": -1.1420314305840002E-27
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 30,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20161216",
+                "energy_sum_eigenvalues_scf_iteration": -3.4026363172162314E-13,
+                "energy_correction_hartree_scf_iteration": -1.1019294382858595E-15,
+                "energy_free_scf_iteration": -5.642315393954441E-13,
+                "electronic_kinetic_energy_scf_iteration": 5.84482410725476E-13,
+                "energy_hartree_error_scf_iteration": -3.356834603624895E-20,
+                "energy_XC_potential_scf_iteration": 2.284357902777889E-14,
+                "energy_total_scf_iteration": -5.642315393954441E-13,
+                "x_fhi_aims_scf_time_start": "135454.147",
+                "energy_total_T0_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_sum_eigenvalues_per_atom_scf_iteration": -5.0038769370823626E-15,
+                "energy_XC_scf_iteration": -1.7542946893351796E-14,
+                "energy_free_per_atom_scf_iteration": -8.297522638168766E-15,
+                "energy_correction_entropy_scf_iteration": 0.0,
+                "energy_total_T0_scf_iteration": -5.642315393954441E-13,
+                "energy_electrostatic_scf_iteration": -1.1311710032275684E-12,
+                "x_fhi_aims_energy_electrostatic_free_atom_scf_iteration": -2.2816661036996225E-13,
+                "energy_change_scf_iteration": -1.2689238117600002E-27
+              }]
+        },
+      "section_method-1": {
+          "type": "nomad_section_1_0",
+          "name": "section_method",
+          "gIndex": 1,
+          "references": {
+            "section_run": 0},
+          "electronic_structure_method": "DFT",
+          "section_method_to_method_refs": [{
+                "type": "nomad_section_1_0",
+                "name": "section_method_to_method_refs",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 1},
+                "method_to_method_ref": 0,
+                "method_to_method_kind": "core_settings"
+              }]
+        }},
+    "program_version": "160328",
+    "program_compilation_host": "draco02",
+    "time_run_wall_start": 2.51124674103E8,
+    "program_name": "FHI-aims",
+    "time_run_cpu1_start": 0.420026,
+    "x_fhi_aims_number_of_tasks": "32",
+    "x_fhi_aims_program_compilation_date": "2016/12/15",
+    "x_fhi_aims_program_execution_time": "125114.103",
+    "program_basis_set_type": "numeric AOs",
+    "x_fhi_aims_program_execution_date": "20161216",
+    "x_fhi_aims_program_compilation_time": "15:01:23",
+    "parsing_message_warning_run": ["unexpected section_method CachingSection{\n        gIndex:0,\n        references:[0],\n        simpleValues:{'x_fhi_aims_controlIn_sc_accuracy_rho': [1e-06], 'x_fhi_aims_controlIn_k2': [8], 'x_fhi_aims_controlIn_sc_accuracy_eev': [0.0001], 'x_fhi_aims_controlInOut_k3': [1], 'x_fhi_aims_controlInOut_number_of_spin_channels': [1], 'x_fhi_aims_controlIn_occupation_width': [0.01], 'x_fhi_aims_controlIn_relativistic': ['atomic_zora'], 'x_fhi_aims_controlInOut_k1': [8], 'x_fhi_aims_controlInOut_relativistic': ['on-site free-atom approximation to ZORA'], 'x_fhi_aims_controlInOut_k2': [8], 'relativity_method': ['scalar_relativistic_atomic_ZORA'], 'x_fhi_aims_controlIn_sc_iter_limit': [400], 'x_fhi_aims_controlIn_spin': ['none'], 'x_fhi_aims_controlInOut_xc': ['PBE gradient-corrected functionals'], 'x_fhi_aims_controlIn_k1': [8], 'x_fhi_aims_controlIn_k3': [1], 'x_fhi_aims_controlIn_xc': ['pbe'], 'x_fhi_aims_controlIn_occupation_type': ['gaussian'], 'x_fhi_aims_controlIn_sc_accuracy_etot': [1e-06]},\n        arrayValues.keys:[],\n        subSectionValues.keys:[],\n        storeInSuper:False,\n    }"]
+  }},
+  "parserStatus": "ParseSuccess",
+  "parsingStats": {
+    "partial":4295,
+    "unmatched":2787,
+    "total":7706,
+    "match":91,
+    "ignore":533
+  }
+}

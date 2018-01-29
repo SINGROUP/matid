@@ -136,7 +136,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        # view(proto_cell)
+        view(proto_cell)
         # print(seed_position)
 
         # Find a region that is spanned by the found unit cell
@@ -1099,7 +1099,7 @@ class PeriodicFinder():
         mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
         if n_periodic_dim == 2:
             for multiplier in mult_gen:
-                # if multiplier != (0, 0):
+                if multiplier != (0, 0):
                     multipliers.append(multiplier)
         elif n_periodic_dim == 3:
             for multiplier in mult_gen:

@@ -187,6 +187,7 @@ class Classifier():
         # First wrap the positions so that they are not outside the cell.
         system = input_system.copy()
         system.wrap()
+        # view(system)
 
         self.system = system
         classification = None

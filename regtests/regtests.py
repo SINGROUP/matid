@@ -2512,26 +2512,26 @@ class NomadTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
-    def test_6(self):
-        """Surface with a big (>8 angstrom) basis vector in the unit cell.
-        """
-        with open("./Pwf1I3LmgToiTGVzGWuPGMsk8qhG2.json", "r") as fin:
-            data = json.load(fin)
+    # def test_6(self):
+        # """Surface with a big (>8 angstrom) basis vector in the unit cell.
+        # """
+        # with open("./Pwf1I3LmgToiTGVzGWuPGMsk8qhG2.json", "r") as fin:
+            # data = json.load(fin)
 
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
 
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
         # print(len(system))
         # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
         # # print(classification)
 
         # # Pristine
@@ -2546,23 +2546,54 @@ class NomadTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
+    def test_7(self):
+        with open("./Pm1yla_i8HghYOCx4zYghsccncpYb.json", "r") as fin:
+            data = json.load(fin)
+
+        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        system = Atoms(
+            positions=1e10*np.array(section_system["atom_positions"]),
+            cell=1e10*np.array(section_system["simulation_cell"]),
+            symbols=section_system["atom_labels"],
+            pbc=True,
+        )
+        view(system)
+
+        classifier = Classifier(pos_tol=0.6)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+        # print(classification)
+
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(interstitials), 0)
+
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MicTests))
 
     alltests = unittest.TestSuite(suites)
