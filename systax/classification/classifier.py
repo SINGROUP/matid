@@ -184,11 +184,9 @@ class Classifier():
         Raises:
             ValueError: If the system has more atoms than self.max_n_atoms
         """
-        # First wrap the positions so that they are not outside the cell.
+        # We wrap the positions to to be inside the cell.
         system = input_system.copy()
         system.wrap()
-        # view(system)
-
         self.system = system
         classification = None
 
@@ -298,9 +296,11 @@ class Classifier():
 
             # Get the index of the seed atom
             if self.seed_position == "cm":
-                seed_vec = self.system.get_center_of_mass()
+                # seed_vec = system.get_center_of_mass()
+                seed_vec = systax.geometry.get_center_of_mass(system)
             else:
                 seed_vec = self.seed_position
+
             seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
             # Run the region detection on the whole system.

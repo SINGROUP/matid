@@ -300,9 +300,9 @@ class PeriodicFinder():
         # Find the directions that are most repeat the neighbours above some
         # preset threshold. This is used to eliminate directions that are
         # caused by pure chance. The maximum score that a direction can get is
-        # 2*n_neighbours. We specify that the score must be above 25% percent
+        # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
-        valid_span_indices = np.where(metric > 0.5*n_neighbours)[0]
+        valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
 
@@ -1249,6 +1249,7 @@ class PeriodicFinder():
             # Wrap the position to be inside the cell
             vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
+            vacancy.position = new_vac_pos
 
             # Check if this vacancy has already been found
             if len(searched_vacancy_positions) != 0:

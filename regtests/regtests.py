@@ -60,6 +60,28 @@ class ExceptionTests(unittest.TestCase):
 class GeometryTests(unittest.TestCase):
     """Tests for the geometry module.
     """
+
+    def test_center_of_mass(self):
+        """Tests that the center of mass correctly takes periodicity into
+        account.
+        """
+        system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
+        adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
+        system += adsorbate
+        system.set_pbc([True, True, True])
+        system.translate([0, 0, 10])
+        system.wrap()
+        # view(system)
+
+        # Test periodic COM
+        cm = systax.geometry.get_center_of_mass(system)
+        self.assertTrue(np.allclose(cm, [4., 4., 20.15], atol=0.1))
+
+        # Test finite COM
+        system.set_pbc(False)
+        cm = systax.geometry.get_center_of_mass(system)
+        self.assertTrue(np.allclose(cm, [3.58770672, 3.58770672, 10.00200455], atol=0.1))
+
     def test_matches_non_orthogonal(self):
         """Test that the correct factor is returned when finding matches that
         are in the neighbouring cells.
@@ -254,56 +276,6 @@ class GeometryTests(unittest.TestCase):
         ])
         cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
-
-
-# class MicTests(unittest.TestCase):
-    # """Tests for calculating the minimum image positions.
-    # """
-    # def test_orthogonal(self):
-        # cell = np.array([
-            # [5, 0, 0],
-            # [0, 5, 0],
-            # [0, 0, 5]
-        # ])
-        # pos1 = np.array([0, 0, 0])
-        # pos2 = np.array([0.9, 0, 0])
-
-        # system = Atoms(
-            # scaled_positions=[pos1, pos2],
-            # symbols=["H", "H"],
-            # cell=cell,
-            # pbc=True
-        # )
-        # view(system)
-
-        # mic_vector, shift = systax.geometry.get_mic_vector(pos1, pos2, cell)
-        # print("======")
-        # print(mic_vector)
-        # print(shift)
-        # self.assertTrue(np.allclose(mic_vector, [0.5, 0, 0]))
-        # self.assertTrue(np.allclose(shift, [1, 0, 0]))
-
-    # def test_non_orthogonal(self):
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
-        # system = system[[0, 12]]
-        # view(system)
-        # rel_pos = system.get_scaled_positions()
-        # pos1 = rel_pos[0]
-        # pos2 = rel_pos[1]
-        # cell = system.get_cell()
-
-        # mic_vector, shift = systax.geometry.get_mic_vector(pos1, pos2, cell)
-        # print(mic_vector)
-        # print(shift)
-        # self.assertTrue(np.allclose(mic_vector, [0.1, 0, 0]))
-        # self.assertTrue(np.allclose(shift, [1, 0, 0]))
 
 
 class DimensionalityTests(unittest.TestCase):
@@ -642,7 +614,7 @@ class PeriodicFinderTests(unittest.TestCase):
         finder = PeriodicFinder()
         indices, region, unit_cell = finder.get_region(system, seed_index, pos_tol=0.01)
 
-        rec = region.recreate_valid()
+        # rec = region.recreate_valid()
         # view(rec)
 
         # No defects or unknown atoms
@@ -1265,7 +1237,7 @@ class Material2DTests(unittest.TestCase):
             size=(1, 1, 1),
             vacuum=8)
         system.set_pbc(True)
-        # view(system)
+        view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -1909,6 +1881,34 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+    def test_surface_wrong_cm(self):
+        """Test that the seed atom is correctly chosen near the center of mass
+        even if the structure is cut.
+        """
+        system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
+        adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
+        system += adsorbate
+        system.set_pbc([True, True, True])
+        system.translate([0, 0, 10])
+        system.wrap()
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # One adsorbate
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 1)
+        self.assertEqual(len(unknowns), 0)
+
     def test_search_beyond_limits(self):
         """In this system the found unit cell cannot be used to seach the whole
         surface unless seed atoms for unit cells beyond the original simulation
@@ -2131,9 +2131,10 @@ class SurfaceTests(unittest.TestCase):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
         labels = system.get_atomic_numbers()
         sub_index = 42
-        labels[sub_index] = 41
+        sub_element = 20
+        labels[sub_index] = sub_element
         system.set_atomic_numbers(labels)
-        # view(system)
+        view(system)
 
         # Classified as surface
         classifier = Classifier()
@@ -2154,7 +2155,7 @@ class SurfaceTests(unittest.TestCase):
         subst = substitutions[0]
         self.assertEqual(subst.index, sub_index)
         self.assertEqual(subst.original_element, 26)
-        self.assertEqual(subst.substitutional_element, 41)
+        self.assertEqual(subst.substitutional_element, sub_element)
 
     def test_bcc_vacancy(self):
         """Surface with vacancy point defect.
@@ -2193,7 +2194,7 @@ class SurfaceTests(unittest.TestCase):
     def test_bcc_interstitional(self):
         """Surface with interstitional atom.
         """
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
+        system = bcc100('Fe', size=(5, 5, 5), vacuum=8)
 
         # Add an interstitionl atom
         interstitional = ase.Atom(
@@ -2201,7 +2202,8 @@ class SurfaceTests(unittest.TestCase):
             [8, 8, 9],
         )
         system += interstitional
-        # view(system)
+
+        view(system)
 
         # Classified as surface
         classifier = Classifier()
@@ -2220,7 +2222,7 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(unknowns), 0)
         self.assertEqual(len(interstitials), 1)
         int_found = interstitials[0]
-        self.assertEqual(int_found, 75)
+        self.assertEqual(int_found, 125)
 
     def test_bcc_dislocated_big_surface(self):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
@@ -2546,55 +2548,54 @@ class NomadTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
-    def test_7(self):
-        with open("./Pm1yla_i8HghYOCx4zYghsccncpYb.json", "r") as fin:
-            data = json.load(fin)
+    # def test_7(self):
+        # with open("./Pm1yla_i8HghYOCx4zYghsccncpYb.json", "r") as fin:
+            # data = json.load(fin)
 
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
 
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
-        view(system)
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # view(system)
 
-        classifier = Classifier(pos_tol=0.6)
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-        # print(classification)
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # print(classification)
 
-        # Pristine
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(interstitials), 0)
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
 
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MicTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

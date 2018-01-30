@@ -17,6 +17,7 @@ import ase.geometry
 from systax.data.element_data import get_covalent_radii
 from systax.exceptions import SystaxError
 from systax.core.linkedunits import Substitution
+import systax.geometry
 
 from sklearn.cluster import DBSCAN
 
@@ -501,17 +502,44 @@ def get_moments_of_inertia(system, weight=True):
     # return gaps
 
 
-def get_center_of_mass(system, weight=True):
-    """
-    """
-    positions = system.get_positions()
-    if weight:
-        weights = system.get_masses()
-    else:
-        weights = np.ones((len(system)))
-    cm = np.dot(weights, positions/weights.sum())
+def get_center_of_mass(system):
+    """Calculates the center of mass and also takes the periodicity of the
+    system into account.
 
-    return cm
+    The algorithm is replicated from:
+    https://en.wikipedia.org/wiki/Center_of_mass#Systems_with_periodic_boundary_conditions
+
+    Args:
+        system(ase.Atoms): The system for which the center of mass is
+        calculated.
+    """
+    pbc = system.get_pbc()
+    relative_positions = system.get_scaled_positions()
+    masses = system.get_masses()
+    total_mass = np.sum(masses)
+    cell = system.get_cell()
+
+    rel_com = np.zeros((3))
+    for i_comp in range(3):
+        i_pbc = pbc[i_comp]
+        i_pos = relative_positions[:, i_comp]
+        if i_pbc:
+            theta = i_pos * 2*np.pi
+            xi = np.cos(theta)*masses
+            zeta = np.sin(theta)*masses
+
+            xi_mean = np.mean(xi)
+            zeta_mean = np.mean(zeta)
+
+            mean_theta = np.arctan2(-zeta_mean, -xi_mean) + np.pi
+            com_rel = mean_theta/(2*np.pi)
+            rel_com[i_comp] = com_rel
+        else:
+            rel_com[i_comp] = np.sum(i_pos*masses)/total_mass
+
+    com_cart = to_cartesian(rel_com, cell)
+
+    return com_cart
 
 
 def get_space_filling(system):
@@ -1115,8 +1143,9 @@ def get_positions_within_basis(
     # Transform positions into the new basis
     cart_pos = system.get_positions()
     orig_cell = system.get_cell()
-
     pbc = expand_pbc(pbc)
+
+    # We need to expand the system in different directions to get the
 
     # See if the new positions extend beyound the boundaries. The original
     # simulation cell is always convex, so we can just check the corners of
@@ -1130,14 +1159,19 @@ def get_positions_within_basis(
     max_abc = origin + basis[0, :] + basis[1, :] + basis[2, :]
     vectors = np.array((max_a, max_b, max_c, max_ab, max_ac, max_bc, max_abc))
     rel_vectors = to_scaled(orig_cell, vectors, wrap=False, pbc=system.get_pbc())
+    factors = np.floor(rel_vectors).astype(int)
+    min_factors = np.min(factors, axis=0)
+    max_factors = np.max(factors, axis=0)
+    a_range = range(min_factors[0], max_factors[0]+1)
+    b_range = range(min_factors[1], max_factors[1]+1)
+    c_range = range(min_factors[2], max_factors[2]+1)
+    factors = systax.geometry.cartesian((a_range, b_range, c_range))
 
-    directions = set()
-    directions.add((0, 0, 0))
-    for vec in rel_vectors:
-        i_direction = tuple(np.floor(vec))
-        a_per = i_direction[0]
-        b_per = i_direction[1]
-        c_per = i_direction[2]
+    directions = []
+    for factor in factors:
+        a_per = factor[0]
+        b_per = factor[1]
+        c_per = factor[2]
         allow = True
         if a_per != 0 and not pbc[0]:
             allow = False
@@ -1146,8 +1180,7 @@ def get_positions_within_basis(
         if c_per != 0 and not pbc[2]:
             allow = False
         if allow:
-            if i_direction != (0, 0, 0):
-                directions.add(i_direction)
+            directions.append(factor)
 
     # If the new cell is overflowing beyound the boundaries of the original
     # system, we have to also check the periodic copies.
