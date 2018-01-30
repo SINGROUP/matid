@@ -136,7 +136,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        view(proto_cell)
+        # view(proto_cell)
         # print(seed_position)
 
         # Find a region that is spanned by the found unit cell
