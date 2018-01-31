@@ -136,7 +136,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        view(proto_cell)
+        # view(proto_cell)
 
         # Find a region that is spanned by the found unit cell
         unit_collection = self._find_periodic_region(
@@ -1127,44 +1127,44 @@ class PeriodicFinder():
         # Here we decide the new seed points where the search is extended. The
         # directions depend on the directions that were found to be periodic
         # for the seed atom.
-        # n_periodic_dim = len(periodic_indices)
-        # multipliers = []
-        # mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
-        # if n_periodic_dim == 2:
-            # for multiplier in mult_gen:
-                # if multiplier != (0, 0):
-                    # multipliers.append(multiplier)
-        # elif n_periodic_dim == 3:
-            # for multiplier in mult_gen:
-                # if multiplier != (0, 0, 0):
-                    # multipliers.append(multiplier)
-        # multipliers = np.array(multipliers)
+        n_periodic_dim = len(periodic_indices)
+        multipliers = []
+        mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
+        if n_periodic_dim == 2:
+            for multiplier in mult_gen:
+                if multiplier != (0, 0):
+                    multipliers.append(multiplier)
+        elif n_periodic_dim == 3:
+            for multiplier in mult_gen:
+                if multiplier != (0, 0, 0):
+                    multipliers.append(multiplier)
+        multipliers = np.array(multipliers)
 
-        # if n_periodic_dim == 2:
-            # multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
-            # multis[:, periodic_indices] = multipliers
-            # multipliers = multis
+        if n_periodic_dim == 2:
+            multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
+            multis[:, periodic_indices] = multipliers
+            multipliers = multis
 
         # New
         # Here we decide the new seed points where the search is extended.
-        n_periodic_dim = len(periodic_indices)
-        if n_periodic_dim == 3:
-            multipliers = np.array([
-                [1, 0, 0],
-                [0, 1, 0],
-                [0, 0, 1],
-                [-1, 0, 0],
-                [0, -1, 0],
-                [0, 0, -1],
-            ])
+        # n_periodic_dim = len(periodic_indices)
+        # if n_periodic_dim == 3:
+            # multipliers = np.array([
+                # [1, 0, 0],
+                # [0, 1, 0],
+                # [0, 0, 1],
+                # [-1, 0, 0],
+                # [0, -1, 0],
+                # [0, 0, -1],
+            # ])
 
-        if n_periodic_dim == 2:
-            multipliers = np.array([
-                [1, 0, 0],
-                [0, 1, 0],
-                [-1, 0, 0],
-                [0, -1, 0],
-            ])
+        # if n_periodic_dim == 2:
+            # multipliers = np.array([
+                # [1, 0, 0],
+                # [0, 1, 0],
+                # [-1, 0, 0],
+                # [0, -1, 0],
+            # ])
 
         return multipliers
 
@@ -1261,7 +1261,7 @@ class PeriodicFinder():
         # locations.
         used_indices.update(matches)
 
-        print(matches)
+        # print(matches)
 
         # Only allow substitutions that have not been added already.
         valid_substitutions = []
@@ -1271,9 +1271,11 @@ class PeriodicFinder():
             if subst_ind not in used_indices:
                 valid_substitutions.append(subst)
             new_subst.append(subst_ind)
-        if 71 in new_subst:
-            print(seed_index)
-            print(matches)
+        # if 7 in new_subst:
+            # print("Moi")
+            # print(seed_index)
+            # print(matches)
+            # print(new_subst)
         used_indices.update(new_subst)
 
         # Correct the vacancy positions by the seed pos, seed offset and cell
@@ -1423,8 +1425,6 @@ class PeriodicFinder():
                     new_seed_pos.append(i_seed_pos)
                     new_cell_indices.append(test_cell_index)
                     if match is not None:
-                        if match == 71:
-                            print("added")
                         used_indices.add(match)
 
                 # Store the cell basis vector

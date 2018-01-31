@@ -1278,41 +1278,52 @@ def get_matches(
 
     # Find the closest atom within the tolerance and with the required atomic
     # number, or if not found, get the closest atom
-    # best_matches = []
-    # best_substitutions = []
-    # for i_atom, i in enumerate(dist_matrix):
-        # near_mask = i <= tolerance
-        # element_mask = orig_num == numbers[i_atom]
-        # combined_mask = near_mask & element_mask
-        # possible_indices = np.where(combined_mask)[0]
-        # if len(possible_indices) != 0:
-            # min_dist_index = np.argmin(i[combined_mask])
-            # best_index = possible_indices[min_dist_index]
-            # best_matches.append(best_index)
-            # best_substitutions.append(None)
-        # else:
-            # best_matches.append(None)
-            # best_substitutions.append(np.argmin(i))
+    best_matches = []
+    best_substitutions = []
+    for i_atom, i in enumerate(dist_matrix):
+        near_mask = i <= tolerance
+        element_mask = orig_num == numbers[i_atom]
+        combined_mask = near_mask & element_mask
+        possible_indices = np.where(combined_mask)[0]
+        if len(possible_indices) != 0:
+            min_dist_index = np.argmin(i[combined_mask])
+            best_index = possible_indices[min_dist_index]
+            best_matches.append(best_index)
+            best_substitutions.append(None)
+        elif near_mask.any():
+            best_matches.append(None)
+            best_substitutions.append(np.argmin(i))
+        else:
+            best_matches.append(None)
+            best_substitutions.append(None)
 
-    min_ind = np.argmin(dist_matrix, axis=1)
+    # min_ind = np.argmin(dist_matrix, axis=1)
     matches = []
     substitutions = []
     vacancies = []
     copy_indices = []
 
-    for i, ind in enumerate(min_ind):
-        distance = dist_matrix[i, ind]
-        a_num = orig_num[ind]
-        b_num = numbers[i]
+    for i, (i_match, i_subst) in enumerate(zip(best_matches, best_substitutions)):
+
         match = None
         copy = None
-        if distance <= tolerance:
-            if a_num == b_num:
-                match = ind
-            else:
-                # Wrap the substitute position
-                subst_pos_cart = orig_pos[ind]
-                substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+        b_num = numbers[i]
+
+        if i_match is not None:
+            ind = i_match
+            match = ind
+
+            # If a match was found the factor is reported based on the
+            # displacement tensor
+            i_move = factors[i][ind]
+            copy = i_move
+        elif i_subst is not None:
+            ind = i_subst
+            a_num = orig_num[ind]
+
+            # Wrap the substitute position
+            subst_pos_cart = orig_pos[ind]
+            substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
 
             # If a match was found the factor is reported based on the
             # displacement tensor
@@ -1327,6 +1338,40 @@ def get_matches(
 
         matches.append(match)
         copy_indices.append(copy)
+
+    # min_ind = np.argmin(dist_matrix, axis=1)
+    # matches = []
+    # substitutions = []
+    # vacancies = []
+    # copy_indices = []
+
+    # for i, ind in enumerate(min_ind):
+        # distance = dist_matrix[i, ind]
+        # a_num = orig_num[ind]
+        # b_num = numbers[i]
+        # match = None
+        # copy = None
+        # if distance <= tolerance:
+            # if a_num == b_num:
+                # match = ind
+            # else:
+                # # Wrap the substitute position
+                # subst_pos_cart = orig_pos[ind]
+                # substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+
+            # # If a match was found the factor is reported based on the
+            # # displacement tensor
+            # i_move = factors[i][ind]
+            # copy = i_move
+        # else:
+            # vacancies.append(Atom(b_num, position=positions[i]))
+
+            # # If no match was found, the factor is reported from the scaled
+            # # positions
+            # copy = np.floor(scaled_pos2[i])
+
+        # matches.append(match)
+        # copy_indices.append(copy)
 
     return matches, substitutions, vacancies, copy_indices
 

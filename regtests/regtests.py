@@ -2602,7 +2602,6 @@ class NomadTests(unittest.TestCase):
 
         # Adsorbates
         adsorbates = classification.adsorbates
-        print(adsorbates)
         interstitials = classification.interstitials
         substitutions = classification.substitutions
         vacancies = classification.vacancies
