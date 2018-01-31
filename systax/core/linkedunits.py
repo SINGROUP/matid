@@ -1,8 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from collections import defaultdict
 import numpy as np
 
 from ase import Atoms
+from ase.data import covalent_radii
+from ase.visualize import view
 
 import systax.geometry
 
@@ -21,7 +24,8 @@ class LinkedUnitCollection(dict):
             is_2d,
             delaunay_threshold,
             bond_threshold,
-            dist_matrix_radii_pbc
+            dist_matrix_radii_pbc,
+            disp_tensor_finite
         ):
         """
         Args:
@@ -39,6 +43,7 @@ class LinkedUnitCollection(dict):
         self.delaunay_threshold = delaunay_threshold
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
+        self.disp_tensor_finite = disp_tensor_finite
         self._decomposition = None
         self._inside_indices = None
         self._outside_indices = None
@@ -89,6 +94,50 @@ class LinkedUnitCollection(dict):
 
         return recreated_system
 
+    def get_basis_atom_neighbourhood(self):
+        """For each atom in the basis calculates the chemical neighbourhood.
+        The chemical neighbourhood consists of a list of atomic numbers that
+        are closer than a certain threshold value when the covalent radii is
+        taken into account.
+
+        Args:
+
+        Returns:
+        """
+        # Multiply the system to get the entire neighbourhood.
+        cell = self.cell
+        max_radii = covalent_radii[cell.get_atomic_numbers()].max()
+        cutoff = max_radii + self.bond_threshold
+        if self.is_2d:
+            pbc = [True, True, False]
+        else:
+            pbc = [True, True, True]
+        factors = systax.geometry.get_neighbour_cells(cell.get_cell(), cutoff, pbc)
+        tvecs = np.dot(factors, cell.get_cell())
+
+        # Find the factor corresponding to the original cell
+        for i_factor, factor in enumerate(factors):
+            if tuple(factor) == (0, 0, 0):
+                tvecs_reduced = np.delete(tvecs, i_factor, axis=0)
+                break
+
+        pos = cell.get_positions()
+        disp = systax.geometry.get_displacement_tensor(pos, pos, cell.get_cell())
+
+        env_list = []
+        for i in range(len(cell)):
+            i_env = self.get_chemical_environment(
+                cell,
+                i,
+                disp,
+                tvecs,
+                tvecs_reduced
+            )
+            env_list.append(i_env)
+
+        # print(env_list)
+        return env_list
+
     def get_basis_indices(self):
         """Returns the indices of the atoms that were found to belong to a unit
         cell basis in the LinkedUnits in this collection as a single list.
@@ -97,17 +146,100 @@ class LinkedUnitCollection(dict):
             np.ndarray: Indices of the atoms in the original system that belong
             to this collection of LinkedUnits.
         """
+        cell = self.system.get_cell()
+        num = self.system.get_atomic_numbers()
+        max_radii = covalent_radii[num].max()
+        cutoff = max_radii + self.bond_threshold
+        factors = systax.geometry.get_neighbour_cells(cell, cutoff, True)
+        translations = np.dot(factors, cell)
+
+        # Find and remove the factor corresponding to the original cell
+        for i_factor, factor in enumerate(factors):
+            if tuple(factor) == (0, 0, 0):
+                translations_reduced = np.delete(translations, i_factor, axis=0)
+                break
+
         if self._basis_indices is None:
+
+            # For each atom in the basis check the chemical environment
+            neighbour_map = self.get_basis_atom_neighbourhood()
+
             indices = set()
             for unit in self.values():
-                i_indices = [x for x in unit.basis_indices if x is not None]
-                indices.update(i_indices)
+
+                # Compare the chemical environment near this atom to the one
+                # that is present in the prototype cell. If these
+                # neighbourhoods are too different, then the atom is not
+                # counted as being a part of the region.
+                for i_index, index in enumerate(unit.basis_indices):
+                    if index is not None:
+                        real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
+                        ideal_environment = neighbour_map[i_index]
+                        # print("==============")
+                        # print(index)
+                        chem_dist = self.get_chemical_distance(ideal_environment, real_environment)
+                        # print(chem_dist)
+                        if chem_dist >= 0.5:
+                            indices.add(index)
 
             # Ensure that all the basis atoms belong to the same cluster.
-            clusters = self.get_clusters()
+            # clusters = self.get_clusters()
 
             self._basis_indices = np.array(list(indices))
+
         return self._basis_indices
+
+    def get_chemical_environment(
+            self,
+            system,
+            index,
+            disp_tensor_finite,
+            translations,
+            translations_reduced
+        ):
+        """Get the chemical environment around an atom. The chemical
+        environment is quantified simply by the number of different species
+        around a certain distance when the covalent radii have been considered.
+        """
+        # Multiply the system to get the entire neighbourhood.
+        num = system.get_atomic_numbers()
+        n_atoms = len(system)
+        seed_num = num[index]
+
+        neighbours = defaultdict(lambda: 0)
+        for j in range(n_atoms):
+            j_num = num[j]
+            ij_disp = disp_tensor_finite[index, j, :]
+
+            if index == j:
+                trans = translations_reduced
+            else:
+                trans = translations
+
+            D_trans = trans + ij_disp
+            D_trans_len = np.linalg.norm(D_trans, axis=1)
+            ij_radii = covalent_radii[seed_num] + covalent_radii[j_num]
+            ij_n_neigh = np.sum(D_trans_len - ij_radii <= self.bond_threshold)
+
+            neighbours[j_num] += ij_n_neigh
+
+        return neighbours
+
+    def get_chemical_distance(self, ideal_env, real_env):
+        """Returns a metric that quantifies the distance between two chemical
+        enviroments.
+        """
+        max_score = sum(ideal_env.values())
+        score = 0
+        for ideal_key, ideal_value in ideal_env.items():
+            real_value = real_env.get(ideal_key)
+            if real_value is not None:
+                score += min(real_value, ideal_value)
+
+        # print("========")
+        # print(score)
+        # print(max_score)
+        return score/max_score
 
     def get_invalid_indices(self):
         """Get the indices of atoms that do not belong to the basis of this
@@ -165,10 +297,6 @@ class LinkedUnitCollection(dict):
             _, outside_indices = self.get_inside_and_outside_indices()
             basis_elements = set(self.cell.get_atomic_numbers())
             outside_indices = outside_indices
-            num = self.system.get_atomic_numbers()
-
-            # Get the clustering for adsorbate detection
-            clusters = self.get_clusters()
 
             # In 2D materials the substitutional atoms have to be separately
             # removed from the list of adsorbates. This is because sometimes
@@ -186,20 +314,8 @@ class LinkedUnitCollection(dict):
                 basis_elements = set(basis_elements)
                 adsorbates = []
                 for index in outside_indices:
-                    i_num = num[index]
-                    # If the outside atom has element not belongin to basis it
-                    # is automatically adsorbate
-                    if i_num not in basis_elements:
-                        adsorbates.append(index)
-                    # Otherwise it is labeled as adsorbate if it belongs to a
-                    # cluster with only atoms that are also outside
-                    else:
-                        for cluster in clusters:
-                            if index in cluster:
-                                if cluster.issubset(outside_indices):
-                                    adsorbates.append(index)
+                    adsorbates.append(index)
                 adsorbates = np.array(adsorbates)
-
             else:
                 adsorbates = np.array([])
 

@@ -59,7 +59,7 @@ class PeriodicFinder():
             bond_threshold=None,
             disp_tensor_mic=None,
             disp_factors=None,
-            disp_tensor=None,
+            disp_tensor_finite=None,
             dist_matrix_radii_mic=None,
         ):
         """Tries to find the periodic regions, like surfaces, in an atomic
@@ -87,11 +87,11 @@ class PeriodicFinder():
 
         # If the distance information is not given, calculate it here.
         pbc = system.get_pbc()
-        if disp_tensor_mic is None and disp_factors is None and disp_tensor is None and dist_matrix_radii_mic is None:
+        if disp_tensor_mic is None and disp_factors is None and disp_tensor_finite is None and dist_matrix_radii_mic is None:
             pos = system.get_positions()
             cell = system.get_cell()
             pbc = system.get_pbc()
-            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+            disp_tensor_finite = systax.geometry.get_displacement_tensor(pos, pos)
             if pbc.any():
                 disp_tensor_mic, disp_factors = systax.geometry.get_displacement_tensor(
                     pos,
@@ -102,8 +102,8 @@ class PeriodicFinder():
                     return_factors=True
                 )
             else:
-                disp_tensor_mic = disp_tensor
-                disp_factors = np.zeros(disp_tensor.shape)
+                disp_tensor_mic = disp_tensor_finite
+                disp_factors = np.zeros(disp_tensor_finite.shape)
             dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
 
             # Calculate the distance matrix where the periodicity and the covalent
@@ -115,7 +115,7 @@ class PeriodicFinder():
             dist_matrix_radii_mic -= radii_matrix
 
         self.disp_tensor_mic = disp_tensor_mic
-        self.disp_tensor = disp_tensor
+        self.disp_tensor_finite = disp_tensor_finite
         self.disp_factors = disp_factors
         self.dist_matrix_radii_mic = dist_matrix_radii_mic
         self.pos_tol = pos_tol
@@ -137,7 +137,6 @@ class PeriodicFinder():
         periodic_indices = list(range(dim))
 
         # view(proto_cell)
-        # print(seed_position)
 
         # Find a region that is spanned by the found unit cell
         unit_collection = self._find_periodic_region(
@@ -152,8 +151,6 @@ class PeriodicFinder():
         )
 
         i_indices = unit_collection.get_basis_indices()
-        # rec = unit_collection.recreate_valid()
-        # view(rec)
 
         if len(i_indices) > 0:
             region = (i_indices, unit_collection, proto_cell)
@@ -340,6 +337,41 @@ class PeriodicFinder():
                 full_adjacency_list_pbc[key].extend(value)
         periodicity_graph_pbc = nx.MultiGraph(full_adjacency_list_pbc)
 
+        # Expand the graph by exploring the links of the atoms that are in
+        # neighbouring cells
+        node_conn = {}
+        for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
+            for node in periodicity_graph_pbc.nodes():
+                node_index, node_factor = node
+                if node_index == cell_node and node_factor == tuple(neigh_fact):
+                    connections = periodicity_graph_pbc[node]
+                    disp = []
+                    ns = []
+                    for neighbour_index, neighbour_factor in connections:
+                        i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
+                        disp.append(i_disp)
+                        ns.append(neighbour_index)
+                    node_conn[cell_node] = [ns, disp]
+        # print(list(node_conn.keys()))
+
+        new_graph = periodicity_graph_pbc.copy()
+        for node in periodicity_graph_pbc.nodes():
+            node_index, node_factor = node
+            if node_factor != (0, 0, 0):
+                i_conn = node_conn.get(node_index)
+                if i_conn is None:
+                    continue
+                # print("===============")
+                # print(node)
+                for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
+                    # print(i_ind)
+                    # print(i_factor)
+                    new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
+                    if new_node not in new_graph:
+                        new_graph.add_node(new_node)
+                    new_graph.add_edge(node, new_node)
+        periodicity_graph_pbc = new_graph
+
         # print(seed_index)
         # print(neighbour_nodes)
         # print(best_spans)
@@ -504,7 +536,7 @@ class PeriodicFinder():
 
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    a = multiplier*self.disp_tensor[a_final_neighbour, node_index, :] + a_correction
+                    a = multiplier*self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
@@ -667,7 +699,7 @@ class PeriodicFinder():
 
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    a = multiplier*self.disp_tensor[a_final_neighbour, node_index, :] + a_correction
+                    a = multiplier*self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
                 else:
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
@@ -1035,7 +1067,8 @@ class PeriodicFinder():
             is_2d,
             tesselation_distance,
             bond_threshold,
-            self.dist_matrix_radii_mic
+            self.dist_matrix_radii_mic,
+            self.disp_tensor_finite
         )
         multipliers = self._get_multipliers(periodic_indices)
 

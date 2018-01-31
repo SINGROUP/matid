@@ -944,32 +944,12 @@ def find_mic(D, cell, pbc, max_distance=None):
     # or half the longest lattice diagonal, whichever is smaller
     if max_distance is None:
         max_distance = max(D_len)
-
     mic_cutoff = min(max_distance, max(diags) / 2.)
-
-    # The number of neighboring images to search in each direction is
-    # equal to the ceiling of the cutoff distance (defined above) divided
-    # by the length of the projection of the lattice vector onto its
-    # corresponding surface normal. a's surface normal vector is e.g.
-    # b x c / (|b| |c|), so this projection is (a . (b x c)) / (|b| |c|).
-    # The numerator is just the lattice volume, so this can be simplified
-    # to V / (|b| |c|). This is rewritten as V |a| / (|a| |b| |c|)
-    # for vectorization purposes.
-    latt_len = np.linalg.norm(cell, axis=1)
-    V = abs(np.linalg.det(cell))
-    mic_copies = pbc * np.array(np.ceil(mic_cutoff * np.prod(latt_len) /
-                            (V * latt_len)), dtype=int)
-    # print(mic_copies)
-    # if 0 in mic_copies:
-        # print(mic_copies)
-    n0 = range(-mic_copies[0], mic_copies[0] + 1)
-    n1 = range(-mic_copies[1], mic_copies[1] + 1)
-    n2 = range(-mic_copies[2], mic_copies[2] + 1)
 
     # Construct a list of translation vectors. For example, if we are
     # searching only the nearest images (27 total), tvecs will be a
     # 27x3 array of translation vectors.
-    tvec_factors = cartesian((n0, n1, n2))
+    tvec_factors = get_neighbour_cells(cell, mic_cutoff, pbc)
     tvecs = np.dot(tvec_factors, cell)
 
     # Translate the direct displacement vectors by each translation
@@ -990,6 +970,37 @@ def find_mic(D, cell, pbc, max_distance=None):
     factors *= -1
 
     return D_min, D_min_len, factors
+
+
+def get_neighbour_cells(cell, cutoff, pbc):
+    """Given a cell and a cutoff, returns the indices of the copies of the cell
+    which have to be searched in order to reach atom within the cutoff
+    distance.
+
+    The number of neighboring images to search in each direction is equal to
+    the ceiling of the cutoff distance (defined above) divided by the length of
+    the projection of the lattice vector onto its corresponding surface normal.
+    a's surface normal vector is e.g.  b x c / (|b| |c|), so this projection is
+    (a . (b x c)) / (|b| |c|).  The numerator is just the lattice volume, so
+    this can be simplified to V / (|b| |c|). This is rewritten as V |a| / (|a|
+    |b| |c|) for vectorization purposes.
+
+    Args:
+
+    Returns:
+    """
+    pbc = expand_pbc(pbc)
+    latt_len = np.linalg.norm(cell, axis=1)
+    V = abs(np.linalg.det(cell))
+    mic_copies = pbc * np.array(np.ceil(cutoff * np.prod(latt_len) /
+                            (V * latt_len)), dtype=int)
+    n0 = range(-mic_copies[0], mic_copies[0] + 1)
+    n1 = range(-mic_copies[1], mic_copies[1] + 1)
+    n2 = range(-mic_copies[2], mic_copies[2] + 1)
+
+    factors = cartesian((n0, n1, n2))
+
+    return factors
 
 
 def get_mic_vector(w, v, cell):
