@@ -2581,36 +2581,103 @@ class NomadTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
-    def test_8(self):
-        with open("./P6ify4HgqDkkettDovKwl7_A9emhy.json", "r") as fin:
-            data = json.load(fin)
+    # def test_8(self):
+        # with open("./P6ify4HgqDkkettDovKwl7_A9emhy.json", "r") as fin:
+            # data = json.load(fin)
 
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
 
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
-        view(system)
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # view(system)
 
-        classifier = Classifier(pos_tol=0.6)
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-        # print(classification)
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # print(classification)
 
-        # Adsorbates
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 6)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(interstitials), 0)
+        # # Adsorbates
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 6)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_9(self):
+        # """
+        # """
+        # with open("./PgFB5vtxkTyEJ3oUZ0ylWn0A-z8ke.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # print(classification)
+
+        # # Adsorbates
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 6)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_10(self):
+        # """
+        # """
+        # with open("./PnG-oRNfRLg1L4Veolbdbqr16SAZT.json", "r") as fin:
+            # data = json.load(fin)
+
+        # section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+        # system = Atoms(
+            # positions=1e10*np.array(section_system["atom_positions"]),
+            # cell=1e10*np.array(section_system["simulation_cell"]),
+            # symbols=section_system["atom_labels"],
+            # pbc=True,
+        # )
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # print(classification)
+
+        # # Adsorbates
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 30)
+        # self.assertTrue(np.array_equal(adsorbates, range(30)))
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
 
 
 if __name__ == '__main__':
