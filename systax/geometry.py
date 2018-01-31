@@ -1276,6 +1276,24 @@ def get_matches(
         return_distances=True
     )
 
+    # Find the closest atom within the tolerance and with the required atomic
+    # number, or if not found, get the closest atom
+    # best_matches = []
+    # best_substitutions = []
+    # for i_atom, i in enumerate(dist_matrix):
+        # near_mask = i <= tolerance
+        # element_mask = orig_num == numbers[i_atom]
+        # combined_mask = near_mask & element_mask
+        # possible_indices = np.where(combined_mask)[0]
+        # if len(possible_indices) != 0:
+            # min_dist_index = np.argmin(i[combined_mask])
+            # best_index = possible_indices[min_dist_index]
+            # best_matches.append(best_index)
+            # best_substitutions.append(None)
+        # else:
+            # best_matches.append(None)
+            # best_substitutions.append(np.argmin(i))
+
     min_ind = np.argmin(dist_matrix, axis=1)
     matches = []
     substitutions = []

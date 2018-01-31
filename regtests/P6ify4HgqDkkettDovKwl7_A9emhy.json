@@ -1,0 +1,2129 @@
+{
+  "type": "nomad_info_data_json_2_0",
+  "mainFileUri": "nmd://RKCXk_Rmd6E3xY1k5Vw73Ins3P2Ub/data/SrSnO3/110/SnO2/CO2/4/PBE-light+tight-relax.out",
+  "parserInfo": {
+    "name":"FhiAimsParser",
+    "version":"1.0",
+    "parserId":"FhiAimsParser2.0.0-17-g1384da3",
+    "versionInfo":{
+      "nomadCoreVersion":{
+        "pythonCommonVersion":"1.3.0-34-g62c6d3d",
+        "name":"nomadCore",
+        "buildTime":"1510306970128",
+        "scalaVersion":"2.11.8",
+        "version":"1.9.0-1-g84f0e9ef-dirty",
+        "metaInfoVersion":"1.6.0-141-gaa994db",
+        "sbtVersion":"0.13.13"
+      },
+      "name":"fhiAims",
+      "buildTime":"1510306970803",
+      "scalaVersion":"2.11.8",
+      "version":"2.0.0-17-g1384da3",
+      "sbtVersion":"0.13.13"
+    }
+  },
+  "sections": {
+    "section_run-0": {
+    "type": "nomad_section_1_0",
+    "gIndex": 0,
+    "name": "section_run",
+    "program_version": "150205",
+    "program_compilation_host": "draco02",
+    "time_run_wall_start": 2.43456509071E8,
+    "program_name": "FHI-aims",
+    "time_run_cpu1_start": 1.080067,
+    "x_fhi_aims_number_of_tasks": "64",
+    "x_fhi_aims_program_compilation_date": "2016/07/08",
+    "x_fhi_aims_program_execution_time": "184829.071",
+    "program_basis_set_type": "numeric AOs",
+    "x_fhi_aims_program_execution_date": "20160918",
+    "x_fhi_aims_program_compilation_time": "11:17:16",
+    "sections": {
+      "x_fhi_aims_section_parallel_tasks-0": {
+          "type": "nomad_section_1_0",
+          "name": "x_fhi_aims_section_parallel_tasks",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "x_fhi_aims_section_parallel_task_assignement": [{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 0,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 0,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 1,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 1,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 2,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 2,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 3,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 3,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 4,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 4,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 5,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 5,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 6,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 6,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 7,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 7,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 8,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 8,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 9,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 9,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 10,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 10,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 11,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 11,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 12,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 12,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 13,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 13,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 14,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 14,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 15,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 15,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 16,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 16,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 17,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 17,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 18,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 18,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 19,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 19,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 20,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 20,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 21,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 21,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 22,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 22,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 23,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 23,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 24,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 24,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 25,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 25,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 26,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 26,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 27,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 27,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 28,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 28,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 29,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 29,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 30,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 30,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 31,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 31,
+                "x_fhi_aims_parallel_task_host": "dra0501"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 32,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 32,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 33,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 33,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 34,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 34,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 35,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 35,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 36,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 36,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 37,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 37,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 38,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 38,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 39,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 39,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 40,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 40,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 41,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 41,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 42,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 42,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 43,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 43,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 44,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 44,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 45,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 45,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 46,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 46,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 47,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 47,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 48,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 48,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 49,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 49,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 50,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 50,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 51,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 51,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 52,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 52,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 53,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 53,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 54,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 54,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 55,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 55,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 56,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 56,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 57,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 57,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 58,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 58,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 59,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 59,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 60,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 60,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 61,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 61,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 62,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 62,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_parallel_task_assignement",
+                "gIndex": 63,
+                "references": {
+                  "x_fhi_aims_section_parallel_tasks": 0},
+                "x_fhi_aims_parallel_task_nr": 63,
+                "x_fhi_aims_parallel_task_host": "dra0502"
+              }]
+        },
+      "section_basis_set_atom_centered-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-1": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 1,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-2": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 2,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-3": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 3,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-4": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 4,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-5": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 5,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-6": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 6,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-7": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 7,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-8": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 8,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-9": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 9,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-10": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 10,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-11": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 11,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-12": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 12,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-13": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 13,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-14": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 14,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-15": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 15,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-16": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 16,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-17": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 17,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-18": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 18,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-19": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 19,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-20": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 20,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "hydrogenic basis"
+        },
+      "section_basis_set_atom_centered-21": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 21,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-22": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 22,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-23": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 23,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-24": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 24,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-25": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 25,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-26": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 26,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-27": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 27,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-28": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 28,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-29": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 29,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-30": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 30,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-31": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 31,
+          "references": {
+            "section_run": 0},
+          "basis_set_atom_centered_unique_name": "ionic basis"
+        },
+      "section_basis_set_atom_centered-32": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 32,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-33": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 33,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-34": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 34,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-35": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 35,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-36": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 36,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-37": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 37,
+          "references": {
+            "section_run": 0}
+        },
+      "section_basis_set_atom_centered-38": {
+          "type": "nomad_section_1_0",
+          "name": "section_basis_set_atom_centered",
+          "gIndex": 38,
+          "references": {
+            "section_run": 0}
+        },
+      "section_topology-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_topology",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "section_atom_type": [{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 0,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 8.0,
+                "atom_type_mass": 2.65676241887308E-26,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 0,
+                      "references": {
+                        "section_atom_type": 0},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["O"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 0,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 1,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [4.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 2,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 3,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [3.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 4,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.8],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 5,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [7.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 6,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.4],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 7,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [11.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 8,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.2],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 9,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [5.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 10,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["g"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [17.6],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 11,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 0},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [0.75],
+                            "x_fhi_aims_controlInOut_basis_func_n": [1]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 1,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 38.0,
+                "atom_type_mass": 1.4549640807884003E-25,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 1,
+                      "references": {
+                        "section_atom_type": 1},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [5.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["Sr"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 12,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 13,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 14,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 15,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 16,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 17,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 18,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 19,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 20,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 21,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 1},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 2,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 50.0,
+                "atom_type_mass": 1.9712255881122E-25,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 2,
+                      "references": {
+                        "section_atom_type": 2},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["Sn"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 22,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 23,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 24,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 25,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 26,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 27,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [10.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 28,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.3],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 29,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [3.7],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 30,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["f"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [7.4],
+                            "x_fhi_aims_controlInOut_basis_func_n": [4]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 31,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 2},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [5]
+                          }]
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_atom_type",
+                "gIndex": 3,
+                "references": {
+                  "section_topology": 0},
+                "atom_type_charge": 6.0,
+                "atom_type_mass": 1.99442331489674E-26,
+                "x_fhi_aims_section_controlInOut_atom_species": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlInOut_atom_species",
+                      "gIndex": 3,
+                      "references": {
+                        "section_atom_type": 3},
+                      "x_fhi_aims_controlInOut_species_cut_pot_width": [2.0E-10],
+                      "x_fhi_aims_controlInOut_species_cut_pot_scale": [1.0],
+                      "x_fhi_aims_controlInOut_species_cut_pot": [4.0E-10],
+                      "x_fhi_aims_controlInOut_species_name": ["C"],
+                      "x_fhi_aims_section_controlInOut_basis_func": [{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 32,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 33,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [2.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-atom valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 34,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 35,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_occ": [1.0],
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["free-ion valence"],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 36,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["p"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [1.7],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 37,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["d"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [6.0],
+                            "x_fhi_aims_controlInOut_basis_func_n": [3]
+                          },{
+                            "type": "nomad_section_1_0",
+                            "name": "x_fhi_aims_section_controlInOut_basis_func",
+                            "gIndex": 38,
+                            "references": {
+                              "x_fhi_aims_section_controlInOut_atom_species": 3},
+                            "x_fhi_aims_controlInOut_basis_func_l": ["s"],
+                            "x_fhi_aims_controlInOut_basis_func_type": ["hydrogenic basis"],
+                            "x_fhi_aims_controlInOut_basis_func_eff_charge": [4.9],
+                            "x_fhi_aims_controlInOut_basis_func_n": [2]
+                          }]
+                    }]
+              }]
+        },
+      "section_system-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_system",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "atom_positions": [[4.320855E-10, 1.920029E-10, 3.9028360000000003E-10],
+             
+            [
+            2.2416900000000002E-11, 1.91951E-10, 3.8685619999999997E-10],
+             
+            [
+            6.308379999999999E-10, -9.7094E-12, 2.0639500000000001E-10],
+             
+            [
+            6.308341E-10, 3.936342E-10, 2.063425E-10],
+             
+            [
+            2.1416270000000002E-10, -1.81199E-11, 2.0559180000000002E-10],
+             
+            [
+            2.141459E-10, 4.02046E-10, 2.0562559999999999E-10],
+             
+            [
+            6.469098E-10, 6.012303E-10, 2.2446670000000004E-10],
+             
+            [
+            5.899336000000001E-10, 1.919852E-10, 1.8126240000000002E-10],
+             
+            [
+            2.351526E-10, 1.9192890000000001E-10, 2.291169E-10],
+             
+            [
+            1.892219E-10, 6.012468000000001E-10, 1.638907E-10],
+             
+            [
+            1.912132E-10, 7.727986E-10, 4.079381E-10],
+             
+            [
+            6.570774000000001E-10, 3.66146E-10, 4.090705E-10],
+             
+            [
+            8.327973E-10, 2.1371000000000002E-11, 1.8073830000000001E-10],
+             
+            [
+            4.2246170000000003E-10, 4.160099E-10, 2.2917000000000002E-10],
+             
+            [
+            6.571135E-10, 1.7732E-11, 4.0908030000000004E-10],
+             
+            [
+            1.913466E-10, 4.298039E-10, 4.079775E-10],
+             
+            [
+            4.224819E-10, 7.864452E-10, 2.2909890000000003E-10],
+             
+            [
+            8.32861E-10, 3.625129E-10, 1.809625E-10],
+             
+            [
+            4.1223850000000005E-10, 6.012183000000001E-10, 4.097306E-10],
+             
+            [
+            2.90275E-11, 1.9193060000000001E-10, 8.070817999999999E-10],
+             
+            [
+            4.324216E-10, 1.9197200000000003E-10, 8.005229E-10],
+             
+            [
+            8.21035E-10, 6.012215000000001E-10, 4.171353E-10],
+             
+            [
+            2.18309E-10, -1.3206000000000002E-11, 6.130777E-10],
+             
+            [
+            2.1830440000000002E-10, 3.970817E-10, 6.13108E-10],
+             
+            [
+            6.269749000000001E-10, -1.2731600000000002E-11, 6.133995E-10],
+             
+            [
+            6.27016E-10, 3.966389E-10, 6.133349E-10],
+             
+            [
+            2.5896210000000005E-10, 6.012794E-10, 6.346908000000001E-10],
+             
+            [
+            1.7940799999999999E-10, 1.919674E-10, 5.869124E-10],
+             
+            [
+            6.513844E-10, 1.91953E-10, 6.52555E-10],
+             
+            [
+            6.051319E-10, 6.012627000000001E-10, 5.722815E-10],
+             
+            [
+            5.960299E-10, 7.725694E-10, 8.175110999999999E-10],
+             
+            [
+            2.463079E-10, 3.629913E-10, 8.181554000000001E-10],
+             
+            [
+            4.225186E-10, 2.12677E-11, 5.820774E-10],
+             
+            [
+            8.330040000000001E-10, 4.2981490000000005E-10, 6.416829E-10],
+             
+            [
+            2.464083E-10, 2.09601E-11, 8.181278000000001E-10],
+             
+            [
+            5.961034E-10, 4.298526E-10, 8.174576E-10],
+             
+            [
+            8.330161000000001E-10, 7.727713E-10, 6.417799E-10],
+             
+            [
+            4.2251880000000004E-10, 3.627125E-10, 5.820958E-10],
+             
+            [
+            8.137888000000001E-10, 6.012596E-10, 8.282381000000001E-10],
+             
+            [
+            4.301937E-10, 1.920461E-10, 1.2264792999999999E-9],
+             
+            [
+            2.03321E-11, 1.9206890000000003E-10, 1.2167352E-9],
+             
+            [
+            4.102596E-10, 6.012216E-10, 8.354732000000001E-10],
+             
+            [
+            6.242622000000001E-10, -1.24892E-11, 1.0225653E-9],
+             
+            [
+            6.24216E-10, 3.96255E-10, 1.0224539000000001E-9],
+             
+            [
+            2.1561629999999998E-10, -1.2714200000000002E-11, 1.0222454E-9],
+             
+            [
+            2.155976E-10, 3.966785E-10, 1.0223866E-9],
+             
+            [
+            6.637639E-10, 6.011489E-10, 1.0478600000000001E-9],
+             
+            [
+            5.8372E-10, 1.918648E-10, 1.0018244E-9],
+             
+            [
+            2.3767010000000005E-10, 1.9192340000000002E-10, 1.0635526000000001E-9],
+             
+            [
+            1.912336E-10, 6.012331E-10, 9.824787000000001E-10],
+             
+            [
+            1.8558120000000001E-10, 7.738168E-10, 1.2263792E-9],
+             
+            [
+            6.516872000000001E-10, 3.6496320000000004E-10, 1.227568E-9],
+             
+            [
+            8.295127000000001E-10, 2.0815500000000002E-11, 9.940238E-10],
+             
+            [
+            4.200863E-10, 4.305979E-10, 1.0535964999999999E-9],
+             
+            [
+            6.517316000000001E-10, 1.88673E-11, 1.2277944000000001E-9],
+             
+            [
+            1.8587640000000002E-10, 4.283813E-10, 1.2268005E-9],
+             
+            [
+            4.20078E-10, 7.71616E-10, 1.0536943E-9],
+             
+            [
+            8.295590000000001E-10, 3.627913E-10, 9.942868E-10],
+             
+            [
+            4.097472E-10, 6.010209E-10, 1.2462592000000002E-9],
+             
+            [
+            8.196272E-10, 6.009432000000001E-10, 1.2490500000000001E-9],
+             
+            [
+            2.114437E-10, -1.46652E-11, 1.4284018000000001E-9],
+             
+            [
+            2.115503E-10, 3.978825E-10, 1.4295242000000001E-9],
+             
+            [
+            6.286087000000001E-10, -7.3726E-12, 1.4303325E-9],
+             
+            [
+            6.285553E-10, 3.911864E-10, 1.4300455E-9],
+             
+            [
+            2.519568E-10, 6.015473E-10, 1.4572329E-9],
+             
+            [
+            1.9647850000000002E-10, 1.9172350000000002E-10, 1.4057992E-9],
+             
+            [
+            6.541944E-10, 1.9195690000000002E-10, 1.4684019E-9],
+             
+            [
+            6.069408E-10, 6.012401E-10, 1.4079654E-9],
+             
+            [
+            4.201604E-10, 6.364499999999999E-12, 1.406823E-9],
+             
+            [
+            8.297732E-10, 4.3117850000000004E-10, 1.4554366E-9],
+             
+            [
+            8.298177000000001E-10, 7.710314000000001E-10, 1.4564486E-9],
+             
+            [
+            4.2004000000000003E-10, 3.780786E-10, 1.4060520000000001E-9],
+             
+            [
+            6.023724E-10, 6.00826E-10, -7.91276E-11],
+             
+            [
+            6.009485E-10, 7.179192E-10, -8.06622E-11],
+             
+            [
+            6.031585E-10, 4.836983E-10, -7.95136E-11],
+             
+            [
+            2.413255E-10, 5.398346E-10, 1.739386E-9],
+             
+            [
+            2.438351E-10, 6.502343E-10, 1.7769658E-9],
+             
+            [
+            2.39153E-10, 4.2667570000000004E-10, 1.7072434000000002E-9]],
+          "simulation_cell": [[8.199219E-10, 0.0, 0.0],
+             
+            [
+            0.0, 8.185907000000001E-10, 0.0],
+             
+            [
+            0.0, 0.0, 2.5000000000000002E-8]],
+          "configuration_periodic_dimensions": [
+              [true, true, true]
+              ],
+          "atom_labels": ["Sr", "Sr", "Sn", "Sn", "Sn", "Sn", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "Sr", "Sr", "Sn", "Sn", "Sn", "Sn", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "Sr", "Sr", "Sn", "Sn", "Sn", "Sn", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "O", "Sr", "Sr", "Sn", "Sn", "Sn", "Sn", "O", "O", "O", "O", "O", "O", "O", "O", "C", "O", "O", "C", "O", "O"]
+        },
+      "section_method-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_method",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "x_fhi_aims_controlIn_sc_accuracy_rho": 1.0E-6,
+          "x_fhi_aims_controlIn_relativistic": "atomic_zora",
+          "x_fhi_aims_controlIn_sc_accuracy_eev": 1.0E-4,
+          "x_fhi_aims_controlIn_sc_iter_limit": 400,
+          "x_fhi_aims_controlInOut_relativistic": "on-site free-atom approximation to ZORA",
+          "x_fhi_aims_controlIn_spin": "none",
+          "x_fhi_aims_controlIn_occupation_type": "gaussian",
+          "x_fhi_aims_controlIn_xc": "pbe",
+          "x_fhi_aims_controlIn_occupation_width": 0.01,
+          "relativity_method": "scalar_relativistic_atomic_ZORA",
+          "x_fhi_aims_controlIn_sc_accuracy_etot": 1.0E-6,
+          "x_fhi_aims_controlInOut_xc": "PBE gradient-corrected functionals",
+          "x_fhi_aims_controlIn_sc_accuracy_forces": 1.0E-4,
+          "x_fhi_aims_controlInOut_number_of_spin_channels": 1,
+          "x_fhi_aims_controlIn_k_grid": [4, 4, 1],
+          "x_fhi_aims_controlInOut_k_grid": [4, 4, 1],
+          "section_XC_functionals": [{
+                "type": "nomad_section_1_0",
+                "name": "section_XC_functionals",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 0},
+                "XC_functional_name": "GGA_C_PBE"
+              },{
+                "type": "nomad_section_1_0",
+                "name": "section_XC_functionals",
+                "gIndex": 1,
+                "references": {
+                  "section_method": 0},
+                "XC_functional_name": "GGA_X_PBE"
+              }],
+          "x_fhi_aims_section_controlIn_basis_set": [{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.1817,0.3417,0.4949,0.6251,0.8014],
+                "x_fhi_aims_controlIn_nucleus": 8.0,
+                "x_fhi_aims_controlIn_mass": 15.9994,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "O",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [50,110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 36.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 0,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 1,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 4.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 2,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 3,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 3.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 4,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.8,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 5,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 7.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 6,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.4,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 7,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 11.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 8,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.2,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 9,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 5.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 10,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "g",
+                      "x_fhi_aims_controlIn_basis_func_radius": 17.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 11,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 0},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 0.75,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 1
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 1,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 5.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.6981,0.9394,1.123,1.2482],
+                "x_fhi_aims_controlIn_nucleus": 38.0,
+                "x_fhi_aims_controlIn_mass": 87.62,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "Sr",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 57.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 12,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 13,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 14,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 15,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 16,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 17,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 18,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 19,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 20,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 5.6,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 21,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 1},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 2,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.1666,0.9058,0.9669],
+                "x_fhi_aims_controlIn_nucleus": 50.0,
+                "x_fhi_aims_controlIn_mass": 118.71,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "Sn",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [110,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 63.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 22,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 23,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 24,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 25,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 26,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 27,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 10.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 28,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.3,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 29,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 3.7,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 30,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "f",
+                      "x_fhi_aims_controlIn_basis_func_radius": 7.4,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 4
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 31,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 2},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_type": "ionic",
+                      "x_fhi_aims_controlIn_basis_func_n": 5
+                    }]
+              },{
+                "type": "nomad_section_1_0",
+                "name": "x_fhi_aims_section_controlIn_basis_set",
+                "gIndex": 3,
+                "references": {
+                  "section_method": 0},
+                "x_fhi_aims_controlIn_cut_pot1": 4.0,
+                "x_fhi_aims_controlIn_radial_multiplier": 2,
+                "x_fhi_aims_controlIn_division1": [0.2187,0.4416,0.6335,0.7727,0.8772],
+                "x_fhi_aims_controlIn_nucleus": 6.0,
+                "x_fhi_aims_controlIn_mass": 12.0107,
+                "x_fhi_aims_controlIn_outer_grid": 434.0,
+                "x_fhi_aims_controlIn_l_hartree": 6,
+                "x_fhi_aims_controlIn_cut_pot3": 1.0,
+                "x_fhi_aims_controlIn_radial_base2": 7.0,
+                "x_fhi_aims_controlIn_species_name": "C",
+                "x_fhi_aims_controlIn_angular_grids_method": "specified",
+                "x_fhi_aims_controlIn_basis_dep_cutoff": 1.0E-4,
+                "x_fhi_aims_controlIn_division2": [50,110,194,302,434],
+                "x_fhi_aims_controlIn_cut_pot2": 2.0,
+                "x_fhi_aims_controlIn_radial_base1": 34.0,
+                "x_fhi_aims_section_controlIn_basis_func": [{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 32,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 33,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 2.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "valence",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 34,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 35,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "ion_occ",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 36,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "p",
+                      "x_fhi_aims_controlIn_basis_func_radius": 1.7,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 37,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "d",
+                      "x_fhi_aims_controlIn_basis_func_radius": 6.0,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 3
+                    },{
+                      "type": "nomad_section_1_0",
+                      "name": "x_fhi_aims_section_controlIn_basis_func",
+                      "gIndex": 38,
+                      "references": {
+                        "x_fhi_aims_section_controlIn_basis_set": 3},
+                      "x_fhi_aims_controlIn_basis_func_l": "s",
+                      "x_fhi_aims_controlIn_basis_func_radius": 4.9,
+                      "x_fhi_aims_controlIn_basis_func_type": "hydro",
+                      "x_fhi_aims_controlIn_basis_func_n": 2
+                    }]
+              }]
+        },
+      "section_single_configuration_calculation-0": {
+          "type": "nomad_section_1_0",
+          "name": "section_single_configuration_calculation",
+          "gIndex": 0,
+          "references": {
+            "section_run": 0},
+          "number_of_scf_iterations": 0,
+          "single_configuration_calculation_to_system_ref": 0,
+          "single_configuration_to_calculation_method_ref": 1,
+          "single_configuration_calculation_converged": 0,
+          "section_scf_iteration": [{
+                "type": "nomad_section_1_0",
+                "name": "section_scf_iteration",
+                "gIndex": 0,
+                "references": {
+                  "section_single_configuration_calculation": 0},
+                "x_fhi_aims_scf_date_start": "20160918",
+                "x_fhi_aims_scf_time_start": "184833.615"
+              }]
+        },
+      "section_method-1": {
+          "type": "nomad_section_1_0",
+          "name": "section_method",
+          "gIndex": 1,
+          "references": {
+            "section_run": 0},
+          "electronic_structure_method": "DFT",
+          "section_method_to_method_refs": [{
+                "type": "nomad_section_1_0",
+                "name": "section_method_to_method_refs",
+                "gIndex": 0,
+                "references": {
+                  "section_method": 1},
+                "method_to_method_ref": 0,
+                "method_to_method_kind": "core_settings"
+              }]
+        }},
+    "program_version": "150205",
+    "program_compilation_host": "draco02",
+    "time_run_wall_start": 2.43456509071E8,
+    "program_name": "FHI-aims",
+    "time_run_cpu1_start": 1.080067,
+    "x_fhi_aims_number_of_tasks": "64",
+    "x_fhi_aims_program_compilation_date": "2016/07/08",
+    "x_fhi_aims_program_execution_time": "184829.071",
+    "program_basis_set_type": "numeric AOs",
+    "x_fhi_aims_program_execution_date": "20160918",
+    "x_fhi_aims_program_compilation_time": "11:17:16",
+    "parsing_message_warning_run": ["unexpected section_method CachingSection{\n        gIndex:0,\n        references:[0],\n        simpleValues:{'x_fhi_aims_controlIn_relativistic': ['atomic_zora'], 'relativity_method': ['scalar_relativistic_atomic_ZORA'], 'x_fhi_aims_controlInOut_number_of_spin_channels': [1], 'x_fhi_aims_controlIn_k2': [4], 'x_fhi_aims_controlIn_xc': ['pbe'], 'x_fhi_aims_controlIn_k3': [1], 'x_fhi_aims_controlIn_sc_accuracy_rho': [1e-06], 'x_fhi_aims_controlIn_sc_iter_limit': [400], 'x_fhi_aims_controlIn_sc_accuracy_forces': [0.0001], 'x_fhi_aims_controlInOut_k2': [4], 'x_fhi_aims_controlIn_occupation_width': [0.01], 'x_fhi_aims_controlIn_sc_accuracy_eev': [0.0001], 'x_fhi_aims_controlInOut_xc': ['PBE gradient-corrected functionals'], 'x_fhi_aims_controlInOut_k1': [4], 'x_fhi_aims_controlIn_occupation_type': ['gaussian'], 'x_fhi_aims_controlIn_k1': [4], 'x_fhi_aims_controlInOut_k3': [1], 'x_fhi_aims_controlInOut_relativistic': ['on-site free-atom approximation to ZORA'], 'x_fhi_aims_controlIn_spin': ['none'], 'x_fhi_aims_controlIn_sc_accuracy_etot': [1e-06]},\n        arrayValues.keys:[],\n        subSectionValues.keys:[],\n        storeInSuper:False,\n    }"]
+  }},
+  "parserStatus": "ParseSuccess",
+  "parsingStats": {
+    "partial":391,
+    "unmatched":776,
+    "total":1319,
+    "match":61,
+    "ignore":91
+  }
+}

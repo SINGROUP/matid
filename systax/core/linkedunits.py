@@ -175,10 +175,10 @@ class LinkedUnitCollection(dict):
                     if index is not None:
                         real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
                         ideal_environment = neighbour_map[i_index]
-                        # print("==============")
-                        # print(index)
                         chem_dist = self.get_chemical_distance(ideal_environment, real_environment)
-                        # print(chem_dist)
+                        # if index == 63:
+                            # print(index)
+                            # print(chem_dist)
                         if chem_dist >= 0.5:
                             indices.add(index)
 
@@ -186,6 +186,7 @@ class LinkedUnitCollection(dict):
             # clusters = self.get_clusters()
 
             self._basis_indices = np.array(list(indices))
+            # print(self._basis_indices)
 
         return self._basis_indices
 
@@ -236,9 +237,6 @@ class LinkedUnitCollection(dict):
             if real_value is not None:
                 score += min(real_value, ideal_value)
 
-        # print("========")
-        # print(score)
-        # print(max_score)
         return score/max_score
 
     def get_invalid_indices(self):
