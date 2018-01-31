@@ -504,39 +504,6 @@ class PeriodicFinderTests(unittest.TestCase):
         ])
         self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
 
-    def test_cell_atoms_interstitional(self):
-        """Tests that the correct cell is identified even if interstitial are
-        near the seed atom.
-        """
-        system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
-
-        # Add an interstitionl atom
-        interstitional = ase.Atom(
-            "C",
-            [8, 8, 9],
-        )
-        system += interstitional
-        # view(system)
-
-        # Classified as surface
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-
-        # One interstitional
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(interstitials), 1)
-        int_found = interstitials[0]
-        self.assertEqual(int_found, 75)
-
     def test_cell_2d_adsorbate(self):
         """Test that the cell is correctly identified even if adsorbates are
         near.
@@ -2582,18 +2549,18 @@ class NomadTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
