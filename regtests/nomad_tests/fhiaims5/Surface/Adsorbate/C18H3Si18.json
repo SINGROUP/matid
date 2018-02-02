@@ -1,56 +1,9 @@
 {
-  "normalizedCell": [
-    [
-      4.623515e-10,
-      2.669387e-10,
-      0.0
-    ],
-    [
-      -4.623515e-10,
-      2.669387e-10,
-      0.0
-    ],
-    [
-      0.0,
-      0.0,
-      6.0426921e-09
-    ]
+  "periodicity": [
+    true,
+    true,
+    true
   ],
-  "unit": {
-    "normalizedCell": [
-      [
-        1.5411730000000002e-10,
-        8.896500000000001e-11,
-        -2.5179e-10
-      ],
-      [
-        -3.0823410000000005e-10,
-        0.0,
-        0.0
-      ],
-      [
-        -1.5411700000000003e-10,
-        -2.669385e-10,
-        0.0
-      ]
-    ],
-    "positions": [
-      [
-        -0.00351957903488937,
-        -0.0011698690606744883,
-        -0.0011792487082800652
-      ],
-      [
-        0.2326372538478156,
-        0.7442184727695479,
-        0.7442020471639078
-      ]
-    ],
-    "labels": [
-      14,
-      6
-    ]
-  },
   "positions": [
     [
       0.0,
@@ -248,10 +201,25 @@
       0.23572839330999507
     ]
   ],
+  "normalizedCell": [
+    [
+      4.623515e-10,
+      2.669387e-10,
+      0.0
+    ],
+    [
+      -4.623515e-10,
+      2.669387e-10,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      6.0426921e-09
+    ]
+  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/Rp9yhP9p4UYdkcBtlEJ6pmbF7yqWO/PxQVzM6OaUP-gbKIO2EHd7iCyL1tN.json",
   "tags": {
-    "vacancies": [],
-    "substitutions": [],
-    "unknowns": [],
     "adsorbates": [
       0,
       1,
@@ -272,15 +240,47 @@
       16,
       17
     ],
-    "interstitials": []
+    "substitutions": [],
+    "interstitials": [],
+    "vacancies": [],
+    "unknowns": []
   },
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/Rp9yhP9p4UYdkcBtlEJ6pmbF7yqWO/PxQVzM6OaUP-gbKIO2EHd7iCyL1tN.json",
   "classification": "Surface",
-  "periodicity": [
-    true,
-    true,
-    true
-  ],
+  "unit": {
+    "normalizedCell": [
+      [
+        1.5411730000000002e-10,
+        8.896500000000001e-11,
+        -2.5179e-10
+      ],
+      [
+        -3.0823410000000005e-10,
+        0.0,
+        0.0
+      ],
+      [
+        -1.5411700000000003e-10,
+        -2.669385e-10,
+        0.0
+      ]
+    ],
+    "positions": [
+      [
+        -0.00351957903488937,
+        -0.0011698690606744883,
+        -0.0011792487082800652
+      ],
+      [
+        0.2326372538478156,
+        0.7442184727695479,
+        0.7442020471639078
+      ]
+    ],
+    "labels": [
+      14,
+      6
+    ]
+  },
   "labels": [
     1,
     1,

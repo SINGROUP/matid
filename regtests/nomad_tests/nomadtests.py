@@ -207,16 +207,42 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
-    def test_9(self):
-        """All the adsorbates were not correctly identified. Increasing the
-        similarity threshold fixes the problem.
+    # def test_9(self):
+        # """All the adsorbates were not correctly identified. Increasing the
+        # similarity threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Adsorbate/C2Ba16O44Zr12.json")
+        # view(system)
+
+        # classifier = Classifier(max_cell_size=12)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+
+        # # Print adsorbates
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 6)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertTrue(set(adsorbates) == set((68, 69, 70, 71, 72, 73)))
+
+    def test_10(self):
+        """This system is basically a very thick surface with one layer only.
+        Thus it is not classified as surface (only one layer) nor Material2D
+        (too thick).
         """
-        system = get_atoms("./fhiaims5/Surface/Adsorbate/C2Ba16O44Zr12.json")
+        system = get_atoms("./fhiaims5/Class2D/Ca32O80Zr24.json")
         view(system)
 
-        classifier = Classifier(max_cell_size=12)
+        classifier = Classifier()
         classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
 
         # Pristine
         adsorbates = classification.adsorbates
@@ -224,14 +250,11 @@ class Class2DTests(unittest.TestCase):
         substitutions = classification.substitutions
         vacancies = classification.vacancies
         unknowns = classification.unknowns
-
-        # Print adsorbates
         self.assertEqual(len(vacancies), 0)
         self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(adsorbates), 6)
+        self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
         self.assertEqual(len(interstitials), 0)
-        self.assertTrue(set(adsorbates) == set((68, 69, 70, 71, 72, 73)))
 
 
 if __name__ == '__main__':

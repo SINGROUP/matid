@@ -141,7 +141,8 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        # view(proto_cell)
+        view(proto_cell)
+        # print(proto_cell.get_cell())
 
         # Find a region that is spanned by the found unit cell
         unit_collection = self._find_periodic_region(
@@ -842,7 +843,7 @@ class PeriodicFinder():
 
         # The cell size for 2D materials has a maximum size. If the size is
         # above this threshold, the cell is not returned.
-        if c_size > self.max_cell_size:
+        if c_size > self.max_2d_cell_height:
             return None, None
 
         # We demand a minimum size for the c-vector even if the system seems to

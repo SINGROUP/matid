@@ -1,20 +1,8 @@
 {
-  "normalizedCell": [
-    [
-      5.097423000000002e-10,
-      5.523948e-10,
-      0.0
-    ],
-    [
-      5.097423000000002e-10,
-      -5.523948e-10,
-      0.0
-    ],
-    [
-      0.0,
-      0.0,
-      2e-08
-    ]
+  "periodicity": [
+    true,
+    true,
+    true
   ],
   "positions": [
     [
@@ -318,13 +306,25 @@
       0.042983205000000003
     ]
   ],
-  "classification": "Class2D",
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RcbwgQHNfQCw-Dp5SSMV3zu7teklk/P9s_xfdE1xsK_LfWodPtUwQwHM6jH.json",
-  "periodicity": [
-    true,
-    true,
-    true
+  "normalizedCell": [
+    [
+      5.097423000000002e-10,
+      5.523948e-10,
+      0.0
+    ],
+    [
+      5.097423000000002e-10,
+      -5.523948e-10,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      2e-08
+    ]
   ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RcbwgQHNfQCw-Dp5SSMV3zu7teklk/P9s_xfdE1xsK_LfWodPtUwQwHM6jH.json",
+  "classification": "Class2D",
   "labels": [
     8,
     22,
