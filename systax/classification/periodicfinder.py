@@ -1285,10 +1285,6 @@ class PeriodicFinder():
             pos_tolerances,
         )
 
-        # if 131 in matches:
-            # print(matches)
-            # print("FOUND")
-
         # Add all the matches into the lists containing already searched
         # locations.
         used_indices.update(matches)

@@ -105,7 +105,7 @@ class GeometryTests(unittest.TestCase):
             system,
             searched_pos,
             numbers=[system.get_atomic_numbers()[0]],
-            tolerance=0.2
+            tolerances=np.array([0.2])
         )
 
         # Make sure that the atom is found in the correct copy
@@ -497,7 +497,7 @@ class PeriodicFinderTests(unittest.TestCase):
 
         # Test that the relative positions are robust in the prototype cell
         proto_cell = classification.region.cell
-        view(proto_cell)
+        # view(proto_cell)
         relative_pos = proto_cell.get_scaled_positions()
         assumed_pos = np.array([
             [0, 0, 0],
@@ -1961,7 +1961,7 @@ class SurfaceTests(unittest.TestCase):
             symbols=section_system["atom_labels"],
             pbc=True,
         )
-        view(system)
+        # view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -2346,7 +2346,7 @@ class SurfaceTests(unittest.TestCase):
 
         # Shake the atoms
         rng = RandomState(8)
-        systax.geometry.make_random_displacement(nacl, 0.5, rng)
+        systax.geometry.make_random_displacement(nacl, 0.4, rng)
 
         # Add adsorbate
         h2o = molecule("H2O")
@@ -2360,7 +2360,7 @@ class SurfaceTests(unittest.TestCase):
         symbols[subst_num] = 15
         nacl.set_atomic_numbers(symbols)
 
-        view(nacl)
+        # view(nacl)
 
         classifier = Classifier()
         classification = classifier.classify(nacl)
