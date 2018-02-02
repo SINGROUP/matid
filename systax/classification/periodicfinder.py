@@ -25,9 +25,11 @@ class PeriodicFinder():
             self,
             angle_tol=constants.ANGLE_TOL,
             max_cell_size=constants.MAX_CELL_SIZE,
-            pos_tol_factor=constants.POS_TOL_FACTOR,
+            # pos_tol_factor=constants.POS_TOL_FACTOR,
+            pos_tol_scaling=constants.POS_TOL_SCALING,
             cell_size_tol=constants.CELL_SIZE_TOL,
-            n_edge_tol=constants.N_EDGE_TOL
+            n_edge_tol=constants.N_EDGE_TOL,
+            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT
         ):
         """
         Args:
@@ -46,9 +48,11 @@ class PeriodicFinder():
         """
         self.angle_tol = angle_tol
         self.max_cell_size = max_cell_size
-        self.pos_tol_factor = pos_tol_factor
+        # self.pos_tol_factor = pos_tol_factor
+        self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.n_edge_tol = n_edge_tol
+        self.max_2d_cell_height = max_2d_cell_height
 
     def get_region(
             self,
@@ -225,13 +229,17 @@ class PeriodicFinder():
         neighbour_nodes = list(zip(neighbour_indices, neighbour_factors))
 
         for i_span, span in enumerate(possible_spans):
+
+            # Calculate the scaled position tolerance
+            i_pos_tol = np.full(n_neighbours, self.get_scaled_position_tolerance(span))
+
             i_adj_list = defaultdict(list)
             i_adj_list_add = defaultdict(list)
             i_adj_list_sub = defaultdict(list)
             add_pos = neighbour_pos + span
             sub_pos = neighbour_pos - span
-            add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, self.pos_tol)
-            sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, self.pos_tol)
+            add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
+            sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
 
             n_metric = 0
             for i_neigh in range(n_neighbours):
@@ -352,7 +360,6 @@ class PeriodicFinder():
                         disp.append(i_disp)
                         ns.append(neighbour_index)
                     node_conn[cell_node] = [ns, disp]
-        # print(list(node_conn.keys()))
 
         new_graph = periodicity_graph_pbc.copy()
         for node in periodicity_graph_pbc.nodes():
@@ -361,11 +368,7 @@ class PeriodicFinder():
                 i_conn = node_conn.get(node_index)
                 if i_conn is None:
                     continue
-                # print("===============")
-                # print(node)
                 for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
-                    # print(i_ind)
-                    # print(i_factor)
                     new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
                     if new_node not in new_graph:
                         new_graph.add_node(new_node)
@@ -390,6 +393,10 @@ class PeriodicFinder():
         # Get all disconnected subgraphs in the periodicity graph that takes
         # periodic boundaries into account
         graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
+        # print("Initial graphs:")
+        # print(len(graphs))
+        # for graph in graphs:
+            # print(len(graph))
 
         # Filter out the basis atoms by checking how many were found with
         # respect to the number of copies of the seed atom. This equals to
@@ -427,6 +434,15 @@ class PeriodicFinder():
 
             if mean_degree > (dim-1)*2:
                 valid_graphs.append(graph)
+
+        # print("Valid graphs:")
+        # print(len(valid_graphs))
+        # for graph in valid_graphs:
+            # for index, factor in graph.nodes():
+                # if index == 6:
+                    # print("6 found")
+                # elif index == 62:
+                    # print("62 found")
 
         # If no valid graphs found, no region can be tracked.
         if len(valid_graphs) == 0:
@@ -483,6 +499,8 @@ class PeriodicFinder():
                 best_adjacency_lists_add,
                 best_adjacency_lists_sub,
             )
+            if proto_cell is None:
+                return None, None, None
 
         # print(proto_cell.get_cell())
 
@@ -824,11 +842,16 @@ class PeriodicFinder():
         pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
         pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
         c_real_cart = pos_max_cart-pos_min_cart
+        c_size = np.linalg.norm(c_real_cart)
+
+        # The cell size for 2D materials has a maximum size. If the size is
+        # above this threshold, the cell is not returned.
+        if c_size > self.max_cell_size:
+            return None, None
 
         # We demand a minimum size for the c-vector even if the system seems to
         # be purely 2-dimensional. This is done because the 3D-space cannot be
         # searched properly if one dimension is flat.
-        c_size = np.linalg.norm(c_real_cart)
         min_size = 2*self.pos_tol
         if c_size < min_size:
             c_inflated_cart = min_size*c_norm
@@ -1127,44 +1150,44 @@ class PeriodicFinder():
         # Here we decide the new seed points where the search is extended. The
         # directions depend on the directions that were found to be periodic
         # for the seed atom.
-        n_periodic_dim = len(periodic_indices)
-        multipliers = []
-        mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
-        if n_periodic_dim == 2:
-            for multiplier in mult_gen:
-                if multiplier != (0, 0):
-                    multipliers.append(multiplier)
-        elif n_periodic_dim == 3:
-            for multiplier in mult_gen:
-                if multiplier != (0, 0, 0):
-                    multipliers.append(multiplier)
-        multipliers = np.array(multipliers)
+        # n_periodic_dim = len(periodic_indices)
+        # multipliers = []
+        # mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
+        # if n_periodic_dim == 2:
+            # for multiplier in mult_gen:
+                # if multiplier != (0, 0):
+                    # multipliers.append(multiplier)
+        # elif n_periodic_dim == 3:
+            # for multiplier in mult_gen:
+                # if multiplier != (0, 0, 0):
+                    # multipliers.append(multiplier)
+        # multipliers = np.array(multipliers)
 
-        if n_periodic_dim == 2:
-            multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
-            multis[:, periodic_indices] = multipliers
-            multipliers = multis
+        # if n_periodic_dim == 2:
+            # multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
+            # multis[:, periodic_indices] = multipliers
+            # multipliers = multis
 
         # New
         # Here we decide the new seed points where the search is extended.
-        # n_periodic_dim = len(periodic_indices)
-        # if n_periodic_dim == 3:
-            # multipliers = np.array([
-                # [1, 0, 0],
-                # [0, 1, 0],
-                # [0, 0, 1],
-                # [-1, 0, 0],
-                # [0, -1, 0],
-                # [0, 0, -1],
-            # ])
+        n_periodic_dim = len(periodic_indices)
+        if n_periodic_dim == 3:
+            multipliers = np.array([
+                [1, 0, 0],
+                [0, 1, 0],
+                [0, 0, 1],
+                [-1, 0, 0],
+                [0, -1, 0],
+                [0, 0, -1],
+            ])
 
-        # if n_periodic_dim == 2:
-            # multipliers = np.array([
-                # [1, 0, 0],
-                # [0, 1, 0],
-                # [-1, 0, 0],
-                # [0, -1, 0],
-            # ])
+        if n_periodic_dim == 2:
+            multipliers = np.array([
+                [1, 0, 0],
+                [0, 1, 0],
+                [-1, 0, 0],
+                [0, -1, 0],
+            ])
 
         return multipliers
 
@@ -1208,10 +1231,14 @@ class PeriodicFinder():
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
         """
-        # if seed_index == 71:
-            # print("Moi")
+
+        # if tuple(cell_index) == (0, 2, 1):
+            # print(seed_index)
+
         # Check if this cell has already been searched
         if tuple(cell_index) in searched_cell_indices:
+            # if seed_index == 131:
+                # print(cell_index)
             return
         else:
             searched_cell_indices.add(tuple(cell_index))
@@ -1236,6 +1263,8 @@ class PeriodicFinder():
         new_cell, new_seed_indices, new_seed_pos, new_cell_indices = self._find_new_seeds_and_cell(
             system,
             seed_index,
+            seed_pos,
+            seed_atomic_number,
             dislocations,
             multipliers,
             old_basis,
@@ -1243,25 +1272,26 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices)
 
-        # Translate the original system to the seed position
-        # match_system = system.copy()
-        # match_system.translate(-seed_pos+seed_offset)
-
         # Translate the searched positions
-        test_pos = unit_cell.get_positions() + seed_pos - seed_offset
+        test_pos = unit_cell.get_positions() - seed_offset + seed_pos
 
         # Find the atoms that match the positions in the original basis
+        disps = unit_cell.get_positions() - seed_offset
+        pos_tolerances = self.get_scaled_position_tolerance(disps)
         matches, substitutions, vacancies, _ = systax.geometry.get_matches(
             system,
             test_pos,
             cell_num,
-            self.pos_tol_factor*self.pos_tol,
+            pos_tolerances,
         )
+
+        # if 131 in matches:
+            # print(matches)
+            # print("FOUND")
+
         # Add all the matches into the lists containing already searched
         # locations.
         used_indices.update(matches)
-
-        # print(matches)
 
         # Only allow substitutions that have not been added already.
         valid_substitutions = []
@@ -1271,11 +1301,6 @@ class PeriodicFinder():
             if subst_ind not in used_indices:
                 valid_substitutions.append(subst)
             new_subst.append(subst_ind)
-        # if 7 in new_subst:
-            # print("Moi")
-            # print(seed_index)
-            # print(matches)
-            # print(new_subst)
         used_indices.update(new_subst)
 
         # Correct the vacancy positions by the seed pos, seed offset and cell
@@ -1333,10 +1358,24 @@ class PeriodicFinder():
         # Add the found neighbours to a queue
         queue.extend(list(zip(new_seed_indices, new_seed_pos, new_cell_indices, cells)))
 
+    def get_scaled_position_tolerance(self, displacements):
+        """Used to calculate the position tolerance that is scaled by the
+        search distance.
+        """
+        # Add new axis to sigle vector displacements
+        if len(displacements.shape) == 1:
+            displacements = displacements[None, :]
+        distance = np.linalg.norm(displacements, axis=1)
+        scaled_tol = (1+self.pos_tol_scaling*distance)*self.pos_tol
+
+        return scaled_tol
+
     def _find_new_seeds_and_cell(
             self,
             system,
             seed_index,
+            seed_pos,
+            seed_atomic_number,
             dislocations,
             multipliers,
             old_cell,
@@ -1348,9 +1387,9 @@ class PeriodicFinder():
         """
         orig_cell = system.get_cell()
         orig_pos = system.get_positions()
-        orig_num = system.get_atomic_numbers()
-        seed_pos = orig_pos[seed_index]
-        seed_atomic_number = orig_num[seed_index]
+        # orig_num = system.get_atomic_numbers()
+        # seed_pos = orig_pos[seed_index]
+        # seed_atomic_number = orig_num[seed_index]
 
         new_seed_indices = []
         new_seed_pos = []
@@ -1374,13 +1413,19 @@ class PeriodicFinder():
             # Find out the atoms that match the seed_guesses in the original
             # system
             seed_guesses = seed_pos + dislocations
+            pos_tolerances = self.get_scaled_position_tolerance(dislocations)
             matches, _, _, factors = systax.geometry.get_matches(
                 system,
                 seed_guesses,
                 len(dislocations)*[seed_atomic_number],
-                self.pos_tol_factor*self.pos_tol,
+                pos_tolerances,
                 mic=True
             )
+
+            # if 131 in matches:
+                # print(matches)
+                # print(len(matches))
+                # print("Found")
 
             for match, factor, seed_guess, multiplier, disloc, test_cell_index in zip(
                     matches,
@@ -1390,7 +1435,6 @@ class PeriodicFinder():
                     dislocations,
                     test_cell_indices):
                 multiplier = tuple(multiplier)
-
 
                 # Save the position corresponding to a seed atom or a guess for it.
                 # If a match was found that is not the original seed, use it's
@@ -1408,7 +1452,6 @@ class PeriodicFinder():
                 else:
                     i_seed_pos = seed_guess
 
-
                 # Check if this index has already been used as a seed. The
                 # used_seed_indices is needed so that the same atom cannot
                 # become a seed point multiple times. This can otherwise
@@ -1419,7 +1462,7 @@ class PeriodicFinder():
                     if match in used_indices:
                         add = False
                 if add:
-                    # if seed_index == 68:
+                    # if match == 131:
                         # print(match)
                     new_seed_indices.append(match)
                     new_seed_pos.append(i_seed_pos)

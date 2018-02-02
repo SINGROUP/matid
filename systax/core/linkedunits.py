@@ -176,11 +176,11 @@ class LinkedUnitCollection(dict):
                         real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
                         ideal_environment = neighbour_map[i_index]
                         chem_dist = self.get_chemical_distance(ideal_environment, real_environment)
-                        # if index == 87:
+                        if chem_dist >= 0.3:
+                            indices.add(index)
+                        # else:
                             # print(index)
                             # print(chem_dist)
-                        if chem_dist >= 0.4:
-                            indices.add(index)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()

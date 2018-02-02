@@ -1237,7 +1237,7 @@ def get_matches(
         system,
         positions,
         numbers,
-        tolerance,
+        tolerances,
         mic=True
     ):
     """Given a system and a list of cartesian positions and atomic numbers,
@@ -1247,8 +1247,8 @@ def get_matches(
     Args:
         system(ASE.Atoms): System where to search the positions
         positions(np.ndarray): Positions to match in the system.
-        tolerance(float): Maximum allowed distance that is required for a
-            match in position.
+        tolerances(np.ndarray): Maximum allowed distance for each vector that
+            is allowed for a match in position.
         mic(boolean): Whether to find the minimum image copy.
 
     Returns:
@@ -1271,7 +1271,7 @@ def get_matches(
         cell,
         pbc,
         mic=mic,
-        max_distance=tolerance,
+        max_distance=tolerances.max(),
         return_factors=True,
         return_distances=True
     )
@@ -1281,7 +1281,7 @@ def get_matches(
     best_matches = []
     best_substitutions = []
     for i_atom, i in enumerate(dist_matrix):
-        near_mask = i <= tolerance
+        near_mask = i <= tolerances[i_atom]
         element_mask = orig_num == numbers[i_atom]
         combined_mask = near_mask & element_mask
         possible_indices = np.where(combined_mask)[0]

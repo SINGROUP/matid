@@ -41,18 +41,20 @@ class Classifier():
             max_cell_size=None,
             pos_tol=None,
             pos_tol_mode="relative",
+            pos_tol_scaling=None,
             angle_tol=None,
             cluster_threshold=None,
             crystallinity_threshold=None,
             delaunay_threshold=None,
             bond_threshold=None,
             delaunay_threshold_mode="relative",
-            pos_tol_factor=None,
+            # pos_tol_factor=None,
             n_edge_tol=None,
             cell_size_tol=None,
             max_n_atoms=None,
             coverage_threshold=None,
-            max_vacancy_ratio=None
+            max_vacancy_ratio=None,
+            max_2d_cell_height=None
             ):
         """
         Args:
@@ -68,6 +70,8 @@ class Classifier():
                     - "relative": Tolerance relative to the average nearest
                       neighbour distance.
                     - "absolute": Absolute tolerance in angstroms.
+            pos_tol_scaling(float): The distance dependent scaling factor for
+                the positions tolerance.
             angle_tol(float): The angle below which vectors in the cell basis are
                 considered to be parallel.
             cluster_threshold(float): A parameter that controls which atoms are
@@ -108,6 +112,8 @@ class Classifier():
             max_cell_size = constants.MAX_CELL_SIZE
         if pos_tol_mode == "relative" and pos_tol is None:
             pos_tol = constants.REL_POS_TOL
+        if pos_tol_scaling is None:
+            pos_tol_scaling = constants.POS_TOL_SCALING
         if angle_tol is None:
             angle_tol = constants.ANGLE_TOL
         if crystallinity_threshold is None:
@@ -118,8 +124,8 @@ class Classifier():
             delaunay_threshold = constants.DELAUNAY_THRESHOLD
         if bond_threshold is None:
             bond_threshold = constants.BOND_THRESHOLD
-        if pos_tol_factor is None:
-            pos_tol_factor = constants.POS_TOL_FACTOR
+        # if pos_tol_factor is None:
+            # pos_tol_factor = constants.POS_TOL_FACTOR
         if n_edge_tol is None:
             n_edge_tol = constants.N_EDGE_TOL
         if cell_size_tol is None:
@@ -130,9 +136,12 @@ class Classifier():
             coverage_threshold = constants.COVERAGE_THRESHOLD
         if max_vacancy_ratio is None:
             max_vacancy_ratio = constants.MAX_VACANCY_RATIO
+        if max_2d_cell_height is None:
+            max_2d_cell_height = constants.MAX_2D_CELL_HEIGHT
 
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
+        self.pos_tol_scaling = pos_tol_scaling
         self.abs_pos_tol = None
         self.pos_tol_mode = pos_tol_mode
         self.angle_tol = angle_tol
@@ -142,12 +151,14 @@ class Classifier():
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
         self.bond_threshold = bond_threshold
-        self.pos_tol_factor = pos_tol_factor
+        # self.pos_tol_factor = pos_tol_factor
+        self.pos_tol_scaling = pos_tol_scaling
         self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
         self.coverage_threshold = coverage_threshold
         self.max_vacancy_ratio = max_vacancy_ratio
+        self.max_2d_cell_height = max_2d_cell_height
 
         # Check seed position
         if type(seed_position) == str:
@@ -307,9 +318,11 @@ class Classifier():
             periodicfinder = PeriodicFinder(
                 angle_tol=self.angle_tol,
                 max_cell_size=self.max_cell_size,
-                pos_tol_factor=self.pos_tol_factor,
+                # pos_tol_factor=self.pos_tol_factor,
+                pos_tol_scaling=self.pos_tol_scaling,
                 cell_size_tol=self.cell_size_tol,
-                n_edge_tol=self.n_edge_tol
+                n_edge_tol=self.n_edge_tol,
+                max_2d_cell_height=self.max_2d_cell_height
             )
             region = periodicfinder.get_region(
                 system,
