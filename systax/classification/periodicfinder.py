@@ -48,7 +48,6 @@ class PeriodicFinder():
         """
         self.angle_tol = angle_tol
         self.max_cell_size = max_cell_size
-        # self.pos_tol_factor = pos_tol_factor
         self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.n_edge_tol = n_edge_tol
@@ -243,14 +242,6 @@ class PeriodicFinder():
             add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
             sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
 
-            # if i_span == 2:
-                # print(span)
-                # print(neighbour_pos[0])
-                # # print(add_pos[0])
-                # print(sub_pos[0])
-                # print(sub_indices[0])
-                # print(add_indices)
-
             n_metric = 0
             for i_neigh in range(n_neighbours):
                 i_add = add_indices[i_neigh]
@@ -357,33 +348,34 @@ class PeriodicFinder():
 
         # Expand the graph by exploring the links of the atoms that are in
         # neighbouring cells
-        node_conn = {}
-        for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
-            for node in periodicity_graph_pbc.nodes():
-                node_index, node_factor = node
-                if node_index == cell_node and node_factor == tuple(neigh_fact):
-                    connections = periodicity_graph_pbc[node]
-                    disp = []
-                    ns = []
-                    for neighbour_index, neighbour_factor in connections:
-                        i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
-                        disp.append(i_disp)
-                        ns.append(neighbour_index)
-                    node_conn[cell_node] = [ns, disp]
+        # node_conn = {}
+        # for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
+            # for node in periodicity_graph_pbc.nodes():
+                # node_index, node_factor = node
+                # if node_index == cell_node and node_factor == tuple(neigh_fact):
+                    # connections = periodicity_graph_pbc[node]
+                    # disp = []
+                    # ns = []
+                    # for neighbour_index, neighbour_factor in connections:
+                        # i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
+                        # disp.append(i_disp)
+                        # ns.append(neighbour_index)
+                    # node_conn[cell_node] = [ns, disp]
 
-        new_graph = periodicity_graph_pbc.copy()
-        for node in periodicity_graph_pbc.nodes():
-            node_index, node_factor = node
-            if node_factor != (0, 0, 0):
-                i_conn = node_conn.get(node_index)
-                if i_conn is None:
-                    continue
-                for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
-                    new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
-                    if new_node not in new_graph:
-                        new_graph.add_node(new_node)
-                    new_graph.add_edge(node, new_node)
-        periodicity_graph_pbc = new_graph
+        # new_graph = periodicity_graph_pbc.copy()
+        # for node in periodicity_graph_pbc.nodes():
+            # node_index, node_factor = node
+            # if node_factor != (0, 0, 0):
+                # i_conn = node_conn.get(node_index)
+                # if i_conn is None:
+                    # continue
+                # for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
+                    # new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
+                    # if new_node not in new_graph:
+                        # new_graph.add_node(new_node)
+                    # if not new_graph.has_edge(node, new_node):
+                        # new_graph.add_edge(node, new_node)
+        # periodicity_graph_pbc = new_graph
 
         # print(seed_index)
         # print(neighbour_nodes)
@@ -404,10 +396,27 @@ class PeriodicFinder():
         # periodic boundaries into account
         graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
 
+        # for graph in graphs:
+            # for node in graph:
+                # if node[0] == 32:
+                    # print(node)
+                    # import matplotlib.pyplot as plt
+                    # plt.subplot(111)
+                    # pos = nx.spring_layout(graph)
+                    # nx.draw_networkx_nodes(graph, pos)
+                    # nx.draw_networkx_edges(graph, pos)
+                    # data = graph.nodes(data=True)
+                    # labels = {x[0]: x[0] for x in data}
+                    # nx.draw_networkx_labels(graph, pos, labels, font_size=16)
+                    # plt.show()
+                    # break
+
         # Filter out the basis atoms by checking how many were found with
         # respect to the number of copies of the seed atom. This equals to
-        # checking that the number of nodes in the subgraph is similar to the
-        # graph corresponding to the one where the seed atom is.
+        # checking that the size of the subgraph is similar to the size of the
+        # graph where the seed atom is. This is needed because the number of
+        # edges is not always sufficient when a lot is happening of the
+        # surface.
         subgraph_size = []
         target_size = None
         for graph in graphs:
@@ -419,11 +428,11 @@ class PeriodicFinder():
             subgraph_size.append(n_nodes)
         temp_graphs = []
         for i_graph, graph_size in enumerate(subgraph_size):
-            if graph_size >= 0.5*target_size:
+            if graph_size >= 0.6*target_size:
                 temp_graphs.append(graphs[i_graph])
         graphs = temp_graphs
 
-        # Eliminate subgraphs that do not have enough periodicity
+        # Eliminate subgraphs that do not have enough periodicity.
         valid_graphs = []
         neighbourhood_set = set([(x[0], tuple(x[1])) for x in neighbour_nodes])
         for graph in graphs:
@@ -442,6 +451,7 @@ class PeriodicFinder():
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
+        print(len(valid_graphs))
         if len(valid_graphs) == 0:
             return None, None, None
 

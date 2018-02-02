@@ -233,12 +233,104 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(interstitials), 0)
         # self.assertTrue(set(adsorbates) == set((68, 69, 70, 71, 72, 73)))
 
-    def test_10(self):
-        """This system is basically a very thick surface with one layer only.
-        Thus it is not classified as surface (only one layer) nor Material2D
-        (too thick).
+    # def test_10(self):
+        # """This system is basically a very thick surface with one layer only.
+        # Thus it is not classified as surface (only one layer) nor Material2D
+        # (too thick).
+        # """
+        # system = get_atoms("./fhiaims5/Class2D/Ca32O80Zr24.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_11(self):
+        # """The adsorbate in this system was not detected for an unknown reason.
+        # The bug was caused by to multiple overlapping edges in the periodicity
+        # graph.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Pristine/CCa16O16.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 1)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_12(self):
+        # """Adsorbate was added to the cell for unknown reason. This bug was
+        # caused by too low threshold for filtering graphs with size different
+        # from the graphs where the seed atom is.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Vacancy+Adsorbate/H4Mg12O14.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 6)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_13(self):
+        # """In this system the unit cell has duplicate entries for two atoms.
+        # Reason is still unknown, but does not affect the search because they
+        # are so close.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Pristine/Ca24O88Zr32.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    def test_13(self):
+        """In this system the unit cell has duplicate entries for two atoms.
+        Reason is still unknown, but does not affect the search because they
+        are so close.
         """
-        system = get_atoms("./fhiaims5/Class2D/Ca32O80Zr24.json")
+        system = get_atoms("./fhiaims5/Surface/Pristine/Ca24O88Zr32.json")
         view(system)
 
         classifier = Classifier()
