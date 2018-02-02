@@ -500,8 +500,8 @@ class PeriodicFinderTests(unittest.TestCase):
         # view(proto_cell)
         relative_pos = proto_cell.get_scaled_positions()
         assumed_pos = np.array([
-            [0, 0, 0],
             [0.5, 0.0, 0.5],
+            [0, 0, 0],
         ])
         self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
 

@@ -8,6 +8,7 @@ from ase.data import covalent_radii
 from ase.visualize import view
 
 import systax.geometry
+from systax.data import constants
 
 
 class LinkedUnitCollection(dict):
@@ -22,10 +23,11 @@ class LinkedUnitCollection(dict):
             system,
             cell,
             is_2d,
-            delaunay_threshold,
-            bond_threshold,
             dist_matrix_radii_pbc,
-            disp_tensor_finite
+            disp_tensor_finite,
+            delaunay_threshold=constants.DELAUNAY_THRESHOLD,
+            chem_env_threshold=constants.CHEM_ENV_THRESHOLD,
+            bond_threshold=constants.BOND_THRESHOLD,
         ):
         """
         Args:
@@ -41,6 +43,7 @@ class LinkedUnitCollection(dict):
         self.cell = cell
         self.is_2d = is_2d
         self.delaunay_threshold = delaunay_threshold
+        self.chem_env_threshold = chem_env_threshold
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
@@ -176,7 +179,7 @@ class LinkedUnitCollection(dict):
                         real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
                         ideal_environment = neighbour_map[i_index]
                         chem_dist = self.get_chemical_distance(ideal_environment, real_environment)
-                        if chem_dist >= 0.3:
+                        if chem_dist >= self.chem_env_threshold:
                             indices.add(index)
                         # else:
                             # print(index)

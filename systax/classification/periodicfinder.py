@@ -25,11 +25,11 @@ class PeriodicFinder():
             self,
             angle_tol=constants.ANGLE_TOL,
             max_cell_size=constants.MAX_CELL_SIZE,
-            # pos_tol_factor=constants.POS_TOL_FACTOR,
             pos_tol_scaling=constants.POS_TOL_SCALING,
             cell_size_tol=constants.CELL_SIZE_TOL,
             n_edge_tol=constants.N_EDGE_TOL,
-            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT
+            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
+            chem_env_threshold=constants.CHEM_ENV_THRESHOLD
         ):
         """
         Args:
@@ -53,6 +53,7 @@ class PeriodicFinder():
         self.cell_size_tol = cell_size_tol
         self.n_edge_tol = n_edge_tol
         self.max_2d_cell_height = max_2d_cell_height
+        self.chem_env_threshold = chem_env_threshold
 
     def get_region(
             self,
@@ -241,6 +242,14 @@ class PeriodicFinder():
             add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
             sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
 
+            # if i_span == 2:
+                # print(span)
+                # print(neighbour_pos[0])
+                # # print(add_pos[0])
+                # print(sub_pos[0])
+                # print(sub_indices[0])
+                # print(add_indices)
+
             n_metric = 0
             for i_neigh in range(n_neighbours):
                 i_add = add_indices[i_neigh]
@@ -393,10 +402,6 @@ class PeriodicFinder():
         # Get all disconnected subgraphs in the periodicity graph that takes
         # periodic boundaries into account
         graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
-        # print("Initial graphs:")
-        # print(len(graphs))
-        # for graph in graphs:
-            # print(len(graph))
 
         # Filter out the basis atoms by checking how many were found with
         # respect to the number of copies of the seed atom. This equals to
@@ -434,15 +439,6 @@ class PeriodicFinder():
 
             if mean_degree > (dim-1)*2:
                 valid_graphs.append(graph)
-
-        # print("Valid graphs:")
-        # print(len(valid_graphs))
-        # for graph in valid_graphs:
-            # for index, factor in graph.nodes():
-                # if index == 6:
-                    # print("6 found")
-                # elif index == 62:
-                    # print("62 found")
 
         # If no valid graphs found, no region can be tracked.
         if len(valid_graphs) == 0:
@@ -1088,10 +1084,11 @@ class PeriodicFinder():
             system,
             unit_cell,
             is_2d,
-            tesselation_distance,
-            bond_threshold,
             self.dist_matrix_radii_mic,
-            self.disp_tensor_finite
+            self.disp_tensor_finite,
+            tesselation_distance,
+            self.chem_env_threshold,
+            bond_threshold,
         )
         multipliers = self._get_multipliers(periodic_indices)
 
@@ -1311,7 +1308,7 @@ class PeriodicFinder():
             # Wrap the position to be inside the cell
             vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
             new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
-            vacancy.position = new_vac_pos
+            vacancy.position = new_vac_pos[0]
 
             # Check if this vacancy has already been found
             if len(searched_vacancy_positions) != 0:

@@ -16,14 +16,15 @@ WYCKOFF_LETTER_POSITIONS = {letter: positions for positions, letter in enumerate
 
 #===============================================================================
 # Constants for classification
-MAX_CELL_SIZE = 10
+MAX_CELL_SIZE = 12
 REL_POS_TOL = 0.5
-POS_TOL_SCALING = 0.00  # Per angstrom
+POS_TOL_SCALING = 0.0  # Per angstrom
 ANGLE_TOL = 20
 CLUSTER_THRESHOLD = 3.5
 CRYSTALLINITY_THRESHOLD = 0.25
 DELAUNAY_THRESHOLD = 1.5
 BOND_THRESHOLD = 1.0
+CHEM_ENV_THRESHOLD = 0.4
 # POS_TOL_FACTOR = 1.5
 N_EDGE_TOL = 0.9999
 CELL_SIZE_TOL = 0.25

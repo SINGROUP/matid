@@ -48,7 +48,7 @@ class Classifier():
             delaunay_threshold=None,
             bond_threshold=None,
             delaunay_threshold_mode="relative",
-            # pos_tol_factor=None,
+            chem_env_threshold=None,
             n_edge_tol=None,
             cell_size_tol=None,
             max_n_atoms=None,
@@ -124,8 +124,8 @@ class Classifier():
             delaunay_threshold = constants.DELAUNAY_THRESHOLD
         if bond_threshold is None:
             bond_threshold = constants.BOND_THRESHOLD
-        # if pos_tol_factor is None:
-            # pos_tol_factor = constants.POS_TOL_FACTOR
+        if chem_env_threshold is None:
+            chem_env_threshold = constants.CHEM_ENV_THRESHOLD
         if n_edge_tol is None:
             n_edge_tol = constants.N_EDGE_TOL
         if cell_size_tol is None:
@@ -151,7 +151,7 @@ class Classifier():
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
         self.bond_threshold = bond_threshold
-        # self.pos_tol_factor = pos_tol_factor
+        self.chem_env_threshold = chem_env_threshold
         self.pos_tol_scaling = pos_tol_scaling
         self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
@@ -322,7 +322,8 @@ class Classifier():
                 pos_tol_scaling=self.pos_tol_scaling,
                 cell_size_tol=self.cell_size_tol,
                 n_edge_tol=self.n_edge_tol,
-                max_2d_cell_height=self.max_2d_cell_height
+                max_2d_cell_height=self.max_2d_cell_height,
+                chem_env_threshold=self.chem_env_threshold
             )
             region = periodicfinder.get_region(
                 system,
