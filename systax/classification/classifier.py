@@ -358,8 +358,6 @@ class Classifier():
                     n_vacancies = len(region.get_vacancies())
                     vacancy_ratio = n_vacancies/n_region_atoms
 
-                    print(coverage)
-
                     if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
                         if region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
