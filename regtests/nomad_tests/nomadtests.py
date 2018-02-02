@@ -325,16 +325,15 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
 
-    def test_13(self):
-        """In this system the unit cell has duplicate entries for two atoms.
-        Reason is still unknown, but does not affect the search because they
-        are so close.
+    def test_14(self):
+        """Wrong vacancy detected, wrong adsorbate, wrong interstitial.
         """
-        system = get_atoms("./fhiaims5/Surface/Pristine/Ca24O88Zr32.json")
+        system = get_atoms("./fhiaims5/Surface/Vacancy+Interstitial+Adsorbate/Mg12O36Si12.json")
         view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
         # Pristine
         adsorbates = classification.adsorbates

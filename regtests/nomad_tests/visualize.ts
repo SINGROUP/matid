@@ -55,7 +55,7 @@ let dir = "data/";
 //let file = "./fhiaims5/Class2D/F2.json"           // Y: Too sparse for a 2D material
 //let file = "./fhiaims5/Class2D/Ge12Mg12O36.json"  // N: Surface, complicated
 //let file = "./fhiaims5/Class2D/Mg12O36Ti12.json"  // N: Surface, complicated
-//let file = "./fhiaims5/Class2D/Ne2.json"  // Y: Too sparse for a 2D material
+//let file = "./fhiaims5/Class2D/Ne2.json"          // Y: Too sparse for a 2D material
 
 // Material2D
 //let file = "./fhiaims5/Material2D/Pristine/C2.json"  // Y/Y
@@ -63,9 +63,72 @@ let dir = "data/";
 //let file = "./fhiaims5/Material2D/Pristine/C128.json"  // Y/Y
 //let file = "./fhiaims5/Material2D/Pristine/C338.json"  // Y/Y
 
-// Surface
+// Surface Pristine
 //let file = "./fhiaims5/Surface/Pristine/Ba16O48Si16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ba16O40Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ba16O48Si16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ba20O52Ti20.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C8Mo16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Hf32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Mo32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Nb32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Ta32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Ti32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32V32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/C32Zr32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca8Ge6O20.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca12Ge16O44.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca12O44Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca16Ge12O40.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca16O40Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca16O56Zr20.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca24Ge32O88.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca24O88Si32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca24O88Ti32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ca24O88Zr32.json" // Y/Y  Bug in detecting atoms in the unit cell!
+//let file = "./fhiaims5/Surface/Pristine/Ca32Ge24O80.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/CCa16O16.json" // Y/N  Really nasty bug somewhere! Adsorbate missed!
+//let file = "./fhiaims5/Surface/Pristine/Ge12Mg16O40.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ge12O40Sr16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ge16Mg12O44.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ge16Mg16O48.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Ge16O44Sr12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg8O24Si8.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg10O30Si10.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg12O36Si12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg14O42Si14.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg16O16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg16O48Si16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg16O48Sn16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg16O48Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg24O24.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg32O32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/Mg48O48.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O9Sr3Ti3.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O12Sr12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O22Sr6Zr8.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O24Sr8Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O28Sr12Ti8.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O28Sr12Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O32Sr8Ti8.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O32Sr8Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O36Sr12Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O40Sn12Sr16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O40Sr16Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O40Sr16Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O40Sr16Zr12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O44Sn16Sr12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O44Sr12Ti12.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O44Sr12Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O44Sr12Zr16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O48Sr16Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O52Sr20Ti16.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O60Si18Sr24.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O66Si24Sr18.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O88Sr24Zr32.json" // Y/Y
+//let file = "./fhiaims5/Surface/Pristine/O96Sr32Ti32.json" // Y/Y
 
+// Surface + Adsorbates
 //let file = "./fhiaims5/Surface/Adsorbate/C2Ba16Ge20O60.json" // Y/Y
 //let file = "./fhiaims5/Surface/Adsorbate/C2Ba16O44Zr12.json" // Y/N
 //let file = "./fhiaims5/Surface/Adsorbate/C2Ca32Ge24O84.json" // Y/Y
@@ -157,6 +220,28 @@ let dir = "data/";
 //let file = "./fhiaims5/Surface/Adsorbate/Ne2O9Sr3Ti3.json" // Y/Y
 //let file = "./fhiaims5/Surface/Adsorbate/NeO9Sr3Ti3.json" // Y/Y
 
+// Surface + Interstitial + Adsorbate
+//let file = "./fhiaims5/Surface/Interstitial+Adsorbate/C8Mo16.json" // N/N: The wrong cell is identified. Either try to find the correct one or then add possibility to detect if there are too many atoms in the found cells that are not part of the unit.
+//let file = "./fhiaims5/Surface/Interstitial+Adsorbate/C9Mo16O2.json" // N/N: The wrong cell is identified. Either try to find the correct one or then add possibility to detect if there are too many atoms in the found cells that are not part of the unit.
+//let file = "./fhiaims5/Surface/Interstitial+Adsorbate/Ca32O80Ti24.json"  // Y/N: The whole surface is not detected
+//let file = "./fhiaims5/Surface/Interstitial+Adsorbate/CMg24O74Si24.json"  // Y/N: Wrong interstitials, wrong adsorbates
+//let file = "./fhiaims5/Surface/Interstitial+Adsorbate/O80Sr32Zr24.json"  // Y/N: The whole surface is not detected
+
+// Surface + Substitution + Adsorbate
+//let file = "./fhiaims5/Surface/Substitution+Adsorbate/CH4Mg39NiO40.json"  // Y/Y
+//let file = "./fhiaims5/Surface/Substitution+Adsorbate/CMg39NiO40.json"  // Y/Y
+//let file = "./fhiaims5/Surface/Substitution+Adsorbate/CMg55NiO56.json"  // Y/Y
+
+// Surface + Substitution
+//let file = "./fhiaims5/Surface/Substitution/Mg39NiO40.json"  // Y/Y
+
+// Surface + Vacancy + Adsorbate
+//let file = "./fhiaims5/Surface/Vacancy+Adsorbate/H4Mg12O14.json"  // N/N Wrong cell, wrong stuff
+//let file = "./fhiaims5/Surface/Vacancy+Adsorbate/Mg20O68Si24.json"  // Y/N The whole surface is not detected, should be pristine
+
+// Vacancy + Interstitional + Adsorbate
+//let file = "./fhiaims5/Surface/Vacancy+Interstitial+Adsorbate/H2Mg61NiO62.json"  // Y/N The whole surface is not detected, should be pristine
+let file = "./fhiaims5/Surface/Vacancy+Interstitial+Adsorbate/Mg12O36Si12.json"  // Y/N The whole surface is not detected, should be pristine, There is a bug in vacancy detection!
 
 //let file = "slanted1.json";
 let filepath = dir + "/" + file

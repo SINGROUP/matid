@@ -140,7 +140,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        view(proto_cell)
+        # view(proto_cell)
         # print(proto_cell.get_cell())
 
         # Find a region that is spanned by the found unit cell
@@ -348,34 +348,34 @@ class PeriodicFinder():
 
         # Expand the graph by exploring the links of the atoms that are in
         # neighbouring cells
-        # node_conn = {}
-        # for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
-            # for node in periodicity_graph_pbc.nodes():
-                # node_index, node_factor = node
-                # if node_index == cell_node and node_factor == tuple(neigh_fact):
-                    # connections = periodicity_graph_pbc[node]
-                    # disp = []
-                    # ns = []
-                    # for neighbour_index, neighbour_factor in connections:
-                        # i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
-                        # disp.append(i_disp)
-                        # ns.append(neighbour_index)
-                    # node_conn[cell_node] = [ns, disp]
+        node_conn = {}
+        for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
+            for node in periodicity_graph_pbc.nodes():
+                node_index, node_factor = node
+                if node_index == cell_node and node_factor == tuple(neigh_fact):
+                    connections = periodicity_graph_pbc[node]
+                    disp = []
+                    ns = []
+                    for neighbour_index, neighbour_factor in connections:
+                        i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
+                        disp.append(i_disp)
+                        ns.append(neighbour_index)
+                    node_conn[cell_node] = [ns, disp]
 
-        # new_graph = periodicity_graph_pbc.copy()
-        # for node in periodicity_graph_pbc.nodes():
-            # node_index, node_factor = node
-            # if node_factor != (0, 0, 0):
-                # i_conn = node_conn.get(node_index)
-                # if i_conn is None:
-                    # continue
-                # for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
-                    # new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
-                    # if new_node not in new_graph:
-                        # new_graph.add_node(new_node)
-                    # if not new_graph.has_edge(node, new_node):
-                        # new_graph.add_edge(node, new_node)
-        # periodicity_graph_pbc = new_graph
+        new_graph = periodicity_graph_pbc.copy()
+        for node in periodicity_graph_pbc.nodes():
+            node_index, node_factor = node
+            if node_factor != (0, 0, 0):
+                i_conn = node_conn.get(node_index)
+                if i_conn is None:
+                    continue
+                for i_ind, i_factor in zip(i_conn[0], i_conn[1]):
+                    new_node = (i_ind, tuple(np.array(node_factor) + np.array(i_factor)))
+                    if new_node not in new_graph:
+                        new_graph.add_node(new_node)
+                    if not new_graph.has_edge(node, new_node):
+                        new_graph.add_edge(node, new_node)
+        periodicity_graph_pbc = new_graph
 
         # print(seed_index)
         # print(neighbour_nodes)
@@ -451,7 +451,6 @@ class PeriodicFinder():
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
-        print(len(valid_graphs))
         if len(valid_graphs) == 0:
             return None, None, None
 
@@ -1280,8 +1279,10 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices)
 
-        # Translate the searched positions
+        # Translate and wrap the searched positions
         test_pos = unit_cell.get_positions() - seed_offset + seed_pos
+        test_pos = systax.geometry.to_scaled(orig_cell, test_pos, pbc=orig_pbc, wrap=True)
+        test_pos = systax.geometry.to_cartesian(orig_cell, test_pos)
 
         # Find the atoms that match the positions in the original basis
         disps = unit_cell.get_positions() - seed_offset
@@ -1292,6 +1293,7 @@ class PeriodicFinder():
             cell_num,
             pos_tolerances,
         )
+        # print(matches)
 
         # Add all the matches into the lists containing already searched
         # locations.
@@ -1314,21 +1316,27 @@ class PeriodicFinder():
         valid_vacancies = []
         vacancy_pos_array = np.array(searched_vacancy_positions)
         for vacancy in vacancies:
-            old_vac_pos = vacancy.position
+            # vac_pos = vacancy.position
 
             # Wrap the position to be inside the cell
-            vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
-            new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
-            vacancy.position = new_vac_pos[0]
+            # vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
+            # new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
+
+            # if np.allclose(new_vac_pos, [9.9455530000000003, 0.14649349999999867, 23.022900429446967]):
+                # print("Found")
+                # print(old_vac_pos)
+                # print()
+
+            # vacancy.position = new_vac_pos[0]
 
             # Check if this vacancy has already been found
             if len(searched_vacancy_positions) != 0:
-                vac_dist = np.linalg.norm(vacancy_pos_array - new_vac_pos, axis=1)
+                vac_dist = np.linalg.norm(vacancy_pos_array - vacancy.position, axis=1)
                 if vac_dist.min() > self.pos_tol:
-                    new_vacancy_pos.append(new_vac_pos)
+                    new_vacancy_pos.append(vacancy.position)
                     valid_vacancies.append(vacancy)
             else:
-                new_vacancy_pos.append(new_vac_pos)
+                new_vacancy_pos.append(vacancy.position)
                 valid_vacancies.append(vacancy)
         searched_vacancy_positions.extend(new_vacancy_pos)
 
