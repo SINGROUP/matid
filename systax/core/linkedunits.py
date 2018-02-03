@@ -366,8 +366,8 @@ class LinkedUnitCollection(dict):
 
                             # In non-2D materials subsitutions that are outside
                             # the triangulation are ignored automatically.
-                            if not self.is_2d and subst_index in outside_set:
-                                continue
+                            # if not self.is_2d and subst_index in outside_set:
+                                # continue
 
                             # Otherwise check the chemical similarity
                             real_environment = self.get_chemical_environment(

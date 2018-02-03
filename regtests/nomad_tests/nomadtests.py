@@ -354,10 +354,59 @@ class Class2DTests(unittest.TestCase):
         # tolerance relaxed for correct classification.
         # """
         # system = get_atoms("./fhiaims5/Surface/Vacancy+Interstitial+Adsorbate/H2Mg61NiO62.json")
-        # # view(system)
+        # view(system)
+
+        # # classifier = Classifier()
+        # classifier = Classifier(pos_tol=0.65, chem_similarity_threshold=0.3)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 1)
+        # self.assertEqual(len(adsorbates), 2)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertTrue(set(adsorbates) == set((124, 125)))
+
+    # def test_16(self):
+        # """Test the substitute detection on surfaces. All substitutes should be
+        # validated based on the chemical environment instead of the tesselation.
+        # """
+        # system = get_atoms("./fhiaims5/Surface//Adsorbate/CMg39NiO40.json")
+        # view(system)
 
         # classifier = Classifier()
-        # # classifier = Classifier(pos_tol=0.6, pos_tol_scaling=0.1)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Adsorbate + Substitution
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 1)
+        # self.assertEqual(len(adsorbates), 1)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertTrue(set(adsorbates) == set([80]))
+        # self.assertTrue(substitutions[0].index == 65)
+
+    # def test_17(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Interstitial+Adsorbate/O80Sr32Zr24.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
@@ -369,35 +418,9 @@ class Class2DTests(unittest.TestCase):
         # unknowns = classification.unknowns
         # self.assertEqual(len(vacancies), 0)
         # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 3)
+        # self.assertEqual(len(adsorbates), 0)
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
-        # self.assertTrue(set(adsorbates) == set((72, 124, 125)))
-
-    def test_16(self):
-        """Test the substitute detection on surfaces. All substitutes should be
-        validated based on the chemical environment instead of the tesselation.
-        """
-        system = get_atoms("./fhiaims5/Surface//Adsorbate/CMg39NiO40.json")
-        view(system)
-
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-
-        # Adsorbate + Substitution
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(substitutions), 1)
-        self.assertEqual(len(adsorbates), 1)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(interstitials), 0)
-        self.assertTrue(set(adsorbates) == set([80]))
-        self.assertTrue(substitutions[0].index == 65)
 
 if __name__ == '__main__':
     suites = []
