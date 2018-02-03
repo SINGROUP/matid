@@ -242,6 +242,7 @@ class Classifier():
         if self.pos_tol_mode == "relative" or self.delaunay_threshold_mode == "relative":
             min_basis = np.linalg.norm(cell, axis=1).min()
             dist_matrix_mod = np.array(dist_matrix_pbc)
+            dist_matrix_mod /= radii_matrix
             np.fill_diagonal(dist_matrix_mod, min_basis)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
