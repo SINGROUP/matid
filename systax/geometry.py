@@ -1307,6 +1307,7 @@ def get_matches(
 
         match = None
         copy = None
+        subst = None
         b_num = numbers[i]
 
         if i_match is not None:
@@ -1323,7 +1324,7 @@ def get_matches(
 
             # Wrap the substitute position
             subst_pos_cart = orig_pos[ind]
-            substitutions.append(Substitution(ind, subst_pos_cart, b_num, a_num))
+            subst = Substitution(ind, subst_pos_cart, b_num, a_num)
 
             # If a match was found the factor is reported based on the
             # displacement tensor
@@ -1336,6 +1337,7 @@ def get_matches(
             # positions
             copy = np.floor(scaled_pos2[i])
 
+        substitutions.append(subst)
         matches.append(match)
         copy_indices.append(copy)
 

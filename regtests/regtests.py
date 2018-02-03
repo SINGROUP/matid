@@ -2345,8 +2345,8 @@ class SurfaceTests(unittest.TestCase):
         del nacl[vac_index]
 
         # Shake the atoms
-        rng = RandomState(8)
-        systax.geometry.make_random_displacement(nacl, 0.4, rng)
+        # rng = RandomState(8)
+        # systax.geometry.make_random_displacement(nacl, 0.4, rng)
 
         # Add adsorbate
         h2o = molecule("H2O")
@@ -2357,7 +2357,8 @@ class SurfaceTests(unittest.TestCase):
         # Add substitution
         symbols = nacl.get_atomic_numbers()
         subst_num = 39
-        symbols[subst_num] = 15
+        subst_atomic_num = 19
+        symbols[subst_num] = subst_atomic_num
         nacl.set_atomic_numbers(symbols)
 
         # view(nacl)
@@ -2386,7 +2387,7 @@ class SurfaceTests(unittest.TestCase):
         found_subst = substitutions[0]
         self.assertEqual(found_subst.index, subst_num)
         self.assertEqual(found_subst.original_element, 11)
-        self.assertEqual(found_subst.substitutional_element, 15)
+        self.assertEqual(found_subst.substitutional_element, subst_atomic_num)
 
         # No unknown atoms
         unknowns = classification.unknowns

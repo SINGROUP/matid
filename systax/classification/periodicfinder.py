@@ -29,7 +29,7 @@ class PeriodicFinder():
             cell_size_tol=constants.CELL_SIZE_TOL,
             n_edge_tol=constants.N_EDGE_TOL,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
-            chem_env_threshold=constants.CHEM_ENV_THRESHOLD
+            chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD
         ):
         """
         Args:
@@ -52,7 +52,7 @@ class PeriodicFinder():
         self.cell_size_tol = cell_size_tol
         self.n_edge_tol = n_edge_tol
         self.max_2d_cell_height = max_2d_cell_height
-        self.chem_env_threshold = chem_env_threshold
+        self.chem_similarity_threshold = chem_similarity_threshold
 
     def get_region(
             self,
@@ -1097,7 +1097,7 @@ class PeriodicFinder():
             self.dist_matrix_radii_mic,
             self.disp_tensor_finite,
             tesselation_distance,
-            self.chem_env_threshold,
+            self.chem_similarity_threshold,
             bond_threshold,
         )
         multipliers = self._get_multipliers(periodic_indices)
@@ -1293,6 +1293,10 @@ class PeriodicFinder():
             cell_num,
             pos_tolerances,
         )
+        # print("Moi")
+        # print(substitutions)
+        # if len(substitutions) != 0:
+            # print(substitutions)
         # print(matches)
 
         # Add all the matches into the lists containing already searched
@@ -1303,10 +1307,13 @@ class PeriodicFinder():
         valid_substitutions = []
         new_subst = []
         for subst in substitutions:
-            subst_ind = subst.index
-            if subst_ind not in used_indices:
-                valid_substitutions.append(subst)
-            new_subst.append(subst_ind)
+            true_subst = None
+            if subst is not None:
+                subst_ind = subst.index
+                if subst_ind not in used_indices:
+                    true_subst = subst
+                new_subst.append(subst_ind)
+            valid_substitutions.append(true_subst)
         used_indices.update(new_subst)
 
         # Correct the vacancy positions by the seed pos, seed offset and cell
@@ -1316,19 +1323,6 @@ class PeriodicFinder():
         valid_vacancies = []
         vacancy_pos_array = np.array(searched_vacancy_positions)
         for vacancy in vacancies:
-            # vac_pos = vacancy.position
-
-            # Wrap the position to be inside the cell
-            # vacancy_pos_rel = systax.geometry.to_scaled(orig_cell, old_vac_pos, pbc=orig_pbc, wrap=True)
-            # new_vac_pos = systax.geometry.to_cartesian(orig_cell, vacancy_pos_rel)
-
-            # if np.allclose(new_vac_pos, [9.9455530000000003, 0.14649349999999867, 23.022900429446967]):
-                # print("Found")
-                # print(old_vac_pos)
-                # print()
-
-            # vacancy.position = new_vac_pos[0]
-
             # Check if this vacancy has already been found
             if len(searched_vacancy_positions) != 0:
                 vac_dist = np.linalg.norm(vacancy_pos_array - vacancy.position, axis=1)
@@ -1399,9 +1393,6 @@ class PeriodicFinder():
         """
         orig_cell = system.get_cell()
         orig_pos = system.get_positions()
-        # orig_num = system.get_atomic_numbers()
-        # seed_pos = orig_pos[seed_index]
-        # seed_atomic_number = orig_num[seed_index]
 
         new_seed_indices = []
         new_seed_pos = []
@@ -1433,11 +1424,6 @@ class PeriodicFinder():
                 pos_tolerances,
                 mic=True
             )
-
-            # if 131 in matches:
-                # print(matches)
-                # print(len(matches))
-                # print("Found")
 
             for match, factor, seed_guess, multiplier, disloc, test_cell_index in zip(
                     matches,
@@ -1474,8 +1460,6 @@ class PeriodicFinder():
                     if match in used_indices:
                         add = False
                 if add:
-                    # if match == 131:
-                        # print(match)
                     new_seed_indices.append(match)
                     new_seed_pos.append(i_seed_pos)
                     new_cell_indices.append(test_cell_index)

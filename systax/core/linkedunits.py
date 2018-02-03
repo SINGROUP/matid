@@ -26,7 +26,7 @@ class LinkedUnitCollection(dict):
             dist_matrix_radii_pbc,
             disp_tensor_finite,
             delaunay_threshold=constants.DELAUNAY_THRESHOLD,
-            chem_env_threshold=constants.CHEM_ENV_THRESHOLD,
+            chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD,
             bond_threshold=constants.BOND_THRESHOLD,
         ):
         """
@@ -43,7 +43,7 @@ class LinkedUnitCollection(dict):
         self.cell = cell
         self.is_2d = is_2d
         self.delaunay_threshold = delaunay_threshold
-        self.chem_env_threshold = chem_env_threshold
+        self.chem_similarity_threshold = chem_similarity_threshold
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
@@ -55,6 +55,8 @@ class LinkedUnitCollection(dict):
         self._vacancies = None
         self._clusters = None
         self._basis_indices = None
+        self._basis_environments = None
+        self._translations = None
         dict.__init__(self)
 
     def __setitem__(self, key, value):
@@ -107,39 +109,60 @@ class LinkedUnitCollection(dict):
 
         Returns:
         """
-        # Multiply the system to get the entire neighbourhood.
-        cell = self.cell
-        max_radii = covalent_radii[cell.get_atomic_numbers()].max()
-        cutoff = max_radii + self.bond_threshold
-        if self.is_2d:
-            pbc = [True, True, False]
-        else:
-            pbc = [True, True, True]
-        factors = systax.geometry.get_neighbour_cells(cell.get_cell(), cutoff, pbc)
-        tvecs = np.dot(factors, cell.get_cell())
+        if self._basis_environments is None:
+            # Multiply the system to get the entire neighbourhood.
+            cell = self.cell
+            max_radii = covalent_radii[cell.get_atomic_numbers()].max()
+            cutoff = max_radii + self.bond_threshold
+            if self.is_2d:
+                pbc = [True, True, False]
+            else:
+                pbc = [True, True, True]
+            factors = systax.geometry.get_neighbour_cells(cell.get_cell(), cutoff, pbc)
+            tvecs = np.dot(factors, cell.get_cell())
 
-        # Find the factor corresponding to the original cell
-        for i_factor, factor in enumerate(factors):
-            if tuple(factor) == (0, 0, 0):
-                tvecs_reduced = np.delete(tvecs, i_factor, axis=0)
-                break
+            # Find the factor corresponding to the original cell
+            for i_factor, factor in enumerate(factors):
+                if tuple(factor) == (0, 0, 0):
+                    tvecs_reduced = np.delete(tvecs, i_factor, axis=0)
+                    break
 
-        pos = cell.get_positions()
-        disp = systax.geometry.get_displacement_tensor(pos, pos, cell.get_cell())
+            pos = cell.get_positions()
+            disp = systax.geometry.get_displacement_tensor(pos, pos, cell.get_cell())
 
-        env_list = []
-        for i in range(len(cell)):
-            i_env = self.get_chemical_environment(
-                cell,
-                i,
-                disp,
-                tvecs,
-                tvecs_reduced
-            )
-            env_list.append(i_env)
+            env_list = []
+            for i in range(len(cell)):
+                i_env = self.get_chemical_environment(
+                    cell,
+                    i,
+                    disp,
+                    tvecs,
+                    tvecs_reduced
+                )
+                env_list.append(i_env)
+            self._basis_environments = env_list
 
-        # print(env_list)
-        return env_list
+        return self._basis_environments
+
+    def get_chem_env_translations(self):
+        """Used to calculate the translations that are used in calculating the
+        chemical enviroments.
+        """
+        if self._translations is None:
+            cell = self.system.get_cell()
+            num = self.system.get_atomic_numbers()
+            max_radii = covalent_radii[num].max()
+            cutoff = max_radii + self.bond_threshold
+            factors = systax.geometry.get_neighbour_cells(cell, cutoff, True)
+            translations = np.dot(factors, cell)
+
+            # Find and remove the factor corresponding to the original cell
+            for i_factor, factor in enumerate(factors):
+                if tuple(factor) == (0, 0, 0):
+                    translations_reduced = np.delete(translations, i_factor, axis=0)
+                    break
+            self._translations = (translations, translations_reduced)
+        return self._translations
 
     def get_basis_indices(self):
         """Returns the indices of the atoms that were found to belong to a unit
@@ -149,20 +172,8 @@ class LinkedUnitCollection(dict):
             np.ndarray: Indices of the atoms in the original system that belong
             to this collection of LinkedUnits.
         """
-        cell = self.system.get_cell()
-        num = self.system.get_atomic_numbers()
-        max_radii = covalent_radii[num].max()
-        cutoff = max_radii + self.bond_threshold
-        factors = systax.geometry.get_neighbour_cells(cell, cutoff, True)
-        translations = np.dot(factors, cell)
-
-        # Find and remove the factor corresponding to the original cell
-        for i_factor, factor in enumerate(factors):
-            if tuple(factor) == (0, 0, 0):
-                translations_reduced = np.delete(translations, i_factor, axis=0)
-                break
-
         if self._basis_indices is None:
+            translations, translations_reduced = self.get_chem_env_translations()
 
             # For each atom in the basis check the chemical environment
             neighbour_map = self.get_basis_atom_neighbourhood()
@@ -178,8 +189,8 @@ class LinkedUnitCollection(dict):
                     if index is not None:
                         real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
                         ideal_environment = neighbour_map[i_index]
-                        chem_dist = self.get_chemical_distance(ideal_environment, real_environment)
-                        if chem_dist >= self.chem_env_threshold:
+                        chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
+                        if chem_similarity >= self.chem_similarity_threshold:
                             indices.add(index)
                         # else:
                             # print(index)
@@ -189,7 +200,6 @@ class LinkedUnitCollection(dict):
             # clusters = self.get_clusters()
 
             self._basis_indices = np.array(list(indices))
-            # print(self._basis_indices)
 
         return self._basis_indices
 
@@ -229,9 +239,11 @@ class LinkedUnitCollection(dict):
 
         return neighbours
 
-    def get_chemical_distance(self, ideal_env, real_env):
-        """Returns a metric that quantifies the distance between two chemical
-        enviroments.
+    def get_chemical_similarity(self, ideal_env, real_env):
+        """Returns a metric that quantifies the similarity between two chemical
+        environments. Here the metric is defined simply by the number
+        neighbours that are found to be same as in the ideal environmen within
+        a certain radius.
         """
         max_score = sum(ideal_env.values())
         score = 0
@@ -299,16 +311,13 @@ class LinkedUnitCollection(dict):
             basis_elements = set(self.cell.get_atomic_numbers())
             outside_indices = outside_indices
 
-            # In 2D materials the substitutional atoms have to be separately
-            # removed from the list of adsorbates. This is because sometimes
-            # the material is too thin for the substitutions to be considered
-            # to be within the triangulation.
-            if self.is_2d:
-                substitutions = self.get_substitutions()
-                outside_indices = set(outside_indices)
-                substitutions = set([x.index for x in substitutions])
-                outside_indices -= substitutions
-                outside_indices = np.array(list(outside_indices))
+            # The substitutions have to be removed explicitly from the ouside
+            # atoms because sometimes they are outside the tesselation.
+            substitutions = self.get_substitutions()
+            outside_indices = set(outside_indices)
+            substitutions = set([x.index for x in substitutions])
+            outside_indices -= substitutions
+            outside_indices = np.array(list(outside_indices))
 
             if len(outside_indices) != 0:
 
@@ -330,29 +339,67 @@ class LinkedUnitCollection(dict):
         if self._substitutions is None:
 
             # Gather all substitutions
-            all_substitutions = []
-            for cell in self.values():
-                subst = cell.substitutions
-                if len(subst) != 0:
-                    all_substitutions.extend(subst)
+            # all_substitutions = []
+            # for cell in self.values():
+                # subst = cell.substitutions
+                # if len(subst) != 0:
+                    # all_substitutions.extend(subst)
+
+            # The substitutions are validate based on their chemical
+            # environment and position in the triangulation.
+            neighbour_map = self.get_basis_atom_neighbourhood()
+            valid_subst = []
+            _, outside_indices = self.get_inside_and_outside_indices()
+            outside_set = set(outside_indices)
+            translations, translations_reduced = self.get_chem_env_translations()
+
+            for unit in self.values():
+
+                # Compare the chemical environment near this atom to the one
+                # that is present in the prototype cell. If these
+                # neighbourhoods are too different, then the atom is not
+                # counted as being a part of the region.
+                if unit.substitutions is not None:
+                    for i_index, subst in enumerate(unit.substitutions):
+                        if subst is not None:
+                            subst_index = subst.index
+
+                            # In non-2D materials subsitutions that are outside
+                            # the triangulation are ignored automatically.
+                            if not self.is_2d and subst_index in outside_set:
+                                continue
+
+                            # Otherwise check the chemical similarity
+                            real_environment = self.get_chemical_environment(
+                                self.system,
+                                subst_index,
+                                self.disp_tensor_finite,
+                                translations,
+                                translations_reduced
+                            )
+                            ideal_environment = neighbour_map[i_index]
+                            chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
+                            if chem_similarity >= self.chem_similarity_threshold:
+                                valid_subst.append(subst)
+            self._substitutions = valid_subst
 
             # In 2D materials all substitutions in the cell are valid
             # substitutions
-            if self.is_2d:
-                self._substitutions = all_substitutions
-            else:
-                # In surfaces the substitutions have to be validate by whether they
-                # are inside the tesselation or not
-                inside_indices, _ = self.get_inside_and_outside_indices()
-                inside_set = set(inside_indices)
+            # if self.is_2d:
+                # self._substitutions = all_substitutions
+            # else:
+                # # In surfaces the substitutions have to be validate by whether they
+                # # are inside the tesselation or not
+                # inside_indices, _ = self.get_inside_and_outside_indices()
+                # inside_set = set(inside_indices)
 
-                # Find substitutions that are inside the tesselation
-                valid_subst = []
-                for subst in all_substitutions:
-                    subst_index = subst.index
-                    if subst_index in inside_set:
-                        valid_subst.append(subst)
-                self._substitutions = valid_subst
+                # # Find substitutions that are inside the tesselation
+                # valid_subst = []
+                # for subst in all_substitutions:
+                    # subst_index = subst.index
+                    # if subst_index in inside_set:
+                        # valid_subst.append(subst)
+                # self._substitutions = valid_subst
 
         return self._substitutions
 

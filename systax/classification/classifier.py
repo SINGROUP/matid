@@ -38,23 +38,23 @@ class Classifier():
     def __init__(
             self,
             seed_position="cm",
-            max_cell_size=None,
+            max_cell_size=constants.MAX_CELL_SIZE,
             pos_tol=None,
             pos_tol_mode="relative",
-            pos_tol_scaling=None,
-            angle_tol=None,
-            cluster_threshold=None,
-            crystallinity_threshold=None,
-            delaunay_threshold=None,
-            bond_threshold=None,
+            pos_tol_scaling=constants.POS_TOL_SCALING,
+            angle_tol=constants.ANGLE_TOL,
+            cluster_threshold=constants.CLUSTER_THRESHOLD,
+            crystallinity_threshold=constants.CRYSTALLINITY_THRESHOLD,
+            delaunay_threshold=constants.DELAUNAY_THRESHOLD,
+            bond_threshold=constants.BOND_THRESHOLD,
             delaunay_threshold_mode="relative",
-            chem_env_threshold=None,
-            n_edge_tol=None,
-            cell_size_tol=None,
-            max_n_atoms=None,
-            coverage_threshold=None,
-            max_vacancy_ratio=None,
-            max_2d_cell_height=None
+            chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD,
+            n_edge_tol=constants.N_EDGE_TOL,
+            cell_size_tol=constants.CELL_SIZE_TOL,
+            max_n_atoms=constants.MAX_N_ATOMS,
+            coverage_threshold=constants.COVERAGE_THRESHOLD,
+            max_vacancy_ratio=constants.MAX_VACANCY_RATIO,
+            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT
             ):
         """
         Args:
@@ -108,37 +108,8 @@ class Classifier():
                 many vacancies are found, the classification will be left more
                 generic, e.g. Class2D.
         """
-        if max_cell_size is None:
-            max_cell_size = constants.MAX_CELL_SIZE
         if pos_tol_mode == "relative" and pos_tol is None:
             pos_tol = constants.REL_POS_TOL
-        if pos_tol_scaling is None:
-            pos_tol_scaling = constants.POS_TOL_SCALING
-        if angle_tol is None:
-            angle_tol = constants.ANGLE_TOL
-        if crystallinity_threshold is None:
-            crystallinity_threshold = constants.CRYSTALLINITY_THRESHOLD
-        if cluster_threshold is None:
-            cluster_threshold = constants.CLUSTER_THRESHOLD
-        if delaunay_threshold is None:
-            delaunay_threshold = constants.DELAUNAY_THRESHOLD
-        if bond_threshold is None:
-            bond_threshold = constants.BOND_THRESHOLD
-        if chem_env_threshold is None:
-            chem_env_threshold = constants.CHEM_ENV_THRESHOLD
-        if n_edge_tol is None:
-            n_edge_tol = constants.N_EDGE_TOL
-        if cell_size_tol is None:
-            cell_size_tol = constants.CELL_SIZE_TOL
-        if max_n_atoms is None:
-            max_n_atoms = constants.MAX_N_ATOMS
-        if coverage_threshold is None:
-            coverage_threshold = constants.COVERAGE_THRESHOLD
-        if max_vacancy_ratio is None:
-            max_vacancy_ratio = constants.MAX_VACANCY_RATIO
-        if max_2d_cell_height is None:
-            max_2d_cell_height = constants.MAX_2D_CELL_HEIGHT
-
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
         self.pos_tol_scaling = pos_tol_scaling
@@ -151,7 +122,7 @@ class Classifier():
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
         self.bond_threshold = bond_threshold
-        self.chem_env_threshold = chem_env_threshold
+        self.chem_similarity_threshold = chem_similarity_threshold
         self.pos_tol_scaling = pos_tol_scaling
         self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
@@ -242,7 +213,6 @@ class Classifier():
         if self.pos_tol_mode == "relative" or self.delaunay_threshold_mode == "relative":
             min_basis = np.linalg.norm(cell, axis=1).min()
             dist_matrix_mod = np.array(dist_matrix_pbc)
-            dist_matrix_mod /= radii_matrix
             np.fill_diagonal(dist_matrix_mod, min_basis)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
@@ -319,12 +289,11 @@ class Classifier():
             periodicfinder = PeriodicFinder(
                 angle_tol=self.angle_tol,
                 max_cell_size=self.max_cell_size,
-                # pos_tol_factor=self.pos_tol_factor,
                 pos_tol_scaling=self.pos_tol_scaling,
                 cell_size_tol=self.cell_size_tol,
                 n_edge_tol=self.n_edge_tol,
                 max_2d_cell_height=self.max_2d_cell_height,
-                chem_env_threshold=self.chem_env_threshold
+                chem_similarity_threshold=self.chem_similarity_threshold
             )
             region = periodicfinder.get_region(
                 system,
