@@ -55,18 +55,20 @@ class Class2D(Classification):
         self.region = region
         if region is not None:
             self.basis_indices = region.get_basis_indices()
-            self.interstitials = region.get_interstitials()
-            self.substitutions = region.get_substitutions()
-            self.adsorbates = region.get_adsorbates()
-            self.vacancies = region.get_vacancies()
-            self.unknowns = region.get_unknowns()
+            self.additional_indices = region.get_additional_indices()
+            # self.interstitials = region.get_interstitials()
+            # self.substitutions = region.get_substitutions()
+            # self.adsorbates = region.get_adsorbates()
+            # self.vacancies = region.get_vacancies()
+            # self.unknowns = region.get_unknowns()
         else:
             self.basis_indices = ()
-            self.interstitials = ()
-            self.substitutions = ()
-            self.adsorbates = ()
-            self.vacancies = ()
-            self.unknowns = ()
+            self.additional_indices = ()
+            # self.interstitials = ()
+            # self.substitutions = ()
+            # self.adsorbates = ()
+            # self.vacancies = ()
+            # self.unknowns = ()
         self.cell_analyzer = cell_analyzer
 
 
@@ -97,16 +99,18 @@ class Crystal(Class3D):
         self.region = region
         if region is not None:
             self.basis_indices = region.get_basis_indices()
-            self.interstitials = region.get_interstitials()
-            self.substitutions = region.get_substitutions()
-            self.vacancies = region.get_vacancies()
-            self.unknowns = region.get_unknowns()
+            self.additional_indices = region.get_additional_indices()
+            # self.interstitials = region.get_interstitials()
+            # self.substitutions = region.get_substitutions()
+            # self.vacancies = region.get_vacancies()
+            # self.unknowns = region.get_unknowns()
         else:
             self.basis_indices = ()
-            self.interstitials = ()
-            self.substitutions = ()
-            self.vacancies = ()
-            self.unknowns = ()
+            self.additional_indices = ()
+            # self.interstitials = ()
+            # self.substitutions = ()
+            # self.vacancies = ()
+            # self.unknowns = ()
         self.cell_analyzer = cell_analyzer
 
 

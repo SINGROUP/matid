@@ -325,10 +325,11 @@ class Classifier():
                     n_region_atoms = len(region.get_basis_indices())
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
-                    n_vacancies = len(region.get_vacancies())
-                    vacancy_ratio = n_vacancies/n_region_atoms
+                    # n_vacancies = len(region.get_vacancies())
+                    # vacancy_ratio = n_vacancies/n_region_atoms
 
-                    if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
+                    # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
+                    if coverage >= self.coverage_threshold:
                         if region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
                             # in the cell is not periodic. Now that the cell
