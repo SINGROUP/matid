@@ -140,7 +140,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        # view(proto_cell)
+        view(proto_cell)
         # print(proto_cell.get_cell())
 
         # Find a region that is spanned by the found unit cell
@@ -249,7 +249,6 @@ class PeriodicFinder():
                 i_add_factor = add_factors[i_neigh]
                 i_sub_factor = sub_factors[i_neigh]
 
-                # New
                 if i_add is not None or i_sub is not None:
                     origin_factor = neighbour_factors[i_neigh]
 
@@ -308,7 +307,7 @@ class PeriodicFinder():
         # caused by pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
-        valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
+        valid_span_indices = np.where(metric > 1.0*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
 
@@ -395,21 +394,6 @@ class PeriodicFinder():
         # Get all disconnected subgraphs in the periodicity graph that takes
         # periodic boundaries into account
         graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
-
-        # for graph in graphs:
-            # for node in graph:
-                # if node[0] == 32:
-                    # print(node)
-                    # import matplotlib.pyplot as plt
-                    # plt.subplot(111)
-                    # pos = nx.spring_layout(graph)
-                    # nx.draw_networkx_nodes(graph, pos)
-                    # nx.draw_networkx_edges(graph, pos)
-                    # data = graph.nodes(data=True)
-                    # labels = {x[0]: x[0] for x in data}
-                    # nx.draw_networkx_labels(graph, pos, labels, font_size=16)
-                    # plt.show()
-                    # break
 
         # Filter out the basis atoms by checking how many were found with
         # respect to the number of copies of the seed atom. This equals to
@@ -566,7 +550,9 @@ class PeriodicFinder():
                 cells[i_node, i_basis, :] = a
 
 
-        # Find the relative positions of atoms inside the cell
+        # Find the relative positions of atoms inside the cell. If for too many
+        # cells atoms are found that do not belong to the basis, then the found
+        # unit cell is not correct and a cell should not be returned.
         orig_pos = system.get_positions()
         inside_nodes = []
         inside_pos = []
@@ -613,6 +599,13 @@ class PeriodicFinder():
         averaged_rel_pos = []
         averaged_rel_num = []
         new_group_index = None
+        n_cells = len(cells)
+        n_cells_with_interstitial = 0
+        all_nodes = set()
+        for nodes in group_data_pbc["nodes"]:
+            for node in nodes:
+                all_nodes.add(node[0])
+
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             group_num = group_data_pbc["num"][i_group]
             scaled_pos = []
@@ -623,6 +616,17 @@ class PeriodicFinder():
                         pos = cell_positions[pos_index]
                         scaled_pos.append(pos)
                         break
+
+            # for cell_node in inside_nodes:
+                # keys = list(cell_node.keys())
+                # indices = [x[0] for x in keys]
+                # for ind in indices:
+                    # if ind not in all_nodes:
+                        # print(ind)
+                        # n_cells_with_interstitial += 1
+                        # break
+                # else:
+                    # break
 
             # The basis location corresponding to this group is only added is
             # at least one occurrence is found in a cell.
@@ -648,6 +652,12 @@ class PeriodicFinder():
             if i_group == seed_group_index:
                 new_group_index = len(averaged_rel_num) - 1
         seed_group_index = new_group_index
+
+        # Check that the cells does not have way too much atoms that were not
+        # in the basis.
+        print(n_cells_with_interstitial)
+        if n_cells_with_interstitial/n_cells > 0.5:
+            print("Nope")
 
         averaged_rel_pos = np.array(averaged_rel_pos)
         offset = averaged_rel_pos[seed_group_index]

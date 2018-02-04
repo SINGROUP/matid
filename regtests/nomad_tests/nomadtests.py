@@ -79,12 +79,11 @@ class Class2DTests(unittest.TestCase):
         # system = get_atoms("./fhiaims5/Class2D/Ba16O40Si12.json")
         # # view(system)
 
-        # classifier = Classifier()
+        # classifier = Classifier(max_cell_size=14, pos_tol=0.3)
         # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Class2D)
+        # print(classification)
+        # # self.assertIsInstance(classification, Class2D)
 
-        # # view(classification.region.cell)
-        # # print(classification)
         # # Pristine
         # adsorbates = classification.adsorbates
         # interstitials = classification.interstitials
@@ -108,13 +107,13 @@ class Class2DTests(unittest.TestCase):
         # self.assertIsInstance(classification, Class2D)
 
     # def test_6(self):
-        # """Looks like a complicated surface, but the cell cannot be found.
-        # Needs futher testing.
+        # """The position tolerance is too big to detect this properly. A too
+        # simple cell is identified. When lowering the position tolerance the
+        # structure is correctly classified.
         # """
         # system = get_atoms("./fhiaims5/Class2D/Ge12Mg12O36.json")
-        # # view(system)
 
-        # classifier = Classifier(pos_tol=0.35)
+        # classifier = Classifier(pos_tol=0.3)
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
@@ -123,8 +122,6 @@ class Class2DTests(unittest.TestCase):
         # interstitials = classification.interstitials
         # substitutions = classification.substitutions
         # vacancies = classification.vacancies
-        # # for vacancy in vacancies:
-            # # print(vacancy.position)
         # unknowns = classification.unknowns
         # self.assertEqual(len(vacancies), 0)
         # self.assertEqual(len(substitutions), 0)
@@ -133,14 +130,14 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(interstitials), 0)
 
     # def test_7(self):
-        # """Looks like a complicated surface, but the cell cannot be found.
-        # Needs futher testing.
+        # """The position tolerance is too big to detect this properly. A too
+        # simple cell is identified. When lowering the position tolerance the
+        # structure is correctly classified.
         # """
         # system = get_atoms("./fhiaims5/Class2D/Mg12O36Ti12.json")
         # # view(system)
 
-        # classifier = Classifier(pos_tol=0.3, pos_tol_scaling=0.00)
-        # # classifier = Classifier(pos_tol=0.35)
+        # classifier = Classifier(pos_tol=0.3)
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
@@ -155,14 +152,6 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(adsorbates), 0)
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
-
-        # print(adsorbates)
-
-        # atoms = Atoms(cell=system.get_cell())
-        # for vacancy in vacancies:
-            # print(vacancy)
-            # atoms += vacancy
-        # view(atoms)
 
     # def test_8(self):
         # """Too sparse
@@ -421,6 +410,134 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(adsorbates), 0)
         # self.assertEqual(len(unknowns), 0)
         # self.assertEqual(len(interstitials), 0)
+
+    # def test_17(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims5/Surface/Vacancy+Adsorbate/Mg20O68Si24.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_18(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims6/Surface/Vacancy+Interstitial+Substitution+Adsorbate/H2Mg61NiO62.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.9)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 1)
+        # self.assertEqual(len(adsorbates), 2)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_19(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/O80Sr32Zr24.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(adsorbates), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+
+    # def test_20(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/CMg24O74Si24.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.65)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(adsorbates), 10)
+
+    # def test_21(self):
+        # """The whole surface is not correctly detected. Increasing the
+        # threshold fixes the problem.
+        # """
+        # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/Ca32O80Ti24.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=0.6)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # unknowns = classification.unknowns
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(unknowns), 0)
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(adsorbates), 0)
+
+    def test_22(self):
+        """This is a surface with only one repetition of the unit cell. Should
+        be left as Class2D. Fixed by increasing the requirement for the number
+        of edges for a graph corrrespongding to a span.
+        """
+        system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/C8Mo16.json")
+        view(system)
+
+        classifier = Classifier(max_cell_size=14, pos_tol=0.2)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Class2D)
+
 
 if __name__ == '__main__':
     suites = []
