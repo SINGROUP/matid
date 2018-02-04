@@ -209,7 +209,7 @@ class LinkedUnitCollection(dict):
         """
         basis_indices = set(self.get_basis_indices())
         all_indices = set(self.get_all_indices())
-        additional_indices = np.array(all_indices - basis_indices)
+        additional_indices = np.array(list(all_indices - basis_indices))
 
         return additional_indices
 
