@@ -529,7 +529,7 @@ class Class2DTests(unittest.TestCase):
     def test_22(self):
         """This is a surface with only one repetition of the unit cell. Should
         be left as Class2D. Fixed by increasing the requirement for the number
-        of edges for a graph corrrespongding to a span.
+        of edges for a graph corrresponding to a span to 1.0.
         """
         system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/C8Mo16.json")
         view(system)

@@ -140,7 +140,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        view(proto_cell)
+        # view(proto_cell)
         # print(proto_cell.get_cell())
 
         # Find a region that is spanned by the found unit cell
@@ -307,7 +307,7 @@ class PeriodicFinder():
         # caused by pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
-        valid_span_indices = np.where(metric > 1.0*n_neighbours)[0]
+        valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
 
@@ -599,12 +599,12 @@ class PeriodicFinder():
         averaged_rel_pos = []
         averaged_rel_num = []
         new_group_index = None
-        n_cells = len(cells)
-        n_cells_with_interstitial = 0
-        all_nodes = set()
-        for nodes in group_data_pbc["nodes"]:
-            for node in nodes:
-                all_nodes.add(node[0])
+        # n_cells = len(cells)
+        # n_cells_with_interstitial = 0
+        # all_nodes = set()
+        # for nodes in group_data_pbc["nodes"]:
+            # for node in nodes:
+                # all_nodes.add(node[0])
 
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             group_num = group_data_pbc["num"][i_group]
@@ -655,9 +655,9 @@ class PeriodicFinder():
 
         # Check that the cells does not have way too much atoms that were not
         # in the basis.
-        print(n_cells_with_interstitial)
-        if n_cells_with_interstitial/n_cells > 0.5:
-            print("Nope")
+        # print(n_cells_with_interstitial)
+        # if n_cells_with_interstitial/n_cells > 0.5:
+            # print("Nope")
 
         averaged_rel_pos = np.array(averaged_rel_pos)
         offset = averaged_rel_pos[seed_group_index]
