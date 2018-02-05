@@ -73,28 +73,18 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
 
-    # def test_4(self):
-        # """Looks like a complicated surface, but the cell cannot be found.
-        # """
-        # system = get_atoms("./fhiaims5/Class2D/Ba16O40Si12.json")
-        # # view(system)
+    def test_4(self):
+        """Looks like a surface, but the cell cannot be found. There is only
+        one layer.
+        """
+        system = get_atoms("./fhiaims6/Class2D/Ba16O40Si12.json")
+        # view(system)
 
-        # classifier = Classifier(max_cell_size=14, pos_tol=0.3)
-        # classification = classifier.classify(system)
-        # print(classification)
-        # # self.assertIsInstance(classification, Class2D)
+        classifier = Classifier(max_cell_size=12, pos_tol=0.9)
+        classification = classifier.classify(system)
+        print(classification)
+        # self.assertIsInstance(classification, Class2D)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
 
     # def test_5(self):
         # """Too sparse for 2D-material.
@@ -526,17 +516,17 @@ class Class2DTests(unittest.TestCase):
         # self.assertEqual(len(interstitials), 0)
         # self.assertEqual(len(adsorbates), 0)
 
-    def test_22(self):
-        """This is a surface with only one repetition of the unit cell. Should
-        be left as Class2D. Fixed by increasing the requirement for the number
-        of edges for a graph corrresponding to a span to 1.0.
-        """
-        system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/C8Mo16.json")
-        view(system)
+    # def test_22(self):
+        # """This is a surface with only one repetition of the unit cell. Should
+        # be left as Class2D. Fixed by increasing the requirement for the number
+        # of edges for a graph corrresponding to a span to 1.0.
+        # """
+        # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/C8Mo16.json")
+        # view(system)
 
-        classifier = Classifier(max_cell_size=14, pos_tol=0.2)
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Class2D)
+        # classifier = Classifier(max_cell_size=14, pos_tol=0.2)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Class2D)
 
 
 if __name__ == '__main__':
