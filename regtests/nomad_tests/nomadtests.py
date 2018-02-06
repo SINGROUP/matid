@@ -95,20 +95,20 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
 
-    def test_6(self):
-        """The position tolerance is too big to detect this properly. A too
-        simple cell is identified. When lowering the position tolerance the
-        structure is correctly classified.
-        """
-        system = get_atoms("./fhiaims6/Class2D/Ge12Mg12O36.json")
+    # def test_6(self):
+        # """The position tolerance is too big to detect this properly. A too
+        # simple cell is identified. When lowering the position tolerance the
+        # structure is correctly classified.
+        # """
+        # system = get_atoms("./fhiaims6/Class2D/Ge12Mg12O36.json")
 
-        classifier = Classifier(pos_tol=0.3)
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+        # classifier = Classifier(pos_tol=0.3)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
-        # Pristine
-        additionals = classification.additional_indices
-        self.assertEqual(len(additionals), 0)
+        # # Pristine
+        # additionals = classification.additional_indices
+        # self.assertEqual(len(additionals), 0)
 
     # def test_7(self):
         # """The position tolerance is too big to detect this properly. A too
@@ -496,6 +496,18 @@ class Class2DTests(unittest.TestCase):
         # classifier = Classifier(max_cell_size=14, pos_tol=0.2)
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
+
+    def test_23(self):
+        """This is a surface with only one repetition of the unit cell. Should
+        be left as Class2D. Fixed by increasing the requirement for the number
+        of edges for a graph corrresponding to a span to 1.0.
+        """
+        system = get_atoms("./fhiaims8/Class2D/H2Mg61NiO62.json")
+        view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
 
 if __name__ == '__main__':

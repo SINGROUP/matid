@@ -292,7 +292,7 @@ class Classifier():
             best_region = None
             most_atoms = 0
 
-            for scale in [0.25, 0.5, 0.75]:
+            for scale in [0.25, 0.5, 0.75, 1]:
                 tol = scale*global_min_dist
 
                 # Run the region detection on the whole system.
@@ -341,6 +341,7 @@ class Classifier():
                     n_region_atoms = len(best_region.get_basis_indices())
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
+                    print(coverage)
                     # n_vacancies = len(region.get_vacancies())
                     # vacancy_ratio = n_vacancies/n_region_atoms
 
