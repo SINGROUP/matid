@@ -214,8 +214,11 @@ class Classifier():
             min_basis = np.linalg.norm(cell, axis=1).min()
             dist_matrix_mod = np.array(dist_matrix_pbc)
             np.fill_diagonal(dist_matrix_mod, min_basis)
+            global_min_dist = dist_matrix_mod.min()
+            # print(global_min_dist)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
+            # print(mean_min_dist)
 
             if self.pos_tol_mode == "relative":
                 self.abs_pos_tol = self.pos_tol * mean_min_dist
@@ -285,35 +288,48 @@ class Classifier():
 
             seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
-            # Run the region detection on the whole system.
-            periodicfinder = PeriodicFinder(
-                angle_tol=self.angle_tol,
-                max_cell_size=self.max_cell_size,
-                pos_tol_scaling=self.pos_tol_scaling,
-                cell_size_tol=self.cell_size_tol,
-                n_edge_tol=self.n_edge_tol,
-                max_2d_cell_height=self.max_2d_cell_height,
-                chem_similarity_threshold=self.chem_similarity_threshold
-            )
-            region = periodicfinder.get_region(
-                system,
-                seed_index,
-                self.abs_pos_tol,
-                self.abs_delaunay_threshold,
-                self.bond_threshold,
-                disp_tensor_pbc,
-                disp_factors,
-                disp_tensor,
-                dist_matrix_radii_pbc,
-            )
-            if region is not None:
-                region = region[1]
+            # Run the detection with multiple position tolerances
+            best_region = None
+            most_atoms = 0
+
+            for scale in [0.25, 0.5, 0.75]:
+                tol = scale*global_min_dist
+
+                # Run the region detection on the whole system.
+                periodicfinder = PeriodicFinder(
+                    angle_tol=self.angle_tol,
+                    max_cell_size=self.max_cell_size,
+                    pos_tol_scaling=self.pos_tol_scaling,
+                    cell_size_tol=self.cell_size_tol,
+                    n_edge_tol=self.n_edge_tol,
+                    max_2d_cell_height=self.max_2d_cell_height,
+                    chem_similarity_threshold=self.chem_similarity_threshold
+                )
+                region = periodicfinder.get_region(
+                    system,
+                    seed_index,
+                    tol,
+                    self.abs_delaunay_threshold,
+                    self.bond_threshold,
+                    disp_tensor_pbc,
+                    disp_factors,
+                    disp_tensor,
+                    dist_matrix_radii_pbc,
+                )
+                if region is not None:
+                    basis_indices = region[1].get_basis_indices()
+                    n_basis = len(basis_indices)
+                    if n_basis > most_atoms:
+                        most_atoms = n_basis
+                        best_region = region[1]
+
+            if best_region is not None:
 
                 # If the basis atoms in the region are split into multiple
                 # disconnected pieces (as indicated by clustering), then they
                 # cannot be classified
-                clusters = region.get_clusters()
-                basis_indices = set(list(region.get_basis_indices()))
+                clusters = best_region.get_clusters()
+                basis_indices = set(list(best_region.get_basis_indices()))
                 split = True
                 for cluster in clusters:
                     if basis_indices.issubset(cluster):
@@ -322,7 +338,7 @@ class Classifier():
                 if not split:
                     # If the region covers less than 50% of the whole system,
                     # categorize as Class2D
-                    n_region_atoms = len(region.get_basis_indices())
+                    n_region_atoms = len(best_region.get_basis_indices())
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
                     # n_vacancies = len(region.get_vacancies())
@@ -330,16 +346,16 @@ class Classifier():
 
                     # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
                     if coverage >= self.coverage_threshold:
-                        if region.is_2d:
+                        if best_region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
                             # in the cell is not periodic. Now that the cell
                             # has been found, we know that the third axis is
                             # set as the non-periodic one.
-                            analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=[False, False, True])
-                            classification = Material2D(region, analyzer)
+                            analyzer = Class2DAnalyzer(best_region.cell, vacuum_gaps=[False, False, True])
+                            classification = Material2D(best_region, analyzer)
                         else:
-                            analyzer = Class3DAnalyzer(region.cell)
-                            classification = Surface(region, analyzer)
+                            analyzer = Class3DAnalyzer(best_region.cell)
+                            classification = Surface(best_region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:

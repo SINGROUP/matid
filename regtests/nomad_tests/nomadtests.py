@@ -73,18 +73,17 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
 
-    def test_4(self):
-        """Looks like a surface, but the cell cannot be found. There is only
-        one layer.
-        """
-        system = get_atoms("./fhiaims6/Class2D/Ba16O40Si12.json")
-        # view(system)
+    # def test_4(self):
+        # """Looks like a surface, but the cell cannot be found. There is only
+        # one layer.
+        # """
+        # system = get_atoms("./fhiaims6/Class2D/Ba16O40Si12.json")
+        # # view(system)
 
-        classifier = Classifier(max_cell_size=12, pos_tol=0.9)
-        classification = classifier.classify(system)
-        print(classification)
+        # classifier = Classifier(max_cell_size=12, pos_tol=0.9)
+        # classification = classifier.classify(system)
+        # print(classification)
         # self.assertIsInstance(classification, Class2D)
-
 
     # def test_5(self):
         # """Too sparse for 2D-material.
@@ -96,28 +95,20 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
 
-    # def test_6(self):
-        # """The position tolerance is too big to detect this properly. A too
-        # simple cell is identified. When lowering the position tolerance the
-        # structure is correctly classified.
-        # """
-        # system = get_atoms("./fhiaims5/Class2D/Ge12Mg12O36.json")
+    def test_6(self):
+        """The position tolerance is too big to detect this properly. A too
+        simple cell is identified. When lowering the position tolerance the
+        structure is correctly classified.
+        """
+        system = get_atoms("./fhiaims6/Class2D/Ge12Mg12O36.json")
 
-        # classifier = Classifier(pos_tol=0.3)
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        classifier = Classifier(pos_tol=0.3)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
+        # Pristine
+        additionals = classification.additional_indices
+        self.assertEqual(len(additionals), 0)
 
     # def test_7(self):
         # """The position tolerance is too big to detect this properly. A too
@@ -454,21 +445,13 @@ class Class2DTests(unittest.TestCase):
         # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/O80Sr32Zr24.json")
         # view(system)
 
-        # classifier = Classifier(pos_tol=0.6)
+        # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
         # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
+        # additionals = classification.additional_indices()
+        # self.assertEqual(len(additionals), 0)
 
     # def test_20(self):
         # """The whole surface is not correctly detected. Increasing the
@@ -481,17 +464,11 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(adsorbates), 10)
+        # # 11 additional atoms
+        # additional_indices = classification.additional_indices
+        # # print(additional_indices)
+        # self.assertEqual(len(additional_indices), 11)
+        # self.assertTrue(set(additional_indices) == set([120, 121, 122,  57, 87, 27, 117, 3, 33, 63, 93]))
 
     # def test_21(self):
         # """The whole surface is not correctly detected. Increasing the
@@ -500,21 +477,13 @@ class Class2DTests(unittest.TestCase):
         # system = get_atoms("./fhiaims6/Surface/Interstitial+Adsorbate/Ca32O80Ti24.json")
         # view(system)
 
-        # classifier = Classifier(pos_tol=0.6)
+        # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
         # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(adsorbates), 0)
+        # additionals = classification.additional_indices
+        # self.assertEqual(len(additionals), 0)
 
     # def test_22(self):
         # """This is a surface with only one repetition of the unit cell. Should
