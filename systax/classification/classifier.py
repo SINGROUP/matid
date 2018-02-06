@@ -283,14 +283,18 @@ class Classifier():
             if self.seed_position == "cm":
                 # seed_vec = system.get_center_of_mass()
                 seed_vec = systax.geometry.get_center_of_mass(system)
-            else:
+                seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+            elif type(self.seed_position) == int:
+                seed_index = self.seed_position
+            elif len(np.array(self.seed_position)) == 0:
                 seed_vec = self.seed_position
 
-            seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
-
             # Run the detection with multiple position tolerances
+            best_surface = None
+            best_2d = None
             best_region = None
-            most_atoms = 0
+            most_2d_atoms = 0
+            most_surface_atoms = 0
 
             for scale in [0.25, 0.5, 0.75, 1]:
                 tol = scale*global_min_dist
@@ -318,10 +322,20 @@ class Classifier():
                 )
                 if region is not None:
                     basis_indices = region[1].get_basis_indices()
+                    is_2d = region[1].is_2d
                     n_basis = len(basis_indices)
-                    if n_basis > most_atoms:
-                        most_atoms = n_basis
-                        best_region = region[1]
+                    if is_2d:
+                        if n_basis > most_2d_atoms:
+                            most_2d_atoms = n_basis
+                            best_2d = region[1]
+                    else:
+                        if n_basis > most_surface_atoms:
+                            most_surface_atoms = n_basis
+                            best_surface = region[1]
+                if best_surface is not None:
+                    best_region = best_surface
+                elif best_2d is not None:
+                    best_region = best_2d
 
             if best_region is not None:
 

@@ -1,4 +1,46 @@
 {
+  "labels": [
+    1,
+    1,
+    1,
+    8,
+    1,
+    8,
+    8,
+    8,
+    8,
+    12,
+    12,
+    12,
+    12,
+    12,
+    12,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    12,
+    12,
+    12,
+    12,
+    12,
+    12,
+    8,
+    8,
+    8
+  ],
+  "tags": {
+    "additionals": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
   "positions": [
     [
       0.21317101775744443,
@@ -151,11 +193,7 @@
       0.0
     ]
   ],
-  "periodicity": [
-    true,
-    true,
-    true
-  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/ROHGEranIWm-gnS6jhQaLZRORWDKx/P1H88_4Oog6GPxnH4SRCTg4QJzv_n.json",
   "normalizedCell": [
     [
       3.011582e-10,
@@ -173,9 +211,38 @@
       1.961734e-09
     ]
   ],
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
   "classification": "Surface",
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/ROHGEranIWm-gnS6jhQaLZRORWDKx/P1H88_4Oog6GPxnH4SRCTg4QJzv_n.json",
   "unit": {
+    "labels": [
+      8,
+      8,
+      8,
+      12,
+      12,
+      12
+    ],
+    "normalizedCell": [
+      [
+        -1.408052e-10,
+        -1.418589e-10,
+        2.1224210000000003e-10
+      ],
+      [
+        3.011582e-10,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        9.03344e-10,
+        0.0
+      ]
+    ],
     "positions": [
       [
         0.012714859923778563,
@@ -207,73 +274,6 @@
         0.48502301761386424,
         0.16832171925213796
       ]
-    ],
-    "normalizedCell": [
-      [
-        -1.408052e-10,
-        -1.418589e-10,
-        2.1224210000000003e-10
-      ],
-      [
-        3.011582e-10,
-        0.0,
-        0.0
-      ],
-      [
-        0.0,
-        9.03344e-10,
-        0.0
-      ]
-    ],
-    "labels": [
-      8,
-      8,
-      8,
-      12,
-      12,
-      12
     ]
-  },
-  "tags": {
-    "additionals": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5
-    ]
-  },
-  "labels": [
-    1,
-    1,
-    1,
-    8,
-    1,
-    8,
-    8,
-    8,
-    8,
-    12,
-    12,
-    12,
-    12,
-    12,
-    12,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    12,
-    12,
-    12,
-    12,
-    12,
-    12,
-    8,
-    8,
-    8
-  ]
+  }
 }

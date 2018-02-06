@@ -1,4 +1,57 @@
 {
+  "labels": [
+    38,
+    38,
+    38,
+    38,
+    8,
+    8,
+    8,
+    8,
+    22,
+    22,
+    22,
+    22,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    38,
+    38,
+    38,
+    38,
+    8,
+    8,
+    8,
+    8,
+    22,
+    22,
+    22,
+    22,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    38,
+    38,
+    38,
+    38,
+    8,
+    8,
+    8,
+    8
+  ],
+  "tags": {
+    "additionals": []
+  },
   "positions": [
     [
       0.0,
@@ -241,11 +294,7 @@
       0.9842108
     ]
   ],
-  "periodicity": [
-    true,
-    true,
-    true
-  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RzQh5XijWuXsNZiRSxeOlPFUY_9Gl/PELIFhKT9tt84VjZ0-Ky2pSdg9BzR.json",
   "normalizedCell": [
     [
       7.8946e-10,
@@ -263,9 +312,37 @@
       2.5000000000000002e-08
     ]
   ],
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
   "classification": "Surface",
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RzQh5XijWuXsNZiRSxeOlPFUY_9Gl/PELIFhKT9tt84VjZ0-Ky2pSdg9BzR.json",
   "unit": {
+    "labels": [
+      38,
+      8,
+      8,
+      22,
+      8
+    ],
+    "normalizedCell": [
+      [
+        0.0,
+        0.0,
+        3.9473000000000154e-10
+      ],
+      [
+        -3.9473e-10,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        -3.9473e-10,
+        0.0
+      ]
+    ],
     "positions": [
       [
         0.41832446263605744,
@@ -292,83 +369,6 @@
         -9.25185853854297e-18,
         0.5
       ]
-    ],
-    "normalizedCell": [
-      [
-        0.0,
-        0.0,
-        3.9473000000000154e-10
-      ],
-      [
-        -3.9473e-10,
-        0.0,
-        0.0
-      ],
-      [
-        0.0,
-        -3.9473e-10,
-        0.0
-      ]
-    ],
-    "labels": [
-      38,
-      8,
-      8,
-      22,
-      8
     ]
-  },
-  "tags": {
-    "additionals": []
-  },
-  "labels": [
-    38,
-    38,
-    38,
-    38,
-    8,
-    8,
-    8,
-    8,
-    22,
-    22,
-    22,
-    22,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    38,
-    38,
-    38,
-    38,
-    8,
-    8,
-    8,
-    8,
-    22,
-    22,
-    22,
-    22,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    38,
-    38,
-    38,
-    38,
-    8,
-    8,
-    8,
-    8
-  ]
+  }
 }

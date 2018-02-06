@@ -497,18 +497,47 @@ class Class2DTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Class2D)
 
-    def test_23(self):
-        """This is a surface with only one repetition of the unit cell. Should
-        be left as Class2D. Fixed by increasing the requirement for the number
-        of edges for a graph corrresponding to a span to 1.0.
-        """
-        system = get_atoms("./fhiaims8/Class2D/H2Mg61NiO62.json")
-        view(system)
+    # def test_23(self):
+        # """The default selection of the seed point near the center of the cell
+        # does not work for this surface, because the middle atom is not repeated
+        # enough times. By manually selecting the seed point the correct surface
+        # is found.
+        # """
+        # system = get_atoms("./fhiaims8/Surface/Ca20O48Zr16+Ca12O32Zr8.json")
+        # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+        # classifier = Classifier(seed_position=71)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
 
+        # # Pristine
+        # additionals = classification.additional_indices
+        # self.assertEqual(len(additionals), 0)
+
+    # def test_24(self):
+        # system = get_atoms("./fhiaims8/Surface/Ca20O48Zr16+Ca12O32Zr8.json")
+        # view(system)
+
+        # classifier = Classifier(seed_position=71)
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # additionals = classification.additional_indices
+        # self.assertEqual(len(additionals), 0)
+
+    # def test_25(self):
+        # system = get_atoms("./fhiaims8/Surface/Mg61O55+H2NiO7.json")
+        # view(system)
+
+        # # classifier = Classifier(seed_position=12)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # additionals = classification.additional_indices
+        # self.assertEqual(len(additionals), 0)
 
 if __name__ == '__main__':
     suites = []

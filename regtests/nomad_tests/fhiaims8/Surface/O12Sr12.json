@@ -1,4 +1,33 @@
 {
+  "labels": [
+    8,
+    8,
+    8,
+    38,
+    38,
+    38,
+    38,
+    38,
+    38,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    38,
+    38,
+    38,
+    38,
+    38,
+    38,
+    8,
+    8,
+    8
+  ],
+  "tags": {
+    "additionals": []
+  },
   "positions": [
     [
       0.6666576866692027,
@@ -121,11 +150,7 @@
       0.0
     ]
   ],
-  "periodicity": [
-    true,
-    true,
-    true
-  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/ROHGEranIWm-gnS6jhQaLZRORWDKx/PRAHaUfPFQf-HpeuB3ZP_gon2UOC0.json",
   "normalizedCell": [
     [
       1.1024502000000001e-09,
@@ -143,20 +168,16 @@
       2.3943475000000006e-09
     ]
   ],
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
   "classification": "Surface",
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/ROHGEranIWm-gnS6jhQaLZRORWDKx/PRAHaUfPFQf-HpeuB3ZP_gon2UOC0.json",
   "unit": {
-    "positions": [
-      [
-        -0.0014045183808107052,
-        0.0007086629550653798,
-        -0.0008046431477357106
-      ],
-      [
-        -0.006607010290044058,
-        0.5033242000986232,
-        0.49655088127033087
-      ]
+    "labels": [
+      38,
+      8
     ],
     "normalizedCell": [
       [
@@ -175,38 +196,17 @@
         0.0
       ]
     ],
-    "labels": [
-      38,
-      8
+    "positions": [
+      [
+        -0.0014045183808107052,
+        0.0007086629550653798,
+        -0.0008046431477357106
+      ],
+      [
+        -0.006607010290044058,
+        0.5033242000986232,
+        0.49655088127033087
+      ]
     ]
-  },
-  "tags": {
-    "additionals": []
-  },
-  "labels": [
-    8,
-    8,
-    8,
-    38,
-    38,
-    38,
-    38,
-    38,
-    38,
-    8,
-    8,
-    8,
-    8,
-    8,
-    8,
-    38,
-    38,
-    38,
-    38,
-    38,
-    38,
-    8,
-    8,
-    8
-  ]
+  }
 }

@@ -1,4 +1,11 @@
 {
+  "labels": [
+    6,
+    6
+  ],
+  "tags": {
+    "additionals": []
+  },
   "positions": [
     [
       0.3333333333333333,
@@ -11,11 +18,7 @@
       0.2
     ]
   ],
-  "periodicity": [
-    true,
-    true,
-    true
-  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RFcRYBHfGursMEwvQ2ZzKT7yMDF13/P8FMrPAhB4zog62sNTdlfkoZbV81U.json",
   "normalizedCell": [
     [
       1.223323e-10,
@@ -33,20 +36,16 @@
       8e-09
     ]
   ],
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
   "classification": "Material2D",
-  "filename": "/nomad/nomadlab/parsed/prod-032/FhiAimsParser2.0.0-17-g1384da3/RFcRYBHfGursMEwvQ2ZzKT7yMDF13/P8FMrPAhB4zog62sNTdlfkoZbV81U.json",
   "unit": {
-    "positions": [
-      [
-        5.124106267500723e-17,
-        5.124106267500723e-17,
-        0.5
-      ],
-      [
-        0.3333333333333334,
-        0.6666666666666666,
-        0.5
-      ]
+    "labels": [
+      6,
+      6
     ],
     "normalizedCell": [
       [
@@ -65,16 +64,17 @@
         7.062858975168978e-11
       ]
     ],
-    "labels": [
-      6,
-      6
+    "positions": [
+      [
+        5.124106267500723e-17,
+        5.124106267500723e-17,
+        0.5
+      ],
+      [
+        0.3333333333333334,
+        0.6666666666666666,
+        0.5
+      ]
     ]
-  },
-  "tags": {
-    "additionals": []
-  },
-  "labels": [
-    6,
-    6
-  ]
+  }
 }
