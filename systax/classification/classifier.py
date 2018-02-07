@@ -322,6 +322,7 @@ class Classifier():
                             disp_tensor,
                             dist_matrix_radii_pbc,
                         )
+                        # print(region)
                         if region is not None:
                             basis_indices = region[1].get_basis_indices()
                             is_2d = region[1].is_2d
@@ -355,22 +356,22 @@ class Classifier():
                 if not split:
                     # If the region covers less than 50% of the whole system,
                     # categorize as Class2D
-                    n_region_atoms = len(best_region.get_basis_indices())
-                    n_atoms = len(system)
-                    coverage = n_region_atoms/n_atoms
+                    # n_region_atoms = len(best_region.get_basis_indices())
+                    # n_atoms = len(system)
+                    # coverage = n_region_atoms/n_atoms
 
                     # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
-                    if coverage >= self.coverage_threshold:
-                        if best_region.is_2d:
-                            # The Class2DAnalyzer needs to know which direcion
-                            # in the cell is not periodic. Now that the cell
-                            # has been found, we know that the third axis is
-                            # set as the non-periodic one.
-                            analyzer = Class2DAnalyzer(best_region.cell, vacuum_gaps=[False, False, True])
-                            classification = Material2D(best_region, analyzer)
-                        else:
-                            analyzer = Class3DAnalyzer(best_region.cell)
-                            classification = Surface(best_region, analyzer)
+                    # if coverage >= self.coverage_threshold:
+                    if best_region.is_2d:
+                        # The Class2DAnalyzer needs to know which direcion
+                        # in the cell is not periodic. Now that the cell
+                        # has been found, we know that the third axis is
+                        # set as the non-periodic one.
+                        analyzer = Class2DAnalyzer(best_region.cell, vacuum_gaps=[False, False, True])
+                        classification = Material2D(best_region, analyzer)
+                    else:
+                        analyzer = Class3DAnalyzer(best_region.cell)
+                        classification = Surface(best_region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:

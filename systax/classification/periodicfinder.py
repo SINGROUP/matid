@@ -765,10 +765,6 @@ class PeriodicFinder():
 
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
-            # print(search_coord)
-            # print(cell)
-            # print(i_indices)
-
             # Add the seed node factor
             final_factors = []
             for factor in i_factors:
@@ -875,6 +871,7 @@ class PeriodicFinder():
             scaled_positions=new_scaled_pos,
             symbols=averaged_rel_num
         )
+        # view(proto_cell)
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
