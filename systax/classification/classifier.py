@@ -210,13 +210,11 @@ class Classifier():
             dist_matrix_mod = np.array(dist_matrix_pbc)
             np.fill_diagonal(dist_matrix_mod, min_basis)
             global_min_dist = dist_matrix_mod.min()
-            # print(global_min_dist)
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
-            # print(mean_min_dist)
 
             if self.pos_tol_mode == "relative":
-                self.abs_pos_tol = self.pos_tol * mean_min_dist
+                self.abs_pos_tol = np.array(self.pos_tol)*global_min_dist
             elif self.pos_tol_mode == "absolute":
                 self.abs_pos_tol = self.pos_tol
 
@@ -276,13 +274,10 @@ class Classifier():
 
             # Get the index of the seed atom
             if self.seed_position == "cm":
-                # seed_vec = system.get_center_of_mass()
                 seed_vec = systax.geometry.get_center_of_mass(system)
                 seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
-            elif type(self.seed_position) == int:
+            else:
                 seed_index = self.seed_position
-            elif len(np.array(self.seed_position)) == 0:
-                seed_vec = self.seed_position
 
             # Run the detection with multiple position tolerances
             best_surface = None
@@ -292,20 +287,17 @@ class Classifier():
             most_surface_atoms = 0
 
             seed_indices = [seed_index]
-            basis_sizes = [4, 12]
 
             # Here a cross-validation is performed to choose parameters that
             # produce best results. The performance of the parameters is
             # quantified by counting the number of valid atoms in the region.
             for index in seed_indices:
-                for size in basis_sizes:
-                    for scale in [0.25, 0.5, 0.75]:
-                        tol = scale*global_min_dist
+                for size in self.max_cell_size:
+                    for tol in self.abs_pos_tol:
 
                         # Run the region detection on the whole system.
                         periodicfinder = PeriodicFinder(
                             angle_tol=self.angle_tol,
-                            max_cell_size=size,
                             pos_tol_scaling=self.pos_tol_scaling,
                             cell_size_tol=self.cell_size_tol,
                             max_2d_cell_height=self.max_2d_cell_height,
@@ -314,6 +306,7 @@ class Classifier():
                         region = periodicfinder.get_region(
                             system,
                             index,
+                            size,
                             tol,
                             self.abs_delaunay_threshold,
                             self.bond_threshold,

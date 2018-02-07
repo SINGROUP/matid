@@ -24,7 +24,6 @@ class PeriodicFinder():
     def __init__(
             self,
             angle_tol=constants.ANGLE_TOL,
-            max_cell_size=constants.MAX_CELL_SIZE,
             pos_tol_scaling=constants.POS_TOL_SCALING,
             cell_size_tol=constants.CELL_SIZE_TOL,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
@@ -43,7 +42,6 @@ class PeriodicFinder():
                 equal. Given relative to the smallest cell size.
         """
         self.angle_tol = angle_tol
-        self.max_cell_size = max_cell_size
         self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.max_2d_cell_height = max_2d_cell_height
@@ -53,6 +51,7 @@ class PeriodicFinder():
             self,
             system,
             seed_index,
+            max_cell_size,
             pos_tol,
             delaunay_threshold=None,
             bond_threshold=None,
@@ -118,6 +117,7 @@ class PeriodicFinder():
         self.disp_factors = disp_factors
         self.dist_matrix_radii_mic = dist_matrix_radii_mic
         self.pos_tol = pos_tol
+        self.max_cell_size = max_cell_size
         region = None
         possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
