@@ -277,8 +277,6 @@ class PeriodicFinder():
                     # for it.
                     possible_spans = np.concatenate((possible_spans, [per_span]), axis=0)
                     metric = np.concatenate((metric, [2*n_neighbours]), axis=0)
-                    # metric = np.concatenate((metric, [0]), axis=0)
-                    # valid_span_indices = np.concatenate((valid_span_indices, [len(possible_spans)-1]), axis=0)
 
                     # Create the adjacency lists for the periodic span. There
                     # is full periodicity to neighbouring cells.
@@ -304,27 +302,34 @@ class PeriodicFinder():
         # caused by pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
-        # print(metric)
         valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
-        # metric = metric[valid_span_indices]
-        # possible_spans = possible_spans[valid_span_indices]
 
         # Find the best basis
         valid_span_metrics = metric[valid_span_indices]
         valid_spans = possible_spans[valid_span_indices]
         best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
-        # best_combo = self._find_best_basis(possible_spans, metric)
         dim = len(best_combo)
 
         # Currently 1D is not handled
         if dim == 1:
             return None, None, 1
 
-        # best_spans = possible_spans[best_combo]
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
+
+        # If the best span consists only of the simulation basis cell vectors,
+        # check that these vectors are below a predefined size. Otherwise the
+        # cell cannot be accepted because there is not enough statistics about
+        # the cell contents to distinguish outliers.
+        if n_periodic_spans > 0:
+            periodic_span_indices = valid_span_indices[-n_periodic_spans:]
+            best_span_ind = valid_span_indices[best_combo]
+            if set(best_span_ind).issubset(set(periodic_span_indices)):
+                cell_lens = np.linalg.norm(best_spans, axis=1)
+                if np.any(cell_lens > constants.MAX_SINGLE_CELL_SIZE):
+                    return None, None, None
 
         # Get the adjacency lists corresponding to the best spans
         best_adjacency_lists = []

@@ -292,43 +292,48 @@ class Classifier():
             most_surface_atoms = 0
 
             seed_indices = [seed_index]
+            basis_sizes = [4, 12]
 
+            # Here a cross-validation is performed to choose parameters that
+            # produce best results. The performance of the parameters is
+            # quantified by counting the number of valid atoms in the region.
             for index in seed_indices:
-                for scale in [0.25, 0.5, 0.75]:
-                    tol = scale*global_min_dist
+                for size in basis_sizes:
+                    for scale in [0.25, 0.5, 0.75]:
+                        tol = scale*global_min_dist
 
-                    # Run the region detection on the whole system.
-                    periodicfinder = PeriodicFinder(
-                        angle_tol=self.angle_tol,
-                        max_cell_size=self.max_cell_size,
-                        pos_tol_scaling=self.pos_tol_scaling,
-                        cell_size_tol=self.cell_size_tol,
-                        max_2d_cell_height=self.max_2d_cell_height,
-                        chem_similarity_threshold=self.chem_similarity_threshold
-                    )
-                    region = periodicfinder.get_region(
-                        system,
-                        seed_index,
-                        tol,
-                        self.abs_delaunay_threshold,
-                        self.bond_threshold,
-                        disp_tensor_pbc,
-                        disp_factors,
-                        disp_tensor,
-                        dist_matrix_radii_pbc,
-                    )
-                    if region is not None:
-                        basis_indices = region[1].get_basis_indices()
-                        is_2d = region[1].is_2d
-                        n_basis = len(basis_indices)
-                        if is_2d:
-                            if n_basis > most_2d_atoms:
-                                most_2d_atoms = n_basis
-                                best_2d = region[1]
-                        else:
-                            if n_basis > most_surface_atoms:
-                                most_surface_atoms = n_basis
-                                best_surface = region[1]
+                        # Run the region detection on the whole system.
+                        periodicfinder = PeriodicFinder(
+                            angle_tol=self.angle_tol,
+                            max_cell_size=size,
+                            pos_tol_scaling=self.pos_tol_scaling,
+                            cell_size_tol=self.cell_size_tol,
+                            max_2d_cell_height=self.max_2d_cell_height,
+                            chem_similarity_threshold=self.chem_similarity_threshold
+                        )
+                        region = periodicfinder.get_region(
+                            system,
+                            index,
+                            tol,
+                            self.abs_delaunay_threshold,
+                            self.bond_threshold,
+                            disp_tensor_pbc,
+                            disp_factors,
+                            disp_tensor,
+                            dist_matrix_radii_pbc,
+                        )
+                        if region is not None:
+                            basis_indices = region[1].get_basis_indices()
+                            is_2d = region[1].is_2d
+                            n_basis = len(basis_indices)
+                            if is_2d:
+                                if n_basis > most_2d_atoms:
+                                    most_2d_atoms = n_basis
+                                    best_2d = region[1]
+                            else:
+                                if n_basis > most_surface_atoms:
+                                    most_surface_atoms = n_basis
+                                    best_surface = region[1]
 
             if best_surface is not None:
                 best_region = best_surface

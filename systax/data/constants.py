@@ -16,6 +16,7 @@ WYCKOFF_LETTER_POSITIONS = {letter: positions for positions, letter in enumerate
 
 #===============================================================================
 # Constants for classification
+MAX_SINGLE_CELL_SIZE = 4
 MAX_CELL_SIZE = 12
 REL_POS_TOL = 0.5
 POS_TOL_SCALING = 0.0  # 0.0  # Per angstrom
