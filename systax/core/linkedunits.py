@@ -5,7 +5,6 @@ import numpy as np
 
 from ase import Atoms
 from ase.data import covalent_radii
-from ase.visualize import view
 
 import systax.geometry
 from systax.data import constants
@@ -194,7 +193,7 @@ class LinkedUnitCollection(dict):
                             indices.add(index)
                         # else:
                             # print(index)
-                            # print(chem_dist)
+                            # print(chem_similarity)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()
@@ -203,7 +202,7 @@ class LinkedUnitCollection(dict):
 
         return self._basis_indices
 
-    def get_additional_indices(self):
+    def get_outliers(self):
         """Returns the indices of atoms that were not found to belong to the
         basis.
         """
@@ -264,28 +263,18 @@ class LinkedUnitCollection(dict):
 
         return score/max_score
 
-    # def get_invalid_indices(self):
-        # """Get the indices of atoms that do not belong to the basis of this
-        # region.
-        # """
-        # all_indices = set(range(len(self.system)))
-        # basis_indices = set(self.get_basis_indices())
-        # invalid_indices = all_indices - basis_indices
+    def get_interstitials(self):
+        """Get the indices of interstitial atoms in the original system.
+        """
+        inside_indices, _ = self.get_inside_and_outside_indices()
+        inside_indices = set(inside_indices)
+        substitutions = self.get_substitutions()
+        subst_indices = set()
+        for subst in substitutions:
+            subst_indices.add(subst.index)
+        interstitials = inside_indices - subst_indices
 
-        # return np.array(list(invalid_indices))
-
-    # def get_interstitials(self):
-        # """Get the indices of interstitial atoms in the original system.
-        # """
-        # inside_indices, _ = self.get_inside_and_outside_indices()
-        # inside_indices = set(inside_indices)
-        # substitutions = self.get_substitutions()
-        # subst_indices = set()
-        # for subst in substitutions:
-            # subst_indices.add(subst.index)
-        # interstitials = inside_indices - subst_indices
-
-        # return np.array(list(interstitials))
+        return np.array(list(interstitials))
 
     def get_clusters(self):
         """Used to cluster the system in order to distinguish chemisorbed
@@ -302,96 +291,91 @@ class LinkedUnitCollection(dict):
 
         return self._clusters
 
-    # def get_adsorbates(self):
-        # """Get the indices of the adsorbate atoms in the region.
+    def get_adsorbates(self):
+        """Get the indices of the adsorbate atoms in the region.
 
-        # All atoms that are outside the tesselation, and are either not part of
-        # the elements present in the surface or further away than a certain
-        # threshold, are labeled as adsorbate atoms.
+        All atoms that are outside the tesselation, and are either not part of
+        the elements present in the surface or further away than a certain
+        threshold, are labeled as adsorbate atoms.
 
-        # This function does not differentiate between different adsorbate
-        # molecules.
+        This function does not differentiate between different adsorbate
+        molecules.
 
-        # Returns:
-            # np.ndarray: Indices of the adsorbates in the original system.
-        # """
-        # if self._adsorbates is None:
+        Returns:
+            np.ndarray: Indices of the adsorbates in the original system.
+        """
+        if self._adsorbates is None:
 
-            # _, outside_indices = self.get_inside_and_outside_indices()
-            # basis_elements = set(self.cell.get_atomic_numbers())
-            # outside_indices = outside_indices
+            _, outside_indices = self.get_inside_and_outside_indices()
+            basis_elements = set(self.cell.get_atomic_numbers())
+            outside_indices = outside_indices
 
-            # # The substitutions have to be removed explicitly from the ouside
-            # # atoms because sometimes they are outside the tesselation.
-            # substitutions = self.get_substitutions()
-            # outside_indices = set(outside_indices)
-            # substitutions = set([x.index for x in substitutions])
-            # outside_indices -= substitutions
-            # outside_indices = np.array(list(outside_indices))
+            # The substitutions have to be removed explicitly from the ouside
+            # atoms because sometimes they are outside the tesselation.
+            substitutions = self.get_substitutions()
+            outside_indices = set(outside_indices)
+            substitutions = set([x.index for x in substitutions])
+            outside_indices -= substitutions
+            outside_indices = np.array(list(outside_indices))
 
-            # if len(outside_indices) != 0:
+            if len(outside_indices) != 0:
 
-                # basis_elements = set(basis_elements)
-                # adsorbates = []
-                # for index in outside_indices:
-                    # adsorbates.append(index)
-                # adsorbates = np.array(adsorbates)
-            # else:
-                # adsorbates = np.array([])
+                basis_elements = set(basis_elements)
+                adsorbates = []
+                for index in outside_indices:
+                    adsorbates.append(index)
+                adsorbates = np.array(adsorbates)
+            else:
+                adsorbates = np.array([])
 
-            # self._adsorbates = adsorbates
+            self._adsorbates = adsorbates
 
-        # return self._adsorbates
+        return self._adsorbates
 
-    # def get_substitutions(self):
-        # """Get the substitutions in the region.
-        # """
-        # if self._substitutions is None:
+    def get_substitutions(self):
+        """Get the substitutions in the region.
+        """
+        if self._substitutions is None:
 
-            # # Gather all substitutions
-            # # all_substitutions = []
-            # # for cell in self.values():
-                # # subst = cell.substitutions
-                # # if len(subst) != 0:
-                    # # all_substitutions.extend(subst)
+            # Gather all substitutions
+            # all_substitutions = []
+            # for cell in self.values():
+                # subst = cell.substitutions
+                # if len(subst) != 0:
+                    # all_substitutions.extend(subst)
 
-            # # The substitutions are validate based on their chemical
-            # # environment and position in the triangulation.
-            # neighbour_map = self.get_basis_atom_neighbourhood()
-            # valid_subst = []
+            # The substitutions are validate based on their chemical
+            # environment and position in the triangulation.
+            neighbour_map = self.get_basis_atom_neighbourhood()
+            valid_subst = []
             # _, outside_indices = self.get_inside_and_outside_indices()
             # outside_set = set(outside_indices)
-            # translations, translations_reduced = self.get_chem_env_translations()
+            translations, translations_reduced = self.get_chem_env_translations()
 
-            # for unit in self.values():
+            for unit in self.values():
 
-                # # Compare the chemical environment near this atom to the one
-                # # that is present in the prototype cell. If these
-                # # neighbourhoods are too different, then the atom is not
-                # # counted as being a part of the region.
-                # if unit.substitutions is not None:
-                    # for i_index, subst in enumerate(unit.substitutions):
-                        # if subst is not None:
-                            # subst_index = subst.index
+                # Compare the chemical environment near this atom to the one
+                # that is present in the prototype cell. If these
+                # neighbourhoods are too different, then the atom is not
+                # counted as being a part of the region.
+                if unit.substitutions is not None:
+                    for i_index, subst in enumerate(unit.substitutions):
+                        if subst is not None:
+                            subst_index = subst.index
 
-                            # # In non-2D materials subsitutions that are outside
-                            # # the triangulation are ignored automatically.
-                            # # if not self.is_2d and subst_index in outside_set:
-                                # # continue
-
-                            # # Otherwise check the chemical similarity
-                            # real_environment = self.get_chemical_environment(
-                                # self.system,
-                                # subst_index,
-                                # self.disp_tensor_finite,
-                                # translations,
-                                # translations_reduced
-                            # )
-                            # ideal_environment = neighbour_map[i_index]
-                            # chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
-                            # if chem_similarity >= self.chem_similarity_threshold:
-                                # valid_subst.append(subst)
-            # self._substitutions = valid_subst
+                            # Otherwise check the chemical similarity
+                            real_environment = self.get_chemical_environment(
+                                self.system,
+                                subst_index,
+                                self.disp_tensor_finite,
+                                translations,
+                                translations_reduced
+                            )
+                            ideal_environment = neighbour_map[i_index]
+                            chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
+                            if chem_similarity >= self.chem_similarity_threshold:
+                                valid_subst.append(subst)
+            self._substitutions = valid_subst
 
             # In 2D materials all substitutions in the cell are valid
             # substitutions
@@ -413,102 +397,100 @@ class LinkedUnitCollection(dict):
 
         return self._substitutions
 
-    # def get_vacancies(self):
-        # """Get the vacancies in the region.
+    def get_vacancies(self):
+        """Get the vacancies in the region.
 
-        # Returns:
-            # ASE.Atoms: An atoms object representing the atoms that are missing.
-            # The Atoms object has the same properties as the original system.
-        # """
-        # if self._vacancies is None:
+        Returns:
+            ASE.Atoms: An atoms object representing the atoms that are missing.
+            The Atoms object has the same properties as the original system.
+        """
+        if self._vacancies is None:
 
-            # # Gather all vacancies
-            # all_vacancies = []
-            # for cell in self.values():
-                # vacancies = cell.vacancies
-                # if len(vacancies) != 0:
-                    # all_vacancies.extend(vacancies)
+            # Gather all vacancies
+            all_vacancies = []
+            for cell in self.values():
+                vacancies = cell.vacancies
+                if len(vacancies) != 0:
+                    all_vacancies.extend(vacancies)
 
-            # # For purely 2D systems all missing atoms in the basis are vacancies
-            # if self.is_2d:
-                # self._vacancies = all_vacancies
-            # else:
-                # # Get the tesselation
-                # tesselation = self.get_tetrahedra_decomposition()
+            # For purely 2D systems all missing atoms in the basis are vacancies
+            if self.is_2d:
+                self._vacancies = all_vacancies
+            else:
+                # Get the tesselation
+                tesselation = self.get_tetrahedra_decomposition()
 
-                # # Find substitutions that are inside the tesselation
-                # valid_vacancies = []
-                # for vacancy in all_vacancies:
-                    # vac_pos = vacancy.position
-                    # simplex = tesselation.find_simplex(vac_pos)
-                    # if simplex is not None:
-                        # valid_vacancies.append(vacancy)
-                # self._vacancies = valid_vacancies
+                # Find substitutions that are inside the tesselation
+                valid_vacancies = []
+                for vacancy in all_vacancies:
+                    vac_pos = vacancy.position
+                    simplex = tesselation.find_simplex(vac_pos)
+                    if simplex is not None:
+                        valid_vacancies.append(vacancy)
+                self._vacancies = valid_vacancies
 
-        # return self._vacancies
+        return self._vacancies
 
-    # def get_unknowns(self):
-        # """Get the indices that form an unknown part around the region.
-        # """
-        # # Get all indices
-        # all_indices = set(self.get_all_indices())
-        # basis_indices = set(self.get_basis_indices())
-        # interstitials = set(self.get_interstitials())
-        # adsorbates = set(self.get_adsorbates())
-        # substitutions = set(self.get_substitutions())
-        # subst_indices = set([x.index for x in substitutions])
+    def get_tetrahedra_decomposition(self):
+        """Get the tetrahedra decomposition for this region.
+        """
+        if self._decomposition is None:
+            # Get the positions of basis atoms
+            basis_indices = self.get_basis_indices()
+            valid_sys = self.system[basis_indices]
 
-        # combined = basis_indices.union(interstitials).union(adsorbates).union(subst_indices)
-        # unknowns = all_indices - combined
-        # return np.array(list(unknowns))
+            # Perform tetrahedra decomposition
+            self._decomposition = systax.geometry.get_tetrahedra_decomposition(
+                valid_sys,
+                self.delaunay_threshold
+            )
 
-    # def get_tetrahedra_decomposition(self):
-        # """Get the tetrahedra decomposition for this region.
-        # """
-        # if self._decomposition is None:
-            # # Get the positions of basis atoms
-            # basis_indices = self.get_basis_indices()
-            # valid_sys = self.system[basis_indices]
-
-            # # Perform tetrahedra decomposition
-            # self._decomposition = systax.geometry.get_tetrahedra_decomposition(
-                # valid_sys,
-                # self.delaunay_threshold
-            # )
-
-        # return self._decomposition
+        return self._decomposition
 
     def get_all_indices(self):
+        """Get all the indices that are present in the full system.
+        """
         return set(range(len(self.system)))
 
-    # def get_inside_and_outside_indices(self):
-        # """Get the indices of atoms that are inside and outside the tetrahedra
-        # tesselation.
+    def get_unknowns(self):
+        """Returns indices of the atoms that are in the outliers but are not
+        recognized as any specialized group.
+        """
+        outliers = set(self.get_outliers())
+        adsorbates = set(self.get_adsorbates())
+        interstitials = set(self.get_interstitials())
+        substitutions = set([x.index for x in self.get_substitutions()])
 
-        # Returns:
-            # (np.ndarray, np.ndarray): Indices of atoms that are inside and
-            # outside the tesselation. The inside indices are in the first array.
-        # """
-        # if self._inside_indices is None and self._outside_indices is None:
-            # invalid_indices = self.get_invalid_indices()
-            # invalid_pos = self.system
-            # inside_indices = []
-            # outside_indices = []
+        return outliers - adsorbates - interstitials - substitutions
 
-            # if len(invalid_indices) != 0:
-                # invalid_pos = self.system.get_positions()[invalid_indices]
-                # tesselation = self.get_tetrahedra_decomposition()
-                # for i, pos in zip(invalid_indices, invalid_pos):
-                    # simplex_index = tesselation.find_simplex(pos)
-                    # if simplex_index is None:
-                        # outside_indices.append(i)
-                    # else:
-                        # inside_indices.append(i)
+    def get_inside_and_outside_indices(self):
+        """Get the indices of atoms that are inside and outside the tetrahedra
+        tesselation.
 
-            # self._inside_indices = np.array(inside_indices)
-            # self._outside_indices = np.array(outside_indices)
+        Returns:
+            (np.ndarray, np.ndarray): Indices of atoms that are inside and
+            outside the tesselation. The inside indices are in the first array.
+        """
+        if self._inside_indices is None and self._outside_indices is None:
+            invalid_indices = self.get_outliers()
+            invalid_pos = self.system
+            inside_indices = []
+            outside_indices = []
 
-        # return self._inside_indices, self._outside_indices
+            if len(invalid_indices) != 0:
+                invalid_pos = self.system.get_positions()[invalid_indices]
+                tesselation = self.get_tetrahedra_decomposition()
+                for i, pos in zip(invalid_indices, invalid_pos):
+                    simplex_index = tesselation.find_simplex(pos)
+                    if simplex_index is None:
+                        outside_indices.append(i)
+                    else:
+                        inside_indices.append(i)
+
+            self._inside_indices = np.array(inside_indices)
+            self._outside_indices = np.array(outside_indices)
+
+        return self._inside_indices, self._outside_indices
 
 
 class LinkedUnit():

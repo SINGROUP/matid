@@ -27,7 +27,6 @@ class PeriodicFinder():
             max_cell_size=constants.MAX_CELL_SIZE,
             pos_tol_scaling=constants.POS_TOL_SCALING,
             cell_size_tol=constants.CELL_SIZE_TOL,
-            n_edge_tol=constants.N_EDGE_TOL,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
             chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD
         ):
@@ -42,15 +41,11 @@ class PeriodicFinder():
                 tolerance when searching neighbouring cell seed atoms.
             cell_size_tol(float): The tolerance for cell sizes to be considered
                 equal. Given relative to the smallest cell size.
-            n_edge_tol(float): The minimum fraction of edges that have to be in the
-                periodicity graph for the cell to be considered valid. Given
-                relative to the cell with maximum number of edges.
         """
         self.angle_tol = angle_tol
         self.max_cell_size = max_cell_size
         self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
-        self.n_edge_tol = n_edge_tol
         self.max_2d_cell_height = max_2d_cell_height
         self.chem_similarity_threshold = chem_similarity_threshold
 
@@ -282,6 +277,8 @@ class PeriodicFinder():
                     # for it.
                     possible_spans = np.concatenate((possible_spans, [per_span]), axis=0)
                     metric = np.concatenate((metric, [2*n_neighbours]), axis=0)
+                    # metric = np.concatenate((metric, [0]), axis=0)
+                    # valid_span_indices = np.concatenate((valid_span_indices, [len(possible_spans)-1]), axis=0)
 
                     # Create the adjacency lists for the periodic span. There
                     # is full periodicity to neighbouring cells.
@@ -307,20 +304,25 @@ class PeriodicFinder():
         # caused by pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
+        # print(metric)
         valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
+        # metric = metric[valid_span_indices]
+        # possible_spans = possible_spans[valid_span_indices]
 
         # Find the best basis
         valid_span_metrics = metric[valid_span_indices]
         valid_spans = possible_spans[valid_span_indices]
         best_combo = self._find_best_basis(valid_spans, valid_span_metrics)
+        # best_combo = self._find_best_basis(possible_spans, metric)
         dim = len(best_combo)
 
         # Currently 1D is not handled
         if dim == 1:
             return None, None, 1
 
+        # best_spans = possible_spans[best_combo]
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
 
@@ -549,7 +551,6 @@ class PeriodicFinder():
                     a = best_spans[i_basis, :]
                 cells[i_node, i_basis, :] = a
 
-
         # Find the relative positions of atoms inside the cell. If for too many
         # cells atoms are found that do not belong to the basis, then the found
         # unit cell is not correct and a cell should not be returned.
@@ -599,12 +600,6 @@ class PeriodicFinder():
         averaged_rel_pos = []
         averaged_rel_num = []
         new_group_index = None
-        # n_cells = len(cells)
-        # n_cells_with_interstitial = 0
-        # all_nodes = set()
-        # for nodes in group_data_pbc["nodes"]:
-            # for node in nodes:
-                # all_nodes.add(node[0])
 
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             group_num = group_data_pbc["num"][i_group]
@@ -616,17 +611,6 @@ class PeriodicFinder():
                         pos = cell_positions[pos_index]
                         scaled_pos.append(pos)
                         break
-
-            # for cell_node in inside_nodes:
-                # keys = list(cell_node.keys())
-                # indices = [x[0] for x in keys]
-                # for ind in indices:
-                    # if ind not in all_nodes:
-                        # print(ind)
-                        # n_cells_with_interstitial += 1
-                        # break
-                # else:
-                    # break
 
             # The basis location corresponding to this group is only added is
             # at least one occurrence is found in a cell.
@@ -652,12 +636,6 @@ class PeriodicFinder():
             if i_group == seed_group_index:
                 new_group_index = len(averaged_rel_num) - 1
         seed_group_index = new_group_index
-
-        # Check that the cells does not have way too much atoms that were not
-        # in the basis.
-        # print(n_cells_with_interstitial)
-        # if n_cells_with_interstitial/n_cells > 0.5:
-            # print("Nope")
 
         averaged_rel_pos = np.array(averaged_rel_pos)
         offset = averaged_rel_pos[seed_group_index]
@@ -969,7 +947,7 @@ class PeriodicFinder():
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > self.n_edge_tol*max_metric
+            metric_filter = metric_sum == max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Filter the set into group with volume closest to the smallest
@@ -1008,7 +986,7 @@ class PeriodicFinder():
                     pair_crosses[j, i, :] = -cross
 
         # Get all pairs that have angle bigger than threshold
-        up_indices = np.triu_indices(n_spans)
+        up_indices = np.triu_indices(n_spans, k=1)
         valid_indices_a = up_indices[0]
         valid_indices_b = up_indices[1]
         valid_indices = np.concatenate((valid_indices_a[:, None], valid_indices_b[:, None]), axis=1)
@@ -1027,7 +1005,7 @@ class PeriodicFinder():
             metric_sum = np.sum(metrics, axis=1)
             # print(metric_sum)
             max_metric = metric_sum.max()
-            metric_filter = metric_sum > self.n_edge_tol*max_metric
+            metric_filter = metric_sum == max_metric
             valid_indices = valid_indices[metric_filter]
 
             # Find group of cells by finding cells with smallest area
@@ -1303,11 +1281,6 @@ class PeriodicFinder():
             cell_num,
             pos_tolerances,
         )
-        # print("Moi")
-        # print(substitutions)
-        # if len(substitutions) != 0:
-            # print(substitutions)
-        # print(matches)
 
         # Add all the matches into the lists containing already searched
         # locations.

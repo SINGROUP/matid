@@ -49,7 +49,6 @@ class Classifier():
             bond_threshold=constants.BOND_THRESHOLD,
             delaunay_threshold_mode="relative",
             chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD,
-            n_edge_tol=constants.N_EDGE_TOL,
             cell_size_tol=constants.CELL_SIZE_TOL,
             max_n_atoms=constants.MAX_N_ATOMS,
             coverage_threshold=constants.COVERAGE_THRESHOLD,
@@ -95,9 +94,6 @@ class Classifier():
                     - "absolute": Absolute tolerance in angstroms.
             pos_tol_factor(float): The factor for multiplying the position
                 tolerance when searching neighbouring cell seed atoms.
-            n_edge_tol(float): The minimum fraction of edges that have to be in the
-                periodicity graph for the cell to be considered valid. Given
-                relative to the cell with maximum number of edges.
             cell_size_tol(float): The tolerance for cell sizes to be considered
                 equal. Given relative to the smallest cell size.
             coverage_threshold(float): The fraction of atoms that have to
@@ -124,7 +120,6 @@ class Classifier():
         self.bond_threshold = bond_threshold
         self.chem_similarity_threshold = chem_similarity_threshold
         self.pos_tol_scaling = pos_tol_scaling
-        self.n_edge_tol = n_edge_tol
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
         self.coverage_threshold = coverage_threshold
@@ -296,46 +291,49 @@ class Classifier():
             most_2d_atoms = 0
             most_surface_atoms = 0
 
-            for scale in [0.25, 0.5, 0.75, 1]:
-                tol = scale*global_min_dist
+            seed_indices = [seed_index]
 
-                # Run the region detection on the whole system.
-                periodicfinder = PeriodicFinder(
-                    angle_tol=self.angle_tol,
-                    max_cell_size=self.max_cell_size,
-                    pos_tol_scaling=self.pos_tol_scaling,
-                    cell_size_tol=self.cell_size_tol,
-                    n_edge_tol=self.n_edge_tol,
-                    max_2d_cell_height=self.max_2d_cell_height,
-                    chem_similarity_threshold=self.chem_similarity_threshold
-                )
-                region = periodicfinder.get_region(
-                    system,
-                    seed_index,
-                    tol,
-                    self.abs_delaunay_threshold,
-                    self.bond_threshold,
-                    disp_tensor_pbc,
-                    disp_factors,
-                    disp_tensor,
-                    dist_matrix_radii_pbc,
-                )
-                if region is not None:
-                    basis_indices = region[1].get_basis_indices()
-                    is_2d = region[1].is_2d
-                    n_basis = len(basis_indices)
-                    if is_2d:
-                        if n_basis > most_2d_atoms:
-                            most_2d_atoms = n_basis
-                            best_2d = region[1]
-                    else:
-                        if n_basis > most_surface_atoms:
-                            most_surface_atoms = n_basis
-                            best_surface = region[1]
-                if best_surface is not None:
-                    best_region = best_surface
-                elif best_2d is not None:
-                    best_region = best_2d
+            for index in seed_indices:
+                for scale in [0.25, 0.5, 0.75]:
+                    tol = scale*global_min_dist
+
+                    # Run the region detection on the whole system.
+                    periodicfinder = PeriodicFinder(
+                        angle_tol=self.angle_tol,
+                        max_cell_size=self.max_cell_size,
+                        pos_tol_scaling=self.pos_tol_scaling,
+                        cell_size_tol=self.cell_size_tol,
+                        max_2d_cell_height=self.max_2d_cell_height,
+                        chem_similarity_threshold=self.chem_similarity_threshold
+                    )
+                    region = periodicfinder.get_region(
+                        system,
+                        seed_index,
+                        tol,
+                        self.abs_delaunay_threshold,
+                        self.bond_threshold,
+                        disp_tensor_pbc,
+                        disp_factors,
+                        disp_tensor,
+                        dist_matrix_radii_pbc,
+                    )
+                    if region is not None:
+                        basis_indices = region[1].get_basis_indices()
+                        is_2d = region[1].is_2d
+                        n_basis = len(basis_indices)
+                        if is_2d:
+                            if n_basis > most_2d_atoms:
+                                most_2d_atoms = n_basis
+                                best_2d = region[1]
+                        else:
+                            if n_basis > most_surface_atoms:
+                                most_surface_atoms = n_basis
+                                best_surface = region[1]
+
+            if best_surface is not None:
+                best_region = best_surface
+            elif best_2d is not None:
+                best_region = best_2d
 
             if best_region is not None:
 
@@ -355,9 +353,6 @@ class Classifier():
                     n_region_atoms = len(best_region.get_basis_indices())
                     n_atoms = len(system)
                     coverage = n_region_atoms/n_atoms
-                    print(coverage)
-                    # n_vacancies = len(region.get_vacancies())
-                    # vacancy_ratio = n_vacancies/n_region_atoms
 
                     # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
                     if coverage >= self.coverage_threshold:
@@ -401,7 +396,6 @@ class Classifier():
                         # max_cell_size=self.max_cell_size,
                         # pos_tol_factor=self.pos_tol_factor,
                         # cell_size_tol=self.cell_size_tol,
-                        # n_edge_tol=self.n_edge_tol
                     # )
 
                     # # Get the index of the seed atom
