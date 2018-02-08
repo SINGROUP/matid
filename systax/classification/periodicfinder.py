@@ -527,7 +527,6 @@ class PeriodicFinder():
         clusters = db.labels_
         n_clusters = len(np.unique(clusters))
         if n_clusters > 1:
-            view(proto_cell)
             return None, None, None
 
         return proto_cell, offset, n_spans
