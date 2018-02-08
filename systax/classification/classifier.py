@@ -273,9 +273,18 @@ class Classifier():
             classification = Class2D()
 
             # Get the index of the seed atom
+            seed_indices = []
+            used_elements = set()
+            test_sys = system.copy()
+            cm = systax.geometry.get_center_of_mass(test_sys)
             if self.seed_position == "cm":
-                seed_vec = systax.geometry.get_center_of_mass(system)
-                seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+                while len(seed_indices) < 2 or len(test_sys) != 0:
+                    seed_index = systax.geometry.get_nearest_atom(test_sys, cm)
+                    i_elem = system.get_atomic_numbers()[seed_index]
+                    if i_elem not in used_elements:
+                        seed_indices.append(seed_index)
+                    used_elements.add(i_elem)
+                    del test_sys[seed_index]
             else:
                 seed_index = self.seed_position
 
@@ -286,7 +295,7 @@ class Classifier():
             most_2d_atoms = 0
             most_surface_atoms = 0
 
-            seed_indices = [seed_index]
+            # seed_indices = [seed_index]
 
             # Here a cross-validation is performed to choose parameters that
             # produce best results. The performance of the parameters is

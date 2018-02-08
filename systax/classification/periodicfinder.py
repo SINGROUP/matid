@@ -306,7 +306,7 @@ class PeriodicFinder():
         # caused by pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
-        valid_span_indices = np.where(metric > 0.75*n_neighbours)[0]
+        valid_span_indices = np.where(metric >= 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
             return None, None, None
 
@@ -354,7 +354,7 @@ class PeriodicFinder():
         for i_adj in best_adjacency_lists:
             for key, value in i_adj.items():
                 full_adjacency_list_pbc[key].extend(value)
-        periodicity_graph_pbc = nx.MultiGraph(full_adjacency_list_pbc)
+        periodicity_graph_pbc = nx.Graph(full_adjacency_list_pbc)
 
         # Expand the graph by exploring the links of the atoms that are in
         # neighbouring cells

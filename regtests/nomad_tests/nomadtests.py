@@ -553,21 +553,51 @@ class Class2DTests(unittest.TestCase):
         # outliers = classification.outliers
         # self.assertEqual(len(outliers), 0)
 
-    def test_26(self):
+    # def test_26(self):
+        # """Test changing pos tol.
+        # """
+        # system = get_atoms("./fhiaims9/Surface/Mg12O36Ti10+Ti2.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=[0.3])
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # view(classification.region.cell)
+
+        # # Pristine
+        # outliers = classification.outliers
+        # self.assertEqual(len(outliers), 0)
+
+    def test_27(self):
         """Test changing pos tol.
         """
-        system = get_atoms(".//fhiaims9/Surface/Mg12O36Ti10+Ti2.json")
+        system = get_atoms("./fhiaims10/Surface/Mg16O62Si24+CMg8O12.json")
         view(system)
 
-        classifier = Classifier(pos_tol=[0.3])
+        classifier = Classifier()
         classification = classifier.classify(system)
         self.assertIsInstance(classification, Surface)
         view(classification.region.cell)
 
         # Pristine
         outliers = classification.outliers
-        print(outliers)
         self.assertEqual(len(outliers), 0)
+
+    # def test_28(self):
+        # """Test amorphous surface.
+        # """
+        # system = get_atoms("./fhiaims10/Surface/Ba5Ge13O40+Ba11Ge7O16.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # view(classification.region.cell)
+
+        # # Pristine
+        # outliers = classification.outliers
+        # print(outliers)
+        # self.assertEqual(len(outliers), 0)
 
 if __name__ == '__main__':
     suites = []
