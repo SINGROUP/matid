@@ -17,8 +17,9 @@ WYCKOFF_LETTER_POSITIONS = {letter: positions for positions, letter in enumerate
 #===============================================================================
 # Constants for classification
 MAX_SINGLE_CELL_SIZE = 4
+MAX_2D_CELL_HEIGHT = 5
 MAX_CELL_SIZE = [4, 12]
-REL_POS_TOL = [0.3, 0.5, 0.8]  # Position tolerances. Given relative to minimum distance between two atoms in the system.
+REL_POS_TOL = [0.3, 0.55, 0.8]  # Position tolerances. Given relative to minimum distance between two atoms in the system.
 POS_TOL_SCALING = 0.0  # 0.0  # Per angstrom
 ANGLE_TOL = 20
 CLUSTER_THRESHOLD = 3.5
@@ -30,4 +31,3 @@ CELL_SIZE_TOL = 0.25
 MAX_N_ATOMS = 1000
 COVERAGE_THRESHOLD = 0.5
 MAX_VACANCY_RATIO = 0.25
-MAX_2D_CELL_HEIGHT = 5

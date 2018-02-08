@@ -9,6 +9,8 @@ from numpy.core.umath_tests import inner1d
 
 import networkx as nx
 
+from sklearn.cluster import DBSCAN
+
 from ase import Atoms
 from ase.visualize import view
 from ase.data import covalent_radii
@@ -126,6 +128,7 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
+            bond_threshold
         )
 
         # 1D is not handled
@@ -198,6 +201,7 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
+            bond_threshold
         ):
         """Used to find the best candidate for a unit cell basis that could
         generate a periodic region in the structure.
@@ -499,7 +503,32 @@ class PeriodicFinder():
             if proto_cell is None:
                 return None, None, None
 
-        # print(proto_cell.get_cell())
+        # Check that the all the atoms in the proto cell are bonded. If not,
+        # the found cell is most probably invalid.
+        if n_spans == 2:
+            unit_pbc = [True, True, False]
+        elif n_spans == 3:
+            unit_pbc = [True, True, True]
+        _, dist_matrix_cell = systax.geometry.get_displacement_tensor(
+            proto_cell.get_positions(),
+            proto_cell.get_positions(),
+            proto_cell.get_cell(),
+            unit_pbc,
+            mic=True,
+            return_factors=False,
+            return_distances=True
+        )
+        num = proto_cell.get_atomic_numbers()
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+        dist_matrix_cell -= radii_matrix
+        db = DBSCAN(eps=bond_threshold, min_samples=1, metric='precomputed', n_jobs=1)
+        db.fit(dist_matrix_cell)
+        clusters = db.labels_
+        n_clusters = len(np.unique(clusters))
+        if n_clusters > 1:
+            view(proto_cell)
+            return None, None, None
 
         return proto_cell, offset, n_spans
 
@@ -648,7 +677,8 @@ class PeriodicFinder():
         proto_cell = Atoms(
             scaled_positions=averaged_rel_pos,
             symbols=averaged_rel_num,
-            cell=best_spans
+            cell=best_spans,
+            # pbc=[True, True, True]
         )
 
         return proto_cell, offset
@@ -869,7 +899,8 @@ class PeriodicFinder():
         proto_cell = Atoms(
             cell=new_basis,
             scaled_positions=new_scaled_pos,
-            symbols=averaged_rel_num
+            symbols=averaged_rel_num,
+            # pbc=[True, True, False]
         )
         # view(proto_cell)
         offset = proto_cell.get_positions()[seed_group_index]
