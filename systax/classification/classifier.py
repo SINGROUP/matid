@@ -272,21 +272,30 @@ class Classifier():
 
             classification = Class2D()
 
-            # Get the index of the seed atom
+            # Get the indices of the used seed atoms
             seed_indices = []
-            used_elements = set()
             test_sys = system.copy()
             cm = systax.geometry.get_center_of_mass(test_sys)
+
+            # If center of mass defined, find the occurrence closest to center
+            # of mass for each element to use as seed point.
+            num = self.system.get_atomic_numbers()
+            elems = set(num)
             if self.seed_position == "cm":
-                while len(seed_indices) < 2 or len(test_sys) != 0:
-                    seed_index = systax.geometry.get_nearest_atom(test_sys, cm)
-                    i_elem = system.get_atomic_numbers()[seed_index]
-                    if i_elem not in used_elements:
-                        seed_indices.append(seed_index)
-                    used_elements.add(i_elem)
-                    del test_sys[seed_index]
+                distances = np.linalg.norm(system.get_positions() - cm, axis=1)
+                indices = np.argsort(distances)
+                for i in indices:
+                    i_elem = num[i]
+                    if i_elem in elems:
+                        seed_indices.append(i)
+                        elems.remove(i_elem)
+                    if len(elems) == 0:
+                        break
             else:
-                seed_index = self.seed_position
+                if type(self.seed_position) == int:
+                    seed_indices = [self.seed_position]
+                elif isinstance(self.seed_position, (tuple, list, np.ndarray)):
+                    seed_indices = self.seed_position
 
             # Run the detection with multiple position tolerances
             best_surface = None
