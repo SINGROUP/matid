@@ -539,6 +539,36 @@ class Class2DTests(unittest.TestCase):
         # additionals = classification.additional_indices
         # self.assertEqual(len(additionals), 0)
 
+    # def test_26(self):
+        # """Test increasing pos tol.
+        # """
+        # system = get_atoms("./fhiaims9/Surface/Ca12O43Ti16+O.json")
+        # view(system)
+
+        # classifier = Classifier(pos_tol=[0.8])
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # Pristine
+        # outliers = classification.outliers
+        # self.assertEqual(len(outliers), 0)
+
+    def test_26(self):
+        """Test changing pos tol.
+        """
+        system = get_atoms(".//fhiaims9/Surface/Mg12O36Ti10+Ti2.json")
+        view(system)
+
+        classifier = Classifier(pos_tol=[0.3])
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+        view(classification.region.cell)
+
+        # Pristine
+        outliers = classification.outliers
+        print(outliers)
+        self.assertEqual(len(outliers), 0)
+
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Class2DTests))
