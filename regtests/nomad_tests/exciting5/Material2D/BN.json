@@ -1,0 +1,80 @@
+{
+  "positions": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.33333333,
+      0.66666667,
+      0.0
+    ]
+  ],
+  "tags": {
+    "additionals": []
+  },
+  "normalizedCell": [
+    [
+      2.516984993710479e-10,
+      0.0,
+      0.0
+    ],
+    [
+      -1.2584924968552395e-10,
+      2.1797729440831213e-10,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.5875316320100001e-09
+    ]
+  ],
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
+  "labels": [
+    5,
+    7
+  ],
+  "unit": {
+    "positions": [
+      [
+        0.6666666700000001,
+        0.3333333299999998,
+        0.5
+      ],
+      [
+        0.0,
+        0.0,
+        0.5
+      ]
+    ],
+    "normalizedCell": [
+      [
+        2.516984993710479e-10,
+        0.0,
+        0.0
+      ],
+      [
+        -1.2584924968552395e-10,
+        2.1797729440831213e-10,
+        0.0
+      ],
+      [
+        0.0,
+        -0.0,
+        7.265909744487229e-11
+      ]
+    ],
+    "labels": [
+      5,
+      7
+    ]
+  },
+  "filename": "/nomad/nomadlab/parsed/prod-032/ExcitingParser1.4.0-51-g931ab52/RJv-r5Vwf6ypWElBSq_hTCOaxEU89/Pei7AJqzcnjEk9UqysX79ze-JMkDH.json",
+  "classification": "Material2D"
+}
