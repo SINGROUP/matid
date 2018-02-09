@@ -298,11 +298,8 @@ class Classifier():
                     seed_indices = self.seed_position
 
             # Run the detection with multiple position tolerances
-            best_surface = None
-            best_2d = None
             best_region = None
-            most_2d_atoms = 0
-            most_surface_atoms = 0
+            most_atoms = 0
 
             # seed_indices = [seed_index]
 
@@ -333,24 +330,13 @@ class Classifier():
                             disp_tensor,
                             dist_matrix_radii_pbc,
                         )
-                        # print(region)
+
                         if region is not None:
                             basis_indices = region[1].get_basis_indices()
-                            is_2d = region[1].is_2d
                             n_basis = len(basis_indices)
-                            if is_2d:
-                                if n_basis > most_2d_atoms:
-                                    most_2d_atoms = n_basis
-                                    best_2d = region[1]
-                            else:
-                                if n_basis > most_surface_atoms:
-                                    most_surface_atoms = n_basis
-                                    best_surface = region[1]
-
-            if best_surface is not None:
-                best_region = best_surface
-            elif best_2d is not None:
-                best_region = best_2d
+                            if n_basis > most_atoms:
+                                most_atoms = n_basis
+                                best_region = region[1]
 
             if best_region is not None:
 
