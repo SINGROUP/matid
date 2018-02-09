@@ -53,6 +53,10 @@ class Class2D(Classification):
             ):
         super().__init__()
         self.region = region
+        if region is not None:
+            self.cell = region.cell
+        else:
+            self.cell = None
         self.cell_analyzer = cell_analyzer
 
     @property
