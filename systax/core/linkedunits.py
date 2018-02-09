@@ -194,6 +194,8 @@ class LinkedUnitCollection(dict):
                         # else:
                             # print(index)
                             # print(chem_similarity)
+                            # print(ideal_environment)
+                            # print(real_environment)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()
