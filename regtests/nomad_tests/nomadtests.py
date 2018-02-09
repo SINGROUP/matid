@@ -599,10 +599,26 @@ class Class2DTests(unittest.TestCase):
         # print(outliers)
         # self.assertEqual(len(outliers), 0)
 
-    def test_29(self):
+    # def test_29(self):
+        # """Test amorphous surface.
+        # """
+        # system = get_atoms("./fhiaims11/Surface/Ca32Ge24O81+C2O3.json")
+        # # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+        # # view(classification.region.cell)
+
+        # # 2xCO2 outlier
+        # outliers = classification.outliers
+        # self.assertEqual(len(outliers), 6)
+        # self.assertEqual(set(outliers), set([136, 137, 138, 139, 140, 141]))
+
+    def test_30(self):
         """Test amorphous surface.
         """
-        system = get_atoms("./fhiaims11/Surface/Ca32Ge24O81+C2O3.json")
+        system = get_atoms("./fhiaims11/Surface/Ca16O56Zr20.json")
         # view(system)
 
         classifier = Classifier()
@@ -612,8 +628,7 @@ class Class2DTests(unittest.TestCase):
 
         # 2xCO2 outlier
         outliers = classification.outliers
-        self.assertEqual(len(outliers), 6)
-        self.assertEqual(set(outliers), set([136, 137, 138, 139, 140, 141]))
+        self.assertEqual(len(outliers), 0)
 
 if __name__ == '__main__':
     suites = []
