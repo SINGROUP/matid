@@ -19,3 +19,24 @@ Systax can be used e.g. to perform the following tasks:
       system.
     - Given a surface system, get the idealized bulk cell corresponding to the
       surface.
+
+Example usage:
+```python
+import ase.io
+from systax import classifier, Surface
+
+# Read a geometry from file with ASE and ensure that the cell and periodicity
+are given.
+system = ase.io.read("geometry.xyz")
+system.set_cell([20, 20, 20])
+system.set_pbc(True)
+
+# Run the classification and if surface matched, get the detected unit cell and
+indices of outlier atoms
+classifier = Classifier()
+classification = classifier.classify(system)
+
+if type(classification) = Surface:
+    cell = classification.cell
+    outliers = classification.outliers
+```

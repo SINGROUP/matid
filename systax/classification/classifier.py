@@ -21,16 +21,13 @@ from systax.classification.classifications import \
     Class2D, \
     Class3D
 import systax.geometry
+from systax.data import constants
 from systax.analysis.class3danalyzer import Class3DAnalyzer
 from systax.analysis.class2danalyzer import Class2DAnalyzer
 from systax.symmetry import check_if_crystal
 from systax.classification.periodicfinder import PeriodicFinder
 
 __metaclass__ = type
-
-
-class SystemCache(dict):
-    pass
 
 
 class Classifier():
@@ -41,19 +38,22 @@ class Classifier():
     def __init__(
             self,
             seed_position="cm",
-            max_cell_size=8,
-            pos_tol=0.3,
+            max_cell_size=constants.MAX_CELL_SIZE,
+            pos_tol=None,
             pos_tol_mode="relative",
-            angle_tol=20,
-            cluster_threshold=3.5,
-            crystallinity_threshold=0.25,
-            delaunay_threshold=1.5,
-            bond_threshold=1.0,
+            pos_tol_scaling=constants.POS_TOL_SCALING,
+            angle_tol=constants.ANGLE_TOL,
+            cluster_threshold=constants.CLUSTER_THRESHOLD,
+            crystallinity_threshold=constants.CRYSTALLINITY_THRESHOLD,
+            delaunay_threshold=constants.DELAUNAY_THRESHOLD,
+            bond_threshold=constants.BOND_THRESHOLD,
             delaunay_threshold_mode="relative",
-            pos_tol_factor=2,
-            n_edge_tol=0.95,
-            cell_size_tol=0.25,
-            max_n_atoms=1000
+            chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD,
+            cell_size_tol=constants.CELL_SIZE_TOL,
+            max_n_atoms=constants.MAX_N_ATOMS,
+            coverage_threshold=constants.COVERAGE_THRESHOLD,
+            max_vacancy_ratio=constants.MAX_VACANCY_RATIO,
+            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT
             ):
         """
         Args:
@@ -61,25 +61,54 @@ class Classifier():
                 a 3D vector from which the closest atom will be used as a seed, or
                 then provide a valid option as a string. Valid options are:
                     - 'cm': One seed nearest to center of mass
-            max_cell_size(float): The maximum cell size
-            pos_tol(float): The position tolerance in angstroms for finding translationally
-                repeated units.
-            pos_tol_mode(str): The mode for calculting the position tolerance.
+            max_cell_size(float): The maximum size of cell basis vectors.
+            pos_tol(float): The position tolerance for finding translationally
+                repeated units. The units depend on 'pos_tol_mode'.
+            pos_tol_mode(str): The mode for calculating the position tolerance.
                 One of the following:
                     - "relative": Tolerance relative to the average nearest
                       neighbour distance.
                     - "absolute": Absolute tolerance in angstroms.
+            pos_tol_scaling(float): The distance dependent scaling factor for
+                the positions tolerance.
+            angle_tol(float): The angle below which vectors in the cell basis are
+                considered to be parallel.
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
-                perfomed the connectivity that is required for .
+                perfomed.
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
             max_n_atoms(int): The maximum number of atoms in the system. If the
-                system has more atoms than this, the a ValueError is raised.
+                system has more atoms than this, a ValueError is raised. If
+                undefined, there is no maximum.
+            bond_threshold(float): The clustering threshold when determining
+                the connectivity of atoms in a surface or 2D-material.
+            delaunay_threshold(str): The maximum length of an edge in the
+                Delaunay triangulation.
+            delaunay_threshold_mode(str): The mode for calculating the maximum
+                length of an edge in the Delaunay triangulation.
+                One of the following:
+                    - "relative": Tolerance relative to the average nearest
+                      neighbour distance.
+                    - "absolute": Absolute tolerance in angstroms.
+            pos_tol_factor(float): The factor for multiplying the position
+                tolerance when searching neighbouring cell seed atoms.
+            cell_size_tol(float): The tolerance for cell sizes to be considered
+                equal. Given relative to the smallest cell size.
+            coverage_threshold(float): The fraction of atoms that have to
+                belong to a region in order for the system to be considered surface
+                or 2D-material.
+            max_vacancy_ratio(float): Maximum fraction of vacancy atoms/atoms
+                in the region for the system to be considered valid. If too
+                many vacancies are found, the classification will be left more
+                generic, e.g. Class2D.
         """
+        if pos_tol_mode == "relative" and pos_tol is None:
+            pos_tol = constants.REL_POS_TOL
         self.max_cell_size = max_cell_size
         self.pos_tol = pos_tol
+        self.pos_tol_scaling = pos_tol_scaling
         self.abs_pos_tol = None
         self.pos_tol_mode = pos_tol_mode
         self.angle_tol = angle_tol
@@ -89,10 +118,13 @@ class Classifier():
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
         self.bond_threshold = bond_threshold
-        self.pos_tol_factor = pos_tol_factor
-        self.n_edge_tol = n_edge_tol
+        self.chem_similarity_threshold = chem_similarity_threshold
+        self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
+        self.coverage_threshold = coverage_threshold
+        self.max_vacancy_ratio = max_vacancy_ratio
+        self.max_2d_cell_height = max_2d_cell_height
 
         # Check seed position
         if type(seed_position) == str:
@@ -115,7 +147,7 @@ class Classifier():
         if delaunay_threshold_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'delaunay_threshold_mode'.".format(delaunay_threshold_mode))
 
-    def classify(self, system):
+    def classify(self, input_system):
         """A function that analyzes the system and breaks it into different
         components.
 
@@ -129,6 +161,9 @@ class Classifier():
         Raises:
             ValueError: If the system has more atoms than self.max_n_atoms
         """
+        # We wrap the positions to to be inside the cell.
+        system = input_system.copy()
+        system.wrap()
         self.system = system
         classification = None
 
@@ -147,9 +182,17 @@ class Classifier():
         pbc = system.get_pbc()
         disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
         if pbc.any():
-            disp_tensor_pbc = systax.geometry.get_displacement_tensor(pos, pos, cell, pbc, mic=True)
+            disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
+                pos,
+                pos,
+                cell,
+                pbc,
+                mic=True,
+                return_factors=True
+            )
         else:
             disp_tensor_pbc = disp_tensor
+            disp_factors = np.zeros(disp_tensor.shape)
         dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
 
         # Calculate the distance matrix where the periodicity and the covalent
@@ -166,11 +209,12 @@ class Classifier():
             min_basis = np.linalg.norm(cell, axis=1).min()
             dist_matrix_mod = np.array(dist_matrix_pbc)
             np.fill_diagonal(dist_matrix_mod, min_basis)
+            global_min_dist = dist_matrix_mod.min()
             min_dist = np.min(dist_matrix_mod, axis=1)
             mean_min_dist = min_dist.mean()
 
             if self.pos_tol_mode == "relative":
-                self.abs_pos_tol = self.pos_tol * mean_min_dist
+                self.abs_pos_tol = np.array(self.pos_tol)*global_min_dist
             elif self.pos_tol_mode == "absolute":
                 self.abs_pos_tol = self.pos_tol
 
@@ -181,13 +225,10 @@ class Classifier():
 
         # Get the system dimensionality
         try:
-            dimensionality, vacuum_dir = systax.geometry.get_dimensionality(
+            dimensionality = systax.geometry.get_dimensionality(
                 system,
                 self.cluster_threshold,
-                disp_tensor=disp_tensor,
-                disp_tensor_pbc=disp_tensor_pbc,
-                dist_matrix_radii_pbc=dist_matrix_radii_pbc,
-                radii_matrix=radii_matrix
+                dist_matrix_radii_pbc
             )
         except SystaxError:
             return Unknown()
@@ -212,60 +253,98 @@ class Classifier():
         # 1D structures
         elif dimensionality == 1:
 
-            classification = Class1D(vacuum_dir)
+            classification = Class1D()
 
             # Find out the dimensions of the system
-            is_small = True
-            dimensions = systax.geometry.get_dimensions(system, vacuum_dir)
-            for i, has_vacuum in enumerate(vacuum_dir):
-                if has_vacuum:
-                    dimension = dimensions[i]
-                    if dimension > 15:
-                        is_small = False
+            # is_small = True
+            # dimensions = systax.geometry.get_dimensions(system)
+            # for i, has_vacuum in enumerate(vacuum_dir):
+                # if has_vacuum:
+                    # dimension = dimensions[i]
+                    # if dimension > 15:
+                        # is_small = False
 
-            if is_small:
-                classification = Material1D(vacuum_dir)
+            # if is_small:
+                # classification = Material1D(vacuum_dir)
 
         # 2D structures
         elif dimensionality == 2:
 
-            classification = Class2D(vacuum_dir)
+            classification = Class2D()
 
-            # Get the index of the seed atom
+            # Get the indices of the used seed atoms
+            seed_indices = []
+            test_sys = system.copy()
+            cm = systax.geometry.get_center_of_mass(test_sys)
+
+            # If center of mass defined, find the occurrence closest to center
+            # of mass for each element to use as seed point.
+            num = self.system.get_atomic_numbers()
+            elems = set(num)
             if self.seed_position == "cm":
-                seed_vec = self.system.get_center_of_mass()
+                distances = np.linalg.norm(system.get_positions() - cm, axis=1)
+                indices = np.argsort(distances)
+                for i in indices:
+                    i_elem = num[i]
+                    if i_elem in elems:
+                        seed_indices.append(i)
+                        elems.remove(i_elem)
+                    if len(elems) == 0:
+                        break
             else:
-                seed_vec = self.seed_position
-            seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+                if type(self.seed_position) == int:
+                    seed_indices = [self.seed_position]
+                elif isinstance(self.seed_position, (tuple, list, np.ndarray)):
+                    seed_indices = self.seed_position
 
-            # Run the region detection on the whole system.
-            periodicfinder = PeriodicFinder(
-                pos_tol=self.abs_pos_tol,
-                angle_tol=self.angle_tol,
-                max_cell_size=self.max_cell_size,
-                pos_tol_factor=self.pos_tol_factor,
-                cell_size_tol=self.cell_size_tol,
-                n_edge_tol=self.n_edge_tol
-            )
-            region = periodicfinder.get_region(
-                system,
-                seed_index,
-                disp_tensor_pbc,
-                disp_tensor,
-                dist_matrix_radii_pbc,
-                vacuum_dir,
-                self.abs_delaunay_threshold,
-                self.bond_threshold
+            # Run the detection with multiple position tolerances
+            best_region = None
+            most_atoms = 0
 
-            )
-            if region is not None:
-                region = region[1]
+            # seed_indices = [seed_index]
+
+            # Here a cross-validation is performed to choose parameters that
+            # produce best results. The performance of the parameters is
+            # quantified by counting the number of valid atoms in the region.
+            for index in seed_indices:
+                for size in self.max_cell_size:
+                    for tol in self.abs_pos_tol:
+
+                        # Run the region detection on the whole system.
+                        periodicfinder = PeriodicFinder(
+                            angle_tol=self.angle_tol,
+                            pos_tol_scaling=self.pos_tol_scaling,
+                            cell_size_tol=self.cell_size_tol,
+                            max_2d_cell_height=self.max_2d_cell_height,
+                            chem_similarity_threshold=self.chem_similarity_threshold
+                        )
+                        region = periodicfinder.get_region(
+                            system,
+                            index,
+                            size,
+                            tol,
+                            self.abs_delaunay_threshold,
+                            self.bond_threshold,
+                            disp_tensor_pbc,
+                            disp_factors,
+                            disp_tensor,
+                            dist_matrix_radii_pbc,
+                        )
+
+                        if region is not None:
+                            basis_indices = region[1].get_basis_indices()
+                            n_basis = len(basis_indices)
+                            if n_basis > most_atoms:
+                                most_atoms = n_basis
+                                best_region = region[1]
+
+            if best_region is not None:
 
                 # If the basis atoms in the region are split into multiple
                 # disconnected pieces (as indicated by clustering), then they
                 # cannot be classified
-                clusters = region.get_clusters()
-                basis_indices = set(list(region.get_basis_indices()))
+                clusters = best_region.get_clusters()
+                basis_indices = set(list(best_region.get_basis_indices()))
                 split = True
                 for cluster in clusters:
                     if basis_indices.issubset(cluster):
@@ -274,22 +353,27 @@ class Classifier():
                 if not split:
                     # If the region covers less than 50% of the whole system,
                     # categorize as Class2D
-                    n_region_atoms = len(region.get_basis_indices())
-                    n_atoms = len(system)
-                    coverage = n_region_atoms/n_atoms
+                    # n_region_atoms = len(best_region.get_basis_indices())
+                    # n_atoms = len(system)
+                    # coverage = n_region_atoms/n_atoms
 
-                    if coverage >= 0.5:
-                        if region.is_2d:
-                            analyzer = Class2DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                            classification = Material2D(vacuum_dir, region, analyzer)
-                        else:
-                            analyzer = Class3DAnalyzer(region.cell, vacuum_gaps=vacuum_dir)
-                            classification = Surface(vacuum_dir, region, analyzer)
+                    # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
+                    # if coverage >= self.coverage_threshold:
+                    if best_region.is_2d:
+                        # The Class2DAnalyzer needs to know which direcion
+                        # in the cell is not periodic. Now that the cell
+                        # has been found, we know that the third axis is
+                        # set as the non-periodic one.
+                        analyzer = Class2DAnalyzer(best_region.cell, vacuum_gaps=[False, False, True])
+                        classification = Material2D(best_region, analyzer)
+                    else:
+                        analyzer = Class3DAnalyzer(best_region.cell)
+                        classification = Surface(best_region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:
 
-            classification = Class3D(vacuum_dir)
+            classification = Class3D()
 
             # Check the number of symmetries
             analyzer = Class3DAnalyzer(system)
@@ -315,7 +399,6 @@ class Classifier():
                         # max_cell_size=self.max_cell_size,
                         # pos_tol_factor=self.pos_tol_factor,
                         # cell_size_tol=self.cell_size_tol,
-                        # n_edge_tol=self.n_edge_tol
                     # )
 
                     # # Get the index of the seed atom
@@ -325,7 +408,7 @@ class Classifier():
                         # seed_vec = self.seed_position
                     # seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
 
-                    # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, vacuum_dir, self.abs_delaunay_threshold)
+                    # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, self.abs_delaunay_threshold)
                     # if region is not None:
                         # region = region[1]
 
@@ -334,7 +417,7 @@ class Classifier():
                         # n_region_atoms = len(region.get_basis_indices())
                         # n_atoms = len(system)
                         # coverage = n_region_atoms/n_atoms
-                        # if coverage >= 0.5:
+                        # if coverage >= self.coverage_threshold:
                             # classification = Crystal(analyzer, region=region)
 
             elif is_crystal:

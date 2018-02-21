@@ -4,12 +4,7 @@ __metaclass__ = type
 
 
 class Classification():
-
-    def __init__(
-            self,
-            vacuum_dir=None,
-            ):
-        self.vacuum_dir = vacuum_dir
+    pass
 
 
 #===============================================================================
@@ -53,28 +48,44 @@ class Class2D(Classification):
     """
     def __init__(
             self,
-            vacuum_dir=None,
             region=None,
             cell_analyzer=None
             ):
-        super().__init__(vacuum_dir)
+        super().__init__()
         self.region = region
         if region is not None:
-            self.basis_indices = region.get_basis_indices()
-            self.interstitials = region.get_interstitials()
-            self.substitutions = region.get_substitutions()
-            self.adsorbates = region.get_adsorbates()
-            self.vacancies = region.get_vacancies()
-            self.unknowns = region.get_unknowns()
+            self.cell = region.cell
         else:
-            self.basis_indices = ()
-            self.interstitials = ()
-            self.substitutions = ()
-            self.adsorbates = ()
-            self.vacancies = ()
-            self.unknowns = ()
-        self.vacuum_dir = vacuum_dir
+            self.cell = None
         self.cell_analyzer = cell_analyzer
+
+    @property
+    def basis_indices(self):
+        return self.region.get_basis_indices()
+
+    @property
+    def outliers(self):
+        return self.region.get_outliers()
+
+    @property
+    def interstitials(self):
+        return self.region.get_interstitials()
+
+    @property
+    def adsorbates(self):
+        return self.region.get_adsorbates()
+
+    @property
+    def substitutions(self):
+        return self.region.get_substitutions()
+
+    @property
+    def vacancies(self):
+        return self.region.get_vacancies()
+
+    @property
+    def unknowns(self):
+        return self.region.get_unknowns()
 
 
 class Surface(Class2D):
@@ -92,6 +103,10 @@ class Material2D(Class2D):
 class Class3D(Classification):
     """All structures that periodically extend infinitely without vacuum gaps.
     """
+    pass
+
+
+class Crystal(Class3D):
     def __init__(
             self,
             cell_analyzer,
@@ -100,22 +115,19 @@ class Class3D(Classification):
         self.region = region
         if region is not None:
             self.basis_indices = region.get_basis_indices()
-            self.interstitials = region.get_interstitials()
-            self.substitutions = region.get_substitutions()
-            self.vacancies = region.get_vacancies()
-            self.unknowns = region.get_unknowns()
+            self.outliers = region.get_outliers()
+            # self.interstitials = region.get_interstitials()
+            # self.substitutions = region.get_substitutions()
+            # self.vacancies = region.get_vacancies()
+            # self.unknowns = region.get_unknowns()
         else:
             self.basis_indices = ()
-            self.interstitials = ()
-            self.substitutions = ()
-            self.vacancies = ()
-            self.unknowns = ()
+            self.outliers = ()
+            # self.interstitials = ()
+            # self.substitutions = ()
+            # self.vacancies = ()
+            # self.unknowns = ()
         self.cell_analyzer = cell_analyzer
-
-
-class Crystal(Class3D):
-    """
-    """
 
 
 #===============================================================================
