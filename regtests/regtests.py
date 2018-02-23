@@ -2276,7 +2276,7 @@ class SurfaceTests(unittest.TestCase):
             pos = atom.position
             distortion_z = 0.5*np.sin(pos[0]/cell_width*2.0*np.pi)
             pos += np.array((0, 0, distortion_z))
-        view(system)
+        # view(system)
 
         # Classified as surface
         classifier = Classifier()

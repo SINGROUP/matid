@@ -5,3 +5,4 @@ ase
 spglib
 sklearn
 networkx
+chronic

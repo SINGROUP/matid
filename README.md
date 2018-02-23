@@ -22,25 +22,39 @@ cd systax
 pip install .
 ```
 
-# Example: Automatic classification of atomic systems
+# Example: Surface detection and analysis
 
 ```python
 import ase.io
-from systax import classifier, Surface
+from ase.visualize import view
+from systax import Classifier
+from systax.classifications import Surface
 
-# Read a geometry from file with ASE and ensure that the cell and periodicity
-# are given.
+# Read a geometry from file with ASE. Ensure that the cell and periodicity are
+# correctly given for the structure.
 system = ase.io.read("geometry.xyz")
-system.set_cell([20, 20, 20])
-system.set_pbc(True)
+view(system)
 
-# Run the classification and if surface matched, get the detected unit cell and
-# indices of outlier atoms
-classifier = Classifier()
+# Run the classification
+classifier = Classifier(pos_tol=0.5, max_cell_size=6)
 classification = classifier.classify(system)
 
-if type(classification) = Surface:
-    cell = classification.cell
+if type(classification) == Surface:
+
+    # View the conventional cell corresponding to this surface
+    conventional_cell = classification.conventional_cell
+    view(conventional_cell)
+
+    # View the outlier atoms
     outliers = classification.outliers
+    view(system[outliers])
+
+    # Inspect more symmetry details about the cell
+    analyzer = classification.cell_analyzer
+    space_group = analyzer.get_space_group_number()
+    print(space_group)
+
+    primitive_cell = analyzer.get_primitive_system()
+    view(primitive_cell)
 ```
 

@@ -39,6 +39,7 @@ if __name__ == "__main__":
             "spglib",
             "sklearn",
             "networkx",
+            "chronic"
         ],
         python_requires='>=2.6, <4',
     )

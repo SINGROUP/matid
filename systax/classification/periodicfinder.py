@@ -9,6 +9,8 @@ from numpy.core.umath_tests import inner1d
 
 import networkx as nx
 
+import chronic
+
 from sklearn.cluster import DBSCAN
 
 from ase import Atoms
@@ -116,15 +118,17 @@ class PeriodicFinder():
         self.pos_tol = pos_tol
         self.max_cell_size = max_cell_size
         region = None
-        possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
-        proto_cell, offset, dim = self._find_proto_cell(
-            system,
-            seed_index,
-            possible_spans,
-            neighbour_mask,
-            neighbour_factors,
-            bond_threshold
-        )
+
+        with chronic.Timer("proto_cell_identification"):
+            possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
+            proto_cell, offset, dim = self._find_proto_cell(
+                system,
+                seed_index,
+                possible_spans,
+                neighbour_mask,
+                neighbour_factors,
+                bond_threshold
+            )
 
         # 1D is not handled
         if dim == 1 or proto_cell is None:
@@ -137,21 +141,24 @@ class PeriodicFinder():
         # print(proto_cell.get_cell())
 
         # Find a region that is spanned by the found unit cell
-        unit_collection = self._find_periodic_region(
-            system,
-            dim == 2,
-            delaunay_threshold,
-            bond_threshold,
-            seed_index,
-            proto_cell,
-            offset,
-            periodic_indices,
-        )
 
-        i_indices = unit_collection.get_basis_indices()
-        if len(i_indices) > 0:
-            region = unit_collection
-            return region
+        with chronic.Timer("tracking"):
+            unit_collection = self._find_periodic_region(
+                system,
+                dim == 2,
+                delaunay_threshold,
+                bond_threshold,
+                seed_index,
+                proto_cell,
+                offset,
+                periodic_indices,
+            )
+
+        with chronic.Timer("basis_indices"):
+            i_indices = unit_collection.get_basis_indices()
+            if len(i_indices) > 0:
+                region = unit_collection
+                return region
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.

@@ -2,6 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import numpy as np
 
+import chronic
+
 import ase.build
 from ase.visualize import view
 from ase.data import covalent_radii
@@ -51,9 +53,9 @@ class Classifier():
             chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD,
             cell_size_tol=constants.CELL_SIZE_TOL,
             max_n_atoms=constants.MAX_N_ATOMS,
-            coverage_threshold=constants.COVERAGE_THRESHOLD,
-            max_vacancy_ratio=constants.MAX_VACANCY_RATIO,
-            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT
+            max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
+            max_2d_single_cell_size=constants.MAX_SINGLE_CELL_SIZE,
+            symmetry_tol=constants.SPGLIB_PRECISION
             ):
         """
         Args:
@@ -96,17 +98,22 @@ class Classifier():
                 tolerance when searching neighbouring cell seed atoms.
             cell_size_tol(float): The tolerance for cell sizes to be considered
                 equal. Given relative to the smallest cell size.
-            coverage_threshold(float): The fraction of atoms that have to
-                belong to a region in order for the system to be considered surface
-                or 2D-material.
-            max_vacancy_ratio(float): Maximum fraction of vacancy atoms/atoms
-                in the region for the system to be considered valid. If too
-                many vacancies are found, the classification will be left more
-                generic, e.g. Class2D.
+            max_2d_cell_height(float): The maximum allowed thickness in for a 2D
+                material. Given in angstroms.
+            max_2d_single_cell_size(float): The maximum allowed cell size for
+                2D materials with only one unit cell found in the simulation
+                cell. Given in angstroms.
+            symmetry_tol(float): The tolerance for finding symmetry positions
+                when determining the conventional cell for bulk structures. Given
+                in angstroms.
         """
         if pos_tol_mode == "relative" and pos_tol is None:
             pos_tol = constants.REL_POS_TOL
+        if isinstance(max_cell_size, (int, float)):
+            max_cell_size = [max_cell_size]
         self.max_cell_size = max_cell_size
+        if isinstance(pos_tol, (int, float)):
+            pos_tol = [pos_tol]
         self.pos_tol = pos_tol
         self.pos_tol_scaling = pos_tol_scaling
         self.abs_pos_tol = None
@@ -122,9 +129,8 @@ class Classifier():
         self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
-        self.coverage_threshold = coverage_threshold
-        self.max_vacancy_ratio = max_vacancy_ratio
         self.max_2d_cell_height = max_2d_cell_height
+        self.symmetry_tol = symmetry_tol
 
         # Check seed position
         if type(seed_position) == str:
@@ -180,20 +186,22 @@ class Classifier():
         pos = system.get_positions()
         cell = system.get_cell()
         pbc = system.get_pbc()
-        disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
-        if pbc.any():
-            disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
-                pos,
-                pos,
-                cell,
-                pbc,
-                mic=True,
-                return_factors=True
-            )
-        else:
-            disp_tensor_pbc = disp_tensor
-            disp_factors = np.zeros(disp_tensor.shape)
-        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
+
+        with chronic.Timer("displacement_tensor"):
+            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+            if pbc.any():
+                disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
+                    pos,
+                    pos,
+                    cell,
+                    pbc,
+                    mic=True,
+                    return_factors=True
+                )
+            else:
+                disp_tensor_pbc = disp_tensor
+                disp_factors = np.zeros(disp_tensor.shape)
+            dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
 
         # Calculate the distance matrix where the periodicity and the covalent
         # radii have been taken into account
@@ -224,14 +232,15 @@ class Classifier():
                 self.abs_delaunay_threshold = self.delaunay_threshold
 
         # Get the system dimensionality
-        try:
-            dimensionality = systax.geometry.get_dimensionality(
-                system,
-                self.cluster_threshold,
-                dist_matrix_radii_pbc
-            )
-        except SystaxError:
-            return Unknown()
+        with chronic.Timer("TSA"):
+            try:
+                dimensionality = systax.geometry.get_dimensionality(
+                    system,
+                    self.cluster_threshold,
+                    dist_matrix_radii_pbc
+                )
+            except SystaxError:
+                return Unknown()
 
         # 0D structures
         if dimensionality == 0:
@@ -256,10 +265,20 @@ class Classifier():
             test_sys = system.copy()
             cm = systax.geometry.get_center_of_mass(test_sys)
 
-            # If center of mass defined, find the occurrence closest to center
-            # of mass for each element to use as seed point.
+            # If center of mass defined, for each atomic element find the
+            # occurrence closest to center of mass to use as seed point.
             num = self.system.get_atomic_numbers()
             elems = set(num)
+
+            # Experimental feature to get rid of seed points that are most
+            # likely adsorbates
+            # unique, counts = np.unique(num, return_counts=True)
+            # n_atoms = len(system)
+            # occurrence = counts/n_atoms
+            # majority_mask = occurrence > 0.1
+            # unique = unique[majority_mask]
+            # elems = set(unique)
+
             if self.seed_position == "cm":
                 distances = np.linalg.norm(system.get_positions() - cm, axis=1)
                 indices = np.argsort(distances)
@@ -277,38 +296,48 @@ class Classifier():
                     seed_indices = self.seed_position
 
             # Find the best region by trying out different parameters options
-            best_region = self.cross_validate_region(
-                system,
-                seed_indices,
-                disp_tensor_pbc,
-                disp_factors,
-                disp_tensor,
-                dist_matrix_radii_pbc
-            )
+            with chronic.Timer("cross_validation"):
+                best_region = self.cross_validate_region(
+                    system,
+                    seed_indices,
+                    disp_tensor_pbc,
+                    disp_factors,
+                    disp_tensor,
+                    dist_matrix_radii_pbc
+                )
 
             if best_region is not None:
 
                 # If the basis atoms in the region are split into multiple
                 # disconnected pieces (as indicated by clustering), then they
                 # cannot be classified
-                clusters = best_region.get_clusters()
-                basis_indices = set(list(best_region.get_basis_indices()))
-                split = True
-                for cluster in clusters:
-                    if basis_indices.issubset(cluster):
-                        split = False
 
-                if not split:
-                    if best_region.is_2d:
-                        # The Class2DAnalyzer needs to know which direcion
-                        # in the cell is not periodic. Now that the cell
-                        # has been found, we know that the third axis is
-                        # set as the non-periodic one.
-                        analyzer = Class2DAnalyzer(best_region.cell, vacuum_gaps=[False, False, True])
-                        classification = Material2D(best_region, analyzer)
-                    else:
-                        analyzer = Class3DAnalyzer(best_region.cell)
-                        classification = Surface(best_region, analyzer)
+                with chronic.Timer("region_analysis"):
+                    clusters = best_region.get_clusters()
+                    basis_indices = set(list(best_region.get_basis_indices()))
+                    split = True
+                    for cluster in clusters:
+                        if basis_indices.issubset(cluster):
+                            split = False
+
+                    if not split:
+                        if best_region.is_2d:
+                            # The Class2DAnalyzer needs to know which direcion
+                            # in the cell is not periodic. Now that the cell
+                            # has been found, we know that the third axis is
+                            # set as the non-periodic one.
+                            analyzer = Class2DAnalyzer(
+                                best_region.cell,
+                                vacuum_gaps=[False, False, True],
+                                spglib_precision=self.symmetry_tol
+                            )
+                            classification = Material2D(best_region, analyzer)
+                        else:
+                            analyzer = Class3DAnalyzer(
+                                best_region.cell,
+                                spglib_precision=self.symmetry_tol
+                            )
+                            classification = Surface(best_region, analyzer)
 
         # Bulk structures
         elif dimensionality == 3:
