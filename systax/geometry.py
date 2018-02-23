@@ -69,8 +69,9 @@ def get_dimensionality(
         cluster_threshold,
         dist_matrix_radii_mic_1x=None
     ):
-    """Used to calculate the dimensionality of a system with the topology
-    scaling algorithm.
+    """Used to calculate the dimensionality of a system with a modified
+    Topology Scaling Algorithm (TSA) (Michael Ashton, Joshua Paul, Susan B.
+    Sinnott, and Richard G. Hennig Phys. Rev. Lett. 118, 106101).
 
     Args:
         system (ASE.Atoms): The system for which the dimensionality is
@@ -99,10 +100,6 @@ def get_dimensionality(
     radii = covalent_radii[num_1x]
     max_radii = radii.max()
     max_distance = cluster_threshold*2*max_radii
-    # cell_lens_1x = np.linalg.norm(cell_1x, axis=1)
-    # print(cell_lens_1x)
-    # mic_copies_1x = np.ceil(mic_cutoff/cell_lens_1x)
-    # print(mic_copies_1x)
 
     # 1x1x1 system
     if dist_matrix_radii_mic_1x is None:
@@ -363,7 +360,11 @@ def get_center_of_mass(system):
 
     Args:
         system(ase.Atoms): The system for which the center of mass is
-        calculated.
+            calculated.
+
+    Returns:
+        np.ndarray: The cartesian positions of the center of mass in the given
+        system.
     """
     pbc = system.get_pbc()
     relative_positions = system.get_scaled_positions()
@@ -437,12 +438,13 @@ def make_random_displacement(system, delta, rng=None):
 
 
 def get_extended_system(system, target_size):
-    """Replicate the system in different directions to reach a suitable
-    system size for getting the moments of inertia.
+    """Replicate the system in different directions to reach the given target
+    size.
 
     Args:
         system (ase.Atoms): The original system.
-        target_size (float): The target size for the extended system.
+        target_size (float): The target size for the extended system in
+            angstroms.
 
     Returns:
         ase.Atoms: The extended system.
@@ -615,7 +617,8 @@ def get_displacement_tensor(
         mic=False,
         max_distance=None,
         return_factors=False,
-        return_distances=False
+        return_distances=False,
+        use_self_distance=True
     ):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
@@ -633,6 +636,9 @@ def get_displacement_tensor(
         mic_copies(np.ndarray): The maximum number of periodic copies to
             consider in each direction. If not specified, the maximum possible
             number of copies is determined and used.
+        use_self_distance(boolean): Determines how the distance from atom to
+            itself is determined. If True, zero is returned, if false, the
+            distance to the closest copy is returned.
 
     Returns:
         np.ndarray: 3D displacement tensor

@@ -8,7 +8,7 @@ from ase.data import covalent_radii
 
 from systax.exceptions import SystaxError
 
-from systax.classification.classifications import \
+from systax.classifications import \
     Surface, \
     Atom, \
     Molecule, \
@@ -142,7 +142,7 @@ class Classifier():
         if pos_tol_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'pos_tol_mode'.".format(pos_tol_mode))
 
-        # Check delunay tolerance mode
+        # Check delaunay tolerance mode
         allowed_modes = set(["relative", "absolute"])
         if delaunay_threshold_mode not in allowed_modes:
             raise ValueError("Unknown value '{}' for 'delaunay_threshold_mode'.".format(delaunay_threshold_mode))
@@ -237,35 +237,14 @@ class Classifier():
         if dimensionality == 0:
             classification = Class0D()
 
-            # Check if system consists of one atom or one molecule
+            # Systems with one atom are classified separately
             n_atoms = len(system)
             if n_atoms == 1:
                 classification = Atom()
-            else:
-                formula = system.get_chemical_formula()
-                try:
-                    ase.build.molecule(formula)
-                except KeyError:
-                    pass
-                else:
-                    classification = Molecule()
 
         # 1D structures
         elif dimensionality == 1:
-
             classification = Class1D()
-
-            # Find out the dimensions of the system
-            # is_small = True
-            # dimensions = systax.geometry.get_dimensions(system)
-            # for i, has_vacuum in enumerate(vacuum_dir):
-                # if has_vacuum:
-                    # dimension = dimensions[i]
-                    # if dimension > 15:
-                        # is_small = False
-
-            # if is_small:
-                # classification = Material1D(vacuum_dir)
 
         # 2D structures
         elif dimensionality == 2:
@@ -297,46 +276,15 @@ class Classifier():
                 elif isinstance(self.seed_position, (tuple, list, np.ndarray)):
                     seed_indices = self.seed_position
 
-            # Run the detection with multiple position tolerances
-            best_region = None
-            most_atoms = 0
-
-            # seed_indices = [seed_index]
-
-            # Here a cross-validation is performed to choose parameters that
-            # produce best results. The performance of the parameters is
-            # quantified by counting the number of valid atoms in the region.
-            for index in seed_indices:
-                for size in self.max_cell_size:
-                    for tol in self.abs_pos_tol:
-
-                        # Run the region detection on the whole system.
-                        periodicfinder = PeriodicFinder(
-                            angle_tol=self.angle_tol,
-                            pos_tol_scaling=self.pos_tol_scaling,
-                            cell_size_tol=self.cell_size_tol,
-                            max_2d_cell_height=self.max_2d_cell_height,
-                            chem_similarity_threshold=self.chem_similarity_threshold
-                        )
-                        region = periodicfinder.get_region(
-                            system,
-                            index,
-                            size,
-                            tol,
-                            self.abs_delaunay_threshold,
-                            self.bond_threshold,
-                            disp_tensor_pbc,
-                            disp_factors,
-                            disp_tensor,
-                            dist_matrix_radii_pbc,
-                        )
-
-                        if region is not None:
-                            basis_indices = region[1].get_basis_indices()
-                            n_basis = len(basis_indices)
-                            if n_basis > most_atoms:
-                                most_atoms = n_basis
-                                best_region = region[1]
+            # Find the best region by trying out different parameters options
+            best_region = self.cross_validate_region(
+                system,
+                seed_indices,
+                disp_tensor_pbc,
+                disp_factors,
+                disp_tensor,
+                dist_matrix_radii_pbc
+            )
 
             if best_region is not None:
 
@@ -351,14 +299,6 @@ class Classifier():
                         split = False
 
                 if not split:
-                    # If the region covers less than 50% of the whole system,
-                    # categorize as Class2D
-                    # n_region_atoms = len(best_region.get_basis_indices())
-                    # n_atoms = len(system)
-                    # coverage = n_region_atoms/n_atoms
-
-                    # if coverage >= self.coverage_threshold and vacancy_ratio <= self.max_vacancy_ratio:
-                    # if coverage >= self.coverage_threshold:
                     if best_region.is_2d:
                         # The Class2DAnalyzer needs to know which direcion
                         # in the cell is not periodic. Now that the cell
@@ -424,3 +364,69 @@ class Classifier():
                 classification = Crystal(analyzer)
 
         return classification
+
+    def cross_validate_region(
+            self,
+            system,
+            seed_indices,
+            disp_tensor_pbc,
+            disp_factors,
+            disp_tensor,
+            dist_matrix_radii_pbc
+        ):
+        """Given a system tries multiple combinations of different search
+        parameters to find a prototype cell and a corresponding region that
+        best explains the underlying structure.
+
+        Args:
+        Returns:
+        """
+        # Run the detection with multiple position tolerances
+        best_region = None
+        most_atoms = 0
+
+        # Here a cross-validation is performed to choose parameters that
+        # produce best results. The performance of the parameters is
+        # quantified by counting the number of valid atoms in the region.
+        # The search is stopped if a system with zero outliers is found.
+        n_atoms = len(system)
+        for index in seed_indices:
+            for size in self.max_cell_size:
+                for tol in self.abs_pos_tol:
+
+                    # Run the region detection on the whole system.
+                    periodicfinder = PeriodicFinder(
+                        angle_tol=self.angle_tol,
+                        pos_tol_scaling=self.pos_tol_scaling,
+                        cell_size_tol=self.cell_size_tol,
+                        max_2d_cell_height=self.max_2d_cell_height,
+                        chem_similarity_threshold=self.chem_similarity_threshold
+                    )
+                    region = periodicfinder.get_region(
+                        system,
+                        index,
+                        size,
+                        tol,
+                        self.abs_delaunay_threshold,
+                        self.bond_threshold,
+                        disp_tensor_pbc,
+                        disp_factors,
+                        disp_tensor,
+                        dist_matrix_radii_pbc,
+                    )
+
+                    if region is not None:
+                        basis_indices = region.get_basis_indices()
+                        n_basis = len(basis_indices)
+
+                        # There are no outliers with this cell, other
+                        # options do not need to explored.
+                        if n_basis == n_atoms:
+                            return region
+
+                        # Store this region if it is better than the
+                        # previous best
+                        if n_basis > most_atoms:
+                            most_atoms = n_basis
+                            best_region = region
+        return best_region

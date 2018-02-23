@@ -33,11 +33,8 @@ class PeriodicFinder():
         ):
         """
         Args:
-            pos_tol(float): The position tolerance for finding translationally
-                repeated units. The units depend on 'pos_tol_mode'.
             angle_tol(float): The angle below which vectors in the cell basis are
                 considered to be parallel.
-            max_cell_size(float): The maximum size of cell basis vectors.
             pos_tol_factor(float): The factor for multiplying the position
                 tolerance when searching neighbouring cell seed atoms.
             cell_size_tol(float): The tolerance for cell sizes to be considered
@@ -70,15 +67,13 @@ class PeriodicFinder():
                 regions.
             seed_index(int): The index of the atom from which the search is
                 initiated.
+            max_cell_size(float): The maximum size of cell basis vectors.
             pos_tol(float): The tolerance that is allowed in the search. Given
                 as absolute value in angstroms.
 
         Returns:
-            list of tuples: A list of tuples containing the following information:
-                indices: Indices of the atoms belonging to a region
-                linkedunitcollection: A LinkedUnitCollection object
-                    representing the region
-                unit cell: An ASE.Atoms object representing the unit cell of the region.
+            linkedunitcollection or None: A LinkedUnitCollection object representing
+                the region or None if no region could be identified.
         """
         if delaunay_threshold is None:
             delaunay_threshold = constants.DELAUNAY_THRESHOLD
@@ -154,11 +149,9 @@ class PeriodicFinder():
         )
 
         i_indices = unit_collection.get_basis_indices()
-
         if len(i_indices) > 0:
-            region = (i_indices, unit_collection, proto_cell)
-
-        return region
+            region = unit_collection
+            return region
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -503,8 +496,9 @@ class PeriodicFinder():
             if proto_cell is None:
                 return None, None, None
 
-        # Check that the all the atoms in the proto cell are bonded. If not,
-        # the found cell is most probably invalid.
+        # If all the atoms in the cell are not connected (more than one
+        # cluster) or the cell contains one single atom that is not connected
+        # to it's periodic copy, the cell is considered invalid.
         if n_spans == 2:
             unit_pbc = [True, True, False]
         elif n_spans == 3:
@@ -518,6 +512,10 @@ class PeriodicFinder():
             return_factors=False,
             return_distances=True
         )
+
+        min_self_distance = np.linalg.norm(proto_cell.get_cell()[unit_pbc], axis=1).min()
+        np.fill_diagonal(dist_matrix_cell, min_self_distance)
+
         num = proto_cell.get_atomic_numbers()
         radii = covalent_radii[num]
         radii_matrix = radii[:, None] + radii[None, :]
@@ -525,8 +523,9 @@ class PeriodicFinder():
         db = DBSCAN(eps=bond_threshold, min_samples=1, metric='precomputed', n_jobs=1)
         db.fit(dist_matrix_cell)
         clusters = db.labels_
-        n_clusters = len(np.unique(clusters))
-        if n_clusters > 1:
+        unique_labels = np.unique(clusters)
+        n_clusters = len(unique_labels)
+        if n_clusters > 1 or (n_clusters == 1 and unique_labels[0] == -1):
             return None, None, None
 
         return proto_cell, offset, n_spans

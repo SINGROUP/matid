@@ -22,7 +22,7 @@ import json
 
 from systax import Classifier
 from systax import PeriodicFinder
-from systax.classification import \
+from systax.classifications import \
     Class0D, \
     Class1D, \
     Class2D, \
@@ -44,6 +44,42 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+def get_atoms_from_viz(filename):
+    """Used to construct an ase.Atoms from a custom visualization file.
+    """
+    with open(filename, "r") as fin:
+        data = json.load(fin)
+    pos = data["positions"]
+    cell = data["normalizedCell"]
+    num = data["labels"]
+
+    atoms = Atoms(
+        scaled_positions=pos,
+        cell=1e10*np.array(cell),
+        symbols=num,
+        pbc=True
+    )
+
+    return atoms
+
+
+def get_atoms_from_arch(filename):
+    """Used to construct an ase.Atoms from a NOMAD Archive file.
+    """
+    with open(filename, "r") as fin:
+        data = json.load(fin)
+    section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
+
+    atoms = Atoms(
+        positions=1e10*np.array(section_system["atom_positions"]),
+        cell=1e10*np.array(section_system["simulation_cell"]),
+        symbols=section_system["atom_labels"],
+        pbc=True,
+    )
+
+    return atoms
 
 
 class ExceptionTests(unittest.TestCase):
@@ -288,7 +324,7 @@ class DimensionalityTests(unittest.TestCase):
     def test_non_orthogonal_crystal(self):
         """Test a system that has a non-orthogonal cell.
         """
-        with open("./PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
+        with open("./structures/PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
             data = json.load(fin)
 
         section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
@@ -473,7 +509,7 @@ class PeriodicFinderTests(unittest.TestCase):
         cell_width = np.linalg.norm(system.get_cell()[0, :])
         for atom in system:
             pos = atom.position
-            distortion_z = 0.5*np.cos(pos[0]/cell_width*2.0*np.pi)
+            distortion_z = 0.7*np.cos(pos[0]/cell_width*2.0*np.pi)
             pos += np.array((0, 0, distortion_z))
         # view(system)
 
@@ -497,7 +533,7 @@ class PeriodicFinderTests(unittest.TestCase):
         # view(proto_cell)
         relative_pos = proto_cell.get_scaled_positions()
         assumed_pos = np.array([
-            [0.5, 0.0, 0.5],
+            [0.0, 0.5, 0.5],
             [0, 0, 0],
         ])
         self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
@@ -575,15 +611,12 @@ class PeriodicFinderTests(unittest.TestCase):
 
         # Find the region with periodicity
         finder = PeriodicFinder()
-        indices, region, unit_cell = finder.get_region(
+        region = finder.get_region(
             system,
             seed_index,
             pos_tol=0.01,
             max_cell_size=4,
         )
-
-        # rec = region.recreate_valid()
-        # view(rec)
 
         # No defects or unknown atoms
         adsorbates = region.get_adsorbates()
@@ -598,7 +631,7 @@ class PeriodicFinderTests(unittest.TestCase):
     # def test_optimized_nanocluster(self):
         # """Test the periodicity finder on a DFT-optimized nanocluster.
         # """
-        # system = ase.io.read("cu55.xyz")
+        # system = ase.io.read("./structures/cu55.xyz")
         # system.set_cell([20, 20, 20])
         # system.set_pbc(True)
         # system.center()
@@ -610,15 +643,13 @@ class PeriodicFinderTests(unittest.TestCase):
         # view(system)
 
         # # Find the region with periodicity
-        # finder = PeriodicFinder(max_cell_size=3)
-        # indices, region, unit_cell = finder.get_region(
-            # system,
-            # seed_index,
-            # pos_tol=0.9
-        # )
+        # finder = PeriodicFinder()
+        # region = finder.get_region(system, seed_index, 4, 2.75)
+        # # print(region)
 
         # rec = region.recreate_valid()
         # view(rec)
+        # # view(rec.unit_cell)
 
         # # No defects or unknown atoms
         # adsorbates = region.get_adsorbates()
@@ -722,14 +753,14 @@ class AtomTests(unittest.TestCase):
         self.assertIsInstance(clas, Atom)
 
 
-class MoleculeTests(unittest.TestCase):
-    """Tests for detecting a molecule.
+class Class0DTests(unittest.TestCase):
+    """Tests for detecting zero-dimensional systems.
     """
     def test_h2o_no_pbc(self):
         h2o = molecule("H2O")
         classifier = Classifier()
         clas = classifier.classify(h2o)
-        self.assertIsInstance(clas, Molecule)
+        self.assertIsInstance(clas, Class0D)
 
     def test_h2o_pbc(self):
         h2o = molecule("CH4")
@@ -739,7 +770,7 @@ class MoleculeTests(unittest.TestCase):
         h2o.center()
         classifier = Classifier()
         clas = classifier.classify(h2o)
-        self.assertIsInstance(clas, Molecule)
+        self.assertIsInstance(clas, Class0D)
 
     def test_unknown_molecule(self):
         """An unknown molecule should be classified as Class0D
@@ -758,8 +789,8 @@ class MoleculeTests(unittest.TestCase):
         self.assertIsInstance(clas, Class0D)
 
 
-class Material1DTests(unittest.TestCase):
-    """Tests detection of bulk 3D materials.
+class Class1DTests(unittest.TestCase):
+    """Tests detection of one-dimensional structures.
     """
     def test_nanotube_full_pbc(self):
         tube = nanotube(6, 0, length=1)
@@ -876,7 +907,7 @@ class Material2DTests(unittest.TestCase):
         might not be found. This tests that the code forces the seed atom to be
         found correctly.
         """
-        with open("./PKPif9Fqbl30oVX-710UwCHGMd83y.json", "r") as fin:
+        with open("./structures/PKPif9Fqbl30oVX-710UwCHGMd83y.json", "r") as fin:
             data = json.load(fin)
 
         section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
@@ -897,7 +928,7 @@ class Material2DTests(unittest.TestCase):
         """A stacked two-dimensional material. One of the materials should be
         recognized and the other recognized as adsorbate.
         """
-        with open("./mat2d_4.json", "r") as fin:
+        with open("./structures/mat2d_4.json", "r") as fin:
             data = json.load(fin)
         system = Atoms(
             scaled_positions=data["positions"],
@@ -1162,7 +1193,7 @@ class Material2DTests(unittest.TestCase):
         adsorbate and the surface to distinguish between them even if they
         share the same elements.
         """
-        with open("./mat2d_adsorbate_unknown.json", "r") as fin:
+        with open("./structures/mat2d_adsorbate_unknown.json", "r") as fin:
             data = json.load(fin)
         system = Atoms(
             scaled_positions=data["positions"],
@@ -1604,82 +1635,6 @@ class Material3DTests(unittest.TestCase):
         clas = classifier.classify(sys)
         self.assertIsInstance(clas, Unknown)
 
-    # def test_point_defect(self):
-        # """Test a crystal that has a point defect.
-        # """
-        # si = ase.lattice.cubic.Diamond(
-            # size=(3, 3, 3),
-            # symbol='Si',
-            # pbc=(1, 1, 1),
-            # latticeconstant=5.430710)
-        # del si[106]
-        # # view(si)
-
-        # classifier = Classifier()
-        # classification = classifier.classify(si)
-        # self.assertIsInstance(classification, Crystal)
-
-        # # One point defect
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 1)
-
-    # def test_adatom(self):
-        # """Test a crystal that has an adatom. If the adatom is chosen as a seed
-        # atom, the whole search can go wrong. Same happens if a defect is chosen
-        # as seed.
-        # """
-        # si = ase.lattice.cubic.Diamond(
-            # size=(3, 3, 3),
-            # symbol='Si',
-            # pbc=(1, 1, 1),
-            # latticeconstant=5.430710)
-        # si += ase.Atom(symbol="Si", position=(4, 4, 4))
-        # # view(si)
-
-        # classifier = Classifier()
-        # classification = classifier.classify(si)
-        # self.assertIsInstance(classification, Crystal)
-
-        # # One interstitial
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 1)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-
-    # def test_substitution(self):
-        # """Test a crystal where an impurity is introduced.
-        # """
-        # si = ase.lattice.cubic.Diamond(
-            # size=(3, 3, 3),
-            # symbol='Si',
-            # pbc=(1, 1, 1),
-            # latticeconstant=5.430710)
-        # si[106].symbol = "Ge"
-        # # view(si)
-        # classifier = Classifier()
-        # classification = classifier.classify(si)
-        # self.assertIsInstance(classification, Crystal)
-
-        # # One substitution
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 1)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(vacancies), 0)
-
 
 class Material3DAnalyserTests(unittest.TestCase):
     """Tests the analysis of bulk 3D materials.
@@ -1900,21 +1855,58 @@ class Material3DAnalyserTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+    def test_surface_difficult_basis_atoms(self):
+        """This is a surface where the atoms on top of the surface will get
+        easily classified as adsorbates if the chemical environment detection
+        is not tuned correctly.
+        """
+        system = get_atoms_from_viz("./structures/O24Sr8Ti12.json")
+        # view(system)
+
+        # With a little higher chemical similarity threshold the whole surface
+        # is not detected
+        classifier = Classifier(chem_similarity_threshold=0.45)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Has outliers with these settings
+        outliers = classification.outliers
+        self.assertTrue(len(outliers) != 0)
+
+        # With a little lower chemical similarity threshold the whole surface
+        # is again detected
+        classifier = Classifier(chem_similarity_threshold=0.40)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Has outliers with these settings
+        outliers = classification.outliers
+        self.assertTrue(len(outliers) == 0)
+
+    # def test_surface_with_one_cell_but_periodic_backbone(self):
+        # """This is a surface that ultimately has only one repetition of the
+        # underlying unit cell in the simulation cell. Normally it would not get
+        # classified, but because it has a periodic backbone of Barium atoms,
+        # they are identified as the unit cell and everything inside is
+        # identified as outliers. Such systems still pose a challenge to the
+        # algorithm.
+        # """
+        # system = get_atoms_from_viz("./structures/Ba16+O40Si12.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # No outliers
+        # outliers = classification.outliers
+        # self.assertEqual(len(outliers), 0)
+
     def test_adsorbate_detection_via_neighbourhood(self):
-        """Test that adsorbates that are in a basis atom position, but no not
+        """Test that adsorbates that are in a basis atom position, but do not
         exhibit the correct chemical neighbourhood are identified.
         """
-        with open("./Pbsl6Hlb_C1aXadFiJ58UCUek5a8x.json", "r") as fin:
-            data = json.load(fin)
-
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
-
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
+        system = get_atoms_from_arch("./structures/Pbsl6Hlb_C1aXadFiJ58UCUek5a8x.json")
         # view(system)
 
         classifier = Classifier()
@@ -1968,17 +1960,7 @@ class SurfaceTests(unittest.TestCase):
         surface unless seed atoms for unit cells beyond the original simulation
         cell boundaries are not allowed.
         """
-        with open("./PEzXqLISX8Pam-HlJMxeLc86lcKgf.json", "r") as fin:
-            data = json.load(fin)
-
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
-
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
+        system = get_atoms_from_arch("./structures/PEzXqLISX8Pam-HlJMxeLc86lcKgf.json")
         # view(system)
 
         classifier = Classifier()
@@ -1999,19 +1981,10 @@ class SurfaceTests(unittest.TestCase):
 
     def test_ordered_adsorbates(self):
         """Test surface where on top there are adsorbates with high
-        connectivity in two directions.
+        connectivity in two directions. These kind of adsorbates could not be
+        detected if the size of the connected components would not be checked.
         """
-        with open("./P8Wnwz4dfyea6UAD0WEBadXv83wyf.json", "r") as fin:
-            data = json.load(fin)
-
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
-
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
+        system = get_atoms_from_arch("./structures/P8Wnwz4dfyea6UAD0WEBadXv83wyf.json")
         # view(system)
 
         classifier = Classifier()
@@ -2033,14 +2006,7 @@ class SurfaceTests(unittest.TestCase):
         self.assertTrue(np.array_equal(adsorbates, np.arange(0, 13)))
 
     def test_surface_with_one_basis_vector_as_span(self):
-        with open("./C2H4Ru36.json", "r") as fin:
-            data = json.load(fin)
-        system = Atoms(
-            scaled_positions=data["positions"],
-            cell=1e10*np.array(data["normalizedCell"]),
-            symbols=data["labels"],
-            pbc=True,
-        )
+        system = get_atoms_from_viz("./structures/C2H4Ru36.json")
         # view(system)
 
         classifier = Classifier()
@@ -2066,14 +2032,8 @@ class SurfaceTests(unittest.TestCase):
         """Test a surface that has been cut by the cell boundary. Should still
         be detected as single surface.
         """
-        with open("./Ba20O52Ti20.json", "r") as fin:
-            data = json.load(fin)
-        system = Atoms(
-            scaled_positions=data["positions"],
-            cell=1e10*np.array(data["normalizedCell"]),
-            symbols=data["labels"],
-            pbc=True,
-        )
+        system = get_atoms_from_viz("./structures/Ba20O52Ti20.json")
+        # view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -2451,18 +2411,18 @@ class SurfaceTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoleculeTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
