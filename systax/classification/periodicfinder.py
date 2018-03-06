@@ -556,16 +556,14 @@ class PeriodicFinder():
                         cluster_indices.append(i_index)
 
                 proto_cell = proto_cell[cluster_indices]
-                proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
-                offset = proto_cell.get_positions()[seed_atom_index]
-                thickness = systax.geometry.get_thickness(proto_cell, 2)
-                if thickness > self.max_2d_cell_height:
-                    return None, None, None
+                seed_group_index = seed_atom_index
             else:
                 if dimensionality != 2:
                     return None, None, None
 
             # Check the cell thickness
+            proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
+            offset = proto_cell.get_positions()[seed_group_index]
             thickness = systax.geometry.get_thickness(proto_cell, 2)
             if thickness > self.max_2d_cell_height:
                 return None, None, None
