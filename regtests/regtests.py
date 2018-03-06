@@ -149,221 +149,221 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(expected_cell, cell, atol=0.001, rtol=0))
         self.assertTrue(np.allclose(expected_pos, pos, atol=0.001, rtol=0))
 
-    # def test_center_of_mass(self):
-        # """Tests that the center of mass correctly takes periodicity into
-        # account.
-        # """
-        # system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
-        # adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
-        # system += adsorbate
-        # system.set_pbc([True, True, True])
-        # system.translate([0, 0, 10])
-        # system.wrap()
-        # # view(system)
+    def test_center_of_mass(self):
+        """Tests that the center of mass correctly takes periodicity into
+        account.
+        """
+        system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
+        adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
+        system += adsorbate
+        system.set_pbc([True, True, True])
+        system.translate([0, 0, 10])
+        system.wrap()
+        # view(system)
 
-        # # Test periodic COM
-        # cm = systax.geometry.get_center_of_mass(system)
-        # self.assertTrue(np.allclose(cm, [4., 4., 20.15], atol=0.1))
+        # Test periodic COM
+        cm = systax.geometry.get_center_of_mass(system)
+        self.assertTrue(np.allclose(cm, [4., 4., 20.15], atol=0.1))
 
-        # # Test finite COM
-        # system.set_pbc(False)
-        # cm = systax.geometry.get_center_of_mass(system)
-        # self.assertTrue(np.allclose(cm, [3.58770672, 3.58770672, 10.00200455], atol=0.1))
+        # Test finite COM
+        system.set_pbc(False)
+        cm = systax.geometry.get_center_of_mass(system)
+        self.assertTrue(np.allclose(cm, [3.58770672, 3.58770672, 10.00200455], atol=0.1))
 
-    # def test_matches_non_orthogonal(self):
-        # """Test that the correct factor is returned when finding matches that
-        # are in the neighbouring cells.
-        # """
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
-        # system = system[[0, 12]]
-        # # view(system)
+    def test_matches_non_orthogonal(self):
+        """Test that the correct factor is returned when finding matches that
+        are in the neighbouring cells.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
+        system = system[[0, 12]]
+        # view(system)
 
-        # searched_pos = system.get_positions()[0][None, :]
-        # basis = np.array([[1.59, -2.75396078, 0]])
-        # searched_pos += basis
+        searched_pos = system.get_positions()[0][None, :]
+        basis = np.array([[1.59, -2.75396078, 0]])
+        searched_pos += basis
 
-        # matches, subst, vac, factors = systax.geometry.get_matches(
-            # system,
-            # searched_pos,
-            # numbers=[system.get_atomic_numbers()[0]],
-            # tolerances=np.array([0.2])
-        # )
+        matches, subst, vac, factors = systax.geometry.get_matches(
+            system,
+            searched_pos,
+            numbers=[system.get_atomic_numbers()[0]],
+            tolerances=np.array([0.2])
+        )
 
-        # # Make sure that the atom is found in the correct copy
-        # self.assertEqual(tuple(factors[0]), (0, -1, 0))
+        # Make sure that the atom is found in the correct copy
+        self.assertEqual(tuple(factors[0]), (0, -1, 0))
 
-        # # Make sure that the correct atom is found
-        # self.assertTrue(np.array_equal(matches, [1]))
+        # Make sure that the correct atom is found
+        self.assertTrue(np.array_equal(matches, [1]))
 
-    # def test_displacement_non_orthogonal(self):
-        # """Test that the correct displacement is returned when the cell in
-        # non-orthorhombic.
-        # """
-        # positions = np.array([
-            # [1.56909, 2.71871, 6.45326],
-            # [3.9248, 4.07536, 6.45326]
-        # ])
-        # cell = np.array([
-            # [4.7077, -2.718, 0.],
-            # [0., 8.15225, 0.],
-            # [0., 0., 50.]
-        # ])
+    def test_displacement_non_orthogonal(self):
+        """Test that the correct displacement is returned when the cell in
+        non-orthorhombic.
+        """
+        positions = np.array([
+            [1.56909, 2.71871, 6.45326],
+            [3.9248, 4.07536, 6.45326]
+        ])
+        cell = np.array([
+            [4.7077, -2.718, 0.],
+            [0., 8.15225, 0.],
+            [0., 0., 50.]
+        ])
 
-        # # Fully periodic with minimum image convention
-        # dist_mat = systax.geometry.get_distance_matrix(
-            # positions[0, :],
-            # positions[1, :],
-            # cell,
-            # pbc=True,
-            # mic=True)
+        # Fully periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(
+            positions[0, :],
+            positions[1, :],
+            cell,
+            pbc=True,
+            mic=True)
 
-        # # The minimum image should be within the same cell
-        # expected = np.linalg.norm(positions[0, :] - positions[1, :])
-        # self.assertTrue(np.allclose(dist_mat[0], expected))
+        # The minimum image should be within the same cell
+        expected = np.linalg.norm(positions[0, :] - positions[1, :])
+        self.assertTrue(np.allclose(dist_mat[0], expected))
 
-    # def test_distance_matrix(self):
-        # pos1 = np.array([
-            # [0, 0, 0],
-        # ])
-        # pos2 = np.array([
-            # [0, 0, 7],
-            # [6, 0, 0],
-        # ])
-        # cell = np.array([
-            # [7, 0, 0],
-            # [0, 7, 0],
-            # [0, 0, 7]
-        # ])
+    def test_distance_matrix(self):
+        pos1 = np.array([
+            [0, 0, 0],
+        ])
+        pos2 = np.array([
+            [0, 0, 7],
+            [6, 0, 0],
+        ])
+        cell = np.array([
+            [7, 0, 0],
+            [0, 7, 0],
+            [0, 0, 7]
+        ])
 
-        # # Non-periodic
-        # dist_mat = systax.geometry.get_distance_matrix(pos1, pos2)
-        # expected = np.array(
-            # [[7, 6]]
-        # )
-        # self.assertTrue(np.allclose(dist_mat, expected))
+        # Non-periodic
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2)
+        expected = np.array(
+            [[7, 6]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
 
-        # # Fully periodic with minimum image convention
-        # dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=True, mic=True)
-        # expected = np.array(
-            # [[0, 1]]
-        # )
-        # self.assertTrue(np.allclose(dist_mat, expected))
+        # Fully periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=True, mic=True)
+        expected = np.array(
+            [[0, 1]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
 
-        # # Partly periodic with minimum image convention
-        # dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=[False, True, True], mic=True)
-        # expected = np.array(
-            # [[0, 6]]
-        # )
-        # self.assertTrue(np.allclose(dist_mat, expected))
+        # Partly periodic with minimum image convention
+        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=[False, True, True], mic=True)
+        expected = np.array(
+            [[0, 6]]
+        )
+        self.assertTrue(np.allclose(dist_mat, expected))
 
-    # def test_displacement_tensor(self):
-        # # Non-periodic
-        # cell = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0, 1]
-        # ])
-        # pos1 = np.array([
-            # [0, 0, 0],
-        # ])
-        # pos2 = np.array([
-            # [1, 1, 1],
-            # [0.9, 0, 0],
-        # ])
+    def test_displacement_tensor(self):
+        # Non-periodic
+        cell = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ])
+        pos1 = np.array([
+            [0, 0, 0],
+        ])
+        pos2 = np.array([
+            [1, 1, 1],
+            [0.9, 0, 0],
+        ])
 
-        # disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2)
-        # expected = np.array(-pos2)
-        # self.assertTrue(np.allclose(disp_tensor, expected))
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2)
+        expected = np.array(-pos2)
+        self.assertTrue(np.allclose(disp_tensor, expected))
 
-        # # Fully periodic
-        # disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell, mic=True)
-        # expected = np.array([[
-            # [0, 0, 0],
-            # [0.1, 0, 0],
-        # ]])
-        # self.assertTrue(np.allclose(disp_tensor, expected))
+        # Fully periodic
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell, mic=True)
+        expected = np.array([[
+            [0, 0, 0],
+            [0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
 
-        # # Fully periodic, reversed direction
-        # disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell, mic=True)
-        # expected = np.array([[
-            # [0, 0, 0],
-        # ], [
-            # [-0.1, 0, 0],
-        # ]])
-        # self.assertTrue(np.allclose(disp_tensor, expected))
+        # Fully periodic, reversed direction
+        disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell, mic=True)
+        expected = np.array([[
+            [0, 0, 0],
+        ], [
+            [-0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
 
-        # # Periodic in one direction
-        # disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell, mic=True)
-        # expected = np.array([[
-            # [0, -1, -1],
-            # [0.1, 0, 0],
-        # ]])
-        # self.assertTrue(np.allclose(disp_tensor, expected))
+        # Periodic in one direction
+        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell, mic=True)
+        expected = np.array([[
+            [0, -1, -1],
+            [0.1, 0, 0],
+        ]])
+        self.assertTrue(np.allclose(disp_tensor, expected))
 
-    # def test_to_cartesian(self):
-        # # Inside, unwrapped
-        # cell = np.array([
-            # [1, 1, 0],
-            # [0, 2, 0],
-            # [1, 0, 1]
-        # ])
-        # rel_pos = np.array([
-            # [0, 0, 0],
-            # [1, 1, 1],
-            # [0.5, 0.5, 0.5],
-        # ])
-        # expected_pos = np.array([
-            # [0, 0, 0],
-            # [2, 3, 1],
-            # [1, 1.5, 0.5],
-        # ])
-        # cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
-        # self.assertTrue(np.allclose(cart_pos, expected_pos))
+    def test_to_cartesian(self):
+        # Inside, unwrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [1, 1, 1],
+            [0.5, 0.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [2, 3, 1],
+            [1, 1.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
 
-        # # Outside, unwrapped
-        # cell = np.array([
-            # [1, 1, 0],
-            # [0, 2, 0],
-            # [1, 0, 1]
-        # ])
-        # rel_pos = np.array([
-            # [0, 0, 0],
-            # [2, 2, 2],
-            # [0.5, 1.5, 0.5],
-        # ])
-        # expected_pos = np.array([
-            # [0, 0, 0],
-            # [4, 6, 2],
-            # [1, 3.5, 0.5],
-        # ])
-        # cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
-        # self.assertTrue(np.allclose(cart_pos, expected_pos))
+        # Outside, unwrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [2, 2, 2],
+            [0.5, 1.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [4, 6, 2],
+            [1, 3.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
 
-        # # Outside, wrapped
-        # cell = np.array([
-            # [1, 1, 0],
-            # [0, 2, 0],
-            # [1, 0, 1]
-        # ])
-        # rel_pos = np.array([
-            # [0, 0, 0],
-            # [2, 2, 2],
-            # [0.5, 1.5, 0.5],
-        # ])
-        # expected_pos = np.array([
-            # [0, 0, 0],
-            # [0, 0, 0],
-            # [1, 1.5, 0.5],
-        # ])
-        # cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
-        # self.assertTrue(np.allclose(cart_pos, expected_pos))
+        # Outside, wrapped
+        cell = np.array([
+            [1, 1, 0],
+            [0, 2, 0],
+            [1, 0, 1]
+        ])
+        rel_pos = np.array([
+            [0, 0, 0],
+            [2, 2, 2],
+            [0.5, 1.5, 0.5],
+        ])
+        expected_pos = np.array([
+            [0, 0, 0],
+            [0, 0, 0],
+            [1, 1.5, 0.5],
+        ])
+        cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
+        self.assertTrue(np.allclose(cart_pos, expected_pos))
 
 
 class DimensionalityTests(unittest.TestCase):
@@ -577,114 +577,110 @@ class PeriodicFinderTests(unittest.TestCase):
         interstitials = classification.interstitials
         substitutions = classification.substitutions
         vacancies = classification.vacancies
-        print(vacancies)
-        # print(substitutions)
-        # print(substitutions[0].index)
-        # print(interstitials)
         self.assertEqual(len(interstitials), 0)
         self.assertEqual(len(substitutions), 0)
         self.assertEqual(len(vacancies), 0)
         self.assertEqual(len(adsorbates), 0)
 
         # Test that the relative positions are robust in the prototype cell
-        # proto_cell = classification.region.cell
-        # view(proto_cell)
-        # relative_pos = proto_cell.get_scaled_positions()
-        # assumed_pos = np.array([
-            # [0.0, 0.5, 0.5],
-            # [0, 0, 0],
-        # ])
-        # self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
+        proto_cell = classification.region.cell
+        view(proto_cell)
+        relative_pos = proto_cell.get_scaled_positions()
+        assumed_pos = np.array([
+            [0.0, 0.5, 0.5],
+            [0, 0, 0],
+        ])
+        self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
 
-    # def test_cell_2d_adsorbate(self):
-        # """Test that the cell is correctly identified even if adsorbates are
-        # near.
-        # """
-        # system = ase.build.mx2(
-            # formula="MoS2",
-            # kind="2H",
-            # a=3.18,
-            # thickness=3.19,
-            # size=(5, 5, 1),
-            # vacuum=8)
-        # system.set_pbc(True)
+    def test_cell_2d_adsorbate(self):
+        """Test that the cell is correctly identified even if adsorbates are
+        near.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8)
+        system.set_pbc(True)
 
-        # ads = molecule("C6H6")
-        # ads.translate([4.9, 5.5, 13])
-        # system += ads
-        # # view(system)
+        ads = molecule("C6H6")
+        ads.translate([4.9, 5.5, 13])
+        system += ads
+        # view(system)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
 
-        # # One adsorbate
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 12)
-        # self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
+        # One adsorbate
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 12)
+        self.assertTrue(np.array_equal(adsorbates, range(75, 87)))
 
-    # def test_random(self):
-        # """Test a structure with random atom positions.
-        # """
-        # n_atoms = 50
-        # rng = RandomState(8)
-        # for i in range(10):
-            # rand_pos = rng.rand(n_atoms, 3)
+    def test_random(self):
+        """Test a structure with random atom positions.
+        """
+        n_atoms = 50
+        rng = RandomState(8)
+        for i in range(10):
+            rand_pos = rng.rand(n_atoms, 3)
 
-            # system = Atoms(
-                # scaled_positions=rand_pos,
-                # cell=(10, 10, 10),
-                # symbols=n_atoms*['C'],
-                # pbc=(1, 1, 1))
+            system = Atoms(
+                scaled_positions=rand_pos,
+                cell=(10, 10, 10),
+                symbols=n_atoms*['C'],
+                pbc=(1, 1, 1))
 
-            # classifier = Classifier()
-            # classification = classifier.classify(system)
-            # self.assertIsInstance(classification, Class3D)
+            classifier = Classifier()
+            classification = classifier.classify(system)
+            self.assertIsInstance(classification, Class3D)
 
-    # def test_nanocluster(self):
-        # """Test the periodicity finder on an artificial perfect nanocluster.
-        # """
-        # system = bcc100('Fe', size=(7, 7, 12), vacuum=0)
-        # system.set_cell([30, 30, 30])
-        # system.set_pbc(True)
-        # system.center()
+    def test_nanocluster(self):
+        """Test the periodicity finder on an artificial perfect nanocluster.
+        """
+        system = bcc100('Fe', size=(7, 7, 12), vacuum=0)
+        system.set_cell([30, 30, 30])
+        system.set_pbc(True)
+        system.center()
 
-        # # Make the thing spherical
-        # center = np.array([15, 15, 15])
-        # pos = system.get_positions()
-        # dist = np.linalg.norm(pos - center, axis=1)
-        # valid_ind = dist < 10
-        # system = system[valid_ind]
+        # Make the thing spherical
+        center = np.array([15, 15, 15])
+        pos = system.get_positions()
+        dist = np.linalg.norm(pos - center, axis=1)
+        valid_ind = dist < 10
+        system = system[valid_ind]
 
-        # # Get the index of the atom that is closest to center of mass
-        # cm = system.get_center_of_mass()
-        # seed_index = np.argmin(np.linalg.norm(pos-cm, axis=1))
-        # # view(system)
+        # Get the index of the atom that is closest to center of mass
+        cm = system.get_center_of_mass()
+        seed_index = np.argmin(np.linalg.norm(pos-cm, axis=1))
+        # view(system)
 
-        # # Find the region with periodicity
-        # finder = PeriodicFinder()
-        # region = finder.get_region(
-            # system,
-            # seed_index,
-            # pos_tol=0.01,
-            # max_cell_size=4,
-        # )
+        # Find the region with periodicity
+        finder = PeriodicFinder()
+        region = finder.get_region(
+            system,
+            seed_index,
+            pos_tol=0.01,
+            max_cell_size=4,
+        )
 
-        # # No defects or unknown atoms
-        # adsorbates = region.get_adsorbates()
-        # interstitials = region.get_interstitials()
-        # substitutions = region.get_substitutions()
-        # vacancies = region.get_vacancies()
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
+        # No defects or unknown atoms
+        adsorbates = region.get_adsorbates()
+        interstitials = region.get_interstitials()
+        substitutions = region.get_substitutions()
+        vacancies = region.get_vacancies()
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
 
     # def test_optimized_nanocluster(self):
         # """Test the periodicity finder on a DFT-optimized nanocluster.
@@ -2476,8 +2472,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 
