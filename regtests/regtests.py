@@ -938,6 +938,46 @@ class Material2DTests(unittest.TestCase):
         # self.assertEqual(tuple(outliers), tuple([8]))
         # self.assertEqual(len(unit_cell), 2)
 
+    def test_vacuum_in_2d_unit_cell(self):
+        """Structure where a 2D unit cell is found, but it has a vacuum gap.
+        Should be detected by using TSA on the cell.
+        """
+        system = get_atoms_from_viz("./structures/C12H8+H2N2.json")
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertEqual(type(classification), Class2D)
+
+    def test_graphene_sheets_close(self):
+        """2D materials with a relatively small vacuum gap should be correctly
+        identified. If a proper check is not done on the connectivity of the
+        unit cell, these kind of structures may get classified as surfaces if
+        the maximum cell size is bigger than the vacuum gap.
+        """
+        system = Material2DTests.graphene.repeat([3, 3, 1])
+        old_cell = system.get_cell()
+        old_cell[2, 2] = 10
+        system.set_cell(old_cell)
+        system.center()
+        system.set_pbc([True, True, True])
+        # view(system)
+
+        classifier = Classifier(max_cell_size=12)
+        classification = classifier.classify(system)
+        self.assertEqual(type(classification), Material2D)
+
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
     def test_too_big_single_cell(self):
         """Test that with when only the simulation cell itself is the found
         unit cell, but the cell size is above a threshold value, the system
@@ -2462,6 +2502,40 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(interstitials), 0)
 
 
+# class NomadTests(unittest.TestCase):
+    # """
+    # """
+    # def test_fail_1(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/B2N2.json")
+        # # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
+    # def test_fail_2(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/C50+C12H10N2.json")
+        # # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
+    # def test_fail_3(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/C12H8+H2N2.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Class2D)
+
+
 if __name__ == '__main__':
     suites = []
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
@@ -2472,10 +2546,11 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

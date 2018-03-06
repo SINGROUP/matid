@@ -2,7 +2,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 class SystaxError(Exception):
-    pass
+    def __init__(self, message, value=None):
+        self.value = value
+        Exception.__init__(self, message)
 
 
 class ClassificationError(SystaxError):

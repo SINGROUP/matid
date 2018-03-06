@@ -130,7 +130,7 @@ def get_dimensionality(
     if n_clusters_1x > 1:
         raise SystaxError(
             "Could not determine the dimensionality because there are more than"
-            " one energetically isolated components in the unit cell"
+            " one energetically isolated components in the unit cell", clusters_1x
         )
 
     # 2x2x2 system
@@ -1455,6 +1455,7 @@ def get_minimized_cell(system, axis, min_size):
     # Grow the cell to fit all atoms
     rel_pos = system.get_scaled_positions()
     num = system.get_atomic_numbers()
+    pbc = system.get_pbc()
     basis = system.get_cell()
     c = basis[axis, :]
     c_length = np.linalg.norm(c)
@@ -1494,6 +1495,7 @@ def get_minimized_cell(system, axis, min_size):
         cell=new_basis,
         scaled_positions=new_scaled_pos,
         symbols=num,
+        pbc=pbc
     )
 
     return minimized_system

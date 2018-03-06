@@ -20,6 +20,7 @@ from ase.data import covalent_radii
 import systax.geometry
 from systax.data import constants
 from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
+from systax.exceptions import SystaxError
 
 
 class PeriodicFinder():
@@ -501,65 +502,72 @@ class PeriodicFinder():
             if proto_cell is None:
                 return None, None, None
 
-        # If all the atoms in the cell are not connected (more than one
-        # cluster) or the cell contains one single atom that is not connected
-        # to it's periodic copy, the cell is considered invalid. For stacked 2D
-        # materials we allow multiple clusters if their separation is above the
-        # covalent threshold and the thickness of the cluster where the seed
-        # atom is is below the maximum 2D thickness.
-        if n_spans == 2:
-            unit_pbc = [True, True, False]
-        elif n_spans == 3:
-            unit_pbc = [True, True, True]
-
-        # Calculate the distance matrix that takes into account the cell
-        # periodicity, atomic radii and fills the diagonal with minimum
-        # distance to periodic copies.
-        _, dist_matrix_cell = systax.geometry.get_displacement_tensor(
-            proto_cell.get_positions(),
-            proto_cell.get_positions(),
-            proto_cell.get_cell(),
-            unit_pbc,
-            mic=True,
-            return_factors=False,
-            return_distances=True
-        )
-
-        min_self_distance = np.linalg.norm(proto_cell.get_cell()[unit_pbc], axis=1).min()
-        np.fill_diagonal(dist_matrix_cell, min_self_distance)
-
-        num = proto_cell.get_atomic_numbers()
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-        dist_matrix_cell -= radii_matrix
-
-        # Calculate the clusters
-        clusters = systax.geometry.get_clusters(dist_matrix_cell, bond_threshold)
-        n_clusters = len(clusters)
-
-        if n_clusters > 1 or (n_clusters == 1 and clusters[0][0] == -1):
-            if n_spans == 3:
+        two_valid_spans = n_spans == 2
+        if n_spans == 3:
+            try:
+                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+            except SystaxError:
                 return None, None, None
-            # In 2D systems the cell might contain atoms from two stacked 2D
-            # sheets. Here we check if the cell can be separated into different
-            # sheets and check the thickness of the sheet where the seed atom
-            # is.
-            elif n_spans == 2:
+            if dimensionality != 3:
+                # If the cell has three unit vectors, but does not exhibit the
+                # correct dimensionality, try if two of the cell vectors are
+                # still OK.
+                if dimensionality == 2:
+                    a_thickness = systax.geometry.get_thickness(proto_cell, 0)
+                    b_thickness = systax.geometry.get_thickness(proto_cell, 1)
+                    c_thickness = systax.geometry.get_thickness(proto_cell, 2)
+                    reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
+                    proto_cell = systax.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
+                    i_pbc = [True, True, True]
+                    i_pbc[reduced_dimension] = False
+                    proto_cell.set_pbc(i_pbc)
+                    two_valid_spans = True
+                    n_spans = 2
+                else:
+                    return None, None, None
 
-                # Get the cluster where the seed atom is
-                seed_cluster = None
+        if two_valid_spans:
+            # Check the dimensionality
+            try:
+                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+            except SystaxError as e:
+
+                # If the original system has more than one cluster, the system
+                # has multiple stacked 2D sheets with identical periodicity. In
+                # this case the unit cell should only comprise of atoms in the
+                # cluster where the seed atom is in.
+
+                # The cluster labels for the original system are carried over
+                # as an exception attribute
+                cluster_labels = e.value
+
+                seed_cluster = cluster_labels[seed_group_index]
+                cluster_indices = []
                 seed_atom_index = None
-                for cluster in clusters:
-                    if seed_group_index in cluster:
-                        seed_atom_index = np.where(np.array(cluster) == seed_group_index)
-                        seed_cluster = cluster
-                        break
-                proto_cell = proto_cell[seed_cluster]
+                for i_index, i_cluster in enumerate(cluster_labels):
+                    if i_index == seed_group_index:
+                        seed_atom_index = len(cluster_indices)
+                    if i_cluster == seed_cluster:
+                        cluster_indices.append(i_index)
+
+                proto_cell = proto_cell[cluster_indices]
                 proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
                 offset = proto_cell.get_positions()[seed_atom_index]
                 thickness = systax.geometry.get_thickness(proto_cell, 2)
                 if thickness > self.max_2d_cell_height:
                     return None, None, None
+            else:
+                if dimensionality != 2:
+                    return None, None, None
+
+            # Check the cell thickness
+            thickness = systax.geometry.get_thickness(proto_cell, 2)
+            if thickness > self.max_2d_cell_height:
+                return None, None, None
+
+        # The cell pbc has to be set to False after the analysis. Maybe there
+        # is a way to avoid doing this.
+        proto_cell.set_pbc(False)
 
         return proto_cell, offset, n_spans
 
@@ -708,7 +716,7 @@ class PeriodicFinder():
             scaled_positions=averaged_rel_pos,
             symbols=averaged_rel_num,
             cell=best_spans,
-            # pbc=[True, True, True]
+            pbc=[True, True, True]
         )
 
         return proto_cell, offset
@@ -725,7 +733,7 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
-        """Used to for a prototype cell for 2D materials.
+        """Used to get a prototype cell for 2D materials.
         """
         orig_cell = system.get_cell()
 
@@ -786,7 +794,6 @@ class PeriodicFinder():
             b = cells[i_node, 1]
             c = np.cross(a, b)
             c_norm = c/np.linalg.norm(c)
-            # print(c_norm)
             c_norms[i_node, :] = c_norm
             c_norm = c_norm[None, :]
             c = 2*c_norm*cutoff
@@ -888,12 +895,13 @@ class PeriodicFinder():
         averaged_rel_pos = np.array(averaged_rel_pos)
         averaged_rel_pos -= np.array([0, 0, 0.5])
 
-        # Grow the cell to fit all atoms
         proto_cell = Atoms(
             cell=basis,
             scaled_positions=averaged_rel_pos,
             symbols=averaged_rel_num,
+            pbc=[True, True, False]
         )
+        # view(proto_cell)
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
@@ -960,7 +968,7 @@ class PeriodicFinder():
         # Number of valid angles for each combination
         n_valids = np.sum(angles_mask)
 
-        # If there are three angles that are above the treshold, the cell is 3D
+        # If there are three angles that are above the threshold, the cell is 3D
         if n_valids > 0:
 
             valid_indices = combo_indices[angles_mask]
@@ -1027,7 +1035,6 @@ class PeriodicFinder():
             # Get all pairs that have metric close to maximum
             metrics = valid_span_metrics[valid_indices]
             metric_sum = np.sum(metrics, axis=1)
-            # print(metric_sum)
             max_metric = metric_sum.max()
             metric_filter = metric_sum == max_metric
             valid_indices = valid_indices[metric_filter]
