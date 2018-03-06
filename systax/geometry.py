@@ -466,12 +466,22 @@ def get_extended_system(system, target_size):
     return extended_system
 
 
-def get_clusters(system, distance_matrix, threshold):
-    """
+def get_clusters(dist_matrix, threshold, min_samples=1):
+    """Used to detect clusters with the DBSCAN algorithm.
+
+    Args:
+        dist_matrix(np.ndarray): The 2D distance matrix from which the clusters
+            are calculated.
+        threshold(float): The epsilon threshold value for the clustering
+        min_samples(int): The minimum allowed cluster size.
+
+    Returns:
+        list: A list of clusters, where each cluster is a list of indices for
+        the elements belonging to the cluster.
     """
     # Detect clusters
-    db = DBSCAN(eps=threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    db.fit(distance_matrix)
+    db = DBSCAN(eps=threshold, min_samples=min_samples, metric='precomputed', n_jobs=1)
+    db.fit(dist_matrix)
     clusters = db.labels_
 
     # Make a list of the different clusters
@@ -479,9 +489,9 @@ def get_clusters(system, distance_matrix, threshold):
     sorted_records_array = clusters[idx_sort]
     vals, idx_start, count = np.unique(sorted_records_array, return_counts=True,
                                     return_index=True)
-    cluster_indices = np.split(idx_sort, idx_start[1:])
+    cluster_groups = np.split(idx_sort, idx_start[1:])
 
-    return cluster_indices
+    return cluster_groups
 
 
 def get_covalent_distances(system, mic=True):
@@ -1043,7 +1053,8 @@ def get_matches(
     )
 
     # Find the closest atom within the tolerance and with the required atomic
-    # number, or if not found, get the closest atom
+    # number, or if not found, get the closest atom that is within the
+    # tolerance
     best_matches = []
     best_substitutions = []
     for i_atom, i in enumerate(dist_matrix):
@@ -1058,7 +1069,9 @@ def get_matches(
             best_substitutions.append(None)
         elif near_mask.any():
             best_matches.append(None)
-            best_substitutions.append(np.argmin(i))
+            near_indices = np.where(near_mask)[0]
+            nearest_index = np.argmin(i[near_mask])
+            best_substitutions.append(near_indices[nearest_index])
         else:
             best_matches.append(None)
             best_substitutions.append(None)
@@ -1409,6 +1422,77 @@ class Intervals(object):
         """Returns the added up lengths of merged intervals in order to account for overlap.
         """
         return self._add_up(self.get_merged_intervals())
+
+
+def get_thickness(system, axis):
+    """Get the thickness of an atomic system along a basis vector direction.
+
+    Args:
+        system(ase.Atoms): The system from which the thickness is evaluated.
+        axis(int): The index of the unit cell basis in which direction the
+            thickness is evaluated.
+
+    Returns:
+        float: The thickness of the system as measured from the center of the
+        topmost atom to the center of lowermost atom.
+    """
+    pos = system.get_positions()[:, axis]
+    pos_min = pos.min()
+    pos_max = pos.max()
+    thickness = pos_max - pos_min
+
+    return thickness
+
+
+def get_minimized_cell(system, axis, min_size):
+    """Used to resize the cell in the given direction so that all atoms are
+    within the cell.
+    """
+    # Grow the cell to fit all atoms
+    rel_pos = system.get_scaled_positions()
+    num = system.get_atomic_numbers()
+    basis = system.get_cell()
+    c = basis[axis, :]
+    c_length = np.linalg.norm(c)
+    c_norm = c/c_length
+    c_comp = rel_pos[:, axis]
+    min_index = np.argmin(c_comp, axis=0)
+    max_index = np.argmax(c_comp, axis=0)
+    pos_min_rel = np.array([0, 0, c_comp[min_index]])
+    pos_max_rel = np.array([0, 0, c_comp[max_index]])
+    pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
+    pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
+    c_real_cart = pos_max_cart-pos_min_cart
+    c_size = np.linalg.norm(c_real_cart)
+
+    # We demand a minimum size for the c-vector even if the system seems to
+    # be purely 2-dimensional. This is done because the 3D-space cannot be
+    # searched properly if one dimension is flat.
+    if c_size < min_size:
+        c_inflated_cart = min_size*c_norm
+        c_new_cart = c_inflated_cart
+    else:
+        c_new_cart = c_real_cart
+    new_basis = np.array(basis)
+    new_basis[2, :] = c_new_cart
+
+    new_scaled_pos = rel_pos - pos_min_rel
+    new_cart_test = systax.geometry.to_cartesian(basis, new_scaled_pos)
+    new_scaled_pos = systax.geometry.to_scaled(new_basis, new_cart_test)
+
+    if c_size < min_size:
+        offset_cart = (c_real_cart-c_inflated_cart)/2
+        offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
+        new_scaled_pos -= offset_rel
+
+    # Create translated system
+    minimized_system = Atoms(
+        cell=new_basis,
+        scaled_positions=new_scaled_pos,
+        symbols=num,
+    )
+
+    return minimized_system
 
 
 def cartesian(arrays, out=None):

@@ -48,6 +48,7 @@ class LinkedUnitCollection(dict):
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
+        self._search_pattern = None
         self._decomposition = None
         self._inside_indices = None
         self._outside_indices = None
@@ -297,7 +298,6 @@ class LinkedUnitCollection(dict):
         """
         if self._clusters is None:
             clusters = systax.geometry.get_clusters(
-                self.system,
                 self.dist_matrix_radii_pbc,
                 self.bond_threshold
             )

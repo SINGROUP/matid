@@ -478,7 +478,6 @@ class PeriodicFinder():
             proto_cell, offset = self._find_proto_cell_3d(
                 seed_index,
                 seed_nodes,
-                neighbour_indices,
                 best_combo,
                 best_spans,
                 system,
@@ -491,7 +490,6 @@ class PeriodicFinder():
             proto_cell, offset = self._find_proto_cell_2d(
                 seed_index,
                 seed_nodes,
-                neighbour_indices,
                 best_combo,
                 best_spans,
                 system,
@@ -505,11 +503,18 @@ class PeriodicFinder():
 
         # If all the atoms in the cell are not connected (more than one
         # cluster) or the cell contains one single atom that is not connected
-        # to it's periodic copy, the cell is considered invalid.
+        # to it's periodic copy, the cell is considered invalid. For stacked 2D
+        # materials we allow multiple clusters if their separation is above the
+        # covalent threshold and the thickness of the cluster where the seed
+        # atom is is below the maximum 2D thickness.
         if n_spans == 2:
             unit_pbc = [True, True, False]
         elif n_spans == 3:
             unit_pbc = [True, True, True]
+
+        # Calculate the distance matrix that takes into account the cell
+        # periodicity, atomic radii and fills the diagonal with minimum
+        # distance to periodic copies.
         _, dist_matrix_cell = systax.geometry.get_displacement_tensor(
             proto_cell.get_positions(),
             proto_cell.get_positions(),
@@ -527,13 +532,34 @@ class PeriodicFinder():
         radii = covalent_radii[num]
         radii_matrix = radii[:, None] + radii[None, :]
         dist_matrix_cell -= radii_matrix
-        db = DBSCAN(eps=bond_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-        db.fit(dist_matrix_cell)
-        clusters = db.labels_
-        unique_labels = np.unique(clusters)
-        n_clusters = len(unique_labels)
-        if n_clusters > 1 or (n_clusters == 1 and unique_labels[0] == -1):
-            return None, None, None
+
+        # Calculate the clusters
+        clusters = systax.geometry.get_clusters(dist_matrix_cell, bond_threshold)
+        n_clusters = len(clusters)
+
+        if n_clusters > 1 or (n_clusters == 1 and clusters[0][0] == -1):
+            if n_spans == 3:
+                return None, None, None
+            # In 2D systems the cell might contain atoms from two stacked 2D
+            # sheets. Here we check if the cell can be separated into different
+            # sheets and check the thickness of the sheet where the seed atom
+            # is.
+            elif n_spans == 2:
+
+                # Get the cluster where the seed atom is
+                seed_cluster = None
+                seed_atom_index = None
+                for cluster in clusters:
+                    if seed_group_index in cluster:
+                        seed_cluster = cluster
+                        seed_atom_index = np.where(cluster == seed_group_index)
+                        break
+                proto_cell = proto_cell[seed_cluster]
+                proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
+                offset = proto_cell.get_positions()[seed_atom_index]
+                thickness = systax.geometry.get_thickness(proto_cell, 2)
+                if thickness > self.max_2d_cell_height:
+                    return None, None, None
 
         return proto_cell, offset, n_spans
 
@@ -541,7 +567,6 @@ class PeriodicFinder():
             self,
             seed_index,
             seed_nodes,
-            neighbours,
             best_span_indices,
             best_spans,
             system,
@@ -692,7 +717,6 @@ class PeriodicFinder():
             self,
             seed_index,
             seed_nodes,
-            neighbours,
             best_span_indices,
             best_spans,
             system,
@@ -701,7 +725,8 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
-
+        """Used to for a prototype cell for 2D materials.
+        """
         orig_cell = system.get_cell()
 
         # In 2D systems the maximum thickness of the system is defined by
@@ -864,50 +889,11 @@ class PeriodicFinder():
         averaged_rel_pos -= np.array([0, 0, 0.5])
 
         # Grow the cell to fit all atoms
-        c_comp = averaged_rel_pos[:, 2]
-        min_index = np.argmin(c_comp, axis=0)
-        max_index = np.argmax(c_comp, axis=0)
-        pos_min_rel = np.array([0, 0, c_comp[min_index]])
-        pos_max_rel = np.array([0, 0, c_comp[max_index]])
-        pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
-        pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
-        c_real_cart = pos_max_cart-pos_min_cart
-        c_size = np.linalg.norm(c_real_cart)
-
-        # The cell size for 2D materials has a maximum size. If the size is
-        # above this threshold, the cell is not returned.
-        if c_size > self.max_2d_cell_height:
-            return None, None
-
-        # We demand a minimum size for the c-vector even if the system seems to
-        # be purely 2-dimensional. This is done because the 3D-space cannot be
-        # searched properly if one dimension is flat.
-        min_size = 2*self.pos_tol
-        if c_size < min_size:
-            c_inflated_cart = min_size*c_norm
-            c_new_cart = c_inflated_cart
-        else:
-            c_new_cart = c_real_cart
-        new_basis = np.array(basis)
-        new_basis[2, :] = c_new_cart
-
-        new_scaled_pos = averaged_rel_pos - pos_min_rel
-        new_cart_test = systax.geometry.to_cartesian(basis, new_scaled_pos)
-        new_scaled_pos = systax.geometry.to_scaled(new_basis, new_cart_test)
-
-        if c_size < min_size:
-            offset_cart = (c_real_cart-c_inflated_cart)/2
-            offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
-            new_scaled_pos -= offset_rel
-
-        # Create translated system
         proto_cell = Atoms(
-            cell=new_basis,
-            scaled_positions=new_scaled_pos,
+            cell=basis,
+            scaled_positions=averaged_rel_pos,
             symbols=averaged_rel_num,
-            # pbc=[True, True, False]
         )
-        # view(proto_cell)
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
@@ -1126,6 +1112,7 @@ class PeriodicFinder():
             self.chem_similarity_threshold,
             bond_threshold,
         )
+        # collection._search_pattern = Atoms(cell=system.get_cell())
         multipliers = self._get_multipliers(periodic_indices)
 
         # Start off the queue
@@ -1179,29 +1166,6 @@ class PeriodicFinder():
         """Used to calculate the multipliers that are used to multiply the cell
         basis vectors to find new unit cells.
         """
-        # OLD
-        # Here we decide the new seed points where the search is extended. The
-        # directions depend on the directions that were found to be periodic
-        # for the seed atom.
-        # n_periodic_dim = len(periodic_indices)
-        # multipliers = []
-        # mult_gen = itertools.product((-1, 0, 1), repeat=n_periodic_dim)
-        # if n_periodic_dim == 2:
-            # for multiplier in mult_gen:
-                # if multiplier != (0, 0):
-                    # multipliers.append(multiplier)
-        # elif n_periodic_dim == 3:
-            # for multiplier in mult_gen:
-                # if multiplier != (0, 0, 0):
-                    # multipliers.append(multiplier)
-        # multipliers = np.array(multipliers)
-
-        # if n_periodic_dim == 2:
-            # multis = np.zeros((multipliers.shape[0], multipliers.shape[1]+1))
-            # multis[:, periodic_indices] = multipliers
-            # multipliers = multis
-
-        # New
         # Here we decide the new seed points where the search is extended.
         n_periodic_dim = len(periodic_indices)
         if n_periodic_dim == 3:
@@ -1258,20 +1222,14 @@ class PeriodicFinder():
             unit_cell(ASE.Atoms): The current guess for the unit cell.
             seed_offset(np.ndrray): Cartesian offset of the seed atom from the unit cell
                 origin.
-            searched_coords(set): Set of 3D indices that have been searched.
+            searched_cell_indices(set): Set of 3D indices that have been searched.
             cell_index(tuple): The 3D coordinate of this unit cell.
             used_seed_indices(set): The indices that have been used as seeds.
             periodic_indices(sequence of int): The indices of the basis vectors
                 that are periodic
         """
-
-        # if tuple(cell_index) == (0, 2, 1):
-            # print(seed_index)
-
         # Check if this cell has already been searched
         if tuple(cell_index) in searched_cell_indices:
-            # if seed_index == 131:
-                # print(cell_index)
             return
         else:
             searched_cell_indices.add(tuple(cell_index))
@@ -1319,6 +1277,9 @@ class PeriodicFinder():
             cell_num,
             pos_tolerances,
         )
+
+        # Save the search pattern for debugging purposes
+        # collection._search_pattern += Atoms(positions=test_pos, symbols=cell_num)
 
         # Add all the matches into the lists containing already searched
         # locations.
@@ -1408,9 +1369,39 @@ class PeriodicFinder():
             old_cell,
             used_indices,
             cell_index,
-            searched_coords,
+            searched_cell_indices,
         ):
-        """
+        """When given a prototype unit cell shape and a set of search
+        directions, searches for new seed atoms that are used to initiate a
+        search for a new repetition for a unit cell.
+
+        Args:
+            system(ase.Atoms): The system from which the seed atoms are
+                searched.
+            seed_index(int): The index of the atom from which the search is
+                started.
+            seed_pos(np.ndarray): The position vector of the seed atom.
+            seed_atomic_number(int): The atomic number of the seed atom.
+            dislocation(np.ndarray): An array of dislocation vectors given
+                relative to the seed position.
+            multipliers(np.ndarray): Multiplications of the unit cell
+                corresponding to the given dislocation vectors.
+            old_cell(np.ndarray): The unit cell given as 3x3 array.
+            used_indices(set): A set of indices for atoms that have already
+                been used as seed atoms or as part of unit cells in the system.
+            cell_index(tuple): Index of the given cell in the
+                LinkedUnitCollection. Given relative to the initial seed atom.
+            searched_cell_indices(set of tuples): A set of cell indices that have
+                already been searched.
+
+        Returns:
+            np.ndarray: The new unit cell that should be used when expanding
+                the search.
+            np.ndarray: Indices of the atoms that should be used as new seed
+                atoms.
+            np.ndarray: Positions of the new seed atoms.
+            np.ndarray: Indices of the cells corresponding to the new seed
+                atoms.
         """
         orig_cell = system.get_cell()
         orig_pos = system.get_positions()
@@ -1425,12 +1416,16 @@ class PeriodicFinder():
         valid_multipliers = []
         for i_cell_ind, cell_ind in enumerate(test_cell_indices):
             # If the cell in this index has already been handled, continue
-            if tuple(cell_ind) in searched_coords:
+            if tuple(cell_ind) in searched_cell_indices:
                 continue
             valid_multipliers.append(i_cell_ind)
         multipliers = multipliers[valid_multipliers]
         dislocations = dislocations[valid_multipliers]
         test_cell_indices = test_cell_indices[valid_multipliers]
+
+        a_vectors = []
+        b_vectors = []
+        c_vectors = []
 
         if seed_index is not None:
 
@@ -1445,7 +1440,6 @@ class PeriodicFinder():
                 pos_tolerances,
                 mic=True
             )
-
             for match, factor, seed_guess, multiplier, disloc, test_cell_index in zip(
                     matches,
                     factors,
@@ -1484,6 +1478,7 @@ class PeriodicFinder():
                     new_seed_indices.append(match)
                     new_seed_pos.append(i_seed_pos)
                     new_cell_indices.append(test_cell_index)
+
                     if match is not None:
                         used_indices.add(match)
 
@@ -1499,5 +1494,40 @@ class PeriodicFinder():
                             temp = i_seed_pos + np.dot(factor, orig_cell)
                             i_basis = temp - seed_pos
                         new_cell[i, :] = i_basis
+
+        #TODO: Calculate the average cell for this seed atom. The average cell
+        # is then used in the next phase of the search for the neighbouring
+        # cells.
+
+        # Store vectors for calculating averages
+        # if multiplier == (1, 0, 0):
+            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
+            # a_vectors.append(new_vec)
+        # elif multiplier == (-1, 0, 0):
+            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
+            # a_vectors.append(new_vec)
+        # elif multiplier == (0, 1, 0):
+            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
+            # b_vectors.append(new_vec)
+        # elif multiplier == (0, -1, 0):
+            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
+            # b_vectors.append(new_vec)
+        # elif multiplier == (0, 0, 1):
+            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
+            # c_vectors.append(new_vec)
+        # elif multiplier == (0, 0, -1):
+            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
+            # c_vectors.append(new_vec)
+
+        # if len(a_vectors) == 0:
+            # a_vectors.append(old_cell[0, :])
+        # if len(b_vectors) == 0:
+            # b_vectors.append(old_cell[1, :])
+        # if len(c_vectors) == 0:
+            # c_vectors.append(old_cell[2, :])
+        # average_a = np.mean(np.array(a_vectors), axis=0)
+        # average_b = np.mean(np.array(b_vectors), axis=0)
+        # average_c = np.mean(np.array(c_vectors), axis=0)
+        # average_cell = np.vstack((average_a, average_b, average_c))
 
         return new_cell, new_seed_indices, new_seed_pos, new_cell_indices

@@ -447,6 +447,9 @@ class Classifier():
                     if region is not None:
                         basis_indices = region.get_basis_indices()
                         n_basis = len(basis_indices)
+                        # print("===============0")
+                        # print(n_basis)
+                        # print(region.cell)
 
                         # There are no outliers with this cell, other
                         # options do not need to explored.
