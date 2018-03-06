@@ -938,6 +938,32 @@ class Material2DTests(unittest.TestCase):
         # self.assertEqual(tuple(outliers), tuple([8]))
         # self.assertEqual(len(unit_cell), 2)
 
+    def test_small_2d_cell_vacuum_direction_included(self):
+        """Test that the classification can properly handle systems where
+        initially three basis vectors are detected, they are reduced to two due
+        to wrong dimensionality of the cell, and then although only one
+        repetition of the cell is found, it is accepted because its size is
+        below the threshold MAX_SINGLE_CELL_SIZE.
+        """
+        system = get_atoms_from_viz("./structures/BN.json")
+        # view(system)
+
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
+
     def test_vacuum_in_2d_unit_cell(self):
         """Structure where a 2D unit cell is found, but it has a vacuum gap.
         Should be detected by using TSA on the cell.
@@ -2502,9 +2528,9 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(interstitials), 0)
 
 
-# class NomadTests(unittest.TestCase):
-    # """
-    # """
+class NomadTests(unittest.TestCase):
+    """
+    """
     # def test_fail_1(self):
         # """
         # """
@@ -2535,6 +2561,26 @@ class SurfaceTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # self.assertEqual(type(classification), Class2D)
 
+    # def test_fail_4(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/BN.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
+    # def test_fail_5(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/C4B2F4N2.json")
+        # view(system)
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+
 
 if __name__ == '__main__':
     suites = []
@@ -2546,8 +2592,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))

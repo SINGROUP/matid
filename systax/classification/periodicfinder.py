@@ -324,18 +324,6 @@ class PeriodicFinder():
         best_spans = valid_spans[best_combo]
         n_spans = len(best_spans)
 
-        # If the best span consists only of the simulation basis cell vectors,
-        # check that these vectors are below a predefined size. Otherwise the
-        # cell cannot be accepted because there is not enough statistics about
-        # the cell contents to distinguish outliers.
-        if n_periodic_spans > 0:
-            periodic_span_indices = valid_span_indices[-n_periodic_spans:]
-            best_span_ind = valid_span_indices[best_combo]
-            if set(best_span_ind).issubset(set(periodic_span_indices)):
-                cell_lens = np.linalg.norm(best_spans, axis=1)
-                if np.any(cell_lens > constants.MAX_SINGLE_CELL_SIZE):
-                    return None, None, None
-
         # Get the adjacency lists corresponding to the best spans
         best_adjacency_lists = []
         best_adjacency_lists_add = []
@@ -520,13 +508,30 @@ class PeriodicFinder():
                     proto_cell = systax.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
                     i_pbc = [True, True, True]
                     i_pbc[reduced_dimension] = False
+                    cell_mask = [True, True, True]
+                    cell_mask[reduced_dimension] = False
                     proto_cell.set_pbc(i_pbc)
+                    best_combo = best_combo[cell_mask]
+                    best_spans = best_spans[cell_mask]
                     two_valid_spans = True
                     n_spans = 2
                 else:
                     return None, None, None
 
         if two_valid_spans:
+
+            # If the best 2D vectors consists only of the simulation basis cell
+            # vectors, check that these vectors are below a predefined size.
+            # Otherwise the cell cannot be accepted because there is not enough
+            # statistics about the cell contents to distinguish outliers.
+            if n_periodic_spans > 0:
+                periodic_span_indices = valid_span_indices[-n_periodic_spans:]
+                best_span_ind = valid_span_indices[best_combo]
+                if set(best_span_ind).issubset(set(periodic_span_indices)):
+                    cell_lens = np.linalg.norm(best_spans, axis=1)
+                    if np.any(cell_lens > constants.MAX_SINGLE_CELL_SIZE):
+                        return None, None, None
+
             # Check the dimensionality
             try:
                 dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
@@ -893,7 +898,7 @@ class PeriodicFinder():
         # Move the seed positions back to the origin now that the search has
         # been performed
         averaged_rel_pos = np.array(averaged_rel_pos)
-        averaged_rel_pos -= np.array([0, 0, 0.5])
+        # averaged_rel_pos -= np.array([0, 0, 0.5])
 
         proto_cell = Atoms(
             cell=basis,
@@ -901,7 +906,6 @@ class PeriodicFinder():
             symbols=averaged_rel_num,
             pbc=[True, True, False]
         )
-        # view(proto_cell)
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset

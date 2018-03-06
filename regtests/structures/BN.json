@@ -1,0 +1,43 @@
+{
+  "periodicity": [
+    true,
+    true,
+    true
+  ],
+  "positions": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.33333333,
+      0.66666667,
+      0.0
+    ]
+  ],
+  "filename": "/nomad/nomadlab/parsed/prod-032/ExcitingParser1.4.0-51-g931ab52/RJv-r5Vwf6ypWElBSq_hTCOaxEU89/PgZTqAjcn_4hHS3fozZkAI0Jxtdas.json",
+  "classification": "Class2D",
+  "id": "/nomad/nomadlab/parsed/prod-032/ExcitingParser1.4.0-51-g931ab52/RJv-r5Vwf6ypWElBSq_hTCOaxEU89/PgZTqAjcn_4hHS3fozZkAI0Jxtdas.json/RJv-r5Vwf6ypWElBSq_hTCOaxEU89/PgZTqAjcn_4hHS3fozZkAI0Jxtdas",
+  "normalizedCell": [
+    [
+      2.516984993710479e-10,
+      0.0,
+      0.0
+    ],
+    [
+      -1.2584924968552395e-10,
+      2.1797729440831213e-10,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.05835442134e-09
+    ]
+  ],
+  "labels": [
+    5,
+    7
+  ]
+}

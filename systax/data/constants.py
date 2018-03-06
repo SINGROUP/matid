@@ -16,7 +16,7 @@ WYCKOFF_LETTER_POSITIONS = {letter: positions for positions, letter in enumerate
 
 #===============================================================================
 # Constants for classification
-MAX_SINGLE_CELL_SIZE = 4
+MAX_SINGLE_CELL_SIZE = 5
 MAX_2D_CELL_HEIGHT = 5
 # MAX_CELL_SIZE = [4, 12]
 MAX_CELL_SIZE = [12]
