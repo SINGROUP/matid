@@ -4,7 +4,7 @@ a atomic system.
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import itertools
-import math
+from collections import defaultdict
 
 import numpy as np
 from numpy.random import RandomState
@@ -484,12 +484,16 @@ def get_clusters(dist_matrix, threshold, min_samples=1):
     db.fit(dist_matrix)
     clusters = db.labels_
 
-    # Make a list of the different clusters
-    idx_sort = np.argsort(clusters)
-    sorted_records_array = clusters[idx_sort]
-    vals, idx_start, count = np.unique(sorted_records_array, return_counts=True,
-                                    return_index=True)
-    cluster_groups = np.split(idx_sort, idx_start[1:])
+    # Make a list of the different clusters. All item with cluster = -1 will
+    # get a separate group.
+    cluster_groups = []
+    group_map = defaultdict(list)
+    for i_atom, i_clust in enumerate(clusters):
+        if i_clust == -1:
+            cluster_groups.append([i_atom])
+        else:
+            group_map[i_clust].append(i_atom)
+    cluster_groups.extend(group_map.values())
 
     return cluster_groups
 

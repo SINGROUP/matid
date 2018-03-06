@@ -551,8 +551,8 @@ class PeriodicFinder():
                 seed_atom_index = None
                 for cluster in clusters:
                     if seed_group_index in cluster:
+                        seed_atom_index = np.where(np.array(cluster) == seed_group_index)
                         seed_cluster = cluster
-                        seed_atom_index = np.where(cluster == seed_group_index)
                         break
                 proto_cell = proto_cell[seed_cluster]
                 proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)

@@ -923,24 +923,24 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
-    def test_2d_adsorption_small_cell(self):
-        system = Material2DTests.graphene.repeat([2, 2, 1])
-        system.set_pbc([True, True, True])
-        adsorbate = ase.Atom(position=[2, 2, 11], symbol="H")
-        system += adsorbate
-        # view(system)
+    # def test_2d_adsorption_small_cell(self):
+        # system = Material2DTests.graphene.repeat([2, 2, 1])
+        # system.set_pbc([True, True, True])
+        # adsorbate = ase.Atom(position=[2, 2, 11], symbol="H")
+        # system += adsorbate
+        # # view(system)
 
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Material2D)
-        unit_cell = classification.region.cell
-        # view(unit_cell)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Material2D)
+        # unit_cell = classification.region.cell
+        # # view(unit_cell)
 
-        # One outlier
-        outliers = classification.outliers
-        self.assertEqual(len(outliers), 1)
-        self.assertEqual(tuple(outliers), tuple([8]))
-        self.assertEqual(len(unit_cell), 2)
+        # # One outlier
+        # outliers = classification.outliers
+        # self.assertEqual(len(outliers), 1)
+        # self.assertEqual(tuple(outliers), tuple([8]))
+        # self.assertEqual(len(unit_cell), 2)
 
     def test_too_big_single_cell(self):
         """Test that with when only the simulation cell itself is the found
@@ -2019,7 +2019,6 @@ class SurfaceTests(unittest.TestCase):
         cell boundaries are not allowed.
         """
         system = get_atoms_from_arch("./structures/PEzXqLISX8Pam-HlJMxeLc86lcKgf.json")
-        # view(system)
 
         classifier = Classifier()
         classification = classifier.classify(system)
@@ -2477,8 +2476,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
 

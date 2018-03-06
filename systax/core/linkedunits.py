@@ -265,12 +265,6 @@ class LinkedUnitCollection(dict):
         """
         max_score = sum(ideal_env.values())
 
-        # If there are not neighbours in the ideal system, the chemical
-        # similarity cannot be determined. In this case a value of zero is
-        # returned.
-        # if max_score == 0:
-            # return 0
-
         score = 0
         for ideal_key, ideal_value in ideal_env.items():
             real_value = real_env.get(ideal_key)
