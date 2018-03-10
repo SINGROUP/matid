@@ -55,7 +55,8 @@ class Classifier():
             max_n_atoms=constants.MAX_N_ATOMS,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
             max_2d_single_cell_size=constants.MAX_SINGLE_CELL_SIZE,
-            symmetry_tol=constants.SPGLIB_PRECISION
+            symmetry_tol=constants.SPGLIB_PRECISION,
+            min_coverage=constants.MIN_COVERAGE
             ):
         """
         Args:
@@ -106,6 +107,10 @@ class Classifier():
             symmetry_tol(float): The tolerance for finding symmetry positions
                 when determining the conventional cell for bulk structures. Given
                 in angstroms.
+            min_coverage(float): The minimum fraction that a found periodic
+                region has to cover in the structure for the entire structure to be
+                classified based on that found region (as surface or 2D
+                material).
         """
         if pos_tol_mode == "relative" and pos_tol is None:
             pos_tol = constants.REL_POS_TOL
@@ -131,6 +136,7 @@ class Classifier():
         self.max_n_atoms = max_n_atoms
         self.max_2d_cell_height = max_2d_cell_height
         self.symmetry_tol = symmetry_tol
+        self.min_coverage = min_coverage
 
         # Check seed position
         if type(seed_position) == str:
@@ -270,15 +276,6 @@ class Classifier():
             num = self.system.get_atomic_numbers()
             elems = set(num)
 
-            # Experimental feature to get rid of seed points that are most
-            # likely adsorbates
-            # unique, counts = np.unique(num, return_counts=True)
-            # n_atoms = len(system)
-            # occurrence = counts/n_atoms
-            # majority_mask = occurrence > 0.1
-            # unique = unique[majority_mask]
-            # elems = set(unique)
-
             if self.seed_position == "cm":
                 distances = np.linalg.norm(system.get_positions() - cm, axis=1)
                 indices = np.argsort(distances)
@@ -308,11 +305,10 @@ class Classifier():
 
             if best_region is not None:
 
-                # If the basis atoms in the region are split into multiple
-                # disconnected pieces (as indicated by clustering), then they
-                # cannot be classified
-
                 with chronic.Timer("region_analysis"):
+
+                    # This might be unnecessary because the connectivity of the
+                    # unit cell is already checked.
                     clusters = best_region.get_clusters()
                     basis_indices = set(list(best_region.get_basis_indices()))
                     split = True
@@ -320,7 +316,17 @@ class Classifier():
                         if basis_indices.issubset(cluster):
                             split = False
 
-                    if not split:
+                    # Check that the found region covers enough of the entire
+                    # system. If not, then the region alone cannot be used to
+                    # classify the entire structure. This happens e.g. when one
+                    # 2D sheet is found from a 2D heterostructure, or a local
+                    # pattern is found inside a structure.
+                    n_atoms = len(system)
+                    n_basis_atoms = len(basis_indices)
+                    coverage = n_basis_atoms/n_atoms
+                    covered = coverage >= self.min_coverage
+
+                    if not split and covered:
                         if best_region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
                             # in the cell is not periodic. Now that the cell

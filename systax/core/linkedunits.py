@@ -48,6 +48,8 @@ class LinkedUnitCollection(dict):
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
+        self._wrap_information = []
+        self._old_moves = defaultdict(list)
         self._search_pattern = None
         self._decomposition = None
         self._inside_indices = None
