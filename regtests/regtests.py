@@ -2705,11 +2705,11 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

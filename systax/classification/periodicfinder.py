@@ -936,7 +936,7 @@ class PeriodicFinder():
 
         # The angle threshold for validating cells
         angle_threshold = np.pi/180*self.angle_tol
-        angle_thres_sin = np.sin(angle_threshold)
+        angle_thres_cos = abs(np.cos(angle_threshold))
 
         # Create combinations of normed spans
         span_indices = range(len(valid_spans))
@@ -962,9 +962,9 @@ class PeriodicFinder():
         gammas = np.abs(inner1d(normed_combos[:, 2, :], gamma_cross_normed))
 
         with np.errstate(invalid='ignore'):
-            alpha_mask = alphas > angle_thres_sin
-            beta_mask = betas > angle_thres_sin
-            gamma_mask = gammas > angle_thres_sin
+            alpha_mask = alphas > angle_thres_cos
+            beta_mask = betas > angle_thres_cos
+            gamma_mask = gammas > angle_thres_cos
         angles_mask = alpha_mask & beta_mask & gamma_mask
 
         # Number of valid angles for each combination
