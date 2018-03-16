@@ -936,7 +936,7 @@ class PeriodicFinder():
 
         # The angle threshold for validating cells
         angle_threshold = np.pi/180*self.angle_tol
-        angle_thres_cos = abs(np.cos(angle_threshold))
+        angle_thres_sin = abs(np.sin(angle_threshold))
 
         # Create combinations of normed spans
         span_indices = range(len(valid_spans))
@@ -961,10 +961,13 @@ class PeriodicFinder():
             gamma_cross_normed = gamma_cross / gamma_cross_norm[:, None]
         gammas = np.abs(inner1d(normed_combos[:, 2, :], gamma_cross_normed))
 
+        # The angles alpha, beta and gamma are cos(x), where x is the angle
+        # between the vector and the normal of the plane. To get the angle y
+        # between vector and plane, we use cos(x) = cos(pi/2 - y) = sin(y)
         with np.errstate(invalid='ignore'):
-            alpha_mask = alphas > angle_thres_cos
-            beta_mask = betas > angle_thres_cos
-            gamma_mask = gammas > angle_thres_cos
+            alpha_mask = alphas >= angle_thres_sin
+            beta_mask = betas >= angle_thres_sin
+            gamma_mask = gammas >= angle_thres_sin
         angles_mask = alpha_mask & beta_mask & gamma_mask
 
         # Number of valid angles for each combination
@@ -1026,7 +1029,7 @@ class PeriodicFinder():
         valid_indices = np.concatenate((valid_indices_a[:, None], valid_indices_b[:, None]), axis=1)
         crosses = pair_crosses[up_indices]
         sin_angle = np.abs(np.linalg.norm(crosses, axis=1))
-        angle_filter = sin_angle > angle_thres_sin
+        angle_filter = sin_angle >= angle_thres_sin
         valid_indices = valid_indices[angle_filter]
         n_cross_valids = len(valid_indices)
 
