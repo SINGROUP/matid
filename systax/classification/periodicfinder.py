@@ -1516,7 +1516,7 @@ class PeriodicFinder():
                         old_move_list = old_moves[match]
                         for old_move, old_seed in old_move_list:
                             if np.all(old_move == -np.array(multiplier)):
-                                print(msg)
+                                # print(msg)
                                 periodic_moves.append((seed_index, match, multiplier))
 
                     used_seed_indices.add(match)
