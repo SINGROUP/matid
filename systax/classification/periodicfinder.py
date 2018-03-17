@@ -945,30 +945,30 @@ class PeriodicFinder():
 
         # Create arrays containing the three angles for each combination. The
         # normalized zero vectors will have values NaN
-        alpha_cross = np.cross(normed_combos[:, 1, :], normed_combos[:, 2, :])
-        alpha_cross_norm = np.linalg.norm(alpha_cross, axis=1)
+        n_jk = np.cross(normed_combos[:, 1, :], normed_combos[:, 2, :])
+        n_jk_norm = np.linalg.norm(n_jk, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
-            alpha_cross_normed = alpha_cross / alpha_cross_norm[:, None]
-        alphas = np.abs(inner1d(normed_combos[:, 0, :], alpha_cross_normed))
-        beta_cross = np.cross(normed_combos[:, 2, :], normed_combos[:, 0, :])
-        beta_cross_norm = np.linalg.norm(beta_cross, axis=1)
+            n_jk_hat = n_jk / n_jk_norm[:, None]
+        alpha_ijk = np.abs(inner1d(normed_combos[:, 0, :], n_jk_hat))
+        n_ki = np.cross(normed_combos[:, 2, :], normed_combos[:, 0, :])
+        n_ki_norm = np.linalg.norm(n_ki, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
-            beta_cross_normed = beta_cross / beta_cross_norm[:, None]
-        betas = np.abs(inner1d(normed_combos[:, 1, :], beta_cross_normed))
-        gamma_cross = np.cross(normed_combos[:, 0, :], normed_combos[:, 1, :])
-        gamma_cross_norm = np.linalg.norm(gamma_cross, axis=1)
+            n_ki_hat = n_ki / n_ki_norm[:, None]
+        alpha_jki = np.abs(inner1d(normed_combos[:, 1, :], n_ki_hat))
+        n_ij = np.cross(normed_combos[:, 0, :], normed_combos[:, 1, :])
+        n_ij_norm = np.linalg.norm(n_ij, axis=1)
         with np.errstate(divide='ignore', invalid='ignore'):
-            gamma_cross_normed = gamma_cross / gamma_cross_norm[:, None]
-        gammas = np.abs(inner1d(normed_combos[:, 2, :], gamma_cross_normed))
+            n_ij_hat = n_ij / n_ij_norm[:, None]
+        alpha_kij = np.abs(inner1d(normed_combos[:, 2, :], n_ij_hat))
 
         # The angles alpha, beta and gamma are cos(x), where x is the angle
         # between the vector and the normal of the plane. To get the angle y
         # between vector and plane, we use cos(x) = cos(pi/2 - y) = sin(y)
         with np.errstate(invalid='ignore'):
-            alpha_mask = alphas >= angle_thres_sin
-            beta_mask = betas >= angle_thres_sin
-            gamma_mask = gammas >= angle_thres_sin
-        angles_mask = alpha_mask & beta_mask & gamma_mask
+            ijk_mask = alpha_ijk >= angle_thres_sin
+            jki_mask = alpha_jki >= angle_thres_sin
+            kij_mask = alpha_kij >= angle_thres_sin
+        angles_mask = ijk_mask & jki_mask & kij_mask
 
         # Number of valid angles for each combination
         n_valids = np.sum(angles_mask)
@@ -977,7 +977,6 @@ class PeriodicFinder():
         if n_valids > 0:
 
             valid_indices = combo_indices[angles_mask]
-            angle_sum = alphas[angles_mask] + betas[angles_mask] + gammas[angles_mask]
 
             # Filter out combos that do not have metric score close to maximum
             # score that was found. This step is needed to filter out invalid
@@ -990,15 +989,25 @@ class PeriodicFinder():
             # Filter the set into group with volume closest to the smallest
             # that was found
             set_norms = norms[valid_indices]
-            set_volumes = alphas[angles_mask][metric_filter]*alpha_cross_norm[angles_mask][metric_filter]*np.prod(set_norms, axis=1)
+            set_volumes = alpha_ijk[angles_mask][metric_filter]*n_jk_norm[angles_mask][metric_filter]*np.prod(set_norms, axis=1)
             smallest_volume = set_volumes.min()
-            smallest_cell_filter = set_volumes < (1+self.cell_size_tol)*smallest_volume
+            smallest_cell_filter = set_volumes <= (1+self.cell_size_tol)*smallest_volume
+            valid_indices = valid_indices[smallest_cell_filter]
 
             # From the group with smallest volume find a combination with
             # highest orthogonality
+            # n_ij_filtered = n_ij[angles_mask][metric_filter][smallest_cell_filter]
+            # n_ki_filtered = n_ki[angles_mask][metric_filter][smallest_cell_filter]
+            # n_jk_filtered = n_jk[angles_mask][metric_filter][smallest_cell_filter]
+            # ortho = 3 - inner1d(n_ij_filtered, n_ij_filtered) - inner1d(n_ki_filtered, n_ki_filtered) - inner1d(n_jk_filtered, n_jk_filtered)
+            # max_ortho_filter = np.argmin(ortho)
+            # best_span_indices = valid_indices[max_ortho_filter]
+
+            # OLD VERSION
+            angle_sum = alpha_ijk[angles_mask] + alpha_jki[angles_mask] + alpha_kij[angles_mask]
             angle_set = angle_sum[metric_filter][smallest_cell_filter]
             biggest_angle_sum_filter = np.argmax(angle_set)
-            best_span_indices = valid_indices[smallest_cell_filter][biggest_angle_sum_filter]
+            best_span_indices = valid_indices[biggest_angle_sum_filter]
 
         else:
             best_span_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)
