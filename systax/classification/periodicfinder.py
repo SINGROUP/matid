@@ -996,18 +996,18 @@ class PeriodicFinder():
 
             # From the group with smallest volume find a combination with
             # highest orthogonality
-            # n_ij_filtered = n_ij[angles_mask][metric_filter][smallest_cell_filter]
-            # n_ki_filtered = n_ki[angles_mask][metric_filter][smallest_cell_filter]
-            # n_jk_filtered = n_jk[angles_mask][metric_filter][smallest_cell_filter]
-            # ortho = 3 - inner1d(n_ij_filtered, n_ij_filtered) - inner1d(n_ki_filtered, n_ki_filtered) - inner1d(n_jk_filtered, n_jk_filtered)
-            # max_ortho_filter = np.argmin(ortho)
-            # best_span_indices = valid_indices[max_ortho_filter]
+            n_ij_filtered = n_ij[angles_mask][metric_filter][smallest_cell_filter]
+            n_ki_filtered = n_ki[angles_mask][metric_filter][smallest_cell_filter]
+            n_jk_filtered = n_jk[angles_mask][metric_filter][smallest_cell_filter]
+            ortho = 3 - inner1d(n_ij_filtered, n_ij_filtered) - inner1d(n_ki_filtered, n_ki_filtered) - inner1d(n_jk_filtered, n_jk_filtered)
+            max_ortho_filter = np.argmin(ortho)
+            best_span_indices = valid_indices[max_ortho_filter]
 
             # OLD VERSION
-            angle_sum = alpha_ijk[angles_mask] + alpha_jki[angles_mask] + alpha_kij[angles_mask]
-            angle_set = angle_sum[metric_filter][smallest_cell_filter]
-            biggest_angle_sum_filter = np.argmax(angle_set)
-            best_span_indices = valid_indices[biggest_angle_sum_filter]
+            # angle_sum = alpha_ijk[angles_mask] + alpha_jki[angles_mask] + alpha_kij[angles_mask]
+            # angle_set = angle_sum[metric_filter][smallest_cell_filter]
+            # biggest_angle_sum_filter = np.argmax(angle_set)
+            # best_span_indices = valid_indices[biggest_angle_sum_filter]
 
         else:
             best_span_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)

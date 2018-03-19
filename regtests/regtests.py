@@ -116,7 +116,7 @@ class GeometryTests(unittest.TestCase):
         sys.set_cell([3, 3, 3])
 
         # Minimize with minimum size smaller than found minimum size
-        minimized_system = systax.geometry.minimize_cell(sys, 2, 0.1)
+        minimized_system = systax.geometry.get_minimized_cell(sys, 2, 0.1)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -133,7 +133,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(expected_pos, pos, atol=0.001, rtol=0))
 
         # Minimize with minimum size larger than found minimum size
-        minimized_system = systax.geometry.minimize_cell(sys, 2, 2)
+        minimized_system = systax.geometry.get_minimized_cell(sys, 2, 2)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -536,75 +536,139 @@ class PeriodicFinderTests(unittest.TestCase):
     pos_tol_scaling = classifier.pos_tol_scaling
     cell_size_tol = classifier.cell_size_tol
 
-    # def test_cell_selection(self):
-        # """Testing that the correct cell is selected.
-        # """
-        # # Selecting orthogonal from two options with same volume
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0, 1],
-            # [0, 2, 1],
-        # ])
-        # metrics = np.array([0, 0, 0, 0])
-
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 1, 2])))
-
-    def test_proto_cell_in_curved(self):
-        """Tests that the relative positions in the prototype cell are found
-        robustly even in distorted cells.
+    def test_cell_selection(self):
+        """Testing that the correct cell is selected.
         """
-        # Create an Fe 100 surface as an ASE Atoms object
-        class NaClFactory(SimpleCubicFactory):
-            "A factory for creating NaCl (B1, Rocksalt) lattices."
-
-            bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
-                            [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
-                            [0.5, 0.5, 0.5]]
-            element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
-
-        system = NaClFactory()
-        system = system(symbol=["Na", "Cl"], latticeconstant=5.64)
-        system = system.repeat((4, 4, 1))
-        cell = system.get_cell()
-        cell[2, :] *= 3
-        system.set_cell(cell)
-        system.center()
-
-        # Bulge the surface
-        cell_width = np.linalg.norm(system.get_cell()[0, :])
-        for atom in system:
-            pos = atom.position
-            distortion_z = 0.7*np.cos(pos[0]/cell_width*2.0*np.pi)
-            pos += np.array((0, 0, distortion_z))
-        # view(system)
-
-        # Classified as surface
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
-
-        # No defects or unknown atoms
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-
-        # Test that the relative positions are robust in the prototype cell
-        proto_cell = classification.region.cell
-        view(proto_cell)
-        relative_pos = proto_cell.get_scaled_positions()
-        assumed_pos = np.array([
-            [0.0, 0.5, 0.5],
-            [0, 0, 0],
+        # 3D: Selecting orthogonal from two options with same volume
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 2, 1],
         ])
-        self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
+        metrics = np.array([0, 0, 0, 0])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 2])))
+
+        # 3D: Selecting the non-orthogonal because another combination has higer
+        # periodicity
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 2, 1],
+        ])
+        metrics = np.array([2, 2, 1, 2])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
+
+        # 3D: Selecting first by volume, then by orthogonality.
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0.5, 0.5],
+        ])
+        metrics = np.array([0, 0, 0, 0])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
+
+        # 2D: Selecting orthogonal from two options with same volume
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 1, 0],
+        ])
+        metrics = np.array([0, 0, 0])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1])))
+
+        # 2D: Selecting the non-orthogonal because another combination has higer
+        # periodicity
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 2, 0],
+        ])
+        metrics = np.array([2, 1, 2])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 2])))
+
+        # 2D: Selecting first by area, then by orthogonality.
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0.5, 0],
+        ])
+        metrics = np.array([0, 0, 0])
+
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 2])))
+
+    # def test_proto_cell_in_curved(self):
+        # """Tests that the relative positions in the prototype cell are found
+        # robustly even in distorted cells.
+        # """
+        # # Create an Fe 100 surface as an ASE Atoms object
+        # class NaClFactory(SimpleCubicFactory):
+            # "A factory for creating NaCl (B1, Rocksalt) lattices."
+
+            # bravais_basis = [[0, 0, 0], [0, 0, 0.5], [0, 0.5, 0], [0, 0.5, 0.5],
+                            # [0.5, 0, 0], [0.5, 0, 0.5], [0.5, 0.5, 0],
+                            # [0.5, 0.5, 0.5]]
+            # element_basis = (0, 1, 1, 0, 1, 0, 0, 1)
+
+        # system = NaClFactory()
+        # system = system(symbol=["Na", "Cl"], latticeconstant=5.64)
+        # system = system.repeat((4, 4, 1))
+        # cell = system.get_cell()
+        # cell[2, :] *= 3
+        # system.set_cell(cell)
+        # system.center()
+
+        # # Bulge the surface
+        # cell_width = np.linalg.norm(system.get_cell()[0, :])
+        # for atom in system:
+            # pos = atom.position
+            # distortion_z = 0.6*np.cos(pos[0]/cell_width*2.0*np.pi)
+            # pos += np.array((0, 0, distortion_z))
+        # # view(system)
+
+        # # Classified as surface
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertIsInstance(classification, Surface)
+
+        # # No defects or unknown atoms
+        # adsorbates = classification.adsorbates
+        # interstitials = classification.interstitials
+        # substitutions = classification.substitutions
+        # vacancies = classification.vacancies
+        # self.assertEqual(len(interstitials), 0)
+        # self.assertEqual(len(substitutions), 0)
+        # self.assertEqual(len(vacancies), 0)
+        # self.assertEqual(len(adsorbates), 0)
+
+        # # Test that the relative positions are robust in the prototype cell
+        # proto_cell = classification.region.cell
+        # # view(proto_cell)
+        # relative_pos = proto_cell.get_scaled_positions()
+        # assumed_pos = np.array([
+            # [0.5, 0.0, 0.5],
+            # [0, 0, 0],
+        # ])
+        # self.assertTrue(np.allclose(relative_pos, assumed_pos, atol=0.1))
 
     # def test_cell_2d_adsorbate(self):
         # """Test that the cell is correctly identified even if adsorbates are
@@ -2027,273 +2091,273 @@ class SurfaceTests(unittest.TestCase):
         # print(classification)
         # self.assertEqual(type(classification), Class2D)
 
-    # def test_2d_motif_in_surface_easy(self):
-        # """Test that if a 2D substructure is found within a surface, the entire
-        # structure is not classified according to that motif if it does not
-        # cover enough of the structure.
+    def test_2d_motif_in_surface_easy(self):
+        """Test that if a 2D substructure is found within a surface, the entire
+        structure is not classified according to that motif if it does not
+        cover enough of the structure.
+        """
+        # Here we create a 2D system which has alternating layers of ordered
+        # and disordered sheets of 2D materials, but rotated 90 degree with
+        # respect to the surface plane.
+        translation = np.array([0, 0, 2])
+        n_rep = 3
+        graphene = Material2DTests.graphene.repeat((n_rep, n_rep, 1))
+        layer1 = graphene
+
+        layer2 = graphene.copy()
+        layer2.set_chemical_symbols(["O"]*len(layer2))
+        rng = RandomState(47)
+        systax.geometry.make_random_displacement(layer2, 1, rng)
+        layer2.translate(translation)
+
+        layer3 = layer1.copy()
+        layer3.translate(2*translation)
+
+        layer4 = graphene.copy()
+        layer4.set_chemical_symbols(["N"]*len(layer2))
+        rng = RandomState(47)
+        systax.geometry.make_random_displacement(layer4, 1, rng)
+        layer4.translate(3*translation)
+
+        system = layer1 + layer2 + layer3 + layer4
+
+        old_cell = system.get_cell()
+        old_cell[0, :] *= 3
+        old_cell[2, :] = np.array([0, 0, 8])
+        system.set_cell(old_cell)
+        system.center()
+        # view(system)
+
+        # Should be classified as Class2D because the coverage is too small
+        classifier = Classifier(max_cell_size=4)
+        classification = classifier.classify(system)
+        self.assertEqual(type(classification), Class2D)
+
+    def test_surface_difficult_basis_atoms(self):
+        """This is a surface where the atoms on top of the surface will get
+        easily classified as adsorbates if the chemical environment detection
+        is not tuned correctly.
+        """
+        system = get_atoms_from_viz("./structures/O24Sr8Ti12.json")
+        # view(system)
+
+        # With a little higher chemical similarity threshold the whole surface
+        # is not detected
+        classifier = Classifier(chem_similarity_threshold=0.45)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Has outliers with these settings
+        outliers = classification.outliers
+        self.assertTrue(len(outliers) != 0)
+
+        # With a little lower chemical similarity threshold the whole surface
+        # is again detected
+        classifier = Classifier(chem_similarity_threshold=0.40)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
+
+        # Has outliers with these settings
+        outliers = classification.outliers
+        self.assertTrue(len(outliers) == 0)
+
+    # def test_surface_with_one_cell_but_periodic_backbone(self):
+        # """This is a surface that ultimately has only one repetition of the
+        # underlying unit cell in the simulation cell. Normally it would not get
+        # classified, but because it has a periodic backbone of Barium atoms,
+        # they are identified as the unit cell and everything inside is
+        # identified as outliers. Such systems still pose a challenge to the
+        # algorithm.
         # """
-        # # Here we create a 2D system which has alternating layers of ordered
-        # # and disordered sheets of 2D materials, but rotated 90 degree with
-        # # respect to the surface plane.
-        # translation = np.array([0, 0, 2])
-        # n_rep = 3
-        # graphene = Material2DTests.graphene.repeat((n_rep, n_rep, 1))
-        # layer1 = graphene
+        # system = get_atoms_from_viz("./structures/Ba16+O40Si12.json")
+        # view(system)
 
-        # layer2 = graphene.copy()
-        # layer2.set_chemical_symbols(["O"]*len(layer2))
-        # rng = RandomState(47)
-        # systax.geometry.make_random_displacement(layer2, 1, rng)
-        # layer2.translate(translation)
-
-        # layer3 = layer1.copy()
-        # layer3.translate(2*translation)
-
-        # layer4 = graphene.copy()
-        # layer4.set_chemical_symbols(["N"]*len(layer2))
-        # rng = RandomState(47)
-        # systax.geometry.make_random_displacement(layer4, 1, rng)
-        # layer4.translate(3*translation)
-
-        # system = layer1 + layer2 + layer3 + layer4
-
-        # old_cell = system.get_cell()
-        # old_cell[0, :] *= 3
-        # old_cell[2, :] = np.array([0, 0, 8])
-        # system.set_cell(old_cell)
-        # system.center()
-        # # view(system)
-
-        # # Should be classified as Class2D because the coverage is too small
-        # classifier = Classifier(max_cell_size=4)
-        # classification = classifier.classify(system)
-        # self.assertEqual(type(classification), Class2D)
-
-    # def test_surface_difficult_basis_atoms(self):
-        # """This is a surface where the atoms on top of the surface will get
-        # easily classified as adsorbates if the chemical environment detection
-        # is not tuned correctly.
-        # """
-        # system = get_atoms_from_viz("./structures/O24Sr8Ti12.json")
-        # # view(system)
-
-        # # With a little higher chemical similarity threshold the whole surface
-        # # is not detected
-        # classifier = Classifier(chem_similarity_threshold=0.45)
+        # classifier = Classifier()
         # classification = classifier.classify(system)
         # self.assertIsInstance(classification, Surface)
 
-        # # Has outliers with these settings
+        # # No outliers
         # outliers = classification.outliers
-        # self.assertTrue(len(outliers) != 0)
+        # self.assertEqual(len(outliers), 0)
 
-        # # With a little lower chemical similarity threshold the whole surface
-        # # is again detected
-        # classifier = Classifier(chem_similarity_threshold=0.40)
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+    def test_adsorbate_detection_via_neighbourhood(self):
+        """Test that adsorbates that are in a basis atom position, but do not
+        exhibit the correct chemical neighbourhood are identified.
+        """
+        system = get_atoms_from_arch("./structures/Pbsl6Hlb_C1aXadFiJ58UCUek5a8x.json")
+        # view(system)
 
-        # # Has outliers with these settings
-        # outliers = classification.outliers
-        # self.assertTrue(len(outliers) == 0)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-    # # def test_surface_with_one_cell_but_periodic_backbone(self):
-        # # """This is a surface that ultimately has only one repetition of the
-        # # underlying unit cell in the simulation cell. Normally it would not get
-        # # classified, but because it has a periodic backbone of Barium atoms,
-        # # they are identified as the unit cell and everything inside is
-        # # identified as outliers. Such systems still pose a challenge to the
-        # # algorithm.
-        # # """
-        # # system = get_atoms_from_viz("./structures/Ba16+O40Si12.json")
-        # # view(system)
+        # Only adsorbates
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # # classifier = Classifier()
-        # # classification = classifier.classify(system)
-        # # self.assertIsInstance(classification, Surface)
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 18)
+        self.assertEqual(len(unknowns), 0)
+        self.assertTrue(np.array_equal(adsorbates, np.arange(0, 18)))
 
-        # # # No outliers
-        # # outliers = classification.outliers
-        # # self.assertEqual(len(outliers), 0)
+    def test_surface_wrong_cm(self):
+        """Test that the seed atom is correctly chosen near the center of mass
+        even if the structure is cut.
+        """
+        system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
+        adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
+        system += adsorbate
+        system.set_pbc([True, True, True])
+        system.translate([0, 0, 10])
+        system.wrap()
+        # view(system)
 
-    # def test_adsorbate_detection_via_neighbourhood(self):
-        # """Test that adsorbates that are in a basis atom position, but do not
-        # exhibit the correct chemical neighbourhood are identified.
-        # """
-        # system = get_atoms_from_arch("./structures/Pbsl6Hlb_C1aXadFiJ58UCUek5a8x.json")
-        # # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # One adsorbate
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 1)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Only adsorbates
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
+    def test_search_beyond_limits(self):
+        """In this system the found unit cell cannot be used to seach the whole
+        surface unless seed atoms for unit cells beyond the original simulation
+        cell boundaries are not allowed.
+        """
+        system = get_atoms_from_arch("./structures/PEzXqLISX8Pam-HlJMxeLc86lcKgf.json")
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 18)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertTrue(np.array_equal(adsorbates, np.arange(0, 18)))
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-    # def test_surface_wrong_cm(self):
-        # """Test that the seed atom is correctly chosen near the center of mass
-        # even if the structure is cut.
-        # """
-        # system = bcc100('Fe', size=(3, 3, 4), vacuum=8)
-        # adsorbate = ase.Atom(position=[4, 4, 4], symbol="H")
-        # system += adsorbate
-        # system.set_pbc([True, True, True])
-        # system.translate([0, 0, 10])
-        # system.wrap()
-        # # view(system)
+        # Only adsorbates
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(adsorbates), 14)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(interstitials), 0)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+    def test_ordered_adsorbates(self):
+        """Test surface where on top there are adsorbates with high
+        connectivity in two directions. These kind of adsorbates could not be
+        detected if the size of the connected components would not be checked.
+        """
+        system = get_atoms_from_arch("./structures/P8Wnwz4dfyea6UAD0WEBadXv83wyf.json")
+        # view(system)
 
-        # # One adsorbate
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 1)
-        # self.assertEqual(len(unknowns), 0)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-    # def test_search_beyond_limits(self):
-        # """In this system the found unit cell cannot be used to seach the whole
-        # surface unless seed atoms for unit cells beyond the original simulation
-        # cell boundaries are not allowed.
-        # """
-        # system = get_atoms_from_arch("./structures/PEzXqLISX8Pam-HlJMxeLc86lcKgf.json")
+        # Only adsorbates
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 13)
+        self.assertEqual(len(unknowns), 0)
+        self.assertTrue(np.array_equal(adsorbates, np.arange(0, 13)))
 
-        # # Only adsorbates
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(adsorbates), 14)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertEqual(len(interstitials), 0)
+    def test_surface_with_one_basis_vector_as_span(self):
+        system = get_atoms_from_viz("./structures/C2H4Ru36.json")
+        # view(system)
 
-    # def test_ordered_adsorbates(self):
-        # """Test surface where on top there are adsorbates with high
-        # connectivity in two directions. These kind of adsorbates could not be
-        # detected if the size of the connected components would not be checked.
-        # """
-        # system = get_atoms_from_arch("./structures/P8Wnwz4dfyea6UAD0WEBadXv83wyf.json")
-        # # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # view(classification.region.recreate_valid())
 
-        # # Only adsorbates
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
+        # Only adsorbates
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 6)
+        self.assertEqual(len(unknowns), 0)
+        self.assertTrue(np.array_equal(adsorbates, np.arange(0, 6)))
 
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 13)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertTrue(np.array_equal(adsorbates, np.arange(0, 13)))
+    def test_cut_surface(self):
+        """Test a surface that has been cut by the cell boundary. Should still
+        be detected as single surface.
+        """
+        system = get_atoms_from_viz("./structures/Ba20O52Ti20.json")
+        # view(system)
 
-    # def test_surface_with_one_basis_vector_as_span(self):
-        # system = get_atoms_from_viz("./structures/C2H4Ru36.json")
-        # # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Pristine
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
 
-        # # view(classification.region.recreate_valid())
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
-        # # Only adsorbates
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 6)
-        # self.assertEqual(len(unknowns), 0)
-        # self.assertTrue(np.array_equal(adsorbates, np.arange(0, 6)))
+    def test_zinc_blende(self):
+        system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
+        system = system.repeat((4, 4, 2))
+        cell = system.get_cell()
+        cell[2, :] *= 3
+        system.set_cell(cell)
+        system.center()
+        # view(system)
 
-    # def test_cut_surface(self):
-        # """Test a surface that has been cut by the cell boundary. Should still
-        # be detected as single surface.
-        # """
-        # system = get_atoms_from_viz("./structures/Ba20O52Ti20.json")
-        # # view(system)
+        classifier = Classifier()
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Surface)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
+        # Check that the right cell is found
+        analyzer = classification.cell_analyzer
+        space_group = analyzer.get_space_group_number()
+        self.assertEqual(space_group, 216)
 
-        # # Pristine
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
-
-    # def test_zinc_blende(self):
-        # system = Zincblende(symbol=["Au", "Fe"], latticeconstant=5)
-        # system = system.repeat((4, 4, 2))
-        # cell = system.get_cell()
-        # cell[2, :] *= 3
-        # system.set_cell(cell)
-        # system.center()
-        # # view(system)
-
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Surface)
-
-        # # Check that the right cell is found
-        # analyzer = classification.cell_analyzer
-        # space_group = analyzer.get_space_group_number()
-        # self.assertEqual(space_group, 216)
-
-        # # No defects or unknown atoms
-        # adsorbates = classification.adsorbates
-        # interstitials = classification.interstitials
-        # substitutions = classification.substitutions
-        # vacancies = classification.vacancies
-        # unknowns = classification.unknowns
-        # self.assertEqual(len(interstitials), 0)
-        # self.assertEqual(len(substitutions), 0)
-        # self.assertEqual(len(vacancies), 0)
-        # self.assertEqual(len(adsorbates), 0)
-        # self.assertEqual(len(unknowns), 0)
+        # No defects or unknown atoms
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(len(unknowns), 0)
 
     def test_bcc_pristine_thin_surface(self):
         system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
@@ -2715,17 +2779,17 @@ class NomadTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
