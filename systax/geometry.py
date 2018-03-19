@@ -99,7 +99,7 @@ def get_dimensionality(
     # distance to allow is cluster_threshold + 2*max_radii
     radii = covalent_radii[num_1x]
     max_radii = radii.max()
-    max_distance = cluster_threshold*2*max_radii
+    max_distance = cluster_threshold + 2*max_radii
 
     # 1x1x1 system
     if dist_matrix_radii_mic_1x is None:

@@ -78,7 +78,7 @@ class Classifier():
                 considered to be parallel.
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
-                perfomed.
+                perfomed. Given in angstroms.
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
@@ -252,7 +252,7 @@ class Classifier():
         if dimensionality == 0:
             classification = Class0D()
 
-            # Systems with one atom are classified separately
+            # Systems with one atom have their own classification.
             n_atoms = len(system)
             if n_atoms == 1:
                 classification = Atom()
