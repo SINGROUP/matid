@@ -373,101 +373,103 @@ class DimensionalityTests(unittest.TestCase):
     classifier = Classifier()
     cluster_threshold = classifier.cluster_threshold
 
+    # 0D system
+    sys0d = molecule("H2O")
+    sys0d.set_pbc([False, False, False])
+    sys0d.set_cell([3, 3, 3])
+    sys0d.center()
+
+    # 1D system
+    sys1d = nanotube(3, 3, length=6, bond=1.4, symbol='Si')
+    sys1d.set_pbc([True, True, True])
+    sys1d.set_cell((10, 10, 15))
+    sys1d.center()
+
+    # 2D system
+    sys2d = Atoms(
+        symbols=[6, 6],
+        cell=np.array((
+            [2.4595121467478055, 0.0, 0.0],
+            [-1.2297560733739028, 2.13, 0.0],
+            [0.0, 0.0, 10.0]
+        )),
+        scaled_positions=np.array((
+            [0.3333333333333333, 0.6666666666666666, 0.5],
+            [0.6666666666666667, 0.33333333333333337, 0.5]
+        )),
+    )
+    sys2d = sys2d.repeat((3, 3, 1))
+
+    # 3D system
+    sys3d = ase.lattice.cubic.Diamond(
+        size=(1, 1, 1),
+        symbol='Si',
+        pbc=True,
+        latticeconstant=5.430710)
+
+    def test_0d_n_pbc0(self):
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys0d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 0)
+
+    def test_0d_n_pbc3(self):
+        DimensionalityTests.sys1d.set_pbc([True, True, True])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys0d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 0)
+
+    def test_1d_n_pbc3(self):
+        DimensionalityTests.sys1d.set_pbc([True, True, True])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys1d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 1)
+
+    def test_1d_n_pbc2(self):
+        DimensionalityTests.sys1d.set_pbc([False, True, True])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys1d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 1)
+
+    def test_1d_n_pbc1(self):
+        DimensionalityTests.sys1d.set_pbc([False, False, True])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys1d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 1)
+
+    def test_2d_n_pbc3(self):
+        DimensionalityTests.sys2d.set_pbc([True, True, True])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys2d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 2)
+
+    def test_2d_n_pbc2(self):
+        DimensionalityTests.sys2d.set_pbc([True, True, False])
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys2d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 2)
+
+    def test_3d_n_pbc3(self):
+        dimensionality = systax.geometry.get_dimensionality(
+            DimensionalityTests.sys3d,
+            DimensionalityTests.cluster_threshold)
+        self.assertEqual(dimensionality, 3)
+
     def test_non_orthogonal_crystal(self):
         """Test a system that has a non-orthogonal cell.
         """
-        with open("./structures/PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json", "r") as fin:
-            data = json.load(fin)
-
-        section_system = data["sections"]["section_run-0"]["sections"]["section_system-0"]
-
-        system = Atoms(
-            positions=1e10*np.array(section_system["atom_positions"]),
-            cell=1e10*np.array(section_system["simulation_cell"]),
-            symbols=section_system["atom_labels"],
-            pbc=True,
-        )
-
+        system = get_atoms_from_arch("./structures/PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.json")
         dimensionality = systax.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold
         )
         self.assertEqual(dimensionality, 3)
-
-    def test_atom(self):
-        system = Atoms(
-            positions=[[0, 0, 0]],
-            symbols=["H"],
-            cell=[10, 10, 10],
-            pbc=True,
-        )
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 0)
-
-    def test_atom_no_pbc(self):
-        system = Atoms(
-            positions=[[0, 0, 0]],
-            symbols=["H"],
-            cell=[1, 1, 1],
-            pbc=False,
-        )
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 0)
-
-    def test_molecule(self):
-        system = molecule("H2O")
-        gap = 10
-        system.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
-        system.set_pbc([True, True, True])
-        system.center()
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 0)
-
-    def test_2d_centered(self):
-        graphene = Atoms(
-            symbols=[6, 6],
-            cell=np.array((
-                [2.4595121467478055, 0.0, 0.0],
-                [-1.2297560733739028, 2.13, 0.0],
-                [0.0, 0.0, 20.0]
-            )),
-            scaled_positions=np.array((
-                [0.3333333333333333, 0.6666666666666666, 0.5],
-                [0.6666666666666667, 0.33333333333333337, 0.5]
-            )),
-            pbc=True
-        )
-        system = graphene.repeat([2, 1, 1])
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
-
-    def test_2d_partial_pbc(self):
-        graphene = Atoms(
-            symbols=[6, 6],
-            cell=np.array((
-                [2.4595121467478055, 0.0, 0.0],
-                [-1.2297560733739028, 2.13, 0.0],
-                [0.0, 0.0, 1.0]
-            )),
-            scaled_positions=np.array((
-                [0.3333333333333333, 0.6666666666666666, 0.5],
-                [0.6666666666666667, 0.33333333333333337, 0.5]
-            )),
-            pbc=[True, True, False]
-        )
-        system = graphene.repeat([2, 1, 1])
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
 
     def test_surface_split(self):
         """Test a surface that has been split by the cell boundary
@@ -485,7 +487,7 @@ class DimensionalityTests(unittest.TestCase):
         """Test a surface with a high amplitude wave. This would break a
         regular linear vacuum gap search.
         """
-        system = bcc100('Fe', size=(15, 15, 3), vacuum=8)
+        system = bcc100('Fe', size=(15, 3, 3), vacuum=8)
         pos = system.get_positions()
         x_len = np.linalg.norm(system.get_cell()[0, :])
         x = pos[:, 0]
@@ -501,23 +503,13 @@ class DimensionalityTests(unittest.TestCase):
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
 
-    def test_crystal(self):
-        system = ase.lattice.cubic.Diamond(
-            size=(1, 1, 1),
-            symbol='Si',
-            pbc=True,
-            latticeconstant=5.430710)
-        dimensionality = systax.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 3)
-
     def test_graphite(self):
         system = ase.lattice.hexagonal.Graphite(
             size=(1, 1, 1),
             symbol='C',
             pbc=True,
             latticeconstant=(2.461, 6.708))
+        # view(system)
         dimensionality = systax.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold)

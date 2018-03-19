@@ -3,6 +3,7 @@ a atomic system.
 """
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import math
 import itertools
 from collections import defaultdict
 
@@ -134,8 +135,8 @@ def get_dimensionality(
         )
 
     # 2x2x2 system
-    n_periodic = pbc.sum()
-    if n_periodic > 0:
+    n_pbc = np.sum(pbc)
+    if n_pbc > 0:
 
         repeats = np.array([1, 1, 1])
         repeats[pbc] = 2
@@ -163,27 +164,11 @@ def get_dimensionality(
         clusters_2x = db.labels_
         n_clusters_2x = len(np.unique(clusters_2x))
 
-        if n_periodic == 1:
-            if n_clusters_2x == 1:
-                return 1
-            elif n_clusters_2x == 2:
-                return 0
-        elif n_periodic == 2:
-            if n_clusters_2x == 1:
-                return 2
-            elif n_clusters_2x == 2:
-                return 1
-            elif n_clusters_2x == 4:
-                return 0
-        elif n_periodic == 3:
-            if n_clusters_2x == 1:
-                return 3
-            elif n_clusters_2x == 2:
-                return 2
-            elif n_clusters_2x == 4:
-                return 1
-            elif n_clusters_2x == 8:
-                return 0
+        # This is the analytic formula for the dimensionality based on cluster
+        # size on a 2x supersystem.
+        dim = int(n_pbc - math.log(n_clusters_2x, 2))
+        return dim
+
     else:
         return 0
 
