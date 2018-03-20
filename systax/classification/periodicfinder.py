@@ -1293,7 +1293,8 @@ class PeriodicFinder():
             used_seed_indices,
             old_moves,
             collection._wrapped_moves,
-            collection._used_points
+            collection._used_points,
+            collection._search_graph
         )
 
         # Translate and wrap the searched positions
@@ -1407,6 +1408,7 @@ class PeriodicFinder():
             old_moves,
             wrapped_moves,
             used_points,
+            search_graph,
         ):
         """When given a prototype unit cell shape and a set of search
         directions, searches for new seed atoms that are used to initiate a
@@ -1517,6 +1519,11 @@ class PeriodicFinder():
                 # structures.
                 add = True
                 if match is not None:
+
+                    # Add this link to the search graph. The graph will later
+                    # be used to analyze the region.
+                    search_graph.add_edge(seed_index, match, multiplier=multiplier)
+                    # search_graph.add_edge(match, seed_index, multiplier=-multiplier)
 
                     if match in used_indices:
                         add = False

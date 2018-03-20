@@ -309,9 +309,9 @@ class Classifier():
 
                     # Check that the region was connected cyclically in two
                     # directions
-                    # region_conn = best_region.get_connected_directions()
-                    # n_region_conn = np.sum(region_conn)
-                    # region_is_periodic = n_region_conn == 2
+                    region_conn = best_region.get_connected_directions()
+                    n_region_conn = np.sum(region_conn)
+                    region_is_periodic = n_region_conn == 2
 
                     # This might be unnecessary because the connectivity of the
                     # unit cell is already checked.
@@ -332,8 +332,8 @@ class Classifier():
                     coverage = n_basis_atoms/n_atoms
                     covered = coverage >= self.min_coverage
 
-                    # if not split and covered and region_is_periodic:
-                    if not split and covered:
+                    if not split and covered and region_is_periodic:
+                    # if not split and covered:
                         if best_region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
                             # in the cell is not periodic. Now that the cell

@@ -50,7 +50,7 @@ class LinkedUnitCollection(dict):
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
-        self._search_graph = nx.DiGraph()
+        self._search_graph = nx.MultiDiGraph()
         self._wrapped_moves = []
         self._used_points = set()
         self._search_pattern = None
@@ -510,10 +510,59 @@ class LinkedUnitCollection(dict):
         """During the tracking of the region the information about searches
         that matched an atom twive but with a negated multiplier are stored.
         """
+        # cycles = list(nx.cycle_basis(nx.Graph(self._search_graph)))
+        cycles = list(nx.simple_cycles(self._search_graph))
+        # cycles = cycles[1:2]
+        # print(cycles)
+        # print(len(cycles))
+        # from networkx import draw_networkx
+        # import matplotlib.pyplot as mpl
+
+        # draw_networkx(self._search_graph)
+        # mpl.show()
+
+        # For each loop, we calculate the total displacement. If it is nonzero,
+        # the nonzero direction is marked as a connected direction.
         connected_directions = np.array([False, False, False])
-        moves = [x[2] for x in self._wrapped_moves]
-        moves = np.array(moves)
-        indices = np.where(moves != 0)[1]
+        loop_multipliers = []
+        for i_loop, loop in enumerate(cycles):
+            loop_len = len(loop)
+
+            # If there is a loop with length 1 or 2, it will automatically get
+            # a multiplier from a connection between these two nodes. The only
+            # way these loops can occur is through the periodic boundaries, but
+            # we cannot in this case sum the multipliers.
+            if loop_len == 1:
+                source = loop[0]
+                dest = loop[0]
+                edges = self._search_graph[source][dest]
+                for key, edge in edges.items():
+                    multiplier = edge["multiplier"]
+                    loop_multipliers.append(multiplier)
+            elif loop_len == 2:
+                source = loop[0]
+                dest = loop[1]
+                edges = self._search_graph[source][dest]
+                for key, edge in edges.items():
+                    multiplier = edge["multiplier"]
+                    loop_multipliers.append(multiplier)
+            # For loops with more than two elements, we sum the multipliers.
+            else:
+                loop_multiplier = np.array([0, 0, 0])
+                for i in range(loop_len):
+                    i_source = i
+                    i_dest = (i+1) % loop_len
+                    source = loop[i_source]
+                    dest = loop[i_dest]
+                    edges = self._search_graph[source][dest]
+
+                    # We can choose the edge freely?
+                    multiplier = list(edges.values())[0]["multiplier"]
+                    loop_multiplier += multiplier
+                loop_multipliers.append(loop_multiplier)
+
+        loop_multipliers = np.array(loop_multipliers)
+        indices = np.where(loop_multipliers != 0)[1]
         indices = np.unique(indices)
         connected_directions[indices] = True
 
