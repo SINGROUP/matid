@@ -1122,6 +1122,7 @@ class PeriodicFinder():
         used_indices = set()
         used_seed_indices = set()
         searched_vacancy_positions = []
+        old_moves = defaultdict(list)
         queue = deque()
         collection = LinkedUnitCollection(
             system,
@@ -1154,7 +1155,8 @@ class PeriodicFinder():
             periodic_indices,
             queue,
             multipliers,
-            used_seed_indices)
+            used_seed_indices,
+            old_moves)
 
         # Keep searching while new cells are found
         finished = False
@@ -1181,7 +1183,8 @@ class PeriodicFinder():
                     periodic_indices,
                     queue,
                     multipliers,
-                    used_seed_indices)
+                    used_seed_indices,
+                    old_moves)
 
         return collection
 
@@ -1229,7 +1232,8 @@ class PeriodicFinder():
             periodic_indices,
             queue,
             multipliers,
-            used_seed_indices):
+            used_seed_indices,
+            old_moves):
         """
         Args:
             system(ASE.Atoms): The original system from which the periodic
@@ -1287,8 +1291,9 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices,
             used_seed_indices,
-            collection._wrap_information,
-            collection._old_moves,
+            old_moves,
+            collection._wrapped_moves,
+            collection._used_points
         )
 
         # Translate and wrap the searched positions
@@ -1399,8 +1404,9 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices,
             used_seed_indices,
-            periodic_moves,
             old_moves,
+            wrapped_moves,
+            used_points,
         ):
         """When given a prototype unit cell shape and a set of search
         directions, searches for new seed atoms that are used to initiate a
@@ -1442,11 +1448,10 @@ class PeriodicFinder():
         # This check for some reason breaks the tracking, although it makes
         # sense to not check the same index twice. Might have something to do
         # with the changing unit cell?
-        # if seed_index in used_seed_indices:
-            # return new_cell, new_seed_indices, new_seed_pos, new_cell_indices
-        # else:
-            # used_seed_indices.add(seed_index)
-
+        if seed_index in used_points:
+            return new_cell, new_seed_indices, new_seed_pos, new_cell_indices
+        else:
+            used_points.add(seed_index)
 
         orig_cell = system.get_cell()
         orig_pos = system.get_positions()
@@ -1487,7 +1492,7 @@ class PeriodicFinder():
                     multipliers,
                     dislocations,
                     test_cell_indices):
-                multiplier = tuple(multiplier)
+                multiplier_tuple = tuple(multiplier)
 
                 # Save the position corresponding to a seed atom or a guess for it.
                 # If a match was found that is not the original seed, use it's
@@ -1518,18 +1523,24 @@ class PeriodicFinder():
 
                     # Here we store information about when the search has
                     # wrapped around the cell border into the other side of the
-                    # cell
-                    # msg = "Wrapped: {}, Factor: {}, Match: {}, Displacement: {}, Seed: {}".format(multiplier, factor, match, disloc, seed_pos)
-                    msg = "Wrapped: {}, Match: {}".format(multiplier, match)
-                    if match in used_seed_indices:
-                        old_move_list = old_moves[match]
-                        for old_move, old_seed in old_move_list:
-                            if np.all(old_move == -np.array(multiplier)):
+                    # cell. This is known by checking if the same seed atom is
+                    # matched a second time with negated displacement.
+                    # msg = "Seed: {}, Match: {}, Multiplier: {}, Displacement: {}, Seed pos: {}".format(seed_index, match, multiplier, disloc, factor)
+                    # msg = "Seed: {}, Match: {}, Multiplier: {}".format(seed_index, match, multiplier)
+                    # msg = "Seed: {}, Match: {}, Multiplier: {}, Cell index: {}".format(seed_index, match, multiplier, test_cell_index)
+                    # print(msg)
+                    # if match in used_seed_indices:
+                        # old_move_list = old_moves[match]
+                        # for old_move, old_seed, old_cell in old_move_list:
+                            # if np.all(old_move == -multiplier):
+                                # if multiplier[0] != 0:
                                 # print(msg)
-                                periodic_moves.append((seed_index, match, multiplier))
+                                # print(disloc)
+                                # print(old_move, old_seed)
+                                # wrapped_moves.append((seed_index, match, multiplier))
 
-                    used_seed_indices.add(match)
-                    old_moves[match].append((np.array(multiplier), seed_index))
+                    # used_seed_indices.add(match)
+                    # old_moves[match].append((multiplier, seed_index, test_cell_index))
 
                 if add:
                     new_seed_indices.append(match)
@@ -1544,7 +1555,7 @@ class PeriodicFinder():
                     basis_mult = [0, 0, 0]
                     basis_mult[i] = 1
                     basis_mult = tuple(basis_mult)
-                    if multiplier == basis_mult:
+                    if multiplier_tuple == basis_mult:
                         if match is None:
                             i_basis = disloc
                         else:

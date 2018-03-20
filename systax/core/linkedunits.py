@@ -11,6 +11,8 @@ from ase.data import covalent_radii
 import systax.geometry
 from systax.data import constants
 
+import networkx as nx
+
 
 class LinkedUnitCollection(dict):
     """Represents a collection of similar cells that are connected in 3D space
@@ -48,8 +50,9 @@ class LinkedUnitCollection(dict):
         self.bond_threshold = bond_threshold
         self.dist_matrix_radii_pbc = dist_matrix_radii_pbc
         self.disp_tensor_finite = disp_tensor_finite
-        self._wrap_information = []
-        self._old_moves = defaultdict(list)
+        self._search_graph = nx.DiGraph()
+        self._wrapped_moves = []
+        self._used_points = set()
         self._search_pattern = None
         self._decomposition = None
         self._inside_indices = None
@@ -502,6 +505,19 @@ class LinkedUnitCollection(dict):
             self._outside_indices = np.array(outside_indices)
 
         return self._inside_indices, self._outside_indices
+
+    def get_connected_directions(self):
+        """During the tracking of the region the information about searches
+        that matched an atom twive but with a negated multiplier are stored.
+        """
+        connected_directions = np.array([False, False, False])
+        moves = [x[2] for x in self._wrapped_moves]
+        moves = np.array(moves)
+        indices = np.where(moves != 0)[1]
+        indices = np.unique(indices)
+        connected_directions[indices] = True
+
+        return connected_directions
 
 
 class LinkedUnit():

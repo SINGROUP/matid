@@ -2080,7 +2080,6 @@ class SurfaceTests(unittest.TestCase):
         # # wrap to itself).
         # classifier = Classifier(max_cell_size=3, pos_tol=0.25)
         # classification = classifier.classify(system)
-        # print(classification)
         # self.assertEqual(type(classification), Class2D)
 
     def test_2d_motif_in_surface_easy(self):
