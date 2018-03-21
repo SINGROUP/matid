@@ -2754,36 +2754,43 @@ class NomadTests(unittest.TestCase):
         # print(classification)
         # self.assertEqual(type(classification), Class2D)
 
-    def test_fail_8(self):
+    # def test_fail_8(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/Ba15O23+BaO17Si12.json")
+        # view(system)
+        # # view(system[44:45])
+
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # print(classification)
+
+    def test_fail_9(self):
         """
         """
-        system = get_atoms_from_viz("./structures/Ba15O23+BaO17Si12.json")
-        view(system)
+        system = get_atoms_from_arch("./structures/PljJz2Ag0G4ZLfJa3lIaNufubZymC.json")
+        # view(system)
         # view(system[44:45])
 
         classifier = Classifier()
         classification = classifier.classify(system)
-        # view(classification.region.recreate_valid())
-        # view(classification.region.cell)
         print(classification)
-        # print(classification.region._wrap_information)
-        # self.assertEqual(type(classification), Class2D)
 
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)

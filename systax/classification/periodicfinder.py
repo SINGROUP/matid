@@ -476,7 +476,8 @@ class PeriodicFinder():
                 best_adjacency_lists_sub,
             )
         elif n_spans == 2:
-            proto_cell, offset = self._find_proto_cell_2d(
+            # The seed group index can get updated by the cell search
+            proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
                 seed_index,
                 seed_nodes,
                 best_combo,
@@ -557,6 +558,16 @@ class PeriodicFinder():
 
                 proto_cell = proto_cell[cluster_indices]
                 seed_group_index = seed_atom_index
+
+                # Retry to get the dimensionality for the cell in which the
+                # cluster where the seed atom is in has been separated.
+                try:
+                    dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+                except SystaxError as e:
+                    return None, None, None
+                else:
+                    if dimensionality != 2:
+                        return None, None, None
             else:
                 if dimensionality != 2:
                     return None, None, None
@@ -906,7 +917,7 @@ class PeriodicFinder():
         )
         offset = proto_cell.get_positions()[seed_group_index]
 
-        return proto_cell, offset
+        return proto_cell, offset, seed_group_index
 
     def _find_best_basis(self, valid_spans, valid_span_metrics):
         """Used to choose the best basis from a set of valid ones.
