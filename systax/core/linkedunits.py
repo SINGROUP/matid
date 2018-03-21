@@ -528,10 +528,9 @@ class LinkedUnitCollection(dict):
         for i_loop, loop in enumerate(cycles):
             loop_len = len(loop)
 
-            # If there is a loop with length 1 or 2, it will automatically get
-            # a multiplier from a connection between these two nodes. The only
-            # way these loops can occur is through the periodic boundaries, but
-            # we cannot in this case sum the multipliers.
+            # A self-loop can be formed when the found vector corresponds to a
+            # simulation vector. In this case the loop has only one element,
+            # and all the edges are valid multipliers.
             if loop_len == 1:
                 source = loop[0]
                 dest = loop[0]
@@ -539,6 +538,11 @@ class LinkedUnitCollection(dict):
                 for key, edge in edges.items():
                     multiplier = edge["multiplier"]
                     loop_multipliers.append(multiplier)
+            # A loop between two atoms can be formed when there are only two
+            # repetitions of the cell per simulation cell basis vector. In any
+            # of the preset multipliers will be valid. Two-element loops within
+            # the simulation cell cannot be formed because the search never
+            # come back to an atom without crossing the periodic boundary.
             elif loop_len == 2:
                 source = loop[0]
                 dest = loop[1]
@@ -546,20 +550,10 @@ class LinkedUnitCollection(dict):
                 for key, edge in edges.items():
                     multiplier = edge["multiplier"]
                     loop_multipliers.append(multiplier)
-            # For loops with more than two elements, we sum the multipliers.
+            # We can ignore loops with more elements. The two-body loops will
+            # already tell the directions in which the graph is periodic.
             else:
-                loop_multiplier = np.array([0, 0, 0])
-                for i in range(loop_len):
-                    i_source = i
-                    i_dest = (i+1) % loop_len
-                    source = loop[i_source]
-                    dest = loop[i_dest]
-                    edges = self._search_graph[source][dest]
-
-                    # We can choose the edge freely?
-                    multiplier = list(edges.values())[0]["multiplier"]
-                    loop_multiplier += multiplier
-                loop_multipliers.append(loop_multiplier)
+                pass
 
         loop_multipliers = np.array(loop_multipliers)
         indices = np.where(loop_multipliers != 0)[1]

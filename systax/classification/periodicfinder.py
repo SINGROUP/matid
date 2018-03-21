@@ -1122,7 +1122,6 @@ class PeriodicFinder():
         used_indices = set()
         used_seed_indices = set()
         searched_vacancy_positions = []
-        old_moves = defaultdict(list)
         queue = deque()
         collection = LinkedUnitCollection(
             system,
@@ -1155,8 +1154,7 @@ class PeriodicFinder():
             periodic_indices,
             queue,
             multipliers,
-            used_seed_indices,
-            old_moves)
+            used_seed_indices)
 
         # Keep searching while new cells are found
         finished = False
@@ -1183,8 +1181,7 @@ class PeriodicFinder():
                     periodic_indices,
                     queue,
                     multipliers,
-                    used_seed_indices,
-                    old_moves)
+                    used_seed_indices)
 
         return collection
 
@@ -1232,8 +1229,8 @@ class PeriodicFinder():
             periodic_indices,
             queue,
             multipliers,
-            used_seed_indices,
-            old_moves):
+            used_seed_indices
+        ):
         """
         Args:
             system(ASE.Atoms): The original system from which the periodic
@@ -1291,8 +1288,6 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices,
             used_seed_indices,
-            old_moves,
-            collection._wrapped_moves,
             collection._used_points,
             collection._search_graph
         )
@@ -1405,8 +1400,6 @@ class PeriodicFinder():
             cell_index,
             searched_cell_indices,
             used_seed_indices,
-            old_moves,
-            wrapped_moves,
             used_points,
             search_graph,
         ):
@@ -1523,31 +1516,9 @@ class PeriodicFinder():
                     # Add this link to the search graph. The graph will later
                     # be used to analyze the region.
                     search_graph.add_edge(seed_index, match, multiplier=multiplier)
-                    # search_graph.add_edge(match, seed_index, multiplier=-multiplier)
 
                     if match in used_indices:
                         add = False
-
-                    # Here we store information about when the search has
-                    # wrapped around the cell border into the other side of the
-                    # cell. This is known by checking if the same seed atom is
-                    # matched a second time with negated displacement.
-                    # msg = "Seed: {}, Match: {}, Multiplier: {}, Displacement: {}, Seed pos: {}".format(seed_index, match, multiplier, disloc, factor)
-                    # msg = "Seed: {}, Match: {}, Multiplier: {}".format(seed_index, match, multiplier)
-                    # msg = "Seed: {}, Match: {}, Multiplier: {}, Cell index: {}".format(seed_index, match, multiplier, test_cell_index)
-                    # print(msg)
-                    # if match in used_seed_indices:
-                        # old_move_list = old_moves[match]
-                        # for old_move, old_seed, old_cell in old_move_list:
-                            # if np.all(old_move == -multiplier):
-                                # if multiplier[0] != 0:
-                                # print(msg)
-                                # print(disloc)
-                                # print(old_move, old_seed)
-                                # wrapped_moves.append((seed_index, match, multiplier))
-
-                    # used_seed_indices.add(match)
-                    # old_moves[match].append((multiplier, seed_index, test_cell_index))
 
                 if add:
                     new_seed_indices.append(match)
