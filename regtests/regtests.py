@@ -1833,6 +1833,7 @@ class Material3DTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+
     def test_2d_motif_in_surface_hard(self):
         """Test that if a 2D substructure is found within a surface, and the 2D
         substructure covers a lot of the structure, the entire structure is
@@ -2136,24 +2137,30 @@ class SurfaceTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    def test_bcc_pristine_thin_surface(self):
-        system = bcc100('Fe', size=(3, 3, 3), vacuum=8)
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Surface)
+    def test_thin_complex_surface(self):
+        """Test for a complex thin surface with adsorbate. This surface has
+        only two repetitions in the surface normal direction.
+        """
+        system = get_atoms_from_viz("./structures/C9Mo16O2.json")
+        view(system)
 
-        # No defects or unknown atoms
+        classifier = Classifier(pos_tol=0.75)
+        classification = classifier.classify(system)
+        self.assertEqual(type(classification), Surface)
+
+        # CO2 adsorbate
         adsorbates = classification.adsorbates
         interstitials = classification.interstitials
         substitutions = classification.substitutions
         vacancies = classification.vacancies
         unknowns = classification.unknowns
+
         self.assertEqual(len(interstitials), 0)
         self.assertEqual(len(substitutions), 0)
         self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(adsorbates), 3)
+        self.assertTrue(np.array_equal(adsorbates, np.array([24, 25, 26])))
 
     def test_bcc_pristine_small_surface(self):
         system = bcc100('Fe', size=(1, 1, 3), vacuum=8)
@@ -2765,16 +2772,40 @@ class NomadTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # print(classification)
 
-    def test_fail_9(self):
-        """
-        """
-        system = get_atoms_from_arch("./structures/PljJz2Ag0G4ZLfJa3lIaNufubZymC.json")
-        # view(system)
-        # view(system[44:45])
+    # def test_fail_9(self):
+        # """
+        # """
+        # system = get_atoms_from_arch("./structures/PljJz2Ag0G4ZLfJa3lIaNufubZymC.json")
+        # # view(system)
+        # # view(system[44:45])
 
-        classifier = Classifier()
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # print(classification)
+
+    def test_thin_complex_surface(self):
+        """Test for a complex thin surface with adsorbate.
+        """
+        system = get_atoms_from_viz("./structures/C9Mo16O2.json")
+        # view(system)
+
+        classifier = Classifier(pos_tol=0.75)
         classification = classifier.classify(system)
-        print(classification)
+        self.assertEqual(type(classification), Surface)
+
+        # CO2 adsorbate
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(adsorbates), 3)
+        self.assertTrue(np.array_equal(adsorbates, np.array([24, 25, 26])))
 
 
 if __name__ == '__main__':

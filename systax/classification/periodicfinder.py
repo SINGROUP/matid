@@ -597,6 +597,12 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
+        """
+        Returns:
+            unit_cell(ase.Atoms): The unit cell
+            offset(np.ndarray): The cartesian offset of the seed atom in the
+                cell.
+        """
 
         # Find the seed positions copies that are within the neighbourhood
         orig_cell = system.get_cell()
@@ -724,7 +730,6 @@ class PeriodicFinder():
         seed_group_index = new_group_index
 
         averaged_rel_pos = np.array(averaged_rel_pos)
-        offset = averaged_rel_pos[seed_group_index]
 
         proto_cell = Atoms(
             scaled_positions=averaged_rel_pos,
@@ -732,6 +737,8 @@ class PeriodicFinder():
             cell=best_spans,
             pbc=[True, True, True]
         )
+
+        offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset
 
@@ -747,7 +754,11 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
-        """Used to get a prototype cell for 2D materials.
+        """
+        Returns:
+            unit_cell(ase.Atoms): The unit cell
+            offset(np.ndarray): The cartesian offset of the seed atom in the
+                cell.
         """
         orig_cell = system.get_cell()
 
@@ -907,7 +918,6 @@ class PeriodicFinder():
         # Move the seed positions back to the origin now that the search has
         # been performed
         averaged_rel_pos = np.array(averaged_rel_pos)
-        # averaged_rel_pos -= np.array([0, 0, 0.5])
 
         proto_cell = Atoms(
             cell=basis,
@@ -1119,6 +1129,11 @@ class PeriodicFinder():
         atomic_numbers = system.get_atomic_numbers()
         seed_pos = positions[seed_index]
         seed_number = atomic_numbers[seed_index]
+
+        # view(unit_cell)
+        # seed_position = np.array([0, 0, 0])
+        # print(seed_position)
+        # print(seed_index)
 
         # Create a map between an atomic number and indices in the system
         number_to_index_map = {}

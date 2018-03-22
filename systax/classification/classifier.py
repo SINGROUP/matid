@@ -333,7 +333,6 @@ class Classifier():
                     covered = coverage >= self.min_coverage
 
                     if not split and covered and region_is_periodic:
-                    # if not split and covered:
                         if best_region.is_2d:
                             # The Class2DAnalyzer needs to know which direcion
                             # in the cell is not periodic. Now that the cell

@@ -187,7 +187,6 @@ class LinkedUnitCollection(dict):
             with chronic.Timer("chemical_environment_basis"):
                 neighbour_map = self.get_basis_atom_neighbourhood()
 
-
             with chronic.Timer("chemical_environment_units"):
                 indices = set()
                 for unit in self.values():
@@ -208,10 +207,10 @@ class LinkedUnitCollection(dict):
                                 # print(chem_similarity)
                                 # print(ideal_environment)
                                 # print(real_environment)
+                # print(indices)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()
-
             self._basis_indices = np.array(list(indices))
 
         return self._basis_indices
