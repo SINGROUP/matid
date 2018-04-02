@@ -38,6 +38,9 @@ from systax import Class3DAnalyzer
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
 import systax.geometry
 
+from networkx import draw_networkx
+import matplotlib.pyplot as mpl
+
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
@@ -1833,7 +1836,6 @@ class Material3DTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
-
     def test_2d_motif_in_surface_hard(self):
         """Test that if a 2D substructure is found within a surface, and the 2D
         substructure covers a lot of the structure, the entire structure is
@@ -2142,7 +2144,7 @@ class SurfaceTests(unittest.TestCase):
         only two repetitions in the surface normal direction.
         """
         system = get_atoms_from_viz("./structures/C9Mo16O2.json")
-        view(system)
+        # view(system)
 
         classifier = Classifier(pos_tol=0.75)
         classification = classifier.classify(system)
@@ -2686,6 +2688,140 @@ class Material3DAnalyserTests(unittest.TestCase):
         return data
 
 
+class SearchGraphTests(unittest.TestCase):
+    """For testing the detection of finite regions by analyzing the
+    connectivity of different unit cell.
+    """
+    def test_non_orthogonal_cell_1(self):
+        """Non-orthogonal cell with only one atom.
+        """
+        cell = np.array([
+            [7.8155, 0., 0.],
+            [-3.9074, 6.7683, 0.],
+            [0., 0., 175.]
+        ])
+        cell[0:2, :] *= 0.5
+        pos = np.array([
+            [0.0, 0.0, 0.5],
+        ])
+        symbols = np.array(["Sr"])
+        system = Atoms(
+            scaled_positions=pos,
+            cell=cell,
+            symbols=symbols,
+            pbc=True
+        )
+        # view(system)
+
+        finder = PeriodicFinder()
+        region = finder.get_region(system, 0, 5, 0.7)
+        # view(region.cell)
+
+        G = region._search_graph
+        # draw_networkx(G)
+        # mpl.show()
+
+        # Check that the correct graph is created
+        self.assertEqual(len(G.nodes), 1)
+        self.assertEqual(len(G.edges), 4)
+
+        # Check graph periodicity
+        periodicity = region.get_connected_directions()
+        self.assertTrue(np.array_equal(periodicity, [True, True, False]))
+
+    def test_non_orthogonal_cell_2(self):
+        """Non-orthogonal cell with two atoms.
+        """
+        cell = np.array([
+            [7.8155, 0., 0.],
+            [-3.9074, 6.7683, 0.],
+            [0., 0., 175.]
+        ])
+        cell[1:2, :] *= 0.5
+        pos = np.array([
+            [0.66041568, 0.64217915, 0.49500249],
+            [0.1463031, 0.60235042, 0.49423654],
+        ])
+        symbols = np.array(2*["Sr"])
+        system = Atoms(
+            scaled_positions=pos,
+            cell=cell,
+            symbols=symbols,
+            pbc=True
+        )
+        # view(system)
+
+        finder = PeriodicFinder()
+        region = finder.get_region(system, 0, 5, 0.8)
+        # view(region.cell)
+
+        G = region._search_graph
+        # draw_networkx(G)
+        # mpl.show()
+
+        # Check that the correct graph is created
+        self.assertEqual(len(G.nodes), 2)
+        self.assertEqual(len(G.edges), 7)
+
+        # Check graph periodicity
+        periodicity = region.get_connected_directions()
+        self.assertTrue(np.array_equal(periodicity, [True, True, False]))
+
+    def test_non_orthogonal_cell_4(self):
+        """Non-orthogonal cell with four atoms.
+        """
+        cell = np.array([
+            [7.8155, 0., 0.],
+            [-3.9074, 6.7683, 0.],
+            [0., 0., 175.]
+        ])
+        pos = np.array([
+            [0.66041568, 0.64217915, 0.49500249],
+            [0.63081094, 0.13665159, 0.49460691],
+            [0.1463031, 0.60235042, 0.49423654],
+            [0.11211634, 0.1241777, 0.49450267]
+        ])
+        symbols = np.array(4*["Sr"])
+        system = Atoms(
+            scaled_positions=pos,
+            cell=cell,
+            symbols=symbols,
+            pbc=True
+        )
+        # view(system)
+
+        finder = PeriodicFinder()
+        region = finder.get_region(system, 0, 5, 0.7)
+        G = region._search_graph
+
+        # Check that the correct graph is created
+        self.assertEqual(len(G.nodes), 4)
+        self.assertEqual(len(G.edges), 12)
+
+        # Check graph periodicity
+        periodicity = region.get_connected_directions()
+        self.assertTrue(np.array_equal(periodicity, [True, True, False]))
+
+    def test_surface_difficult_basis_atoms(self):
+        """This is a surface where the atoms on top of the surface will get
+        easily classified as adsorbates if the chemical environment detection
+        is not tuned correctly.
+        """
+        system = get_atoms_from_viz("./structures/O24Sr8Ti12.json")
+        finder = PeriodicFinder()
+        region = finder.get_region(system, 42, 12, 1.5)
+
+        G = region._search_graph
+
+        # Check that the correct graph is created
+        self.assertEqual(len(G.nodes), 12)
+        self.assertEqual(len(G.edges), 40)
+
+        # Check graph periodicity
+        periodicity = region.get_connected_directions()
+        self.assertTrue(np.array_equal(periodicity, [False, True, True]))
+
+
 class NomadTests(unittest.TestCase):
     """
     """
@@ -2783,45 +2919,30 @@ class NomadTests(unittest.TestCase):
         # classification = classifier.classify(system)
         # print(classification)
 
-    def test_thin_complex_surface(self):
-        """Test for a complex thin surface with adsorbate.
+    def test_fail_10(self):
         """
-        system = get_atoms_from_viz("./structures/C9Mo16O2.json")
-        # view(system)
-
-        classifier = Classifier(pos_tol=0.75)
+        """
+        system = get_atoms_from_viz("./structures/CMg55NiO56.json")
+        view(system)
+        classifier = Classifier()
         classification = classifier.classify(system)
-        self.assertEqual(type(classification), Surface)
-
-        # CO2 adsorbate
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(adsorbates), 3)
-        self.assertTrue(np.array_equal(adsorbates, np.array([24, 25, 26])))
 
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)

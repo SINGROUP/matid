@@ -52,6 +52,7 @@ class LinkedUnitCollection(dict):
         self.disp_tensor_finite = disp_tensor_finite
         self._search_graph = nx.MultiDiGraph()
         self._wrapped_moves = []
+        self._index_cell_map = {}
         self._used_points = set()
         self._search_pattern = None
         self._decomposition = None
@@ -509,20 +510,33 @@ class LinkedUnitCollection(dict):
         """During the tracking of the region the information about searches
         that matched an atom twive but with a negated multiplier are stored.
         """
-        # cycles = list(nx.cycle_basis(nx.Graph(self._search_graph)))
-        cycles = list(nx.simple_cycles(self._search_graph))
-        # cycles = cycles[1:2]
-        # print(cycles)
-        # print(len(cycles))
-        # from networkx import draw_networkx
-        # import matplotlib.pyplot as mpl
+        connected_directions = np.array([False, False, False])
 
-        # draw_networkx(self._search_graph)
-        # mpl.show()
+        # OLD IMPLEMENTATION WITHOUT LOOP CHECKING
+        # Find all the nodes that have at least two incoming edges. If there
+        # are two incoming edges with negated multiplier, there is periodicity
+        # in the multiplier direction.
+        # G = self._search_graph
+        # for node in G.nodes:
+            # node_edges = G.in_edges(node, data=True)
+            # multiplier_sum = np.array([0, 0, 0])
+            # multiplier_presence = np.array([False, False, False])
+            # for edge in node_edges:
+                # multiplier = edge[2]["multiplier"]
+                # multiplier_sum += multiplier
+                # presence_mask = multiplier != 0
+                # multiplier_presence[presence_mask] = True
+            # for i in range(3):
+                # if multiplier_presence[i]:
+                    # if multiplier_sum[i] == 0:
+                        # # if i == 0:
+                        # # print("==============")
+                        # # print(G.in_edges(node, data=True))
+                        # connected_directions[i] = True
 
         # For each loop, we calculate the total displacement. If it is nonzero,
         # the nonzero direction is marked as a connected direction.
-        connected_directions = np.array([False, False, False])
+        cycles = list(nx.simple_cycles(self._search_graph))
         loop_multipliers = []
         for i_loop, loop in enumerate(cycles):
             loop_len = len(loop)

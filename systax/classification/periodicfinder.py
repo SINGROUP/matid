@@ -1300,24 +1300,6 @@ class PeriodicFinder():
         orig_cell = system.get_cell()
         orig_pbc = system.get_pbc()
 
-        # If the seed atom was not found for this cell, end the search
-        dislocations = np.dot(multipliers, old_basis)
-        new_cell, new_seed_indices, new_seed_pos, new_cell_indices = self._find_new_seeds_and_cell(
-            system,
-            seed_index,
-            seed_pos,
-            seed_atomic_number,
-            dislocations,
-            multipliers,
-            old_basis,
-            used_indices,
-            cell_index,
-            searched_cell_indices,
-            used_seed_indices,
-            collection._used_points,
-            collection._search_graph
-        )
-
         # Translate and wrap the searched positions
         test_pos = unit_cell.get_positions() - seed_offset + seed_pos
         test_pos = systax.geometry.to_scaled(orig_cell, test_pos, pbc=orig_pbc, wrap=True)
@@ -1332,6 +1314,11 @@ class PeriodicFinder():
             cell_num,
             pos_tolerances,
         )
+
+        # Associate the matched atoms to this cell
+        for match in matches:
+            if match is not None:
+                collection._index_cell_map[match] = cell_index
 
         # Save the search pattern for debugging purposes
         # collection._search_pattern += Atoms(positions=test_pos, symbols=cell_num)
@@ -1371,11 +1358,6 @@ class PeriodicFinder():
                 valid_vacancies.append(vacancy)
         searched_vacancy_positions.extend(new_vacancy_pos)
 
-        # If there are matches or substitutional atoms in the unit, add them to
-        # the collection
-        new_unit = LinkedUnit(cell_index, seed_index, seed_pos, new_cell, matches, valid_substitutions, valid_vacancies)
-        collection[cell_index] = new_unit
-
         # Save a snapshot of the process
         # from ase.io import write
         # rec = collection.recreate_valid()
@@ -1389,6 +1371,30 @@ class PeriodicFinder():
         # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
         # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
         # raise Exception("")
+
+        # Find the neighbouring cells for extending the search
+        dislocations = np.dot(multipliers, old_basis)
+        new_cell, new_seed_indices, new_seed_pos, new_cell_indices = self._find_new_seeds_and_cell(
+            system,
+            seed_index,
+            seed_pos,
+            seed_atomic_number,
+            dislocations,
+            multipliers,
+            old_basis,
+            used_indices,
+            cell_index,
+            searched_cell_indices,
+            used_seed_indices,
+            collection._used_points,
+            collection._search_graph,
+            collection._index_cell_map
+        )
+
+        # If there are matches or substitutional atoms in the unit, add them to
+        # the collection
+        new_unit = LinkedUnit(cell_index, seed_index, seed_pos, new_cell, matches, valid_substitutions, valid_vacancies)
+        collection[cell_index] = new_unit
 
         # Save the updated cell shape for the new cells in the queue
         new_sys = Atoms(
@@ -1428,6 +1434,7 @@ class PeriodicFinder():
             used_seed_indices,
             used_points,
             search_graph,
+            index_cell_map
         ):
         """When given a prototype unit cell shape and a set of search
         directions, searches for new seed atoms that are used to initiate a
@@ -1466,9 +1473,7 @@ class PeriodicFinder():
         new_cell_indices = []
         new_cell = np.array(old_cell)
 
-        # This check for some reason breaks the tracking, although it makes
-        # sense to not check the same index twice. Might have something to do
-        # with the changing unit cell?
+        # Check that no seed index is handled twice
         if seed_index in used_points:
             return new_cell, new_seed_indices, new_seed_pos, new_cell_indices
         else:
@@ -1515,11 +1520,11 @@ class PeriodicFinder():
                     test_cell_indices):
                 multiplier_tuple = tuple(multiplier)
 
-                # Save the position corresponding to a seed atom or a guess for it.
-                # If a match was found that is not the original seed, use it's
-                # position to update the cell. If the matched index is the same as
-                # the original seed, check the factors array to decide whether to
-                # use the guess or not.
+                # Save the position corresponding to a seed atom or a guess for
+                # it. If a match was found that is not the original seed, use
+                # it's position to update the cell. If the matched index is the
+                # same as the original seed, check the factors array to decide
+                # whether to use the guess or not.
                 if match is not None:
                     if match != seed_index:
                         i_seed_pos = orig_pos[match]
@@ -1537,11 +1542,21 @@ class PeriodicFinder():
                 # become a problem in e.g. random systems, or "looped"
                 # structures.
                 add = True
+
                 if match is not None:
 
-                    # Add this link to the search graph. The graph will later
-                    # be used to analyze the region.
-                    search_graph.add_edge(seed_index, match, multiplier=multiplier)
+                    # Get the index of the matched cell. If the matched atom is
+                    # already associated with a cell, use that. Otherwise
+                    # create a new index for the cell according to the
+                    # multiplier.
+                    if match in index_cell_map:
+                        target_cell = index_cell_map[match]
+                    else:
+                        target_cell = cell_index + multiplier
+                        index_cell_map[match] = target_cell
+
+                    # Add an edge to the search graph
+                    search_graph.add_edge(tuple(cell_index), tuple(target_cell), multiplier=multiplier)
 
                     if match in used_indices:
                         add = False

@@ -308,10 +308,13 @@ class Classifier():
                 with chronic.Timer("region_analysis"):
 
                     # Check that the region was connected cyclically in two
-                    # directions
+                    # directions. This ensures that finite systems or systems
+                    # with a dislocation at the cell boundary are filtered.
                     region_conn = best_region.get_connected_directions()
                     n_region_conn = np.sum(region_conn)
                     region_is_periodic = n_region_conn == 2
+                    # print(best_region[(0, 0, 0)].seed_index)
+                    # view(best_region.cell)
 
                     # This might be unnecessary because the connectivity of the
                     # unit cell is already checked.
