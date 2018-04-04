@@ -1556,7 +1556,17 @@ class PeriodicFinder():
                         index_cell_map[match] = target_cell
 
                     # Add an edge to the search graph
+                    search_graph.add_node(tuple(cell_index), index=seed_index)
+                    search_graph.add_node(tuple(target_cell), index=match)
                     search_graph.add_edge(tuple(cell_index), tuple(target_cell), multiplier=multiplier)
+
+                    # if (seed_index == 6 and match == 17) or (seed_index == 17 and match == 6):
+                        # print("==============")
+                        # print(target_cell)
+                        # print(disloc)
+                        # print(seed_pos)
+                        # print(multiplier)
+                        # print(cell_index)
 
                     if match in used_indices:
                         add = False
