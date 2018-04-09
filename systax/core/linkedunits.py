@@ -65,6 +65,7 @@ class LinkedUnitCollection(dict):
         self._basis_indices = None
         self._basis_environments = None
         self._translations = None
+        self._pos_tol = None
         dict.__init__(self)
 
     def __setitem__(self, key, value):
@@ -585,6 +586,34 @@ class LinkedUnitCollection(dict):
         # connected_directions[indices] = True
 
         return connected_directions
+
+    # def get_cell_statistically_valid(self):
+        # """Checks that in this region a certain fraction of the cells is
+        # complete, i.e. has all the atoms that were found for the prototype
+        # cell.
+        # """
+        # n_all = 0
+        # index_occurrence_map = defaultdict(lambda: 0)
+        # for cell in self.values():
+            # none_found = False
+            # index_found = False
+            # for i, basis_index in enumerate(cell.basis_indices):
+                # if basis_index is not None:
+                    # index_occurrence_map[i] += 1
+                    # index_found = True
+                # else:
+                    # none_found = True
+            # if none_found:
+                # if index_found:
+                    # n_all += 1
+
+        # for index, value in index_occurrence_map.items():
+            # if value/n_all <= 0.5:
+                # return False
+        # return True
+
+        # full_fraction = n_full / n_all
+        # return full_fraction > 0.5
 
 
 class LinkedUnit():

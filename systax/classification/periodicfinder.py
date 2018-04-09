@@ -159,6 +159,7 @@ class PeriodicFinder():
             i_indices = unit_collection.get_basis_indices()
             if len(i_indices) > 0:
                 region = unit_collection
+                region._pos_tol = pos_tol
                 return region
 
     def _find_possible_bases(self, system, seed_index):
@@ -399,7 +400,7 @@ class PeriodicFinder():
         # respect to the number of copies of the seed atom. This equals to
         # checking that the size of the subgraph is similar to the size of the
         # graph where the seed atom is. This is needed because the number of
-        # edges is not always sufficient when a lot is happening of the
+        # edges is not always sufficient when a lot is happening on the
         # surface.
         subgraph_size = []
         target_size = None
@@ -412,8 +413,12 @@ class PeriodicFinder():
             subgraph_size.append(n_nodes)
         temp_graphs = []
         for i_graph, graph_size in enumerate(subgraph_size):
-            if graph_size >= 0.6*target_size:
+
+            # Corresponds to the check \omega_v > 0.5n_{seed} in the article.
+            # if graph_size >= 0.1*target_size:
+            if graph_size >= 0.5*target_size:
                 temp_graphs.append(graphs[i_graph])
+
         graphs = temp_graphs
 
         # Eliminate subgraphs that do not have enough periodicity.
@@ -431,7 +436,9 @@ class PeriodicFinder():
                     degrees.append(i_degree)
             mean_degree = np.array(degrees).mean()
 
-            if mean_degree > (dim-1)*2:
+            # Corresponds to the check \omega_c > 2(d-1) in the article.
+            # if mean_degree > (dim-1)*2:
+            if mean_degree >= (dim-1)*2:
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
@@ -448,13 +455,28 @@ class PeriodicFinder():
             "ind": [],
             "nodes": []
         }
+        # Determine the indices, nodes and numbers for each valid subgraph.
+        # index_set = set()
         for i_graph, graph in enumerate(valid_graphs):
             nodes = graph.nodes(data=True)
             nodes = [node[0] for node in nodes]
             node_indices = [node[0] for node in nodes]
+
+            # TODO: Get rid of multiple occurrences of the same index
+            # new_node_ind = []
+            # new_nodes = []
+            # for node_ind, node in zip(node_indices, nodes):
+                # if node_ind not in index_set:
+                    # new_node_ind.append(node_ind)
+                    # new_nodes.append(node)
+                    # index_set.add(node_ind)
+            # node_indices = new_node_ind
+            # nodes = new_nodes
+
             if seed_index in set(node_indices):
                 seed_group_index = i_graph
                 seed_nodes = nodes
+
             group_data_pbc["ind"].append(node_indices)
             group_data_pbc["nodes"].append(nodes)
             group_data_pbc["num"].append(numbers[node_indices][0])
@@ -603,6 +625,7 @@ class PeriodicFinder():
             offset(np.ndarray): The cartesian offset of the seed atom in the
                 cell.
         """
+        # Keep one occurrence for each seed index
 
         # Find the seed positions copies that are within the neighbourhood
         orig_cell = system.get_cell()
@@ -616,6 +639,10 @@ class PeriodicFinder():
 
             node_index = node[0]
             node_factor = node[1]
+
+            # multiplier: The direction in which the cell basis is searched. +1 or -1.
+            # node_factor: The cell index of the starting node.
+            # i_factor: The factor of the matched atom.
 
             # Handle each basis
             for i_basis in range(3):
@@ -637,11 +664,23 @@ class PeriodicFinder():
                     a_final_neighbour = None
 
                 if a_final_neighbour is not None:
+                    # Old version
+                    # a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
+                    # a = multiplier*self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
+
+                    # New version
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    a = multiplier*self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
+                    a = self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
+                    a *= multiplier
+
                 else:
                     a = best_spans[i_basis, :]
+
                 cells[i_node, i_basis, :] = a
+
+        # for cell in cells:
+            # if not np.array_equal(cell, best_spans):
+                # print(cell)
 
         # Find the relative positions of atoms inside the cell. If for too many
         # cells atoms are found that do not belong to the basis, then the found
@@ -674,6 +713,9 @@ class PeriodicFinder():
                     # i_factors = np.append(i_factors, [[0, 0, 0]], axis=0)
 
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
+
+            # if (i_seed == 6):
+            # print(i_indices)
 
             # Add the seed node factor
             final_factors = []
@@ -737,7 +779,6 @@ class PeriodicFinder():
             cell=best_spans,
             pbc=[True, True, True]
         )
-
         offset = proto_cell.get_positions()[seed_group_index]
 
         return proto_cell, offset

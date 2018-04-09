@@ -1836,6 +1836,51 @@ class Material3DTests(unittest.TestCase):
 class SurfaceTests(unittest.TestCase):
     """Tests for detecting and analyzing surfaces.
     """
+    # def test_not_enough_repetitions(self):
+        # """In this system there is not enough repetitions of the cell in a
+        # third direction. One can with visual inspection guess the cell, but the
+        # algorithm cannot find it.
+        # """
+        # system = get_atoms_from_viz("./structures/Ba16O40Si12.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Class2D)
+
+    # def test_incorrect_cell(self):
+        # """The cell detected for this system is not the correct one. The cell
+        # detection fails because there is only two cells from which to extract
+        # information, and one of them is missing an atom.
+        # """
+        # system = get_atoms_from_viz("./structures/C6Mo16+C3O2.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Surface)
+        # # print(classification.outliers)
+
+    # def test_thin_surface(self):
+        # """A realistic surface with only two layers.
+        # """
+        # system = get_atoms_from_viz("./structures/C4Mo16+C5O2.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # # cell = classification.region.cell
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+    # def test_mo_incorrect_3(self):
+        # """System where the outlier detection fails currently. The carbon in a
+        # carbon dioxide adsorbate is very hard to distinguish from the surface.
+        # """
+        # system = get_atoms_from_viz("./structures/C9Mo12+Mo4O2.json")
+        # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
     def test_2d_motif_in_surface_hard(self):
         """Test that if a 2D substructure is found within a surface, and the 2D
         substructure covers a lot of the structure, the entire structure is
@@ -2836,6 +2881,104 @@ class SearchGraphTests(unittest.TestCase):
         self.assertTrue(np.array_equal(periodicity, [False, True, True]))
 
 
+# class MoTests(unittest.TestCase):
+    # """
+    # """
+    # def test_mo_correct(self):
+        # system = get_atoms_from_viz("./structures/C8Mo16+CO2.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # # cell = classification.region.cell
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+    # def test_mo_incorrect(self):
+        # system = get_atoms_from_viz("./structures/C4Mo16+C5O2.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # # cell = classification.region.cell
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+        # finder = PeriodicFinder()
+        # region = finder.get_region(system, 6, 12, 0.294175818752)
+        # region = finder.get_region(system, 6, 12, 0.882527456256)
+        # region = finder.get_region(system, 22, 12, 0.294175818752)
+        # region = finder.get_region(system, 22, 12, 0.882527456256)
+        # region = finder.get_region(system, 2, 12, 0.294175818752)
+        # region = finder.get_region(system, 2, 12, 0.882527456256)
+        # region = finder.get_region(system, 6, 12, 1.5)
+        # region = finder.get_region(system, 22, 12, 0.5)
+
+        # for key, value in region.items():
+            # print("======================================")
+            # print(key, value.seed_index, value.seed_coordinate)
+            # print(key, value.basis_indices)
+
+        # view(region.cell)
+        # print(region.get_outliers())
+        # print(region.keys())
+
+    # def test_mo_incorrect_2(self):
+        # system = get_atoms_from_viz("./structures/C6Mo16+C3O2.json")
+        # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Surface)
+        # print(classification.outliers)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+        # finder = PeriodicFinder()
+        # region = finder.get_region(system, 6, 12, 0.290522757125)
+        # view(region.cell)
+
+        # print(classification)
+        # print(classification.outliers)
+        # cell = classification.region.cell
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+    # def test_mo_incorrect_3(self):
+        # """The carbon in a carbon dioxide adsorbate is very hard to distinguish
+        # from the surface.
+        # """
+        # system = get_atoms_from_viz("./structures/C9Mo12+Mo4O2.json")
+        # # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Surface)
+        # print(classification)
+        # print(classification.outliers)
+        # cell = classification.region.cell
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+    # def test_mo_incorrect_4(self):
+        # """
+        # """
+        # system = get_atoms_from_viz("./structures/C9Mo16+O2.json")
+        # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+    # def test_mo_incorrect_4(self):
+        # """The carbon in a carbon dioxide adsorbate is very hard to distinguish
+        # from the surface.
+        # """
+        # system = get_atoms_from_viz("./structures/Ba16O40Si12.json")
+        # view(system)
+        # classifier = Classifier()
+        # classification = classifier.classify(system)
+        # print(classification)
+        # print(classification.outliers)
+        # cell = classification.region.cell
+        # self.assertEqual(type(classification), Surface)
+        # self.assertTrue(np.array_equal(classification.outliers, [24, 25, 26]))
+
+
 class NomadTests(unittest.TestCase):
     """
     """
@@ -2966,7 +3109,8 @@ if __name__ == '__main__':
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 
     alltests = unittest.TestSuite(suites)

@@ -313,9 +313,8 @@ class Classifier():
                     region_conn = best_region.get_connected_directions()
                     n_region_conn = np.sum(region_conn)
                     region_is_periodic = n_region_conn == 2
-                    # print(region_conn)
-                    # print(best_region[(0, 0, 0)].seed_index)
-                    # view(best_region.cell)
+                    # cell_statistically_valid = best_region.get_cell_statistically_valid()
+                    # print(cell_statistically_valid)
 
                     # This might be unnecessary because the connectivity of the
                     # unit cell is already checked.
