@@ -415,8 +415,7 @@ class PeriodicFinder():
         for i_graph, graph_size in enumerate(subgraph_size):
 
             # Corresponds to the check \omega_v > 0.5n_{seed} in the article.
-            # if graph_size >= 0.1*target_size:
-            if graph_size >= 0.5*target_size:
+            if graph_size > 0.5*target_size:
                 temp_graphs.append(graphs[i_graph])
 
         graphs = temp_graphs
@@ -437,8 +436,7 @@ class PeriodicFinder():
             mean_degree = np.array(degrees).mean()
 
             # Corresponds to the check \omega_c > 2(d-1) in the article.
-            # if mean_degree > (dim-1)*2:
-            if mean_degree >= (dim-1)*2:
+            if mean_degree > (dim-1)*2:
                 valid_graphs.append(graph)
 
         # If no valid graphs found, no region can be tracked.
