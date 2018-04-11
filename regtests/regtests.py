@@ -992,28 +992,36 @@ class Material2DTests(unittest.TestCase):
         pbc=True
     )
 
-    # def test_2d_adsorption_small_cell(self):
-        # """This test does not currently pass, because for too small cells the
-        # adsorbate cannot be determined. This could be fixed by using a smaller
-        # max_cell_size when such a case is detected.
-        # """
-        # system = Material2DTests.graphene.repeat([2, 2, 1])
-        # system.set_pbc([True, True, True])
-        # adsorbate = ase.Atom(position=[2, 2, 11], symbol="H")
-        # system += adsorbate
-        # # view(system)
+    def test_small_cell_defect(self):
+        """Test for a system with a defect and a simulation cell that is
+        smaller than the maximum cell size. Currently such systems are labeled
+        as Class2D as long as the simulation cell sizes are smaller than
+        \l_{max}^{2D}.
+        """
+        sys = Material2DTests.graphene.repeat([3, 3, 1])
+        del sys[8]
+        sys.set_pbc([True, True, False])
+        # view(sys)
 
-        # classifier = Classifier()
-        # classification = classifier.classify(system)
-        # self.assertIsInstance(classification, Material2D)
-        # unit_cell = classification.region.cell
-        # # view(unit_cell)
+        classifier = Classifier(max_cell_size=20)
+        classification = classifier.classify(sys)
+        self.assertIsInstance(classification, Class2D)
 
-        # # One outlier
-        # outliers = classification.outliers
-        # self.assertEqual(len(outliers), 1)
-        # self.assertEqual(tuple(outliers), tuple([8]))
-        # self.assertEqual(len(unit_cell), 2)
+    def test_small_cell_adsorption(self):
+        """Test for a system with a defect and a simulation cell that is
+        smaller than the maximum cell size. Currently such systems are labeled
+        as Class2D as long as the simulation cell sizes are smaller than
+        \l_{max}^{2D}.
+        """
+        system = Material2DTests.graphene.repeat([3, 3, 1])
+        system.set_pbc([True, True, True])
+        adsorbate = ase.Atom(position=[2, 2, 11], symbol="H")
+        system += adsorbate
+        # view(system)
+
+        classifier = Classifier(max_cell_size=20)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Class2D)
 
     def test_small_2d_cell_vacuum_direction_included(self):
         """Test that the classification can properly handle systems where
@@ -3136,19 +3144,19 @@ class NomadTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(DelaunayTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(AtomTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class0DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Class1DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Material2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SurfaceTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(Material3DAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(MoTests))
     # suites.append(unittest.TestLoader().loadTestsFromTestCase(NomadTests))
 

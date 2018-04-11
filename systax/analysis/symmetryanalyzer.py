@@ -732,21 +732,24 @@ class SymmetryAnalyzer(Analyzer):
         prim_cell_inv = np.linalg.inv(prim_cell)
         prim_pos = np.dot(conv_pos, prim_cell_inv)
 
-        # See which positions are inside the cell in the half-closed interval
+        # Keep one occurrence for each atom that should be within the cell and
+        # wrap it's position to tbe inside the primitive cell.
         conv_num = conv_system.get_atomic_numbers()
-        inside_mask = np.all((prim_pos >= 0) & (prim_pos < 1-1e-8), axis=1)
-        inside_pos = prim_pos[inside_mask]
-        inside_num = conv_num[inside_mask]
+        conv_to_prim_map = self._symmetry_dataset["std_mapping_to_primitive"]
+        _, inside_mask = np.unique(conv_to_prim_map, return_index=True)
+        prim_pos = prim_pos[inside_mask]
+        prim_num = conv_num[inside_mask]
 
         # Store the wyckoff letters and equivalent atoms
         prim_wyckoff = conv_wyckoff[inside_mask]
         prim_equivalent = conv_equivalent[inside_mask]
 
         prim_sys = Atoms(
-            scaled_positions=inside_pos,
-            symbols=inside_num,
-            cell=prim_cell
+            scaled_positions=prim_pos,
+            symbols=prim_num,
+            cell=prim_cell,
         )
+        prim_sys.wrap(pbc=True)
 
         return prim_sys, prim_wyckoff, prim_equivalent
 
