@@ -6,21 +6,42 @@ import numpy as np
 
 from fractions import Fraction
 from collections import defaultdict
-import abc
 
 from systax.utils.segfault_protect import segfault_protect
 from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
 from systax.exceptions import CellNormalizationError, SystaxError
 from systax.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
-from systax.analysis.analyzer import Analyzer
+from systax.data import constants
+from systax.core.system import System
 import systax.geometry
 
 from ase import Atoms
 
 
-class SymmetryAnalyzer(Analyzer):
-    """A base class for analyzers that deal with 3D symmetry.
+class SymmetryAnalyzer(object):
+    """A base class for getting symmetry related properties of unit cells.
     """
+
+    def __init__(self, system=None, symmetry_tol=None):
+        """
+        Args:
+            system (ASE.Atoms): The system to inspect.
+            symmetry_tol (float): The tolerance for the symmetry detection.
+        """
+        self.system = system
+        if symmetry_tol is None:
+            self.symmetry_tol = constants.SYMMETRY_TOL
+        else:
+            self.symmetry_tol = symmetry_tol
+
+        self.reset()
+
+    def set_system(self, system):
+        """Sets a new system for analysis.
+        """
+        self.reset()
+        self.system = system
+
     def reset(self):
         """Used to reset all the cached values.
         """
@@ -222,10 +243,80 @@ class SymmetryAnalyzer(Analyzer):
 
         return self._primitive_system
 
-    @abc.abstractmethod
     def get_conventional_system(self):
         """Used to get the conventional representation of this system.
         """
+        # Determine if the system has three periodic directions or two.
+        pbc = self.system.get_pbc()
+        n_pbc = np.sum(pbc)
+        if n_pbc == 3:
+            if self._conventional_system is not None:
+                return self._conventional_system
+
+            spglib_conv_sys = self._get_spglib_conventional_system()
+
+            # Find a proper rigid transformation that produces the best combination
+            # of atomic species in the Wyckoff positions.
+            space_group = self.get_space_group_number()
+            wyckoff_letters, equivalent_atoms = \
+                self._get_spglib_wyckoffs_and_equivalents_conventional()
+            ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
+                space_group,
+                wyckoff_letters,
+                spglib_conv_sys
+            )
+            ideal_sys = System.from_atoms(ideal_sys)
+            ideal_sys.set_equivalent_atoms(equivalent_atoms)
+            ideal_sys.set_wyckoff_letters(ideal_wyckoff)
+
+            self._conventional_system = ideal_sys
+            self._conventional_wyckoff_letters = ideal_wyckoff
+            self._conventional_equivalent_atoms = equivalent_atoms
+            return ideal_sys
+        elif n_pbc == 2:
+            if self._conventional_system is not None:
+                return self._conventional_system
+
+            spglib_conv_sys = self._get_spglib_conventional_system()
+
+            # Determine if the structure is flat. This will affect the
+            # transformation that are allowed when finding the Wyckoff positions
+            is_flat = False
+            if self.thickness < 0.5*self.spglib_precision:
+                is_flat = True
+
+            # Find a proper rigid transformation that produces the best combination
+            # of atomic species in the Wyckoff positions.
+            space_group = self.get_space_group_number()
+            wyckoff_letters, equivalent_atoms = \
+                self._get_spglib_wyckoffs_and_equivalents_conventional()
+            ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
+                space_group,
+                wyckoff_letters,
+                spglib_conv_sys,
+                is_flat=is_flat
+            )
+
+            # The idealization might move the system in the direction of the
+            # nonperiodic axis. This centers the system back.
+            centered_system = self.get_centered_system(ideal_sys)
+
+            # Minimize the cell to only just fit the atoms in the non-periodic
+            # direction
+            rel_pos = centered_system.get_scaled_positions()
+            max_rel_pos = rel_pos[:, self.vacuum_index].max()
+            new_cell = np.array(centered_system.get_cell())
+            old_axis = np.array(new_cell[self.vacuum_index])
+            new_axis = max_rel_pos*old_axis
+            new_cell[self.vacuum_gaps, :] = new_axis
+            centered_system.set_cell(new_cell)
+
+            self._conventional_system = centered_system
+            self._conventional_wyckoff_letters = ideal_wyckoff
+            self._conventional_equivalent_atoms = equivalent_atoms
+            return self._conventional_system
+        else:
+            raise ValueError("The provided system does not have 3 or 2 periodic directions.")
 
     def get_conventional_lattice_fit(self):
         """Used to get a 3x3 matrix representing a fit of the original
@@ -410,7 +501,7 @@ class SymmetryAnalyzer(Analyzer):
             symmetry_dataset = segfault_protect(
                 spglib.get_symmetry_dataset,
                 description,
-                self.spglib_precision)
+                self.symmetry_tol)
         except RuntimeError:
             raise CellNormalizationError(
                 "Segfault in spglib when finding symmetry dataset. Please check "
@@ -523,7 +614,7 @@ class SymmetryAnalyzer(Analyzer):
 
         # Spglib precision is a diameter around a site, so we divide by roughly two
         # to allow the "symmetrized" structure to match the original
-        allowed_offset = 1.25*self.spglib_precision
+        allowed_offset = 1.25*self.symmetry_tol
 
         # For all atoms in the normalized cell, find the corresponding atom from
         # the original cell and see which Wyckoff number is assigned to it

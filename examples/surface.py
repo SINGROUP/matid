@@ -1,30 +1,6 @@
-# Systax
-Systax is a python package for the structural analysis and classification of
-atomistic systems.
-
-# Installation
-The package is compatible with Python 2.7, 3.4-3.6, and the dependencies are
-given in the file 'requirements.txt. These dependencies will be automatically
-installed during the setup of the package.
-
-The latest stable release is available through pip, and can be installed with
-the command:
-```sh
-pip install systax
-```
-
-To install the most recent development version, you can clone this repository
-and perform the install with pip directly from the source code:
-
-```sh
-git clone https://gitlab.com/laurih/systax.git
-cd systax
-pip install .
-```
-
-# Example: Surface detection and analysis
-
-```python
+"""
+Example of automatic surface detection and analysis.
+"""
 import numpy as np
 from ase.visualize import view
 from ase.build import bcc100, molecule
@@ -74,5 +50,3 @@ view(prim_sys)
 # Print space group number
 spg_number = analyzer.get_space_group_number()
 print("Space group number: {}".format(spg_number))
-```
-

@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 # The variable SPGLIB_PRECISION controls the precision used by spglib in order
 # to find symmetries. The atoms are allowed to move 1/2*SPGLIB_PRECISION from
 # their symmetry positions in order for spglib to still detect symmetries.
-SPGLIB_PRECISION = 2*0.2  # unit: angstrom
+SYMMETRY_TOL = 2*0.2  # unit: angstrom
 
 # The threshold for a system to be considered "flat". Used e.g. when
 # determining if a 2D structure is purely 2-dimensional to allow extra rigid

@@ -2,7 +2,7 @@ future
 numpy
 scipy
 ase
-spglib
+spglib>=1.10.1
 sklearn
 networkx
 chronic

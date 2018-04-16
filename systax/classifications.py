@@ -57,11 +57,9 @@ class Class2DWithCell(Class2D):
     def __init__(
             self,
             region,
-            cell_analyzer
             ):
         super().__init__()
         self.region = region
-        self.cell_analyzer = cell_analyzer
 
     @property
     def basis_indices(self):
@@ -94,10 +92,6 @@ class Class2DWithCell(Class2D):
     @property
     def prototype_cell(self):
         return self.region.cell
-
-    @property
-    def conventional_cell(self):
-        return self.cell_analyzer.get_conventional_system()
 
 
 class Surface(Class2DWithCell):

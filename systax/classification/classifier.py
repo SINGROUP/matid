@@ -23,9 +23,8 @@ from systax.classifications import \
     Class2D, \
     Class3D
 import systax.geometry
+from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
 from systax.data import constants
-from systax.analysis.class3danalyzer import Class3DAnalyzer
-from systax.analysis.class2danalyzer import Class2DAnalyzer
 from systax.symmetry import check_if_crystal
 from systax.classification.periodicfinder import PeriodicFinder
 
@@ -55,7 +54,7 @@ class Classifier():
             max_n_atoms=constants.MAX_N_ATOMS,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
             max_2d_single_cell_size=constants.MAX_SINGLE_CELL_SIZE,
-            symmetry_tol=constants.SPGLIB_PRECISION,
+            symmetry_tol=constants.SYMMETRY_TOL,
             min_coverage=constants.MIN_COVERAGE
             ):
         """
@@ -337,22 +336,9 @@ class Classifier():
 
                     if not split and covered and region_is_periodic:
                         if best_region.is_2d:
-                            # The Class2DAnalyzer needs to know which direcion
-                            # in the cell is not periodic. Now that the cell
-                            # has been found, we know that the third axis is
-                            # set as the non-periodic one.
-                            analyzer = Class2DAnalyzer(
-                                best_region.cell,
-                                vacuum_gaps=[False, False, True],
-                                spglib_precision=self.symmetry_tol
-                            )
-                            classification = Material2D(best_region, analyzer)
+                            classification = Material2D(best_region)
                         else:
-                            analyzer = Class3DAnalyzer(
-                                best_region.cell,
-                                spglib_precision=self.symmetry_tol
-                            )
-                            classification = Surface(best_region, analyzer)
+                            classification = Surface(best_region)
 
         # Bulk structures
         elif dimensionality == 3:
@@ -360,15 +346,15 @@ class Classifier():
             classification = Class3D()
 
             # Check the number of symmetries
-            analyzer = Class3DAnalyzer(system)
-            is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
+            # analyzer = SymmetryAnalyzer(system)
+            # is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
 
             # If the structure is connected but the symmetry criteria was
             # not fullfilled, check the number of atoms in the primitive
             # cell. If above a certain threshold, try to find periodic
             # region to see if it is a crystal containing a defect.
-            if not is_crystal:
-                pass
+            # if not is_crystal:
+                # pass
 
                 # This section is currently disabled. Can be reenabled once
                 # more extensive testing is carried out on the detection of
@@ -404,8 +390,8 @@ class Classifier():
                         # if coverage >= self.coverage_threshold:
                             # classification = Crystal(analyzer, region=region)
 
-            elif is_crystal:
-                classification = Crystal(analyzer)
+            # elif is_crystal:
+                # classification = Crystal(analyzer)
 
         return classification
 

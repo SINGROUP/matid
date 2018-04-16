@@ -601,7 +601,7 @@ class PeriodicFinder():
 
         # The cell pbc has to be set to False after the analysis. Maybe there
         # is a way to avoid doing this.
-        proto_cell.set_pbc(False)
+        # proto_cell.set_pbc(False)
 
         return proto_cell, offset, n_spans
 
@@ -1327,7 +1327,9 @@ class PeriodicFinder():
         # Try to get the scaled positions for atoms in this new cell. If the
         # cell is non-invertible, then this cell is not processed.
         try:
-            cell_pos = unit_cell.get_scaled_positions()
+            # Wrapping is here disabled because it does not handle well values
+            # that are negative within machine precision.
+            cell_pos = unit_cell.get_scaled_positions(wrap=False)
         except:
             return
         cell_num = unit_cell.get_atomic_numbers()
@@ -1439,7 +1441,8 @@ class PeriodicFinder():
         new_sys = Atoms(
             cell=new_cell,
             scaled_positions=cell_pos,
-            symbols=cell_num
+            symbols=cell_num,
+            pbc=unit_cell.get_pbc()
         )
         cells = len(new_seed_pos)*[new_sys]
 

@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 if __name__ == "__main__":
     setup(name="systax",
-        version="0.2.0",
+        version="0.3.0",
         url="https://gitlab.com/laurih/systax",
         description=(
             "Systax is a python package for the analysis and classification of "
@@ -13,7 +13,7 @@ if __name__ == "__main__":
         author_email='lauri.himanen@aalto.fi',
         license="Apache 2.0",
         classifiers=[
-            'Development Status :: 3 - Alpha',
+            'Development Status :: 4 - Beta',
             'Intended Audience :: Developers',
             'Topic :: Scientific/Engineering :: Physics',
             'License :: OSI Approved :: Apache Software License',
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             "numpy",
             "scipy",
             "ase",
-            "spglib",
+            "spglib>=1.10.1",
             "sklearn",
             "networkx",
             "chronic"
