@@ -599,10 +599,6 @@ class PeriodicFinder():
             if thickness > self.max_2d_cell_height:
                 return None, None, None
 
-        # The cell pbc has to be set to False after the analysis. Maybe there
-        # is a way to avoid doing this.
-        # proto_cell.set_pbc(False)
-
         return proto_cell, offset, n_spans
 
     def _find_proto_cell_3d(
@@ -1169,11 +1165,6 @@ class PeriodicFinder():
         seed_pos = positions[seed_index]
         seed_number = atomic_numbers[seed_index]
 
-        # view(unit_cell)
-        # seed_position = np.array([0, 0, 0])
-        # print(seed_position)
-        # print(seed_index)
-
         # Create a map between an atomic number and indices in the system
         number_to_index_map = {}
         number_to_pos_map = {}
@@ -1198,7 +1189,6 @@ class PeriodicFinder():
             self.chem_similarity_threshold,
             bond_threshold,
         )
-        # collection._search_pattern = Atoms(cell=system.get_cell())
         multipliers = self._get_multipliers(periodic_indices)
 
         # Start off the queue
@@ -1349,6 +1339,7 @@ class PeriodicFinder():
         # Find the atoms that match the positions in the original basis
         disps = unit_cell.get_positions() - seed_offset
         pos_tolerances = self.get_scaled_position_tolerance(disps)
+
         matches, substitutions, vacancies, _ = systax.geometry.get_matches(
             system,
             test_pos,
@@ -1402,6 +1393,9 @@ class PeriodicFinder():
         # Save a snapshot of the process
         # from ase.io import write
         # rec = collection.recreate_valid()
+        # view(rec)
+        # if len(collection) == 2:
+            # raise Exception
         # rec.set_cell(system.get_cell())
         # num = len(collection)
         # str_num = str(num)
@@ -1410,8 +1404,12 @@ class PeriodicFinder():
         # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
         # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
         # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
-        # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
-        # raise Exception("")
+        # try:
+            # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
+        # except Exception:
+            # pass
+        # else:
+            # raise Exception("")
 
         # Find the neighbouring cells for extending the search
         dislocations = np.dot(multipliers, old_basis)

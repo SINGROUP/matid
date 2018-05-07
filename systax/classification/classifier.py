@@ -4,8 +4,7 @@ import numpy as np
 
 import chronic
 
-import ase.build
-from ase.visualize import view
+# from ase.visualize import view
 from ase.data import covalent_radii
 
 from systax.exceptions import SystaxError
@@ -14,7 +13,6 @@ from systax.classifications import \
     Surface, \
     Atom, \
     Molecule, \
-    Crystal, \
     Material1D, \
     Material2D, \
     Unknown, \
@@ -23,9 +21,7 @@ from systax.classifications import \
     Class2D, \
     Class3D
 import systax.geometry
-from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
 from systax.data import constants
-from systax.symmetry import check_if_crystal
 from systax.classification.periodicfinder import PeriodicFinder
 
 __metaclass__ = type

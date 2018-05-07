@@ -1,12 +1,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import numpy as np
 
 import chronic
 
 from ase import Atoms
 from ase.data import covalent_radii
+from ase.io import write
 
 import systax.geometry
 from systax.data import constants
@@ -54,7 +55,6 @@ class LinkedUnitCollection(dict):
         self._wrapped_moves = []
         self._index_cell_map = {}
         self._used_points = set()
-        self._search_pattern = None
         self._decomposition = None
         self._inside_indices = None
         self._outside_indices = None
@@ -107,6 +107,38 @@ class LinkedUnitCollection(dict):
                 recreated_system += i_atoms
 
         return recreated_system
+
+    def create_animation(self, ):
+        """Used to create an animation of the search procedure. The unit cells are .
+        """
+        recreated_system = Atoms(
+            cell=self.system.get_cell(),
+            pbc=self.system.get_pbc(),
+        )
+        for iunit, unit in enumerate(self.values()):
+            i_valid_indices = np.array([x for x in unit.basis_indices if x is not None])
+            if len(i_valid_indices) != 0:
+                i_atoms = self.system[i_valid_indices]
+                recreated_system += i_atoms
+                write('/home/lauri/Desktop/crystal/image_{}.png'.format(iunit), recreated_system, rotation='90x,20y,20x', show_unit_cell=2)
+
+        # return recreated_system
+        # for unit_cell in self.values():
+            # rec = self.recreate_valid()
+            # rec.set_cell(self.system.get_cell())
+            # num = len(collection)
+            # str_num = str(num)
+            # str_len = len(str_num)
+            # num = (3-str_len)*"0" + str_num
+            # # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
+            # # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
+            # # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
+            # # try:
+            # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
+            # except Exception:
+                # pass
+            # else:
+                # raise Exception("")
 
     def get_basis_atom_neighbourhood(self):
         """For each atom in the basis calculates the chemical neighbourhood.
