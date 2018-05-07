@@ -1,3 +1,3 @@
 from systax.classification.classifier import Classifier
 from systax.classification.periodicfinder import PeriodicFinder
-from systax.analysis.symmetryanalyzer import SymmetryAnalyzer
+from systax.symmetry.symmetryanalyzer import SymmetryAnalyzer
