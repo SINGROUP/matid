@@ -22,6 +22,7 @@ import systax.geometry
 from sklearn.cluster import DBSCAN
 
 from scipy.spatial import Delaunay
+import spglib
 
 
 def get_nearest_atom(system, position):
@@ -1530,6 +1531,30 @@ def cartesian(arrays, out=None):
         for j in range(1, arrays[0].size):
             out[j*m:(j+1)*m, 1:] = out[0:m, 1:]
     return out
+
+
+def check_if_crystal(symmetry_analyser, threshold):
+    """Quantifies the crystallinity of the structure as a ratio of symmetries
+    per number of unique atoms in primitive cell. This metric can be used to
+    distinguish between amorphous and 'regular' crystals.
+
+    The number of symemtry operations corresponds to the symmetry operations
+    corresponding to the hall number of the structure. The symmetry operations
+    as given by spglib.get_symmetry() are specific to the original structure,
+    and they have not been reduced to the symmetries of the space group.
+    """
+    # Get the number of equivalent atoms in the primitive cell.
+    n_unique_atoms_prim = len(symmetry_analyser.get_equivalent_atoms_primitive())
+
+    hall_number = symmetry_analyser.get_hall_number()
+    sym_ops = spglib.get_symmetry_from_database(hall_number)
+    n_symmetries = len(sym_ops["rotations"])
+
+    ratio = n_symmetries/float(n_unique_atoms_prim)
+    if ratio >= threshold:
+        return True
+
+    return False
 
 
 # def get_surface_normal_direction(system):

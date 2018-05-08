@@ -549,7 +549,7 @@ class LinkedUnitCollection(dict):
         # are two incoming edges with negated multiplier, there is periodicity
         # in the multiplier direction.
         G = self._search_graph
-        for node in G.nodes:
+        for node in G.nodes():
             node_edges = G.in_edges(node, data=True)
             multiplier_sum = np.array([0, 0, 0])
             multiplier_presence = np.array([False, False, False])
