@@ -1471,6 +1471,8 @@ def get_minimized_cell(system, axis, min_size):
     new_cart_test = systax.geometry.to_cartesian(basis, new_scaled_pos)
     new_scaled_pos = systax.geometry.to_scaled(new_basis, new_cart_test)
 
+    # Translate the system to be in the middle if size is smaller than the
+    # given minimum size
     if c_size < min_size:
         offset_cart = (c_real_cart-c_inflated_cart)/2
         offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
