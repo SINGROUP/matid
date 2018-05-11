@@ -8,6 +8,7 @@ from fractions import Fraction
 from collections import defaultdict, OrderedDict
 import ast
 import operator as op
+from operator import attrgetter
 
 from systax.utils.segfault_protect import segfault_protect
 from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
@@ -63,6 +64,7 @@ class SymmetryAnalyzer(object):
         self._spglib_primitive_system = None
         self._spglib_wyckoff_letters_primitive = None
         self._spglib_equivalent_atoms_primitive = None
+        self._spglib_primitive_to_original_mapping = None
 
         self._primitive_system = None
         self._primitive_wyckoff_letters = None
@@ -135,7 +137,6 @@ class SymmetryAnalyzer(object):
         chiral = True
         for rotation in rotations:
             determinant = np.linalg.det(rotation)
-            # print(determinant)
             if determinant == -1.0:
                 return False
 
@@ -265,8 +266,8 @@ class SymmetryAnalyzer(object):
             # Find a proper rigid transformation that produces the best combination
             # of atomic species in the Wyckoff positions.
             space_group = self.get_space_group_number()
-            wyckoff_letters, equivalent_atoms = \
-                self._get_spglib_wyckoffs_and_equivalents_conventional()
+            wyckoff_letters = self._get_spglib_wyckoff_letters_conventional()
+            equivalent_atoms = self._get_spglib_equivalent_atoms_conventional()
             ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
                 space_group,
                 wyckoff_letters,
@@ -307,8 +308,8 @@ class SymmetryAnalyzer(object):
             # Find a proper rigid transformation that produces the best combination
             # of atomic species in the Wyckoff positions.
             space_group = self.get_space_group_number()
-            wyckoff_letters, equivalent_atoms = \
-                self._get_spglib_wyckoffs_and_equivalents_conventional()
+            wyckoff_letters = self._get_spglib_wyckoff_letters_conventional()
+            equivalent_atoms = self._get_spglib_equivalent_atoms_conventional()
             ideal_sys, ideal_wyckoff = self._find_wyckoff_ground_state(
                 space_group,
                 wyckoff_letters,
@@ -596,19 +597,11 @@ class SymmetryAnalyzer(object):
             system as defined by spglib.
         """
         if self._spglib_wyckoff_letters_conventional is None:
-            self._get_spglib_wyckoffs_and_equivalents_conventional()
+            wyckoff_letters_primitive = self._get_spglib_wyckoff_letters_primitive()
+            dataset = self.get_symmetry_dataset()
+            mapping = dataset["std_mapping_to_primitive"]
+            self._spglib_wyckoff_letters_conventional = wyckoff_letters_primitive[mapping]
         return self._spglib_wyckoff_letters_conventional
-
-        # print(wyckoff_letters)
-
-        # Use the mappings provided by spglib to get the wyckoff letters in the
-        # conventional cell
-        wyckoff_letters_original = self.get_wyckoff_letters_original()
-        dataset = self.get_symmetry_dataset()
-        mapping_to_primitive = dataset["mapping_to_primitive"]
-        std_mapping_to_primitive = dataset["std_mapping_to_primitive"]
-        print(mapping_to_primitive)
-        print(std_mapping_to_primitive)
 
     def _get_spglib_equivalent_atoms_conventional(self):
         """
@@ -617,84 +610,12 @@ class SymmetryAnalyzer(object):
             symmetrically equivalent groups by number.
         """
         if self._spglib_equivalent_atoms_conventional is None:
-            self._get_spglib_wyckoffs_and_equivalents_conventional()
+            equivalent_atoms_primitive = self._get_spglib_equivalent_atoms_primitive()
+            dataset = self.get_symmetry_dataset()
+            mapping = dataset["std_mapping_to_primitive"]
+            self._spglib_equivalent_atoms_conventional = equivalent_atoms_primitive[mapping]
+
         return self._spglib_equivalent_atoms_conventional
-
-    def _get_spglib_wyckoffs_and_equivalents_conventional(self):
-        """Return a list of Wyckoff letters for the atoms in the standardized
-        cell defined by spglib. Note that these Wyckoff letters may not be the
-        same as the ones given by get_idealized_system().
-
-        Returns:
-            list of str: List of Wyckoff letters for the atoms in the
-            conventional system.
-        """
-        if self._spglib_wyckoff_letters_conventional is not None and \
-           self._spglib_equivalent_atoms_conventional is not None:
-            return self._spglib_wyckoff_letters_conventional, self._spglib_equivalent_atoms_conventional
-
-        conv_sys = self._get_spglib_conventional_system()
-        conv_pos = conv_sys.get_scaled_positions()
-        conv_num = conv_sys.get_atomic_numbers()
-
-        orig_sys = self.system
-        orig_pos = orig_sys.get_scaled_positions()
-        orig_cell = orig_sys.get_cell()
-
-        wyckoff_letters = self._get_spglib_wyckoff_letters_original()
-        equivalent_atoms = self._get_spglib_equivalent_atoms_original()
-        origin_shift = self._get_spglib_origin_shift()
-        transform = self._get_spglib_transformation_matrix()
-
-
-        # print(wyckoff_letters)
-
-        # Get the Wyckoff letters of the atoms in the normalized lattice
-        try:
-            inverse = np.linalg.inv(transform)
-        except np.linalg.linalg.LinAlgError:
-            msg = (
-                "Error inverting the matrix that transforms positions from "
-                "original system to the spglib normalized cell."
-                )
-            raise SystaxError(msg)
-        translated_shift = inverse.dot(origin_shift)
-
-        # Spglib precision is a diameter around a site, so we divide by roughly two
-        # to allow the "symmetrized" structure to match the original
-        allowed_offset = 1.25*self.symmetry_tol
-
-        # For all atoms in the normalized cell, find the corresponding atom from
-        # the original cell and see which Wyckoff number is assigned to it
-        n_atoms = len(conv_num)
-        norm_wyckoff_letters = np.empty(n_atoms, dtype=str)
-        norm_equivalent_atoms = np.empty(n_atoms, dtype=int)
-
-        # Get the wrapped positions in the original cell
-        inverse_trans = inverse.T
-        translated_shift = np.dot(origin_shift, inverse_trans)
-        transformed_positions = np.dot(conv_pos, inverse_trans) - translated_shift
-        wrapped_positions = self._wrap_positions(transformed_positions)
-
-        for i_pos, wrapped_pos in enumerate(wrapped_positions):
-            index = self._search_periodic_positions(
-                wrapped_pos,
-                orig_pos,
-                orig_cell,
-                allowed_offset
-            )
-            if index is None:
-                raise SystaxError(
-                    "Could not find the corresponding atom for position {} in the "
-                    "original cell. Changing the precision might help."
-                    .format(wrapped_pos))
-            norm_wyckoff_letters[i_pos] = wyckoff_letters[index]
-            norm_equivalent_atoms[i_pos] = equivalent_atoms[index]
-
-        self._spglib_wyckoff_letters_conventional = norm_wyckoff_letters
-        self._spglib_equivalent_atoms_conventional = norm_equivalent_atoms
-
-        return norm_wyckoff_letters, norm_equivalent_atoms
 
     def _get_spglib_origin_shift(self):
         """The origin shift s that is needed to transform points in the
@@ -785,7 +706,9 @@ class SymmetryAnalyzer(object):
             list of str: Wyckoff letters.
         """
         if self._spglib_wyckoff_letters_primitive is None:
-            self._get_spglib_primitive_system()
+            wyckoff_letters_original = self._get_spglib_wyckoff_letters_original()
+            mapping = self._get_spglib_primitive_to_original_mapping()
+            self._spglib_wyckoff_letters_primitive = wyckoff_letters_original[mapping]
         return self._spglib_wyckoff_letters_primitive
 
     def _get_spglib_equivalent_atoms_primitive(self):
@@ -797,8 +720,27 @@ class SymmetryAnalyzer(object):
                 set.
         """
         if self._spglib_equivalent_atoms_primitive is None:
-            self._get_spglib_primitive_system()
+            equivalent_atoms_original = self._get_spglib_equivalent_atoms_original()
+            mapping = self._get_spglib_primitive_to_original_mapping()
+            self._spglib_equivalent_atoms_primitive = equivalent_atoms_original[mapping]
         return self._spglib_equivalent_atoms_primitive
+
+    def _get_spglib_primitive_to_original_mapping(self):
+        """Returns a mapping from that links an atom in the primitive cell to
+        one of the duplicates in the original system.
+
+        Returns:
+            np.ndarray: A list of integer indices, one for each atom in the
+            primitive system as returned by spglib. The indices refer to an
+            atom in the original simulation system.
+        """
+        if self._spglib_primitive_to_original_mapping is None:
+            dataset = self.get_symmetry_dataset()
+            mapping = dataset["mapping_to_primitive"]
+            _, indices = np.unique(mapping, return_index=True)
+            self._spglib_primitive_to_original_mapping = indices
+
+        return self._spglib_primitive_to_original_mapping
 
     def _get_primitive_system(
             self,
@@ -1268,12 +1210,6 @@ class SymmetryAnalyzer(object):
                 atomic_number=int(numbers[index]),
             )
             group_data.indices = []
-            # group_data = {}
-            # group_data["wyckoff_letter"] = str(wyckoff_letters[index])
-            # group_data["element"] = str(elements[index])
-            # group_data["atomic_number"] = int(numbers[index])
-            # group_data["indices"] = []
-            # group_data["variables"] = {}
             groups[group_index] = group_data
 
         # Add the indices of the atoms that belong to these groups
@@ -1401,7 +1337,6 @@ class SymmetryAnalyzer(object):
         # alphabet are first, and groups with the same Wyckoff letter are
         # sorted by atomic number. Groups with the same Wyckoff letter and
         # atomic number are still randomly sorted.
-        from operator import attrgetter
         unsorted_list = list(groups.values())
         sorted_list = sorted(unsorted_list, key=attrgetter('wyckoff_letter', 'atomic_number'))
 

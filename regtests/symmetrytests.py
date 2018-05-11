@@ -34,7 +34,7 @@ class SymmetryAnalyserTests(unittest.TestCase):
         si.translate([1, 2, 1])
         cell = si.get_cell()
         a = cell[0, :]
-        a *= 1.04
+        a *= 1.02
         cell[0, :] = a
         si.set_cell(cell)
 
@@ -82,6 +82,7 @@ class SymmetryAnalyserTests(unittest.TestCase):
             cell=cell,
             pbc=True
         )
+        nacl = nacl.repeat([2, 1, 1])
 
         # Get the data
         data = self.get_material3d_properties(nacl)
@@ -97,8 +98,8 @@ class SymmetryAnalyserTests(unittest.TestCase):
         self.assertEqual(data.choice, "")
         self.assertTrue(np.array_equal(data.equivalent_conv, [0, 1, 0, 1, 0, 1, 0, 1]))
         self.assertTrue(np.array_equal(data.wyckoff_conv, ["a", "b", "a", "b", "a", "b", "a", "b"]))
-        self.assertTrue(np.array_equal(data.equivalent_original, [0, 1]))
-        self.assertTrue(np.array_equal(data.wyckoff_original, ["a", "b"]))
+        self.assertTrue(np.array_equal(data.equivalent_original, [0, 1, 0, 1]))
+        self.assertTrue(np.array_equal(data.wyckoff_original, ["a", "b", "a", "b"]))
         self.assertTrue(np.array_equal(data.prim_equiv, [0, 1]))
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a", "b"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
@@ -185,8 +186,8 @@ class SymmetryAnalyserTests(unittest.TestCase):
 
             # Check that the current Wyckoff letter index is greater than
             # previous, if not the atomic number must be greater
-            wyckoff_letter = group["wyckoff_letter"]
-            atomic_number = group["atomic_number"]
+            wyckoff_letter = group.wyckoff_letter
+            atomic_number = group.atomic_number
             i_w_index = WYCKOFF_LETTER_POSITIONS[wyckoff_letter]
             if prev_w_index is not None:
                 self.assertGreaterEqual(i_w_index, prev_w_index)
@@ -198,7 +199,7 @@ class SymmetryAnalyserTests(unittest.TestCase):
 
             # Gather the number of atoms in eaach group to see that it matches
             # the amount of atoms in the system
-            n = len(group["indices"])
+            n = len(group.indices)
             n_atoms_wyckoff += n
 
         self.assertEqual(n_atoms, n_atoms_wyckoff)
@@ -337,8 +338,8 @@ class WyckoffTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyserTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyserTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
