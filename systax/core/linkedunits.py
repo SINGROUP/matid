@@ -236,12 +236,6 @@ class LinkedUnitCollection(dict):
                             chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
                             if chem_similarity >= self.chem_similarity_threshold:
                                 indices.add(index)
-                            # else:
-                                # print(index)
-                                # print(chem_similarity)
-                                # print(ideal_environment)
-                                # print(real_environment)
-                # print(indices)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()

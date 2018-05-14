@@ -7,13 +7,9 @@ import chronic
 # from ase.visualize import view
 from ase.data import covalent_radii
 
-from systax.exceptions import SystaxError
-
 from systax.classifications import \
     Surface, \
     Atom, \
-    Molecule, \
-    Material1D, \
     Material2D, \
     Unknown, \
     Class0D, \
@@ -29,8 +25,8 @@ __metaclass__ = type
 
 class Classifier():
     """A class that is used to analyze the contents of an atomistic system and
-    separate the consituent atoms into different components along with some
-    meaningful additional information.
+    separate the consituent atoms into different components along with other
+    meaningful information.
     """
     def __init__(
             self,
@@ -234,13 +230,12 @@ class Classifier():
 
         # Get the system dimensionality
         with chronic.Timer("TSA"):
-            try:
-                dimensionality = systax.geometry.get_dimensionality(
-                    system,
-                    self.cluster_threshold,
-                    dist_matrix_radii_pbc
-                )
-            except SystaxError:
+            dimensionality = systax.geometry.get_dimensionality(
+                system,
+                self.cluster_threshold,
+                dist_matrix_radii_pbc
+            )
+            if dimensionality is None:
                 return Unknown()
 
         # 0D structures

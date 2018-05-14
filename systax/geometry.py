@@ -69,7 +69,8 @@ def get_nearest_neighbours(system, dist_matrix_pbc):
 def get_dimensionality(
         system,
         cluster_threshold,
-        dist_matrix_radii_mic_1x=None
+        dist_matrix_radii_mic_1x=None,
+        return_clusters=False
     ):
     """Used to calculate the dimensionality of a system with a modified
     Topology Scaling Algorithm (TSA) (Michael Ashton, Joshua Paul, Susan B.
@@ -83,13 +84,14 @@ def get_dimensionality(
         dist_matrix_radii_pbc (np.ndarray): A precalculated distance matrix
             that takes in to account the periodicity and has the covalent radii of
             the atoms already subtracted.
+        return_clusters(boolean): Whether the clusters are returned
 
     Returns:
-        int: The dimensionality of the system.
-
-    Raises:
-        SystaxError: If the dimensionality can't be evaluated because the
-        system has multiple disconnected components in the original cell.
+        int|none: The dimensionality of the system. If the dimensionality can't be
+            evaluated because the system has multiple disconnected components in
+            the original cell, None is returned.
+        list: A list of clusters. Each entry in the list contains the indices
+            of atoms in a cluster.
     """
     system_1x = system
     pbc = system_1x.get_pbc()
@@ -119,59 +121,53 @@ def get_dimensionality(
         radii_matrix_1x = radii_1x[:, None] + radii_1x[None, :]
         dist_matrix_radii_mic_1x = dist_matrix_mic_1x - radii_matrix_1x
 
-    # Check the number of clusters. We don't want the clustering to hog all
-    # resources, so the cpu's are limited to one
-    db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-    db.fit(dist_matrix_radii_mic_1x)
-    clusters_1x = db.labels_
-    n_clusters_1x = len(np.unique(clusters_1x))
+    # Check the number of clusters.
+    clusters_1x = get_clusters(dist_matrix_radii_mic_1x, cluster_threshold, min_samples=1)
+    n_clusters_1x = len(clusters_1x)
 
     # If the system consists of multiple components that are not connected
     # according to the clustering done here, then we cannot assess the
     # dimensionality.
     if n_clusters_1x > 1:
-        raise SystaxError(
-            "Could not determine the dimensionality because there are more than"
-            " one energetically isolated components in the unit cell", clusters_1x
-        )
-
-    # 2x2x2 system
-    n_pbc = np.sum(pbc)
-    if n_pbc > 0:
-
-        repeats = np.array([1, 1, 1])
-        repeats[pbc] = 2
-        system_2x = system.repeat(repeats)
-        pos_2x = system_2x.get_positions()
-        cell_2x = system_2x.get_cell()
-        num_2x = system_2x.get_atomic_numbers()
-        displacements_mic_2x, dist_matrix_mic_2x = get_displacement_tensor(
-            pos_2x,
-            pos_2x,
-            cell_2x,
-            pbc,
-            mic=True,
-            max_distance=max_distance,
-            return_distances=True
-        )
-        radii_2x = covalent_radii[num_2x]
-        radii_matrix_2x = radii_2x[:, None] + radii_2x[None, :]
-        dist_matrix_radii_mic_2x = dist_matrix_mic_2x - radii_matrix_2x
-
-        # Check the number of clusters. We don't want the clustering to hog all
-        # resources, so the cpu's are limited to one
-        db = DBSCAN(eps=cluster_threshold, min_samples=1, metric='precomputed', n_jobs=1)
-        db.fit(dist_matrix_radii_mic_2x)
-        clusters_2x = db.labels_
-        n_clusters_2x = len(np.unique(clusters_2x))
-
-        # This is the analytic formula for the dimensionality based on cluster
-        # size on a 2x supersystem.
-        dim = int(n_pbc - math.log(n_clusters_2x, 2))
-        return dim
-
+        dim = None
     else:
-        return 0
+        # 2x2x2 system
+        n_pbc = np.sum(pbc)
+        if n_pbc > 0:
+
+            repeats = np.array([1, 1, 1])
+            repeats[pbc] = 2
+            system_2x = system.repeat(repeats)
+            pos_2x = system_2x.get_positions()
+            cell_2x = system_2x.get_cell()
+            num_2x = system_2x.get_atomic_numbers()
+            displacements_mic_2x, dist_matrix_mic_2x = get_displacement_tensor(
+                pos_2x,
+                pos_2x,
+                cell_2x,
+                pbc,
+                mic=True,
+                max_distance=max_distance,
+                return_distances=True
+            )
+            radii_2x = covalent_radii[num_2x]
+            radii_matrix_2x = radii_2x[:, None] + radii_2x[None, :]
+            dist_matrix_radii_mic_2x = dist_matrix_mic_2x - radii_matrix_2x
+
+            # Check the number of clusters.
+            clusters_2x = get_clusters(dist_matrix_radii_mic_2x, cluster_threshold, min_samples=1)
+            n_clusters_2x = len(clusters_2x)
+
+            # This is the analytic formula for the dimensionality based on cluster
+            # size on a 2x supersystem.
+            dim = int(n_pbc - math.log(n_clusters_2x, 2))
+        else:
+            dim = 0
+
+    if return_clusters:
+        return dim, clusters_1x
+    else:
+        return dim
 
 
 def get_tetrahedra_decomposition(system, max_distance):
@@ -1426,10 +1422,11 @@ def get_thickness(system, axis):
         float: The thickness of the system as measured from the center of the
         topmost atom to the center of lowermost atom.
     """
-    pos = system.get_positions()[:, axis]
+    pos = system.get_scaled_positions()[:, axis]
     pos_min = pos.min()
     pos_max = pos.max()
-    thickness = pos_max - pos_min
+    basis = system.get_cell()[axis, :]
+    thickness = (pos_max - pos_min)*np.linalg.norm(basis)
 
     return thickness
 

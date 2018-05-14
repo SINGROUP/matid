@@ -51,24 +51,25 @@ class GeometryTests(unittest.TestCase):
     def test_thickness(self):
         """Getting the thickness of structures.
         """
-        sys = molecule("H2O")
-        thickness_x = systax.geometry.get_thickness(sys, 0)
+        system = molecule("H2O")
+        system.set_cell(np.eye(3))
+        thickness_x = systax.geometry.get_thickness(system, 0)
         self.assertEqual(thickness_x, 0)
 
-        thickness_y = systax.geometry.get_thickness(sys, 1)
+        thickness_y = systax.geometry.get_thickness(system, 1)
         self.assertEqual(thickness_y, 1.526478)
 
-        thickness_z = systax.geometry.get_thickness(sys, 2)
+        thickness_z = systax.geometry.get_thickness(system, 2)
         self.assertEqual(thickness_z, 0.596309)
 
     def test_minimize_cell(self):
         """Cell minimization.
         """
-        sys = molecule("H2O")
-        sys.set_cell([3, 3, 3])
+        system = molecule("H2O")
+        system.set_cell([3, 3, 3])
 
         # Minimize with minimum size smaller than found minimum size
-        minimized_system = systax.geometry.get_minimized_cell(sys, 2, 0.1)
+        minimized_system = systax.geometry.get_minimized_cell(system, 2, 0.1)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -85,7 +86,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(expected_pos, pos, atol=0.001, rtol=0))
 
         # Minimize with minimum size larger than found minimum size
-        minimized_system = systax.geometry.get_minimized_cell(sys, 2, 2)
+        minimized_system = systax.geometry.get_minimized_cell(system, 2, 2)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -775,17 +776,17 @@ class Class0DTests(unittest.TestCase):
     def test_unknown_molecule(self):
         """An unknown molecule should be classified as Class0D
         """
-        sys = Atoms(
+        system = Atoms(
             positions=[[0.0, 0.0, 0.0], [2.0, 0.0, 0.0]],
             symbols=["Au", "Ag"]
         )
         gap = 12
-        sys.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
-        sys.set_pbc([True, True, True])
-        sys.center()
-        # view(sys)
+        system.set_cell([[gap, 0, 0], [0, gap, 0], [0, 0, gap]])
+        system.set_pbc([True, True, True])
+        system.center()
+        # view(system)
         classifier = Classifier()
-        clas = classifier.classify(sys)
+        clas = classifier.classify(system)
         self.assertIsInstance(clas, Class0D)
 
 
@@ -882,13 +883,13 @@ class Material2DTests(unittest.TestCase):
         as Class2D as long as the simulation cell sizes are smaller than
         \l_{max}^{2D}.
         """
-        sys = Material2DTests.graphene.repeat([3, 3, 1])
-        del sys[8]
-        sys.set_pbc([True, True, False])
-        # view(sys)
+        system = Material2DTests.graphene.repeat([3, 3, 1])
+        del system[8]
+        system.set_pbc([True, True, False])
+        # view(system)
 
         classifier = Classifier(max_cell_size=20)
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Class2D)
 
     def test_small_cell_adsorption(self):
@@ -1026,10 +1027,10 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(set(adsorbates), set([8, 9, 10, 11]))
 
     def test_graphene_primitive(self):
-        sys = Material2DTests.graphene
-        # view(sys)
+        system = Material2DTests.graphene
+        # view(system)
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
 
         # No defects or unknown atoms
@@ -1044,10 +1045,75 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(len(unknowns), 0)
 
-    def test_graphene_supercell(self):
-        sys = Material2DTests.graphene.repeat([5, 5, 1])
+    def test_graphene_rectangular(self):
+        system = Atoms(
+            symbols=["C", "C", "C", "C"],
+            cell=np.array((
+                [4.26, 0.0, 0.0],
+                [0.0, 15, 0.0],
+                [0.0, 0.0, 2.4595121467478055]
+            )),
+            positions=np.array((
+                [2.84, 7.5, 6.148780366869514e-1],
+                [3.55, 7.5, 1.8446341100608543],
+                [7.1e-1, 7.5, 1.8446341100608543],
+                [1.42, 7.5, 6.148780366869514e-1],
+            )),
+            pbc=True
+        )
+        system = system.repeat([2, 1, 2])
+        # view(system)
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+        # Pristine
+        basis = classification.basis_indices
+        adsorbates = classification.adsorbates
+        interstitials = classification.interstitials
+        substitutions = classification.substitutions
+        vacancies = classification.vacancies
+        unknowns = classification.unknowns
+        self.assertEqual(len(interstitials), 0)
+        self.assertEqual(len(substitutions), 0)
+        self.assertEqual(len(unknowns), 0)
+        self.assertEqual(len(vacancies), 0)
+        self.assertEqual(len(adsorbates), 0)
+        self.assertEqual(set(basis), set(range(len(system))))
+
+    def test_2d_z_smaller_than_rmax(self):
+        """Test that 2D systems that have an interlayer spacing smaller than
+        r_max, the distance between different layers is not considered as a
+        valid cell basis vector.
+        """
+        r_max = 12
+        system = Atoms(
+            symbols=["C", "C", "C", "C"],
+            cell=np.array((
+                [4.26, 0.0, 0.0],
+                [0.0, 0.75*r_max, 0.0],
+                [0.0, 0.0, 2.4595121467478055]
+            )),
+            positions=np.array((
+                [2.84, 7.5, 6.148780366869514e-1],
+                [3.55, 7.5, 1.8446341100608543],
+                [7.1e-1, 7.5, 1.8446341100608543],
+                [1.42, 7.5, 6.148780366869514e-1],
+            )),
+            pbc=True
+        )
+        system.center()
+        system = system.repeat([2, 1, 2])
+        # view(system)
+
+        classifier = Classifier(max_cell_size=r_max)
+        classification = classifier.classify(system)
+        self.assertIsInstance(classification, Material2D)
+
+    def test_graphene_supercell(self):
+        system = Material2DTests.graphene.repeat([5, 5, 1])
+        classifier = Classifier()
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
 
         # No defects or unknown atoms
@@ -1063,10 +1129,10 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(unknowns), 0)
 
     def test_graphene_partial_pbc(self):
-        sys = Material2DTests.graphene.copy()
-        sys.set_pbc([True, True, False])
+        system = Material2DTests.graphene.copy()
+        system.set_pbc([True, True, False])
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
 
         # No defects or unknown atoms
@@ -1084,12 +1150,12 @@ class Material2DTests(unittest.TestCase):
     def test_graphene_missing_atom(self):
         """Test graphene with a vacancy defect.
         """
-        sys = Material2DTests.graphene.repeat([5, 5, 1])
-        del sys[24]
-        # view(sys)
-        sys.set_pbc([True, True, False])
+        system = Material2DTests.graphene.repeat([5, 5, 1])
+        del system[24]
+        # view(system)
+        system.set_pbc([True, True, False])
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
 
         # One vacancy
@@ -1107,12 +1173,12 @@ class Material2DTests(unittest.TestCase):
     def test_graphene_substitution(self):
         """Test graphene with a substitution defect.
         """
-        sys = Material2DTests.graphene.repeat([5, 5, 1])
-        sys[0].number = 7
-        # view(sys)
-        sys.set_pbc([True, True, False])
+        system = Material2DTests.graphene.repeat([5, 5, 1])
+        system[0].number = 7
+        # view(system)
+        system.set_pbc([True, True, False])
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Material2D)
 
         # One substitution
@@ -1500,41 +1566,6 @@ class Material2DTests(unittest.TestCase):
         self.assertEqual(len(adsorbates), 0)
         self.assertEqual(set(basis), set(range(len(system))))
 
-    def test_graphene_rectangular(self):
-        system = Atoms(
-            symbols=["C", "C", "C", "C"],
-            cell=np.array((
-                [4.26, 0.0, 0.0],
-                [0.0, 15, 0.0],
-                [0.0, 0.0, 2.4595121467478055]
-            )),
-            positions=np.array((
-                [2.84, 7.5, 6.148780366869514e-1],
-                [3.55, 7.5, 1.8446341100608543],
-                [7.1e-1, 7.5, 1.8446341100608543],
-                [1.42, 7.5, 6.148780366869514e-1],
-            )),
-            pbc=True
-        )
-        # view(system)
-        classifier = Classifier()
-        classification = classifier.classify(system)
-        self.assertIsInstance(classification, Material2D)
-
-        # Pristine
-        basis = classification.basis_indices
-        adsorbates = classification.adsorbates
-        interstitials = classification.interstitials
-        substitutions = classification.substitutions
-        vacancies = classification.vacancies
-        unknowns = classification.unknowns
-        self.assertEqual(len(interstitials), 0)
-        self.assertEqual(len(substitutions), 0)
-        self.assertEqual(len(unknowns), 0)
-        self.assertEqual(len(vacancies), 0)
-        self.assertEqual(len(adsorbates), 0)
-        self.assertEqual(set(basis), set(range(len(system))))
-
     def test_boron_nitride(self):
         system = Atoms(
             symbols=["B", "N"],
@@ -1658,13 +1689,13 @@ class Class3DTests(unittest.TestCase):
     def test_graphite(self):
         """Testing a sparse material like graphite.
         """
-        sys = ase.lattice.hexagonal.Graphite(
+        system = ase.lattice.hexagonal.Graphite(
             size=(1, 1, 1),
             symbol='C',
             pbc=(1, 1, 1),
             latticeconstant=(2.461, 6.708))
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Class3D)
 
     def test_amorphous(self):
@@ -1676,26 +1707,26 @@ class Class3DTests(unittest.TestCase):
         rng = RandomState(8)
         rand_pos = rng.rand(n_atoms, 3)
 
-        sys = Atoms(
+        system = Atoms(
             scaled_positions=rand_pos,
             cell=(10, 10, 10),
             symbols=n_atoms*['C'],
             pbc=(1, 1, 1))
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Class3D)
 
     def test_too_sparse(self):
         """Test a crystal that is too sparse.
         """
-        sys = ase.lattice.hexagonal.Graphite(
+        system = ase.lattice.hexagonal.Graphite(
             size=(1, 1, 1),
             symbol='C',
             pbc=(1, 1, 1),
             latticeconstant=(2.461, 12))
 
         classifier = Classifier()
-        classification = classifier.classify(sys)
+        classification = classifier.classify(system)
         self.assertIsInstance(classification, Unknown)
 
 
@@ -1719,7 +1750,7 @@ class SurfaceTests(unittest.TestCase):
         algorithm cannot find it.
         """
         system = ase.io.read("./structures/Rhn-EWQQN8Z-lbmZwoWPyrGiM9Isx+PbYDgCBSwbq3nxONqWaq03HYUn8_V.xyz")
-        # view(system)
+        view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertEqual(type(classification), Class2D)
@@ -1869,7 +1900,7 @@ class SurfaceTests(unittest.TestCase):
         # identified as outliers. Such systems still pose a challenge to the
         # algorithm.
         # """
-        system = ase.io.read("./structures/Rhn-EWQQN8Z-lbmZwoWPyrGiM9Isx+PbYDgCBSwbq3nxONqWaq03HYUn8_V.xyz")
+        # system = ase.io.read("./structures/Rhn-EWQQN8Z-lbmZwoWPyrGiM9Isx+PbYDgCBSwbq3nxONqWaq03HYUn8_V.xyz")
         # view(system)
 
         # classifier = Classifier()
@@ -2229,14 +2260,17 @@ class SurfaceTests(unittest.TestCase):
 
         # Run multiple times with random displacements
         rng = RandomState(47)
+        # for i in range(4):
+            # disloc = rng.rand(len(system), 3)
         for i in range(10):
-            sys = system.copy()
-            systax.geometry.make_random_displacement(sys, 0.2, rng)
-            # view(sys)
+            i_sys = system.copy()
+            systax.geometry.make_random_displacement(system, 0.09, rng)
+            # view(system)
 
             # Classified as surface
+            # classifier = Classifier(pos_tol=0.75)
             classifier = Classifier()
-            classification = classifier.classify(sys)
+            classification = classifier.classify(i_sys)
             self.assertIsInstance(classification, Surface)
 
             # No defects or unknown atoms
@@ -2245,7 +2279,6 @@ class SurfaceTests(unittest.TestCase):
             substitutions = classification.substitutions
             vacancies = classification.vacancies
             unknowns = classification.unknowns
-            # print(unknowns)
             self.assertEqual(len(interstitials), 0)
             self.assertEqual(len(substitutions), 0)
             self.assertEqual(len(vacancies), 0)
@@ -2393,8 +2426,6 @@ class SurfaceTests(unittest.TestCase):
         # No interstitials
         interstitials = classification.interstitials
         self.assertEqual(len(interstitials), 0)
-
-
 
 
 class SearchGraphTests(unittest.TestCase):

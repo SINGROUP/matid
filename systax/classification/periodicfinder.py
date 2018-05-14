@@ -303,9 +303,9 @@ class PeriodicFinder():
                     adjacency_lists_add.append(per_adjacency_list_add)
                     adjacency_lists_sub.append(per_adjacency_list_sub)
 
-        # Find the directions that are most repeat the neighbours above some
-        # preset threshold. This is used to eliminate directions that are
-        # caused by pure chance. The maximum score that a direction can get is
+        # Find the directions that repeat the neighbours above some preset
+        # threshold. This is used to eliminate directions that are caused by
+        # pure chance. The maximum score that a direction can get is
         # 2*n_neighbours. We specify that the score must be above 37.5% percent
         # of this maximum score to be considered a valid direction.
         valid_span_indices = np.where(metric >= 0.75*n_neighbours)[0]
@@ -496,6 +496,7 @@ class PeriodicFinder():
                 best_adjacency_lists_sub,
             )
         elif n_spans == 2:
+
             # The seed group index can get updated by the cell search
             proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
                 seed_index,
@@ -508,11 +509,16 @@ class PeriodicFinder():
                 best_adjacency_lists_add,
                 best_adjacency_lists_sub,
             )
+
             if proto_cell is None:
                 return None, None, None
 
         two_valid_spans = n_spans == 2
         if n_spans == 3:
+            # If the max_cell_size is bigger than an interlayer distance
+            # between two 2D sheets, then a wrong cell with a lot of vacuum
+            # might get detected. Here we check that the dimensionality of the
+            # found 3D cell is correct.
             try:
                 dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
             except SystaxError:
@@ -554,36 +560,27 @@ class PeriodicFinder():
                         return None, None, None
 
             # Check the dimensionality
-            try:
-                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
-            except SystaxError as e:
-
+            dimensionality, cluster_labels = systax.geometry.get_dimensionality(proto_cell, bond_threshold, return_clusters=True)
+            if dimensionality is None:
                 # If the original system has more than one cluster, the system
                 # has multiple stacked 2D sheets with identical periodicity. In
                 # this case the unit cell should only comprise of atoms in the
                 # cluster where the seed atom is in.
-
-                # The cluster labels for the original system are carried over
-                # as an exception attribute
-                cluster_labels = e.value
-
-                seed_cluster = cluster_labels[seed_group_index]
-                cluster_indices = []
-                seed_atom_index = None
                 for i_index, i_cluster in enumerate(cluster_labels):
-                    if i_index == seed_group_index:
-                        seed_atom_index = len(cluster_indices)
-                    if i_cluster == seed_cluster:
-                        cluster_indices.append(i_index)
-
+                    try:
+                        seed_group_index = i_cluster.index(seed_group_index)
+                    except ValueError:
+                        pass
+                    else:
+                        cluster_indices = i_cluster
+                        break
                 proto_cell = proto_cell[cluster_indices]
-                seed_group_index = seed_atom_index
 
                 # Retry to get the dimensionality for the cell in which the
                 # cluster where the seed atom is in has been separated.
-                try:
-                    dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
-                except SystaxError as e:
+                # view(proto_cell)
+                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+                if dimensionality is None:
                     return None, None, None
                 else:
                     if dimensionality != 2:
