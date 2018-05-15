@@ -32,6 +32,7 @@ class PeriodicFinder():
             pos_tol_scaling=constants.POS_TOL_SCALING,
             cell_size_tol=constants.CELL_SIZE_TOL,
             max_2d_cell_height=constants.MAX_2D_CELL_HEIGHT,
+            max_2d_single_cell_size=constants.MAX_SINGLE_CELL_SIZE,
             chem_similarity_threshold=constants.CHEM_SIMILARITY_THRESHOLD
         ):
         """
@@ -47,6 +48,7 @@ class PeriodicFinder():
         self.pos_tol_scaling = pos_tol_scaling
         self.cell_size_tol = cell_size_tol
         self.max_2d_cell_height = max_2d_cell_height
+        self.max_2d_single_cell_size = max_2d_single_cell_size,
         self.chem_similarity_threshold = chem_similarity_threshold
 
     def get_region(
@@ -556,7 +558,7 @@ class PeriodicFinder():
                 best_span_ind = valid_span_indices[best_combo]
                 if set(best_span_ind).issubset(set(periodic_span_indices)):
                     cell_lens = np.linalg.norm(best_spans, axis=1)
-                    if np.any(cell_lens > constants.MAX_SINGLE_CELL_SIZE):
+                    if np.any(cell_lens > self.max_2d_single_cell_size):
                         return None, None, None
 
             # Check the dimensionality
@@ -591,6 +593,7 @@ class PeriodicFinder():
 
             # Check the cell thickness
             proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
+            view(proto_cell)
             offset = proto_cell.get_positions()[seed_group_index]
             thickness = systax.geometry.get_thickness(proto_cell, 2)
             if thickness > self.max_2d_cell_height:

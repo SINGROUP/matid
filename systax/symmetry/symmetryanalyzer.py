@@ -34,6 +34,7 @@ class SymmetryAnalyzer(object):
             symmetry_tol (float): The tolerance for the symmetry detection.
         """
         self.system = system
+        self._symmetry_broken_system = None
         if symmetry_tol is None:
             self.symmetry_tol = constants.SYMMETRY_TOL
         else:
@@ -291,6 +292,16 @@ class SymmetryAnalyzer(object):
             # is enough vacuum in the periodic direction to remove any
             # translational symmetries that are smaller than the basis vector
             # in the non-periodic direction.
+            symmetry_broken_system = self.system.copy()
+            thickness = max(5, 3*systax.geometry.get_thickness(symmetry_broken_system, i_pbc))
+            old_cell = symmetry_broken_system.get_cell()
+            old_basis = old_cell[i_pbc, :]
+            old_basis_len = np.linalg.norm(old_basis)
+            old_basis_norm = old_basis/old_basis_len
+            new_basis = thickness*old_basis_norm
+            old_cell[i_pbc, :] = new_basis
+            symmetry_broken_system.set_cell(old_cell)
+            self._symmetry_broken_system = symmetry_broken_system
 
             # Get the full 3D conventional system and it's symmetries. It will
             # include some symmetries that have a translational component
@@ -325,6 +336,9 @@ class SymmetryAnalyzer(object):
             # direction
             # view(ideal_sys)
             min_conv_cell = systax.geometry.get_minimized_cell(ideal_sys, i_pbc, 1)
+            conv_pbc = np.array([True, True, True])
+            conv_pbc[i_pbc] = False
+            min_conv_cell.set_pbc(conv_pbc)
             # view(min_conv_cell)
             # rel_pos = centered_system.get_scaled_positions()
             # max_rel_pos = rel_pos[:, self.vacuum_index].max()
@@ -529,7 +543,14 @@ class SymmetryAnalyzer(object):
         if self._symmetry_dataset is not None:
             return self._symmetry_dataset
 
-        description = self._system_to_spglib_description(self.system)
+        # If a symmetry-broken system has been set, use it instead in the
+        # analysis.
+        if self._symmetry_broken_system is not None:
+            system_analyzed = self.system
+        else:
+            system_analyzed = self._symmetry_broken_system
+
+        description = self._system_to_spglib_description(system_analyzed)
         # Spglib has been observed to cause segmentation faults when fed with
         # invalid data, so run in separate process to catch those cases
         try:

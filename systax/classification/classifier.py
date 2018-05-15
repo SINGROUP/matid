@@ -126,6 +126,7 @@ class Classifier():
         self.cell_size_tol = cell_size_tol
         self.max_n_atoms = max_n_atoms
         self.max_2d_cell_height = max_2d_cell_height
+        self.max_2d_single_cell_size = max_2d_single_cell_size
         self.symmetry_tol = symmetry_tol
         self.min_coverage = min_coverage
 
@@ -421,6 +422,7 @@ class Classifier():
                         pos_tol_scaling=self.pos_tol_scaling,
                         cell_size_tol=self.cell_size_tol,
                         max_2d_cell_height=self.max_2d_cell_height,
+                        max_2d_single_cell_size=self.max_2d_single_cell_size,
                         chem_similarity_threshold=self.chem_similarity_threshold
                     )
                     region = periodicfinder.get_region(
