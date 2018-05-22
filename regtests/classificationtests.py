@@ -481,110 +481,110 @@ class PeriodicFinderTests(unittest.TestCase):
     pos_tol_scaling = classifier.pos_tol_scaling
     cell_size_tol = classifier.cell_size_tol
 
-    # def test_cell_selection(self):
-        # """Testing that the correct cell is selected.
-        # """
-        # # 3D: Selecting orthogonal from two options with same volume
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0, 1],
-            # [0, 2, 1],
-        # ])
-        # metrics = np.array([0, 0, 0, 0])
+    def test_cell_selection(self):
+        """Testing that the correct cell is selected.
+        """
+        # 3D: Selecting orthogonal from two options with same volume
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 2, 1],
+        ])
+        metrics = np.array([0, 0, 0, 0])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 1, 2])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 2])))
 
-        # # 3D: Selecting the non-orthogonal because another combination has higer
-        # # periodicity
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0, 1],
-            # [0, 2, 1],
-        # ])
-        # metrics = np.array([2, 2, 1, 2])
+        # 3D: Selecting the non-orthogonal because another combination has higer
+        # periodicity
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 2, 1],
+        ])
+        metrics = np.array([2, 2, 1, 2])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
 
-        # # 3D: Selecting first by volume, then by orthogonality.
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0, 1],
-            # [0, 0.5, 0.5],
-        # ])
-        # metrics = np.array([0, 0, 0, 0])
+        # 3D: Selecting first by volume, then by orthogonality.
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0.5, 0.5],
+        ])
+        metrics = np.array([0, 0, 0, 0])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1, 3])))
 
-        # # 2D: Selecting orthogonal from two options with same volume
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [1, 1, 0],
-        # ])
-        # metrics = np.array([0, 0, 0])
+        # 2D: Selecting orthogonal from two options with same volume
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 1, 0],
+        ])
+        metrics = np.array([0, 0, 0])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 1])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 1])))
 
-        # # 2D: Selecting the non-orthogonal because another combination has higer
-        # # periodicity
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [1, 2, 0],
-        # ])
-        # metrics = np.array([2, 1, 2])
+        # 2D: Selecting the non-orthogonal because another combination has higer
+        # periodicity
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [1, 2, 0],
+        ])
+        metrics = np.array([2, 1, 2])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 2])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 2])))
 
-        # # 2D: Selecting first by area, then by orthogonality.
-        # spans = np.array([
-            # [1, 0, 0],
-            # [0, 1, 0],
-            # [0, 0.5, 0],
-        # ])
-        # metrics = np.array([0, 0, 0])
+        # 2D: Selecting first by area, then by orthogonality.
+        spans = np.array([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0.5, 0],
+        ])
+        metrics = np.array([0, 0, 0])
 
-        # finder = PeriodicFinder()
-        # indices = finder._find_best_basis(spans, metrics)
-        # self.assertTrue(np.array_equal(indices, np.array([0, 2])))
+        finder = PeriodicFinder()
+        indices = finder._find_best_basis(spans, metrics)
+        self.assertTrue(np.array_equal(indices, np.array([0, 2])))
 
-    # def test_random(self):
-        # """Test a structure with random atom positions. No structure should be
-        # found.
-        # """
-        # n_atoms = 50
-        # rng = RandomState(8)
-        # for i in range(10):
-            # rand_pos = rng.rand(n_atoms, 3)
+    def test_random(self):
+        """Test a structure with random atom positions. No structure should be
+        found.
+        """
+        n_atoms = 50
+        rng = RandomState(8)
+        for i in range(10):
+            rand_pos = rng.rand(n_atoms, 3)
 
-            # system = Atoms(
-                # scaled_positions=rand_pos,
-                # cell=(10, 10, 10),
-                # symbols=n_atoms*['C'],
-                # pbc=(1, 1, 1))
-            # # view(system)
+            system = Atoms(
+                scaled_positions=rand_pos,
+                cell=(10, 10, 10),
+                symbols=n_atoms*['C'],
+                pbc=(1, 1, 1))
+            # view(system)
 
-            # finder = PeriodicFinder()
-            # region = finder.get_region(
-                # system,
-                # 0,
-                # pos_tol=1,
-                # max_cell_size=8,
-            # )
-            # self.assertEqual(region, None)
+            finder = PeriodicFinder()
+            region = finder.get_region(
+                system,
+                0,
+                pos_tol=1,
+                max_cell_size=8,
+            )
+            self.assertEqual(region, None)
 
     def test_nanocluster(self):
         """Test the periodicity finder on an artificial perfect nanocluster.
@@ -1750,7 +1750,7 @@ class SurfaceTests(unittest.TestCase):
         algorithm cannot find it.
         """
         system = ase.io.read("./structures/Rhn-EWQQN8Z-lbmZwoWPyrGiM9Isx+PbYDgCBSwbq3nxONqWaq03HYUn8_V.xyz")
-        view(system)
+        # view(system)
         classifier = Classifier()
         classification = classifier.classify(system)
         self.assertEqual(type(classification), Class2D)

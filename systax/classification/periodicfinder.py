@@ -593,7 +593,7 @@ class PeriodicFinder():
 
             # Check the cell thickness
             proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
-            view(proto_cell)
+            # view(proto_cell)
             offset = proto_cell.get_positions()[seed_group_index]
             thickness = systax.geometry.get_thickness(proto_cell, 2)
             if thickness > self.max_2d_cell_height:

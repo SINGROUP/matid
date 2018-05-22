@@ -339,7 +339,7 @@ class WyckoffTests(unittest.TestCase):
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyserTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

@@ -33,20 +33,55 @@ class SymmetryAnalyzer(object):
             system (ASE.Atoms): The system to inspect.
             symmetry_tol (float): The tolerance for the symmetry detection.
         """
-        self.system = system
-        self._symmetry_broken_system = None
+        self._original_system = None
+        self._analyzed_system = None
         if symmetry_tol is None:
             self.symmetry_tol = constants.SYMMETRY_TOL
         else:
             self.symmetry_tol = symmetry_tol
 
-        self.reset()
+        self.set_system(system)
 
     def set_system(self, system):
         """Sets a new system for analysis.
         """
         self.reset()
-        self.system = system
+        self._original_system = system
+
+        # Analyze whether the system is 2D or not. 2D systems will be first
+        # un-symmetrized in the nonperiodic direction by adding sufficient
+        # vacuum.
+
+        # Determine if the system has three periodic directions or two.
+        pbc = system.get_pbc()
+        n_pbc = np.sum(pbc)
+
+        # Regular bulk structures
+        if n_pbc == 3:
+            self._analyzed_system = system
+        elif n_pbc == 2:
+            # Get the index of the non-periodic axis
+            i_pbc = np.argwhere(pbc == False)[0]
+
+            # Before calculating the conventional system, make sure that there
+            # is enough vacuum in the periodic direction to remove any
+            # translational symmetries that are smaller than the basis vector
+            # in the non-periodic direction.
+            symmetry_broken_system = system.copy()
+            thickness = max(5, 3*systax.geometry.get_thickness(symmetry_broken_system, i_pbc))
+            old_cell = symmetry_broken_system.get_cell()
+            old_basis = old_cell[i_pbc, :]
+            old_basis_len = np.linalg.norm(old_basis)
+            old_basis_norm = old_basis/old_basis_len
+            new_basis = thickness*old_basis_norm
+            old_cell[i_pbc, :] = new_basis
+            symmetry_broken_system.set_cell(old_cell)
+            self._analyzed_system = symmetry_broken_system
+        else:
+            raise ValueError(
+                "No symmetry routines defined for system that do not have 3D or"
+                " 2D periodicity."
+            )
 
     def reset(self):
         """Used to reset all the cached values.
@@ -252,12 +287,12 @@ class SymmetryAnalyzer(object):
     def get_conventional_system(self):
         """Used to get the conventional representation of this system.
         """
-        # Determine if the system has three periodic directions or two.
-        pbc = self.system.get_pbc()
-        n_pbc = np.sum(pbc)
-
         if self._conventional_system is not None:
             return self._conventional_system
+
+        # Determine if the system has three periodic directions or two.
+        pbc = self._original_system.get_pbc()
+        n_pbc = np.sum(pbc)
 
         # Regular bulk structures
         if n_pbc == 3:
@@ -285,23 +320,7 @@ class SymmetryAnalyzer(object):
         # 2D materials get a special treatment
         elif n_pbc == 2:
 
-            # Get the index of the non-periodic axis
             i_pbc = np.argwhere(pbc == False)[0]
-
-            # Before calculating the conventional system, make sure that there
-            # is enough vacuum in the periodic direction to remove any
-            # translational symmetries that are smaller than the basis vector
-            # in the non-periodic direction.
-            symmetry_broken_system = self.system.copy()
-            thickness = max(5, 3*systax.geometry.get_thickness(symmetry_broken_system, i_pbc))
-            old_cell = symmetry_broken_system.get_cell()
-            old_basis = old_cell[i_pbc, :]
-            old_basis_len = np.linalg.norm(old_basis)
-            old_basis_norm = old_basis/old_basis_len
-            new_basis = thickness*old_basis_norm
-            old_cell[i_pbc, :] = new_basis
-            symmetry_broken_system.set_cell(old_cell)
-            self._symmetry_broken_system = symmetry_broken_system
 
             # Get the full 3D conventional system and it's symmetries. It will
             # include some symmetries that have a translational component
@@ -312,7 +331,7 @@ class SymmetryAnalyzer(object):
             # Determine if the structure is flat. This will affect the
             # transformation that are allowed when finding the Wyckoff positions
             is_flat = False
-            thickness = systax.geometry.get_thickness(self.system, i_pbc)
+            thickness = systax.geometry.get_thickness(self._original_system, i_pbc)
             if thickness < 0.5*self.symmetry_tol:
                 is_flat = True
 
@@ -371,7 +390,7 @@ class SymmetryAnalyzer(object):
 
         conv_sys = self.get_conventional_system()
         conv_cell = self.get_conventional_system().get_cell()
-        orig_sys = self.system
+        orig_sys = self._analyzed_system
         orig_cell = orig_sys.get_cell()
         orig_cell_inv = np.linalg.inv(orig_cell.T)
         coeff = np.dot(conv_cell, orig_cell_inv)
@@ -543,14 +562,7 @@ class SymmetryAnalyzer(object):
         if self._symmetry_dataset is not None:
             return self._symmetry_dataset
 
-        # If a symmetry-broken system has been set, use it instead in the
-        # analysis.
-        if self._symmetry_broken_system is not None:
-            system_analyzed = self.system
-        else:
-            system_analyzed = self._symmetry_broken_system
-
-        description = self._system_to_spglib_description(system_analyzed)
+        description = self._system_to_spglib_description(self._analyzed_system)
         # Spglib has been observed to cause segmentation faults when fed with
         # invalid data, so run in separate process to catch those cases
         try:
@@ -858,9 +870,9 @@ class SymmetryAnalyzer(object):
     def _system_to_spglib_description(self, system):
         """Transforms the given ASE.Atoms object into a tuple used by spglib.
         """
-        angstrom_cell = self.system.get_cell()
-        relative_pos = self.system.get_scaled_positions()
-        atomic_numbers = self.system.get_atomic_numbers()
+        angstrom_cell = self._analyzed_system.get_cell()
+        relative_pos = self._analyzed_system.get_scaled_positions()
+        atomic_numbers = self._analyzed_system.get_atomic_numbers()
         description = (angstrom_cell, relative_pos, atomic_numbers)
 
         return description
