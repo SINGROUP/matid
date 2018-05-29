@@ -1432,8 +1432,17 @@ def get_thickness(system, axis):
 
 
 def get_minimized_cell(system, axis, min_size):
-    """Used to resize the cell in the given direction so that all atoms are
-    within the cell.
+    """Used to resize the cell in the given cell direction so that all atoms
+    are within the cell.
+
+    Args:
+        system(ase.Atoms): The system to minimize. Must have a cell with
+            non-zero volume.
+        axis(int): Index of the axis to minimize.
+        axis(min_size): The minimum size for the cell in the given direction.
+
+    Returns:
+        ase.Atoms: The new minimized system.
     """
     # Grow the cell to fit all atoms
     rel_pos = system.get_scaled_positions()
@@ -1444,10 +1453,15 @@ def get_minimized_cell(system, axis, min_size):
     c_length = np.linalg.norm(c)
     c_norm = c/c_length
     c_comp = rel_pos[:, axis]
+
     min_index = np.argmin(c_comp, axis=0)
     max_index = np.argmax(c_comp, axis=0)
-    pos_min_rel = np.array([0, 0, c_comp[min_index]])
-    pos_max_rel = np.array([0, 0, c_comp[max_index]])
+
+    pos_min_rel = np.zeros((3))
+    pos_min_rel[axis] = c_comp[min_index]
+    pos_max_rel = np.zeros((3))
+    pos_max_rel[axis] = c_comp[max_index]
+
     pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
     pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
     c_real_cart = pos_max_cart-pos_min_cart
@@ -1462,7 +1476,7 @@ def get_minimized_cell(system, axis, min_size):
     else:
         c_new_cart = c_real_cart
     new_basis = np.array(basis)
-    new_basis[2, :] = c_new_cart
+    new_basis[axis, :] = c_new_cart
 
     new_scaled_pos = rel_pos - pos_min_rel
     new_cart_test = systax.geometry.to_cartesian(basis, new_scaled_pos)

@@ -68,7 +68,27 @@ class GeometryTests(unittest.TestCase):
         system = molecule("H2O")
         system.set_cell([3, 3, 3])
 
-        # Minimize with minimum size smaller than found minimum size
+        # Minimize in x-direction
+        x_minimized_system = systax.geometry.get_minimized_cell(system, 0, 0.1)
+        x_cell = x_minimized_system.get_cell()
+        x_expected_cell = np.array([
+            [0.1, 0., 0.],
+            [0., 3., 0.],
+            [0., 0., 3.]
+        ])
+        self.assertTrue(np.allclose(x_expected_cell, x_cell, atol=0.001, rtol=0))
+
+        # Minimize in y-direction
+        y_minimized_system = systax.geometry.get_minimized_cell(system, 1, 0.1)
+        y_cell = y_minimized_system.get_cell()
+        y_expected_cell = np.array([
+            [3., 0., 0.],
+            [0., 1.526478, 0.],
+            [0., 0., 3.]
+        ])
+        self.assertTrue(np.allclose(y_expected_cell, y_cell, atol=0.001, rtol=0))
+
+        # Minimize in z-direction with minimum size smaller than found minimum size
         minimized_system = systax.geometry.get_minimized_cell(system, 2, 0.1)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
@@ -85,7 +105,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(expected_cell, cell, atol=0.001, rtol=0))
         self.assertTrue(np.allclose(expected_pos, pos, atol=0.001, rtol=0))
 
-        # Minimize with minimum size larger than found minimum size
+        # Minimize in z-direction with minimum size larger than found minimum size
         minimized_system = systax.geometry.get_minimized_cell(system, 2, 2)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
