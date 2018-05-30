@@ -1453,6 +1453,7 @@ def get_minimized_cell(system, axis, min_size):
     c_length = np.linalg.norm(c)
     c_norm = c/c_length
     c_comp = rel_pos[:, axis]
+    # print(c_comp)
 
     min_index = np.argmin(c_comp, axis=0)
     max_index = np.argmax(c_comp, axis=0)

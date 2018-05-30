@@ -344,12 +344,18 @@ class SymmetryAnalyzer(object):
             # may use a different coordinate system.
             transformation_matrix = self.get_symmetry_dataset()["transformation_matrix"]
             nonperiodic_axis = None
+            prec = 1e-8
             for i_axis, axis in enumerate(transformation_matrix):
-                if axis[i_pbc] != 0 and \
-                   axis[(i_pbc+1) % 3] == 0.0 and \
-                   axis[(i_pbc+2) % 3] == 0.0:
+                if abs(axis[i_pbc]) > prec and \
+                   abs(axis[(i_pbc+1) % 3]) < prec and \
+                   abs(axis[(i_pbc+2) % 3]) < prec:
                     nonperiodic_axis = i_axis
                     break
+            if nonperiodic_axis is None:
+                raise SystaxError(
+                    "Could not detect the non-periodic direction in the normalized "
+                    "2D cell."
+                )
 
             # Find a proper rigid transformation that produces the best combination
             # of atomic species in the Wyckoff positions.
