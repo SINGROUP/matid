@@ -1,6 +1,3 @@
-"""
-Example of automatic surface detection and analysis.
-"""
 import numpy as np
 from ase.visualize import view
 from ase.build import bcc100, molecule
