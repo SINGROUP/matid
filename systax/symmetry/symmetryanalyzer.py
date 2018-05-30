@@ -27,14 +27,17 @@ class SymmetryAnalyzer(object):
     """A base class for getting symmetry related properties of unit cells.
     """
 
-    def __init__(self, system=None, symmetry_tol=None):
+    def __init__(self, system=None, symmetry_tol=None, min_2d_thickness=1):
         """
         Args:
-            system (ASE.Atoms): The system to inspect.
-            symmetry_tol (float): The tolerance for the symmetry detection.
+            system(ASE.Atoms): The system to inspect.
+            symmetry_tol(float): The tolerance for the symmetry detection.
+            min_2d_thickness(float): The minimum thickness in angstroms for the
+                conventional cell that is returned for 2D systems.
         """
         self._original_system = None
         self._analyzed_system = None
+        self.min_2d_thickness = min_2d_thickness
         if symmetry_tol is None:
             self.symmetry_tol = constants.SYMMETRY_TOL
         else:
@@ -335,6 +338,19 @@ class SymmetryAnalyzer(object):
             if thickness < 0.5*self.symmetry_tol:
                 is_flat = True
 
+            # Determine the new non-periodic direction in the normalized cell.
+            # The index of the originally non-periodic dimension may not correspond
+            # to the one in the normalized system, because the normalized system
+            # may use a different coordinate system.
+            transformation_matrix = self.get_symmetry_dataset()["transformation_matrix"]
+            nonperiodic_axis = None
+            for i_axis, axis in enumerate(transformation_matrix):
+                if axis[i_pbc] != 0 and \
+                   axis[(i_pbc+1) % 3] == 0.0 and \
+                   axis[(i_pbc+2) % 3] == 0.0:
+                    nonperiodic_axis = i_axis
+                    break
+
             # Find a proper rigid transformation that produces the best combination
             # of atomic species in the Wyckoff positions.
             space_group = self.get_space_group_number()
@@ -344,28 +360,20 @@ class SymmetryAnalyzer(object):
                 space_group,
                 wyckoff_letters,
                 spglib_conv_sys,
-                is_flat=is_flat
+                is_flat=is_flat,
+                nonperiodic_axis=nonperiodic_axis
             )
-
-            # The idealization might move the system in the direction of the
-            # nonperiodic axis. This centers the system back.
-            # centered_system = self.get_centered_system(ideal_sys)
 
             # Minimize the cell to only just fit the atoms in the non-periodic
             # direction
-            # view(ideal_sys)
-            min_conv_cell = systax.geometry.get_minimized_cell(ideal_sys, i_pbc, 1)
+            min_conv_cell = systax.geometry.get_minimized_cell(
+                ideal_sys,
+                nonperiodic_axis,
+                self.min_2d_thickness
+            )
             conv_pbc = np.array([True, True, True])
-            conv_pbc[i_pbc] = False
+            conv_pbc[nonperiodic_axis] = False
             min_conv_cell.set_pbc(conv_pbc)
-            # view(min_conv_cell)
-            # rel_pos = centered_system.get_scaled_positions()
-            # max_rel_pos = rel_pos[:, self.vacuum_index].max()
-            # new_cell = np.array(centered_system.get_cell())
-            # old_axis = np.array(new_cell[self.vacuum_index])
-            # new_axis = max_rel_pos*old_axis
-            # new_cell[self.vacuum_gaps, :] = new_axis
-            # centered_system.set_cell(new_cell)
 
             self._conventional_system = min_conv_cell
             self._conventional_wyckoff_letters = ideal_wyckoff
@@ -980,8 +988,47 @@ class SymmetryAnalyzer(object):
             space_group,
             old_wyckoff_letters,
             system,
-            is_flat=False):
+            is_flat=False,
+            nonperiodic_axis=None):
         """
+        When given a system that has been normalized by spglib, this function
+        will find a atomic positions within that cell that are most unique
+        (totally unique up to isotropic scaling if no free Wyckoff parameters
+        present).
+
+        The function is based on finding a "normalizer" (found for each space
+        group e.g. at the Bilbao Crystallographic Server)
+        http://www.cryst.ehu.es/), which is essentially a transform that
+        changes Wyckoff positions of atoms within a cell without breaking the
+        symmetry. Each of these normalizers, that corresponds to a proper rigid
+        transformation in the cartesian basis, is applied to give a different
+        structural representation. The algorithm then goes through each tuple
+        of Wyckoff letter and atomic number (W , Z) in a preset order: the
+        first loop goes through the Wyckoff letters in alphabetical order, and
+        the second loop goes through the atomic numbers from lowest to highest.
+        Whenever some of the possible representations has a structural
+        component corresponding to the current tuple (W , Z), the number of
+        atoms with this tuple N is calculated. The representation is stored to
+        a map structure that links each N to a list of representations and the
+        highest N is tracked. After all the representations are covered, the
+        candidate list of representations is replaced with the list
+        corresponding to the highest N. The algorithm stops whenever the
+        candidate set contains only one representation, which will be the
+        standard one.
+
+        Args:
+            space_group(int): The space group of the system.
+            old_wyckoff_letters(list of strings): Wyckoff letters as detected
+                by spglib for the atoms in the given system.
+            system(ase.Atoms): The standardized system as given by spglib.
+            is_flat(bool): Whether the structure is flat (near zero thickness)
+                in one non-periodic direction. Applies only for 2D systems.
+            nonperiodic_axis(int): The index of a nonperiodic axis in the cell
+                basis. Applies only for 2D systems.
+
+        Returns:
+            (ase.Atoms, list of strings): Returns a tuple containing the found
+            conventional system and the Wyckoff letters for it.
         """
         # Gather the allowed transformations. For completely flat structures (all
         # atoms in 2D plane), also the rigid transformation that are improper
@@ -1004,6 +1051,65 @@ class SymmetryAnalyzer(object):
             improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
             if improper_rigid_trans is not None:
                 transform_list.extend(improper_rigid_trans)
+
+        # Test which transformations are proper rigid transformation for the
+        # current cell. TODO: Could the proper rigid transformation be checked
+        # beforehand for each normalizer by looking at the crystal lattice
+        # characteristics like orthogonality, basis sizes, etc.?
+        # TODO: There is an optimization that could slightly speed up the
+        # calculation of whether the matrix is proper rigid: If one would
+        # precalculate the inverse and transpose of the transformation matrices
+        # in the scaled basis, then one can use the rules det(ABC) =
+        # det(A)*det(B)*det(C), (ABC)^-1 = C^-1*B^-1*A^-1 and (ABC)^T =
+        # C^T*B^T*A^T to speed up the calculation.
+        cart_basis = np.eye(3)
+        cell_basis = system.get_cell()
+
+        # If the structure is flat, we ignore the non-periodic basis
+        if nonperiodic_axis is not None:
+            dim_mask = np.array((True, True, True))
+            dim_mask[nonperiodic_axis] = False
+            cart_basis = cart_basis[dim_mask, :]
+            cart_basis = cart_basis[:, dim_mask]
+            cell_basis = cell_basis[dim_mask, :]
+            cell_basis = cell_basis[:, dim_mask]
+
+        # These are the change of basis matrices for going from cartesian basis
+        # to scaled basis and vice versa
+        cart_to_cell = np.dot(cart_basis, np.linalg.inv(cell_basis))
+        cell_to_cart = np.dot(cell_basis, np.linalg.inv(cart_basis))
+        proper_transforms = []
+
+        for trans_info in transform_list:
+            trans = trans_info["transformation"]
+            nonaugmented_trans = trans[0:3, 0:3]
+
+            # Remove the non-periodic dimension from the transform as well
+            if nonperiodic_axis is not None:
+                nonaugmented_trans = nonaugmented_trans[dim_mask, :]
+                nonaugmented_trans = nonaugmented_trans[:, dim_mask]
+
+            # Here we transform the basis of the transformation matrix from
+            # scaled coordinates to cartesian coordinates. This is necessary
+            # because the scaled coordinates have a distorted metric and only
+            # the cartesian version can reveal if the transformation is proper
+            # rigid.
+            cart_trans = np.dot(cart_to_cell, np.dot(nonaugmented_trans, cell_to_cart))
+
+            # Check if the transformation is proper
+            determinant = np.linalg.det(cart_trans)
+            is_proper = abs(determinant - 1) < 1e-8
+
+            # Check if transformation is orthogonal
+            if is_proper:
+                test_inv = np.linalg.inv(cart_trans)
+                test_trans = cart_trans.T
+                is_orthogonal = np.allclose(test_inv, test_trans, rtol=0, atol=1e-8)
+
+                if is_orthogonal:
+                    proper_transforms.append(trans_info)
+
+        transform_list = proper_transforms
 
         # If no transformation found for this space group, return the same
         # system

@@ -6,6 +6,7 @@ import ase.spacegroup
 from ase.visualize import view
 from systax import SymmetryAnalyzer
 from systax.data.constants import WYCKOFF_LETTER_POSITIONS
+import systax.geometry
 from numpy.random import RandomState
 
 
@@ -16,7 +17,7 @@ class dotdict(dict):
     __delattr__ = dict.__delitem__
 
 
-class SymmetryAnalyserTests(unittest.TestCase):
+class SymmetryAnalyser3DTests(unittest.TestCase):
     """Tests the analysis of bulk 3D materials.
     """
     def test_diamond(self):
@@ -167,7 +168,7 @@ class SymmetryAnalyserTests(unittest.TestCase):
         self.assertVolumeOk(system, data.conv_system, data.lattice_fit)
 
     def assertVolumeOk(self, orig_sys, conv_sys, lattice_fit):
-        """Check that the Wyckoff groups contain all atoms and are ordered
+        """Check that the volume of the lattice fit is ok.
         """
         n_atoms_orig = len(orig_sys)
         volume_orig = orig_sys.get_volume()
@@ -236,10 +237,121 @@ class SymmetryAnalyserTests(unittest.TestCase):
         return data
 
 
+class SymmetryAnalyser2DTests(unittest.TestCase):
+    """Tests the analysis of bulk 2D materials.
+    """
+    def test_graphene_primitive(self):
+        # Original system in positions: C: d
+        system = Atoms(
+            symbols=["C", "C"],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [-1.2297560733739028, 2.13, 0.0],
+                [0.0, 0.0, 20.0]
+            )),
+            scaled_positions=np.array((
+                [1/3, 2/3, 0.5],
+                [2/3, 1/3, 0.5]
+            )),
+            pbc=[True, True, False]
+        )
+        # view(system)
+
+        analyzer = SymmetryAnalyzer(system)
+        wyckoff_letters_conv = analyzer.get_wyckoff_letters_conventional()
+        wyckoff_letters_assumed = ["c", "c"]
+        self.assertTrue(np.array_equal(wyckoff_letters_assumed, wyckoff_letters_conv))
+
+        conv_system = analyzer.get_conventional_system()
+        pbc = conv_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc, [True, True, False]))
+        # view(conv_system)
+
+    def test_boron_nitride_primitive(self):
+        """Test a system where the normalized system cannot be correctly found
+        if the flatness of the structure is not taken into account. Due to the
+        structure being flat, any non-rigid transformations in the flat
+        directions do not affect the rigidity, and are thus allowed.
+        """
+        # Original system in positions: B: a, N: e. This can only be converted
+        # to the ground state: B: a, N: c if an inversion is performed.
+        system = Atoms(
+            symbols=["B", "N"],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [-1.2297560733739028, 2.13, 0.0],
+                [0.0, 0.0, 20.0]
+            )),
+            scaled_positions=np.array((
+                [0, 0, 0.0],
+                [2/3, 1/3, 0.0]
+            )),
+            pbc=[True, True, False]
+        )
+        # view(system)
+
+        analyzer = SymmetryAnalyzer(system)
+
+        # Check that the correct Wyckoff positions are present in the
+        # normalized system
+        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
+        for group in wyckoff_groups_conv:
+            if group.element == "N":
+                self.assertEqual(group.wyckoff_letter, "c")
+            if group.element == "B":
+                self.assertEqual(group.wyckoff_letter, "a")
+
+        conv_system = analyzer.get_conventional_system()
+        pbc = conv_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc, [True, True, False]))
+        # view(conv_system)
+
+    def test_boron_nitride_rotated(self):
+        """Test a system where the non-periodic direction is not the third axis
+        direction in the original system, but in the normalized system the
+        third axis will be the non-periodic one.
+        """
+        # Original system in positions: B: a, N: e. This can only be converted
+        # to the ground state: B: a, N: c if an inversion is performed.
+        system = Atoms(
+            symbols=["B", "N"],
+            cell=np.array((
+                [2.4595121467478055, 0.0, 0.0],
+                [0.0, 20.0, 0.0],
+                [-1.2297560733739028, 0.0, 2.13],
+            )),
+            scaled_positions=np.array((
+                [0, 0, 0.0],
+                [2/3, 0.0, 1/3]
+            )),
+            pbc=[True, False, True]
+        )
+        # view(system)
+
+        analyzer = SymmetryAnalyzer(system)
+
+        # Check that the correct Wyckoff positions are present in the
+        # normalized system
+        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
+        for group in wyckoff_groups_conv:
+            if group.element == "N":
+                self.assertEqual(group.wyckoff_letter, "c")
+            if group.element == "B":
+                self.assertEqual(group.wyckoff_letter, "a")
+
+        conv_system = analyzer.get_conventional_system()
+        pbc = conv_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc, [True, True, False]))
+        # view(conv_system)
+
+
 class WyckoffTests(unittest.TestCase):
     """Tests for the Wyckoff information.
     """
     def test_no_free(self):
+        """Test that no Wyckoff parameter is returned when the position is not
+        free.
+        """
         # Create structure
         a = 2.87
         fcc = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
@@ -261,6 +373,9 @@ class WyckoffTests(unittest.TestCase):
         self.assertEqual(group.z, None)
 
     def test_one_free(self):
+        """Test finding the value of the Wyckoff free parameter when one
+        direction is free.
+        """
         # Create structure
         free_variables = {
             "x": 0.13
@@ -285,6 +400,9 @@ class WyckoffTests(unittest.TestCase):
             self.assertTrue(calculated_value - value <= 1e-2)
 
     def test_two_free(self):
+        """Test finding the value of the Wyckoff free parameter when two
+        directions are free.
+        """
         # Create structure
         free_variables = {
             "y": 0.13,
@@ -310,6 +428,9 @@ class WyckoffTests(unittest.TestCase):
             self.assertTrue(calculated_value - value <= 1e-2)
 
     def test_three_free(self):
+        """Test finding the value of the Wyckoff free parameter when three
+        directions are free.
+        """
         # Create structure
         free_variables = {
             "x": 0.36,
@@ -336,10 +457,100 @@ class WyckoffTests(unittest.TestCase):
             self.assertTrue(calculated_value - value <= 1e-2)
 
 
+class GroundStateTests(unittest.TestCase):
+    """Tests that the correct normalizer is applied to reach minimal
+    configuration score that defines the Wyckoff positions.
+    """
+    def test_translation(self):
+        """Test a tranform that translates atoms.
+        """
+        # The original system belongs to space group 12, see
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-normsets?from=wycksets&gnum=12
+        # and
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
+        system = Atoms(
+            cell=[
+                [3.3, 0., 0.],
+                [0., 1., 0.],
+                [-1., 0., 3.],
+            ],
+            scaled_positions=[
+                [0.5, 0.5, 0.],
+                [0.5, 0.,  0.5],
+                [0.,  0.,  0.],
+                [0.,  0.5, 0.5],
+            ],
+            symbols=["C", "H", "C", "H"],
+            pbc=True
+        )
+        # The assumed ground state
+        correct_state = ["d", "a", "d", "a"]
+        analyzer = SymmetryAnalyzer(system)
+        orig_wyckoffs = analyzer.get_wyckoff_letters_original()
+        self.assertTrue(np.array_equal(orig_wyckoffs, correct_state))
+
+        # Check that the system has been translated correctly
+        correct_translation = np.array([
+            [1, 0, 0, 1/2],
+            [0, 1, 0, 0],
+            [0, 0, 1, 1/2],
+            [0, 0, 0, 1],
+        ])
+        conv_system = analyzer.get_conventional_system()
+        conv_pos = conv_system.get_scaled_positions()
+        orig_pos = np.zeros((4, 4))
+        orig_pos[:, 3] = 1
+        orig_pos[:, 0:3] = system.get_scaled_positions()
+
+        assumed_pos = np.dot(orig_pos, correct_translation.T)
+        assumed_pos = assumed_pos[:, 0:3]
+        assumed_pos = systax.geometry.get_wrapped_positions(assumed_pos)
+        self.assertTrue(np.array_equal(assumed_pos, conv_pos))
+
+    def test_transformation_affine(self):
+        """Test a tranform where the transformation is a proper rigid
+        transformation in the scaled cell basis, but will be non-rigid in the
+        cartesian basis. This kind of transformations should not be allowed.
+        """
+        system = Atoms(
+            cell=[
+                [1, 0., 0.],
+                [0., 2.66, 0.],
+                [0., 0., 1.66],
+            ],
+            scaled_positions=[
+                [0.0, 1/2, 0.0],
+                [0.0, 0.0, 0.0],
+            ],
+            symbols=["H", "C"],
+            pbc=True
+        )
+        analyzer = SymmetryAnalyzer(system)
+        # space_group = analyzer.get_space_group_number()
+        # print(space_group)
+        # view(system)
+
+        # The assumed ground state
+        analyzer = SymmetryAnalyzer(system)
+        # conv_system = analyzer.get_conventional_system()
+        # view(conv_system)
+
+        # Check that the correct Wyckoff positions are occupied, and that an
+        # axis swap transformation has not been applied.
+        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
+        for group in wyckoff_groups_conv:
+            if group.element == "H":
+                self.assertEqual(group.wyckoff_letter, "a")
+            if group.element == "C":
+                self.assertEqual(group.wyckoff_letter, "c")
+
+
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyserTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

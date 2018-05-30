@@ -1445,7 +1445,7 @@ def get_minimized_cell(system, axis, min_size):
         ase.Atoms: The new minimized system.
     """
     # Grow the cell to fit all atoms
-    rel_pos = system.get_scaled_positions()
+    rel_pos = system.get_scaled_positions(wrap=False)
     num = system.get_atomic_numbers()
     pbc = system.get_pbc()
     basis = system.get_cell()
