@@ -2,12 +2,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from setuptools import setup, find_packages
 
 if __name__ == "__main__":
-    setup(name="systax",
-        version="0.3.0",
-        url="https://gitlab.com/laurih/systax",
+    setup(name="matid",
+        version="0.4.0",
+        url="https://gitlab.com/laurih/matid",
         description=(
-            "Systax is a python package for the analysis and classification of "
-            "atomistic systems."
+            "MatID is a python package for identifying and analyzing atomistic "
+            "systems based on their structure."
+        ),
+        long_description=(
+            "MatID is a python package for identifying and analyzing atomistic "
+            "systems based on their structure."
         ),
         author='Lauri Himanen',
         author_email='lauri.himanen@aalto.fi',
@@ -26,7 +30,7 @@ if __name__ == "__main__":
             'Programming Language :: Python :: 3.4',
             'Programming Language :: Python :: 3.5',
         ],
-        keywords='atoms structure material science crystal symmetry spglib',
+        keywords='atoms structure materials science crystal symmetry',
         packages=find_packages(),
         install_requires=[
             "future",

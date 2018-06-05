@@ -9,8 +9,8 @@ from ase import Atoms
 from ase.data import covalent_radii
 from ase.io import write
 
-import systax.geometry
-from systax.data import constants
+import matid.geometry
+from matid.data import constants
 
 import networkx as nx
 
@@ -159,7 +159,7 @@ class LinkedUnitCollection(dict):
                 pbc = [True, True, False]
             else:
                 pbc = [True, True, True]
-            factors = systax.geometry.get_neighbour_cells(cell.get_cell(), cutoff, pbc)
+            factors = matid.geometry.get_neighbour_cells(cell.get_cell(), cutoff, pbc)
             tvecs = np.dot(factors, cell.get_cell())
 
             # Find the factor corresponding to the original cell
@@ -169,7 +169,7 @@ class LinkedUnitCollection(dict):
                     break
 
             pos = cell.get_positions()
-            disp = systax.geometry.get_displacement_tensor(pos, pos, cell.get_cell())
+            disp = matid.geometry.get_displacement_tensor(pos, pos, cell.get_cell())
 
             env_list = []
             for i in range(len(cell)):
@@ -194,7 +194,7 @@ class LinkedUnitCollection(dict):
             num = self.system.get_atomic_numbers()
             max_radii = covalent_radii[num].max()
             cutoff = max_radii + self.bond_threshold
-            factors = systax.geometry.get_neighbour_cells(cell, cutoff, True)
+            factors = matid.geometry.get_neighbour_cells(cell, cutoff, True)
             translations = np.dot(factors, cell)
 
             # Find and remove the factor corresponding to the original cell
@@ -323,7 +323,7 @@ class LinkedUnitCollection(dict):
         adsorbates from the surface.
         """
         if self._clusters is None:
-            clusters = systax.geometry.get_clusters(
+            clusters = matid.geometry.get_clusters(
                 self.dist_matrix_radii_pbc,
                 self.bond_threshold
             )
@@ -481,7 +481,7 @@ class LinkedUnitCollection(dict):
             valid_sys = self.system[basis_indices]
 
             # Perform tetrahedra decomposition
-            self._decomposition = systax.geometry.get_tetrahedra_decomposition(
+            self._decomposition = matid.geometry.get_tetrahedra_decomposition(
                 valid_sys,
                 self.delaunay_threshold
             )

@@ -1,6 +1,6 @@
-# Systax
-Systax is a python package for the structural analysis and classification of
-atomistic systems.
+# MatID
+MatID is a python package for identifying and analyzing atomistic systems based
+on their structure.
 
 # Installation
 The package is compatible with Python 2.7, 3.4-3.6, and the dependencies are
@@ -10,15 +10,15 @@ installed during the setup of the package.
 The latest stable release is available through pip, and can be installed with
 the command:
 ```sh
-pip install systax
+pip install matid
 ```
 
 To install the most recent development version, you can clone this repository
 and perform the install with pip directly from the source code:
 
 ```sh
-git clone https://gitlab.com/laurih/systax.git
-cd systax
+git clone https://gitlab.com/laurih/matid.git
+cd matid
 pip install .
 ```
 
@@ -28,7 +28,7 @@ pip install .
 import numpy as np
 from ase.visualize import view
 from ase.build import bcc100, molecule
-from systax import Classifier, SymmetryAnalyzer
+from matid import Classifier, SymmetryAnalyzer
 
 # Generating a surface adsorption geometry with ASE.
 adsorbent = bcc100('Fe', size=(3, 3, 4), vacuum=8)
@@ -58,7 +58,7 @@ print("Structure classified as: {}".format(classification))
 outliers = classification.outliers
 print("Outlier atoms indices: {}".format(outliers))
 
-# Visualize the cell that was found by systax
+# Visualize the cell that was found by matid
 prototype_cell = classification.prototype_cell
 view(prototype_cell)
 

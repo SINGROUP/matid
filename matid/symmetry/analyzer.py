@@ -5,7 +5,7 @@ import sys
 import abc
 from abc import abstractmethod
 
-from systax.data.constants import SPGLIB_PRECISION
+from matid.data.constants import SPGLIB_PRECISION
 
 __metaclass__ = type
 

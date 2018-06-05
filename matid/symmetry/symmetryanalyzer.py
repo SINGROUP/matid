@@ -10,14 +10,14 @@ import ast
 import operator as op
 from operator import attrgetter
 
-from systax.utils.segfault_protect import segfault_protect
-from systax.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
-from systax.exceptions import CellNormalizationError, SystaxError
-from systax.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
-from systax.data import constants
-from systax.core.system import System
-from systax.symmetry import WyckoffGroup
-import systax.geometry
+from matid.utils.segfault_protect import segfault_protect
+from matid.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
+from matid.exceptions import CellNormalizationError, SystaxError
+from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
+from matid.data import constants
+from matid.core.system import System
+from matid.symmetry import WyckoffGroup
+import matid.geometry
 
 from ase import Atoms
 from ase.visualize import view
@@ -71,7 +71,7 @@ class SymmetryAnalyzer(object):
             # translational symmetries that are smaller than the basis vector
             # in the non-periodic direction.
             symmetry_broken_system = system.copy()
-            thickness = max(5, 3*systax.geometry.get_thickness(symmetry_broken_system, i_pbc))
+            thickness = max(5, 3*matid.geometry.get_thickness(symmetry_broken_system, i_pbc))
             old_cell = symmetry_broken_system.get_cell()
             old_basis = old_cell[i_pbc, :]
             old_basis_len = np.linalg.norm(old_basis)
@@ -334,7 +334,7 @@ class SymmetryAnalyzer(object):
             # Determine if the structure is flat. This will affect the
             # transformation that are allowed when finding the Wyckoff positions
             is_flat = False
-            thickness = systax.geometry.get_thickness(self._original_system, i_pbc)
+            thickness = matid.geometry.get_thickness(self._original_system, i_pbc)
             if thickness < 0.5*self.symmetry_tol:
                 is_flat = True
 
@@ -372,7 +372,7 @@ class SymmetryAnalyzer(object):
 
             # Minimize the cell to only just fit the atoms in the non-periodic
             # direction
-            min_conv_cell = systax.geometry.get_minimized_cell(
+            min_conv_cell = matid.geometry.get_minimized_cell(
                 ideal_sys,
                 nonperiodic_axis,
                 self.min_2d_thickness
@@ -1226,7 +1226,7 @@ class SymmetryAnalyzer(object):
             transformed_positions = transformed_positions[:, 0:3]
 
             # Wrap the positions to the half-closed interval [0, 1)
-            wrapped_pos = systax.geometry.get_wrapped_positions(transformed_positions)
+            wrapped_pos = matid.geometry.get_wrapped_positions(transformed_positions)
             new_system.set_scaled_positions(wrapped_pos)
 
             return new_system, new_wyckoff_letters
@@ -1396,7 +1396,7 @@ class SymmetryAnalyzer(object):
 
                     # See if we have found the position that uniquely determines
                     # the free variables.
-                    evaluated_pos = systax.geometry.get_wrapped_positions(evaluated_pos)
+                    evaluated_pos = matid.geometry.get_wrapped_positions(evaluated_pos)
 
                     if self._search_periodic_positions(
                             evaluated_pos,
@@ -1412,7 +1412,7 @@ class SymmetryAnalyzer(object):
                                 for variable in variables_present:
                                     expr = expr.replace(variable, str(values[variable]))
                                 eval_pos[i_coord] = eval_expr(expr)
-                            eval_pos = systax.geometry.get_wrapped_positions(eval_pos)
+                            eval_pos = matid.geometry.get_wrapped_positions(eval_pos)
 
                             wyckoff_coord_matched = False
                             for atom_index in indices:

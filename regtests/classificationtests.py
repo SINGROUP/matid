@@ -18,8 +18,8 @@ from ase.lattice.compounds import Zincblende
 from ase.lattice.cubic import SimpleCubicFactory
 import ase.io
 
-from systax import Classifier, SymmetryAnalyzer, PeriodicFinder
-from systax.classifications import \
+from matid import Classifier, SymmetryAnalyzer, PeriodicFinder
+from matid.classifications import \
     Class0D, \
     Class1D, \
     Class2D, \
@@ -28,7 +28,7 @@ from systax.classifications import \
     Material2D, \
     Unknown, \
     Surface
-import systax.geometry
+import matid.geometry
 
 # from networkx import draw_networkx
 # import matplotlib.pyplot as mpl
@@ -53,13 +53,13 @@ class GeometryTests(unittest.TestCase):
         """
         system = molecule("H2O")
         system.set_cell(np.eye(3))
-        thickness_x = systax.geometry.get_thickness(system, 0)
+        thickness_x = matid.geometry.get_thickness(system, 0)
         self.assertEqual(thickness_x, 0)
 
-        thickness_y = systax.geometry.get_thickness(system, 1)
+        thickness_y = matid.geometry.get_thickness(system, 1)
         self.assertEqual(thickness_y, 1.526478)
 
-        thickness_z = systax.geometry.get_thickness(system, 2)
+        thickness_z = matid.geometry.get_thickness(system, 2)
         self.assertEqual(thickness_z, 0.596309)
 
     def test_minimize_cell(self):
@@ -69,7 +69,7 @@ class GeometryTests(unittest.TestCase):
         system.set_cell([3, 3, 3])
 
         # Minimize in x-direction
-        x_minimized_system = systax.geometry.get_minimized_cell(system, 0, 0.1)
+        x_minimized_system = matid.geometry.get_minimized_cell(system, 0, 0.1)
         x_cell = x_minimized_system.get_cell()
         x_expected_cell = np.array([
             [0.1, 0., 0.],
@@ -79,7 +79,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(x_expected_cell, x_cell, atol=0.001, rtol=0))
 
         # Minimize in y-direction
-        y_minimized_system = systax.geometry.get_minimized_cell(system, 1, 0.1)
+        y_minimized_system = matid.geometry.get_minimized_cell(system, 1, 0.1)
         y_cell = y_minimized_system.get_cell()
         y_expected_cell = np.array([
             [3., 0., 0.],
@@ -89,7 +89,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(y_expected_cell, y_cell, atol=0.001, rtol=0))
 
         # Minimize in z-direction with minimum size smaller than found minimum size
-        minimized_system = systax.geometry.get_minimized_cell(system, 2, 0.1)
+        minimized_system = matid.geometry.get_minimized_cell(system, 2, 0.1)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -106,7 +106,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(expected_pos, pos, atol=0.001, rtol=0))
 
         # Minimize in z-direction with minimum size larger than found minimum size
-        minimized_system = systax.geometry.get_minimized_cell(system, 2, 2)
+        minimized_system = matid.geometry.get_minimized_cell(system, 2, 2)
         cell = minimized_system.get_cell()
         pos = minimized_system.get_scaled_positions()
         expected_cell = np.array([
@@ -135,12 +135,12 @@ class GeometryTests(unittest.TestCase):
         # view(system)
 
         # Test periodic COM
-        cm = systax.geometry.get_center_of_mass(system)
+        cm = matid.geometry.get_center_of_mass(system)
         self.assertTrue(np.allclose(cm, [4., 4., 20.15], atol=0.1))
 
         # Test finite COM
         system.set_pbc(False)
-        cm = systax.geometry.get_center_of_mass(system)
+        cm = matid.geometry.get_center_of_mass(system)
         self.assertTrue(np.allclose(cm, [3.58770672, 3.58770672, 10.00200455], atol=0.1))
 
     def test_matches_non_orthogonal(self):
@@ -162,7 +162,7 @@ class GeometryTests(unittest.TestCase):
         basis = np.array([[1.59, -2.75396078, 0]])
         searched_pos += basis
 
-        matches, subst, vac, factors = systax.geometry.get_matches(
+        matches, subst, vac, factors = matid.geometry.get_matches(
             system,
             searched_pos,
             numbers=[system.get_atomic_numbers()[0]],
@@ -190,7 +190,7 @@ class GeometryTests(unittest.TestCase):
         ])
 
         # Fully periodic with minimum image convention
-        dist_mat = systax.geometry.get_distance_matrix(
+        dist_mat = matid.geometry.get_distance_matrix(
             positions[0, :],
             positions[1, :],
             cell,
@@ -216,21 +216,21 @@ class GeometryTests(unittest.TestCase):
         ])
 
         # Non-periodic
-        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2)
+        dist_mat = matid.geometry.get_distance_matrix(pos1, pos2)
         expected = np.array(
             [[7, 6]]
         )
         self.assertTrue(np.allclose(dist_mat, expected))
 
         # Fully periodic with minimum image convention
-        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=True, mic=True)
+        dist_mat = matid.geometry.get_distance_matrix(pos1, pos2, cell, pbc=True, mic=True)
         expected = np.array(
             [[0, 1]]
         )
         self.assertTrue(np.allclose(dist_mat, expected))
 
         # Partly periodic with minimum image convention
-        dist_mat = systax.geometry.get_distance_matrix(pos1, pos2, cell, pbc=[False, True, True], mic=True)
+        dist_mat = matid.geometry.get_distance_matrix(pos1, pos2, cell, pbc=[False, True, True], mic=True)
         expected = np.array(
             [[0, 6]]
         )
@@ -251,12 +251,12 @@ class GeometryTests(unittest.TestCase):
             [0.9, 0, 0],
         ])
 
-        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2)
+        disp_tensor = matid.geometry.get_displacement_tensor(pos1, pos2)
         expected = np.array(-pos2)
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Fully periodic
-        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell, mic=True)
+        disp_tensor = matid.geometry.get_displacement_tensor(pos1, pos2, pbc=True, cell=cell, mic=True)
         expected = np.array([[
             [0, 0, 0],
             [0.1, 0, 0],
@@ -264,7 +264,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Fully periodic, reversed direction
-        disp_tensor = systax.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell, mic=True)
+        disp_tensor = matid.geometry.get_displacement_tensor(pos2, pos1, pbc=True, cell=cell, mic=True)
         expected = np.array([[
             [0, 0, 0],
         ], [
@@ -273,7 +273,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(disp_tensor, expected))
 
         # Periodic in one direction
-        disp_tensor = systax.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell, mic=True)
+        disp_tensor = matid.geometry.get_displacement_tensor(pos1, pos2, pbc=[True, False, False], cell=cell, mic=True)
         expected = np.array([[
             [0, -1, -1],
             [0.1, 0, 0],
@@ -297,7 +297,7 @@ class GeometryTests(unittest.TestCase):
             [2, 3, 1],
             [1, 1.5, 0.5],
         ])
-        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        cart_pos = matid.geometry.to_cartesian(cell, rel_pos)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
 
         # Outside, unwrapped
@@ -316,7 +316,7 @@ class GeometryTests(unittest.TestCase):
             [4, 6, 2],
             [1, 3.5, 0.5],
         ])
-        cart_pos = systax.geometry.to_cartesian(cell, rel_pos)
+        cart_pos = matid.geometry.to_cartesian(cell, rel_pos)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
 
         # Outside, wrapped
@@ -335,7 +335,7 @@ class GeometryTests(unittest.TestCase):
             [0, 0, 0],
             [1, 1.5, 0.5],
         ])
-        cart_pos = systax.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
+        cart_pos = matid.geometry.to_cartesian(cell, rel_pos, wrap=True, pbc=True)
         self.assertTrue(np.allclose(cart_pos, expected_pos))
 
 
@@ -381,55 +381,55 @@ class DimensionalityTests(unittest.TestCase):
         latticeconstant=5.430710)
 
     def test_0d_n_pbc0(self):
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys0d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
 
     def test_0d_n_pbc3(self):
         DimensionalityTests.sys1d.set_pbc([True, True, True])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys0d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 0)
 
     def test_1d_n_pbc3(self):
         DimensionalityTests.sys1d.set_pbc([True, True, True])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys1d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 1)
 
     def test_1d_n_pbc2(self):
         DimensionalityTests.sys1d.set_pbc([False, True, True])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys1d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 1)
 
     def test_1d_n_pbc1(self):
         DimensionalityTests.sys1d.set_pbc([False, False, True])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys1d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 1)
 
     def test_2d_n_pbc3(self):
         DimensionalityTests.sys2d.set_pbc([True, True, True])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys2d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
 
     def test_2d_n_pbc2(self):
         DimensionalityTests.sys2d.set_pbc([True, True, False])
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys2d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
 
     def test_3d_n_pbc3(self):
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             DimensionalityTests.sys3d,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
@@ -438,7 +438,7 @@ class DimensionalityTests(unittest.TestCase):
         """Test a system that has a non-orthogonal cell.
         """
         system = ase.io.read("./structures/ROJiORHNwL4q0WTvNUy0mW5s2Buuq+PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.xyz")
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold
         )
@@ -451,7 +451,7 @@ class DimensionalityTests(unittest.TestCase):
         system.translate([0, 0, 9])
         system.set_pbc(True)
         system.wrap(pbc=True)
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
@@ -471,7 +471,7 @@ class DimensionalityTests(unittest.TestCase):
         system.set_positions(pos_new)
         system.set_pbc(True)
         # view(system)
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 2)
@@ -483,7 +483,7 @@ class DimensionalityTests(unittest.TestCase):
             pbc=True,
             latticeconstant=(2.461, 6.708))
         # view(system)
-        dimensionality = systax.geometry.get_dimensionality(
+        dimensionality = matid.geometry.get_dimensionality(
             system,
             DimensionalityTests.cluster_threshold)
         self.assertEqual(dimensionality, 3)
@@ -694,7 +694,7 @@ class DelaunayTests(unittest.TestCase):
     def test_surface(self):
         system = bcc100('Fe', size=(5, 5, 3), vacuum=8)
         # view(system)
-        decomposition = systax.geometry.get_tetrahedra_decomposition(
+        decomposition = matid.geometry.get_tetrahedra_decomposition(
             system,
             DelaunayTests.delaunay_threshold
         )
@@ -726,7 +726,7 @@ class DelaunayTests(unittest.TestCase):
         system.set_pbc(True)
         # view(system)
 
-        decomposition = systax.geometry.get_tetrahedra_decomposition(
+        decomposition = matid.geometry.get_tetrahedra_decomposition(
             system,
             DelaunayTests.delaunay_threshold
         )
@@ -1003,7 +1003,7 @@ class Material2DTests(unittest.TestCase):
         system.set_pbc([True, True, True])
 
         rng = RandomState(8)
-        systax.geometry.make_random_displacement(system, 2, rng)
+        matid.geometry.make_random_displacement(system, 2, rng)
 
         # view(system)
 
@@ -1325,7 +1325,7 @@ class Material2DTests(unittest.TestCase):
         rng = RandomState(7)
         for i in range(15):
             system = Material2DTests.graphene.repeat([5, 5, 1])
-            systax.geometry.make_random_displacement(system, 0.1, rng)
+            matid.geometry.make_random_displacement(system, 0.1, rng)
             classifier = Classifier()
             classification = classifier.classify(system)
             self.assertIsInstance(classification, Material2D)
@@ -1701,7 +1701,7 @@ class Class3DTests(unittest.TestCase):
                 symbol='Si',
                 pbc=(1, 1, 1),
                 latticeconstant=5.430710)
-            systax.geometry.make_random_displacement(si, 0.2, rng)
+            matid.geometry.make_random_displacement(si, 0.2, rng)
             classifier = Classifier()
             classification = classifier.classify(si)
             self.assertIsInstance(classification, Class3D)
@@ -1823,7 +1823,7 @@ class SurfaceTests(unittest.TestCase):
         layer2 = graphene.copy()
         layer2.set_chemical_symbols(["O"]*len(layer2))
         rng = RandomState(47)
-        systax.geometry.make_random_displacement(layer2, 1, rng)
+        matid.geometry.make_random_displacement(layer2, 1, rng)
         layer2.translate(translation)
 
         system = layer1 + layer2
@@ -1858,7 +1858,7 @@ class SurfaceTests(unittest.TestCase):
         layer2 = graphene.copy()
         layer2.set_chemical_symbols(["O"]*len(layer2))
         rng = RandomState(47)
-        systax.geometry.make_random_displacement(layer2, 1, rng)
+        matid.geometry.make_random_displacement(layer2, 1, rng)
         layer2.translate(translation)
 
         layer3 = layer1.copy()
@@ -1867,7 +1867,7 @@ class SurfaceTests(unittest.TestCase):
         layer4 = graphene.copy()
         layer4.set_chemical_symbols(["N"]*len(layer2))
         rng = RandomState(47)
-        systax.geometry.make_random_displacement(layer4, 1, rng)
+        matid.geometry.make_random_displacement(layer4, 1, rng)
         layer4.translate(3*translation)
 
         system = layer1 + layer2 + layer3 + layer4
@@ -2284,7 +2284,7 @@ class SurfaceTests(unittest.TestCase):
             # disloc = rng.rand(len(system), 3)
         for i in range(10):
             i_sys = system.copy()
-            systax.geometry.make_random_displacement(system, 0.09, rng)
+            matid.geometry.make_random_displacement(system, 0.09, rng)
             # view(system)
 
             # Classified as surface
@@ -2396,7 +2396,7 @@ class SurfaceTests(unittest.TestCase):
 
         # Shake the atoms
         # rng = RandomState(8)
-        # systax.geometry.make_random_displacement(nacl, 0.4, rng)
+        # matid.geometry.make_random_displacement(nacl, 0.4, rng)
 
         # Add adsorbate
         h2o = molecule("H2O")

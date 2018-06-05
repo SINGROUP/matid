@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ase import Atoms
-import systax.geometry
+import matid.geometry
 import numpy as np
 
 
@@ -71,7 +71,7 @@ class System(Atoms):
         Returns:
             numpy.ndarray: The scaled positions
         """
-        return systax.geometry.to_scaled(
+        return matid.geometry.to_scaled(
             self.get_cell(),
             positions,
             wrap,
@@ -89,7 +89,7 @@ class System(Atoms):
         Returns:
             numpy.ndarray: The cartesian positions
         """
-        return systax.geometry.to_cartesian(
+        return matid.geometry.to_cartesian(
             self.get_cell(),
             scaled_positions,
             wrap,
@@ -103,7 +103,7 @@ class System(Atoms):
             relative (bool): True if given translation is relative to cell
                 vectors.
         """
-        systax.geometry.translate(self, translation, relative)
+        matid.geometry.translate(self, translation, relative)
 
     def get_wyckoff_letters(self):
         """Returns a list of Wyckoff letters for the atoms in the system. This

@@ -1,7 +1,7 @@
 import numpy as np
 from ase.visualize import view
 from ase.build import bcc100, molecule
-from systax import Classifier, SymmetryAnalyzer
+from matid import Classifier, SymmetryAnalyzer
 
 # Generating a surface adsorption geometry with ASE.
 adsorbent = bcc100('Fe', size=(3, 3, 4), vacuum=8)
@@ -31,7 +31,7 @@ print("Structure classified as: {}".format(classification))
 outliers = classification.outliers
 print("Outlier atoms indices: {}".format(outliers))
 
-# Visualize the cell that was found by systax
+# Visualize the cell that was found by matid
 prototype_cell = classification.prototype_cell
 view(prototype_cell)
 

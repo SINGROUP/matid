@@ -17,10 +17,10 @@ from ase import Atoms
 from ase.visualize import view
 from ase.data import covalent_radii
 
-import systax.geometry
-from systax.data import constants
-from systax.core.linkedunits import LinkedUnitCollection, LinkedUnit
-from systax.exceptions import SystaxError
+import matid.geometry
+from matid.data import constants
+from matid.core.linkedunits import LinkedUnitCollection, LinkedUnit
+from matid.exceptions import SystaxError
 
 
 class PeriodicFinder():
@@ -91,9 +91,9 @@ class PeriodicFinder():
             pos = system.get_positions()
             cell = system.get_cell()
             pbc = system.get_pbc()
-            disp_tensor_finite = systax.geometry.get_displacement_tensor(pos, pos)
+            disp_tensor_finite = matid.geometry.get_displacement_tensor(pos, pos)
             if pbc.any():
-                disp_tensor_mic, disp_factors = systax.geometry.get_displacement_tensor(
+                disp_tensor_mic, disp_factors = matid.geometry.get_displacement_tensor(
                     pos,
                     pos,
                     cell,
@@ -242,8 +242,8 @@ class PeriodicFinder():
             i_adj_list_sub = defaultdict(list)
             add_pos = neighbour_pos + span
             sub_pos = neighbour_pos - span
-            add_indices, _, _, add_factors = systax.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
-            sub_indices, _, _, sub_factors = systax.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
+            add_indices, _, _, add_factors = matid.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
+            sub_indices, _, _, sub_factors = matid.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
 
             n_metric = 0
             for i_neigh in range(n_neighbours):
@@ -522,7 +522,7 @@ class PeriodicFinder():
             # might get detected. Here we check that the dimensionality of the
             # found 3D cell is correct.
             try:
-                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
             except SystaxError:
                 return None, None, None
             if dimensionality != 3:
@@ -530,11 +530,11 @@ class PeriodicFinder():
                 # correct dimensionality, try if two of the cell vectors are
                 # still OK.
                 if dimensionality == 2:
-                    a_thickness = systax.geometry.get_thickness(proto_cell, 0)
-                    b_thickness = systax.geometry.get_thickness(proto_cell, 1)
-                    c_thickness = systax.geometry.get_thickness(proto_cell, 2)
+                    a_thickness = matid.geometry.get_thickness(proto_cell, 0)
+                    b_thickness = matid.geometry.get_thickness(proto_cell, 1)
+                    c_thickness = matid.geometry.get_thickness(proto_cell, 2)
                     reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
-                    proto_cell = systax.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
+                    proto_cell = matid.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
                     i_pbc = [True, True, True]
                     i_pbc[reduced_dimension] = False
                     cell_mask = [True, True, True]
@@ -562,7 +562,7 @@ class PeriodicFinder():
                         return None, None, None
 
             # Check the dimensionality
-            dimensionality, cluster_labels = systax.geometry.get_dimensionality(proto_cell, bond_threshold, return_clusters=True)
+            dimensionality, cluster_labels = matid.geometry.get_dimensionality(proto_cell, bond_threshold, return_clusters=True)
             if dimensionality is None:
                 # If the original system has more than one cluster, the system
                 # has multiple stacked 2D sheets with identical periodicity. In
@@ -581,7 +581,7 @@ class PeriodicFinder():
                 # Retry to get the dimensionality for the cell in which the
                 # cluster where the seed atom is in has been separated.
                 # view(proto_cell)
-                dimensionality = systax.geometry.get_dimensionality(proto_cell, bond_threshold)
+                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
                 if dimensionality is None:
                     return None, None, None
                 else:
@@ -592,10 +592,10 @@ class PeriodicFinder():
                     return None, None, None
 
             # Check the cell thickness
-            proto_cell = systax.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
+            proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
             # view(proto_cell)
             offset = proto_cell.get_positions()[seed_group_index]
-            thickness = systax.geometry.get_thickness(proto_cell, 2)
+            thickness = matid.geometry.get_thickness(proto_cell, 2)
             if thickness > self.max_2d_cell_height:
                 return None, None, None
 
@@ -690,7 +690,7 @@ class PeriodicFinder():
             if i_seed in index_cell_map:
                 i_indices, i_pos, i_factors = index_cell_map[i_seed]
             else:
-                i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
+                i_indices, i_pos, i_factors = matid.geometry.get_positions_within_basis(
                     system,
                     cell,
                     seed_pos,
@@ -874,7 +874,7 @@ class PeriodicFinder():
             if i_seed in index_cell_map:
                 i_indices, i_pos, i_factors = index_cell_map[i_seed]
             else:
-                i_indices, i_pos, i_factors = systax.geometry.get_positions_within_basis(
+                i_indices, i_pos, i_factors = matid.geometry.get_positions_within_basis(
                     system,
                     cell,
                     search_coord,
@@ -1333,14 +1333,14 @@ class PeriodicFinder():
 
         # Translate and wrap the searched positions
         test_pos = unit_cell.get_positions() - seed_offset + seed_pos
-        test_pos = systax.geometry.to_scaled(orig_cell, test_pos, pbc=orig_pbc, wrap=True)
-        test_pos = systax.geometry.to_cartesian(orig_cell, test_pos)
+        test_pos = matid.geometry.to_scaled(orig_cell, test_pos, pbc=orig_pbc, wrap=True)
+        test_pos = matid.geometry.to_cartesian(orig_cell, test_pos)
 
         # Find the atoms that match the positions in the original basis
         disps = unit_cell.get_positions() - seed_offset
         pos_tolerances = self.get_scaled_position_tolerance(disps)
 
-        matches, substitutions, vacancies, _ = systax.geometry.get_matches(
+        matches, substitutions, vacancies, _ = matid.geometry.get_matches(
             system,
             test_pos,
             cell_num,
@@ -1544,7 +1544,7 @@ class PeriodicFinder():
             # system
             seed_guesses = seed_pos + dislocations
             pos_tolerances = self.get_scaled_position_tolerance(dislocations)
-            matches, _, _, factors = systax.geometry.get_matches(
+            matches, _, _, factors = matid.geometry.get_matches(
                 system,
                 seed_guesses,
                 len(dislocations)*[seed_atomic_number],

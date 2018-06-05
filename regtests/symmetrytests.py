@@ -4,9 +4,9 @@ from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
 from ase.visualize import view
-from systax import SymmetryAnalyzer
-from systax.data.constants import WYCKOFF_LETTER_POSITIONS
-import systax.geometry
+from matid import SymmetryAnalyzer
+from matid.data.constants import WYCKOFF_LETTER_POSITIONS
+import matid.geometry
 from numpy.random import RandomState
 
 
@@ -504,7 +504,7 @@ class GroundStateTests(unittest.TestCase):
 
         assumed_pos = np.dot(orig_pos, correct_translation.T)
         assumed_pos = assumed_pos[:, 0:3]
-        assumed_pos = systax.geometry.get_wrapped_positions(assumed_pos)
+        assumed_pos = matid.geometry.get_wrapped_positions(assumed_pos)
         self.assertTrue(np.array_equal(assumed_pos, conv_pos))
 
     def test_transformation_affine(self):

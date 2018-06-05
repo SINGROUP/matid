@@ -7,7 +7,7 @@ import chronic
 # from ase.visualize import view
 from ase.data import covalent_radii
 
-from systax.classifications import \
+from matid.classifications import \
     Surface, \
     Atom, \
     Material2D, \
@@ -16,9 +16,9 @@ from systax.classifications import \
     Class1D, \
     Class2D, \
     Class3D
-import systax.geometry
-from systax.data import constants
-from systax.classification.periodicfinder import PeriodicFinder
+import matid.geometry
+from matid.data import constants
+from matid.classification.periodicfinder import PeriodicFinder
 
 __metaclass__ = type
 
@@ -186,9 +186,9 @@ class Classifier():
         pbc = system.get_pbc()
 
         with chronic.Timer("displacement_tensor"):
-            disp_tensor = systax.geometry.get_displacement_tensor(pos, pos)
+            disp_tensor = matid.geometry.get_displacement_tensor(pos, pos)
             if pbc.any():
-                disp_tensor_pbc, disp_factors = systax.geometry.get_displacement_tensor(
+                disp_tensor_pbc, disp_factors = matid.geometry.get_displacement_tensor(
                     pos,
                     pos,
                     cell,
@@ -231,7 +231,7 @@ class Classifier():
 
         # Get the system dimensionality
         with chronic.Timer("TSA"):
-            dimensionality = systax.geometry.get_dimensionality(
+            dimensionality = matid.geometry.get_dimensionality(
                 system,
                 self.cluster_threshold,
                 dist_matrix_radii_pbc
@@ -260,7 +260,7 @@ class Classifier():
             # Get the indices of the used seed atoms
             seed_indices = []
             test_sys = system.copy()
-            cm = systax.geometry.get_center_of_mass(test_sys)
+            cm = matid.geometry.get_center_of_mass(test_sys)
 
             # If center of mass defined, for each atomic element find the
             # occurrence closest to center of mass to use as seed point.
@@ -368,7 +368,7 @@ class Classifier():
                         # seed_vec = self.system.get_center_of_mass()
                     # else:
                         # seed_vec = self.seed_position
-                    # seed_index = systax.geometry.get_nearest_atom(self.system, seed_vec)
+                    # seed_index = matid.geometry.get_nearest_atom(self.system, seed_vec)
 
                     # region = periodicfinder.get_region(system, seed_index, disp_tensor_pbc, disp_tensor, self.abs_delaunay_threshold)
                     # if region is not None:

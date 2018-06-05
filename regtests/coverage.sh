@@ -1,3 +1,3 @@
 #!/usr/bin/env zsh
-workon systax
-coverage run --source="../systax" regtests.py
+workon matid
+coverage run --source="../matid" regtests.py

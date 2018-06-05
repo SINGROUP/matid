@@ -14,10 +14,10 @@ from ase.data import covalent_radii
 from ase import Atom, Atoms
 import ase.geometry
 
-from systax.data.element_data import get_covalent_radii
-from systax.exceptions import SystaxError
-from systax.core.linkedunits import Substitution
-import systax.geometry
+from matid.data.element_data import get_covalent_radii
+from matid.exceptions import SystaxError
+from matid.core.linkedunits import Substitution
+import matid.geometry
 
 from sklearn.cluster import DBSCAN
 
@@ -938,7 +938,7 @@ def get_positions_within_basis(
     a_range = range(min_factors[0], max_factors[0]+1)
     b_range = range(min_factors[1], max_factors[1]+1)
     c_range = range(min_factors[2], max_factors[2]+1)
-    factors = systax.geometry.cartesian((a_range, b_range, c_range))
+    factors = matid.geometry.cartesian((a_range, b_range, c_range))
 
     directions = []
     for factor in factors:
@@ -1463,8 +1463,8 @@ def get_minimized_cell(system, axis, min_size):
     pos_max_rel = np.zeros((3))
     pos_max_rel[axis] = c_comp[max_index]
 
-    pos_min_cart = systax.geometry.to_cartesian(basis, pos_min_rel)
-    pos_max_cart = systax.geometry.to_cartesian(basis, pos_max_rel)
+    pos_min_cart = matid.geometry.to_cartesian(basis, pos_min_rel)
+    pos_max_cart = matid.geometry.to_cartesian(basis, pos_max_rel)
     c_real_cart = pos_max_cart-pos_min_cart
     c_size = np.linalg.norm(c_real_cart)
 
@@ -1480,14 +1480,14 @@ def get_minimized_cell(system, axis, min_size):
     new_basis[axis, :] = c_new_cart
 
     new_scaled_pos = rel_pos - pos_min_rel
-    new_cart_test = systax.geometry.to_cartesian(basis, new_scaled_pos)
-    new_scaled_pos = systax.geometry.to_scaled(new_basis, new_cart_test)
+    new_cart_test = matid.geometry.to_cartesian(basis, new_scaled_pos)
+    new_scaled_pos = matid.geometry.to_scaled(new_basis, new_cart_test)
 
     # Translate the system to be in the middle if size is smaller than the
     # given minimum size
     if c_size < min_size:
         offset_cart = (c_real_cart-c_inflated_cart)/2
-        offset_rel = systax.geometry.to_scaled(new_basis, offset_cart)
+        offset_rel = matid.geometry.to_scaled(new_basis, offset_cart)
         new_scaled_pos -= offset_rel
 
     # Create translated system
