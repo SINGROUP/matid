@@ -8,7 +8,6 @@ pages:
   - apk --no-cache add make
   - cd docs
   - make html
-    cd ..
   - mv _build/html/ ../public/
   artifacts:
     paths:
