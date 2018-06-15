@@ -389,12 +389,17 @@ class SymmetryAnalyzer(object):
             raise ValueError("The provided system does not have 3 or 2 periodic directions.")
 
     def get_conventional_lattice_fit(self):
-        """Used to get a 3x3 matrix representing a fit of the original
+        """Used to get a 3x3 matrix representing a best fit of the original
         simulation cell to the conventional cell. This lattice can be e.g. used
         to calculate the lattice parameters or the volume of the original
         system in the lattice of the conventional system. The order of the cell
         basis vectors is the same as in the cell returned by
         get_conventional_system().get_cell().
+
+        This function roughly serves the same purpose as what you would get
+        from spglib.standardize_cell(no_idealize=True). The benefit is that we
+        do not need to make an expensive spglib call, as spglib does not seem
+        to cache the symmetry information.
 
         Returns:
             np.ndarray: The lattice basis vectors as a matrix.
@@ -402,37 +407,49 @@ class SymmetryAnalyzer(object):
         if self._conventional_lattice_fit is not None:
             return self._conventional_lattice_fit
 
+        # Figure out the coefficients that are needed to transform the
+        # conventional cell to the original one. We do this because then it is
+        # easy to round the coefficient to a fractional number whose highest
+        # denominator we can know (it is 3 based on the transformation matrices
+        # from conventional to primitive), unlike if we got the coefficients
+        # from original to conventional which would require rounding to a
+        # fractional number with an unknown denominator.
         conv_sys = self.get_conventional_system()
         conv_cell = self.get_conventional_system().get_cell()
         orig_sys = self._analyzed_system
         orig_cell = orig_sys.get_cell()
-        orig_cell_inv = np.linalg.inv(orig_cell.T)
-        coeff = np.dot(conv_cell, orig_cell_inv)
+        conv_cell_inv = np.linalg.inv(conv_cell.T)
+        coeff = np.dot(orig_cell, conv_cell_inv)
 
-        # Round the coefficients to a reasonable fractional number
+        # Round the coefficients to a fractional number with maximum
+        # denominator of 3.
         for i in range(0, coeff.shape[0]):
             for j in range(0, coeff.shape[0]):
                 old_value = coeff[i, j]
-                new_value = Fraction(old_value).limit_denominator(10)
+                new_value = Fraction(old_value).limit_denominator(3)
                 coeff[i, j] = new_value
+
+        # Invert the transformation
+        coeff = np.linalg.inv(coeff)
+
+        # Remove the smallest nonzero coefficients until the number of atoms
+        # match. In extreme cases this might produce sligthly distorted result
+        # if system has anisotropic density. If deemed necessary this could be
+        # fixed by using the mapping_to_primitive dictionary to identify the
+        # repetitions of cells in each direction.
+        n_atoms_conv = len(conv_sys)
+        n_atoms_orig = len(orig_sys)
+        factor = np.abs(np.linalg.det(coeff))  # The scalig factor is given by volume
+        n_atoms_new = factor*n_atoms_orig
+        while n_atoms_new != n_atoms_conv:
+            i, j = np.where(coeff == np.min(coeff[np.nonzero(coeff)]))
+            coeff[i, j] = 0
+            n_atoms_new = int(np.abs(np.linalg.det(coeff))*n_atoms_orig)
+            if n_atoms_new == 0:
+                raise ValueError("Could not find the correct lattice fit.")
 
         # Remake the conventional basis vectors in the new scaled coordinates
         new_std_lattice = np.dot(coeff, orig_cell)
-
-        # Ensure that the volume is preserved by scaling the lattice
-        # appropriately
-        vol_original = orig_sys.get_volume()
-        vol_conv = abs(np.linalg.det(new_std_lattice))
-        n_atoms_original = len(orig_sys)
-        n_atoms_conv = len(conv_sys)
-
-        vol_per_atom_orig = vol_original/n_atoms_original
-        vol_per_atom_conv = vol_conv/n_atoms_conv
-
-        factor = vol_per_atom_orig/vol_per_atom_conv
-        new_std_lattice *= factor
-
-        self._conventional_lattice_fit = new_std_lattice
 
         return new_std_lattice
 
@@ -520,10 +537,6 @@ class SymmetryAnalyzer(object):
             list of WyckoffGroup: A list of WyckoffGroup objects for this
             system.
         """
-        # conv_sys = self.get_conventional_system()
-        # space_group = self.get_space_group_number()
-        # groups = self._make_wyckoff_groups(conv_sys, space_group)
-
         space_group = self.get_space_group_number()
         conv_sys = self.get_conventional_system()
         wyckoff_letters = self.get_wyckoff_letters_conventional()
@@ -801,6 +814,9 @@ class SymmetryAnalyzer(object):
         to follow the symmetries that were found with the given precision. This
         means that e.g. the volume, angles between basis vectors and basis
         vector lengths may have deviations from the the original system.
+
+        The transformation matrices from conventional system to primitive are
+        as given at: https://atztogo.github.io/spglib/definition.html#id8
 
         Args:
             conv_system (ase.Atoms): The conventional system from which the

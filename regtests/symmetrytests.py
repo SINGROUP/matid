@@ -1,13 +1,19 @@
+import os
 import unittest
+import signal
+
 import numpy as np
+from numpy.random import RandomState
+
 from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
 from ase.visualize import view
+
 from matid import SymmetryAnalyzer
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
+from matid.utils.segfault_protect import segfault_protect
 import matid.geometry
-from numpy.random import RandomState
 
 
 class dotdict(dict):
@@ -15,6 +21,142 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+class TestSegfaultProtect(unittest.TestCase):
+    """Test that the wrapper function for guarding against SIGSEGV works as
+    intended.
+    """
+    def test_sigsegv_wo_args(self):
+
+        def sigsegv():
+            os.kill(os.getpid(), signal.SIGSEGV)
+
+        with self.assertRaises(RuntimeError):
+            segfault_protect(sigsegv)
+
+    def test_sigsegv_w_args(self):
+
+        def sigsegv(a):
+            os.kill(os.getpid(), signal.SIGSEGV)
+
+        with self.assertRaises(RuntimeError):
+            segfault_protect(sigsegv, "moi")
+
+
+class TestLatticeFit(unittest.TestCase):
+    """Tests that the lattice fit functionality works as intended.
+    """
+    def test_nacl_cubic_tilt(self):
+        # Creating a tilted NaCl conventional cell
+        cell = [
+            [5.64, 0.5, 0],
+            [0, 5.64, 0],
+            [0, 0, 5.64],
+        ]
+        nacl = Atoms(
+            cell=cell,
+            scaled_positions=[
+                [0, 0, 0],
+                [0.5, 0.5, 0],
+                [0.5, 0, 0.5],
+                [0, 0.5, 0.5],
+                [0.5, 0.5, 0.5],
+                [0.5, 0, 0],
+                [0, 0, 0.5],
+                [0, 0.5, 0],
+            ],
+            symbols=["Na", "Na", "Na", "Na", "Cl", "Cl", "Cl", "Cl"],
+            pbc=True
+        )
+
+        # Get the lattice fit
+        analyzer = SymmetryAnalyzer(nacl)
+        spg = analyzer.get_space_group_number()
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+
+        self.assertEqual(spg, 225)
+        self.assertTrue(np.allclose(lattice_fit, cell, rtol=0, atol=1e-3))
+
+    def test_nacl_primitive_tilt(self):
+        # Creating a tilted NaCl conventional cell
+        cell = np.array(
+            [
+                [0.1, 2.8201, 2.8201],
+                [2.8201, 0, 2.8201],
+                [2.8201, 2.8201, 0]
+            ]
+        )
+        nacl = Atoms(
+            symbols=["Na", "Cl"],
+            scaled_positions=np.array([
+                [0, 0, 0],
+                [0.5, 0.5, 0.5]
+            ]),
+            cell=cell,
+            pbc=True
+        )
+
+        # Get the lattice fit
+        analyzer = SymmetryAnalyzer(nacl)
+        spg = analyzer.get_space_group_number()
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+
+        self.assertEqual(spg, 225)
+
+        # This is the correct transform from primitive to conventional
+        transform = [
+            [-1, 1, 1],
+            [1, -1, 1],
+            [1, 1, -1],
+        ]
+        transformed_cell = np.dot(transform, cell)
+        self.assertTrue(np.allclose(lattice_fit, transformed_cell, rtol=0, atol=1e-3))
+
+    def test_supercell(self):
+        # Creating a tilted NaCl conventional cell
+        cell = [
+            [5.64, 0.5, 0],
+            [0, 5.64, 0],
+            [0, 0, 5.64],
+        ]
+        nacl = Atoms(
+            cell=cell,
+            scaled_positions=[
+                [0, 0, 0],
+                [0.5, 0.5, 0],
+                [0.5, 0, 0.5],
+                [0, 0.5, 0.5],
+                [0.5, 0.5, 0.5],
+                [0.5, 0, 0],
+                [0, 0, 0.5],
+                [0, 0.5, 0],
+            ],
+            symbols=["Na", "Na", "Na", "Na", "Cl", "Cl", "Cl", "Cl"],
+            pbc=True
+        )
+        mult = 5
+        nacl = nacl.repeat(3*[mult])
+        orig_cell = nacl.get_cell()
+        # view(nacl)
+
+        # Get the conventional lattice
+        analyzer = SymmetryAnalyzer(nacl)
+
+        # Get the lattice fit
+        spg = analyzer.get_space_group_number()
+        lattice_fit = analyzer.get_conventional_lattice_fit()
+
+        self.assertEqual(spg, 225)
+
+        # This is the correct transform from primitive to conventional
+        transform = [
+            [0.2, 0, 0],
+            [0, 0.2, 0],
+            [0, 0, 0.2],
+        ]
+        transformed_cell = np.dot(transform, orig_cell)
+        self.assertTrue(np.allclose(lattice_fit, transformed_cell, rtol=0, atol=1e-3))
 
 
 class SymmetryAnalyser3DTests(unittest.TestCase):
@@ -547,10 +689,12 @@ class GroundStateTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TestSegfaultProtect))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestLatticeFit))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)
