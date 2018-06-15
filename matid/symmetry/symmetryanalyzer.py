@@ -415,11 +415,20 @@ class SymmetryAnalyzer(object):
         # from original to conventional which would require rounding to a
         # fractional number with an unknown denominator.
         conv_sys = self.get_conventional_system()
-        conv_cell = self.get_conventional_system().get_cell()
-        orig_sys = self._analyzed_system
+        # view(conv_sys)
+        # view(self._original_system)
+        conv_cell = conv_sys.get_cell()
+        orig_sys = self._original_system
         orig_cell = orig_sys.get_cell()
         conv_cell_inv = np.linalg.inv(conv_cell.T)
         coeff = np.dot(orig_cell, conv_cell_inv)
+
+        trans = self._get_spglib_transformation_matrix()
+        shift = self._get_spglib_origin_shift()
+        print("Transformation:")
+        print(trans)
+        print("Shift:")
+        print(shift)
 
         # Round the coefficients to a fractional number with maximum
         # denominator of 3.
@@ -428,6 +437,9 @@ class SymmetryAnalyzer(object):
                 old_value = coeff[i, j]
                 new_value = Fraction(old_value).limit_denominator(3)
                 coeff[i, j] = new_value
+
+        # print("Coefficients:")
+        # print(coeff)
 
         # Invert the transformation
         coeff = np.linalg.inv(coeff)
@@ -439,7 +451,7 @@ class SymmetryAnalyzer(object):
         # repetitions of cells in each direction.
         n_atoms_conv = len(conv_sys)
         n_atoms_orig = len(orig_sys)
-        factor = np.abs(np.linalg.det(coeff))  # The scalig factor is given by volume
+        factor = np.abs(np.linalg.det(coeff))  # The scaling factor is given by volume
         n_atoms_new = factor*n_atoms_orig
         while n_atoms_new != n_atoms_conv:
             i, j = np.where(coeff == np.min(coeff[np.nonzero(coeff)]))
