@@ -1,4 +1,9 @@
+.. _tutorials:
+
 Tutorials
 =========
 
-Tutorials page
+.. toctree::
+   :maxdepth: 1
+
+   classification

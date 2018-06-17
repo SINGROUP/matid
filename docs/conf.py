@@ -27,8 +27,12 @@
 # needs_sphinx = '1.0'
 
 
-# def setup(app):
-    # app.add_stylesheet('css/style.css')  # may also be an URL
+def setup(app):
+    app.add_stylesheet('css/style.css')  # may also be an URL
+
+html_context = {
+    'css_files': ['_static/css/style.css'],
+}
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
