@@ -1,6 +1,8 @@
 # MatID
 MatID is a python package for identifying and analyzing atomistic systems based
-on their structure.
+on their structure. See the homepage at
+[https://laurih.gitlab.io/matid/](https://laurih.gitlab.io/matid/) for more
+extensive information and tutorials.
 
 # Installation
 The package is compatible with Python 2.7, 3.4-3.6, and the dependencies are
