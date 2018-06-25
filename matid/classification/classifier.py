@@ -16,9 +16,11 @@ from matid.classifications import \
     Class1D, \
     Class2D, \
     Class3D
+    # Crystal
 import matid.geometry
 from matid.data import constants
 from matid.classification.periodicfinder import PeriodicFinder
+# from matid.symmetry.symmetryanalyzer import SymmetryAnalyzer
 
 __metaclass__ = type
 
@@ -241,21 +243,21 @@ class Classifier():
 
         # 0D structures
         if dimensionality == 0:
-            classification = Class0D()
+            classification = Class0D(input_system)
 
             # Systems with one atom have their own classification.
             n_atoms = len(system)
             if n_atoms == 1:
-                classification = Atom()
+                classification = Atom(input_system)
 
         # 1D structures
         elif dimensionality == 1:
-            classification = Class1D()
+            classification = Class1D(input_system)
 
         # 2D structures
         elif dimensionality == 2:
 
-            classification = Class2D()
+            classification = Class2D(input_system)
 
             # Get the indices of the used seed atoms
             seed_indices = []
@@ -328,18 +330,19 @@ class Classifier():
 
                     if not split and covered and region_is_periodic:
                         if best_region.is_2d:
-                            classification = Material2D(best_region)
+                            classification = Material2D(input_system, best_region)
                         else:
-                            classification = Surface(best_region)
+                            classification = Surface(input_system, best_region)
 
         # Bulk structures
         elif dimensionality == 3:
 
-            classification = Class3D()
+            classification = Class3D(input_system)
 
             # Check the number of symmetries
             # analyzer = SymmetryAnalyzer(system)
-            # is_crystal = check_if_crystal(analyzer, threshold=self.crystallinity_threshold)
+            # crystallinity = matid.geometry.get_crystallinity(analyzer)
+            # is_crystal = crystallinity >= self.crystallinity_threshold
 
             # If the structure is connected but the symmetry criteria was
             # not fullfilled, check the number of atoms in the primitive

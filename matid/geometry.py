@@ -1547,15 +1547,22 @@ def cartesian(arrays, out=None):
     return out
 
 
-def check_if_crystal(symmetry_analyser, threshold):
+def get_crystallinity(symmetry_analyser):
     """Quantifies the crystallinity of the structure as a ratio of symmetries
     per number of unique atoms in primitive cell. This metric can be used to
     distinguish between amorphous and 'regular' crystals.
 
-    The number of symemtry operations corresponds to the symmetry operations
+    The number of symmetry operations corresponds to the symmetry operations
     corresponding to the hall number of the structure. The symmetry operations
     as given by spglib.get_symmetry() are specific to the original structure,
     and they have not been reduced to the symmetries of the space group.
+
+    Args:
+        symmetry_analyser (): A SymmetryAnalyzer object that has been
+            initialized with an atomic structure.
+
+    Returns:
+        (float) A ratio of symmetries per unique atoms in the primitive cell.
     """
     # Get the number of equivalent atoms in the primitive cell.
     n_unique_atoms_prim = len(symmetry_analyser.get_equivalent_atoms_primitive())
@@ -1565,10 +1572,8 @@ def check_if_crystal(symmetry_analyser, threshold):
     n_symmetries = len(sym_ops["rotations"])
 
     ratio = n_symmetries/float(n_unique_atoms_prim)
-    if ratio >= threshold:
-        return True
 
-    return False
+    return ratio
 
 
 # def get_surface_normal_direction(system):

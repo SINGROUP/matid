@@ -4,7 +4,8 @@ __metaclass__ = type
 
 
 class Classification():
-    pass
+    def __init__(self, atoms):
+        self.atoms = atoms
 
 
 #===============================================================================
@@ -13,16 +14,9 @@ class Class0D(Classification):
     """Structures that have a structure that is isolated in all directions by a
     vacuum gap.
     """
-    def __init__(self):
-        pass
 
 
 class Atom(Class0D):
-    """
-    """
-
-
-class Molecule(Class0D):
     """
     """
 
@@ -35,19 +29,12 @@ class Class1D(Classification):
     """
 
 
-class Material1D(Class1D):
-    """
-    """
-
-
 #===============================================================================
 # 2D Structures
 class Class2D(Classification):
     """Base class for all structures that are roughly 2-dimensional, meaning that two of the
     dimensions are much larger than the remaining one.
     """
-    def __init__(self):
-        super().__init__()
 
 
 class Class2DWithCell(Class2D):
@@ -56,9 +43,10 @@ class Class2DWithCell(Class2D):
     """
     def __init__(
             self,
+            atoms,
             region,
             ):
-        super().__init__()
+        super().__init__(atoms)
         self.region = region
 
     @property
@@ -109,15 +97,6 @@ class Material2D(Class2DWithCell):
 class Class3D(Classification):
     """All structures that periodically extend infinitely without vacuum gaps.
     """
-    pass
-
-
-class Crystal(Class3D):
-    def __init__(
-            self,
-            cell_analyzer,
-            ):
-        self.cell_analyzer = cell_analyzer
 
 
 #===============================================================================

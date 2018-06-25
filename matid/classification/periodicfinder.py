@@ -122,8 +122,9 @@ class PeriodicFinder():
         self.max_cell_size = max_cell_size
         region = None
 
-        with chronic.Timer("proto_cell_identification"):
+        with chronic.Timer("find_possible_bases"):
             possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
+        with chronic.Timer("find_proto_cell"):
             proto_cell, offset, dim = self._find_proto_cell(
                 system,
                 seed_index,
@@ -221,89 +222,91 @@ class PeriodicFinder():
 
         # Find how many and which of the neighbouring atoms have a periodic
         # copy in the found directions
-        neighbour_pos = positions[neighbour_mask]
-        neighbour_num = numbers[neighbour_mask]
-        neighbour_indices = np.where(neighbour_mask)[0]
-        n_neighbours = len(neighbour_pos)
-        n_spans = len(possible_spans)
-        metric = np.empty((len(possible_spans)), dtype=int)
-        adjacency_lists = []
-        adjacency_lists_add = []
-        adjacency_lists_sub = []
-        neighbour_nodes = list(zip(neighbour_indices, neighbour_factors))
+        with chronic.Timer("find_neighbour_copies"):
+            neighbour_pos = positions[neighbour_mask]
+            neighbour_num = numbers[neighbour_mask]
+            neighbour_indices = np.where(neighbour_mask)[0]
+            n_neighbours = len(neighbour_pos)
+            n_spans = len(possible_spans)
+            metric = np.empty((len(possible_spans)), dtype=int)
+            adjacency_lists = []
+            adjacency_lists_add = []
+            adjacency_lists_sub = []
+            neighbour_nodes = list(zip(neighbour_indices, neighbour_factors))
 
-        for i_span, span in enumerate(possible_spans):
+            for i_span, span in enumerate(possible_spans):
 
-            # Calculate the scaled position tolerance
-            i_pos_tol = np.full(n_neighbours, self.get_scaled_position_tolerance(span))
+                # Calculate the scaled position tolerance
+                i_pos_tol = np.full(n_neighbours, self.get_scaled_position_tolerance(span))
 
-            i_adj_list = defaultdict(list)
-            i_adj_list_add = defaultdict(list)
-            i_adj_list_sub = defaultdict(list)
-            add_pos = neighbour_pos + span
-            sub_pos = neighbour_pos - span
-            add_indices, _, _, add_factors = matid.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
-            sub_indices, _, _, sub_factors = matid.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
+                i_adj_list = defaultdict(list)
+                i_adj_list_add = defaultdict(list)
+                i_adj_list_sub = defaultdict(list)
+                add_pos = neighbour_pos + span
+                sub_pos = neighbour_pos - span
+                add_indices, _, _, add_factors = matid.geometry.get_matches(system, add_pos, neighbour_num, i_pos_tol)
+                sub_indices, _, _, sub_factors = matid.geometry.get_matches(system, sub_pos, neighbour_num, i_pos_tol)
 
-            n_metric = 0
-            for i_neigh in range(n_neighbours):
-                i_add = add_indices[i_neigh]
-                i_sub = sub_indices[i_neigh]
-                i_add_factor = add_factors[i_neigh]
-                i_sub_factor = sub_factors[i_neigh]
+                n_metric = 0
+                for i_neigh in range(n_neighbours):
+                    i_add = add_indices[i_neigh]
+                    i_sub = sub_indices[i_neigh]
+                    i_add_factor = add_factors[i_neigh]
+                    i_sub_factor = sub_factors[i_neigh]
 
-                if i_add is not None or i_sub is not None:
-                    origin_factor = neighbour_factors[i_neigh]
+                    if i_add is not None or i_sub is not None:
+                        origin_factor = neighbour_factors[i_neigh]
 
-                    if i_add is not None:
-                        n_metric += 1
-                        dest_factor = origin_factor + i_add_factor
-                        i_adj_list[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_add, tuple(dest_factor)))
-                        i_adj_list_add[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_add, tuple(dest_factor)))
-                    if i_sub is not None:
-                        n_metric += 1
-                        dest_factor = origin_factor + i_sub_factor
-                        i_adj_list[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_sub, tuple(dest_factor)))
-                        i_adj_list_sub[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_sub, tuple(dest_factor)))
+                        if i_add is not None:
+                            n_metric += 1
+                            dest_factor = origin_factor + i_add_factor
+                            i_adj_list[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_add, tuple(dest_factor)))
+                            i_adj_list_add[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_add, tuple(dest_factor)))
+                        if i_sub is not None:
+                            n_metric += 1
+                            dest_factor = origin_factor + i_sub_factor
+                            i_adj_list[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_sub, tuple(dest_factor)))
+                            i_adj_list_sub[(neighbour_indices[i_neigh], tuple(origin_factor))].append((i_sub, tuple(dest_factor)))
 
-            metric[i_span] = n_metric
-            adjacency_lists.append(i_adj_list)
-            adjacency_lists_add.append(i_adj_list_add)
-            adjacency_lists_sub.append(i_adj_list_sub)
+                metric[i_span] = n_metric
+                adjacency_lists.append(i_adj_list)
+                adjacency_lists_add.append(i_adj_list_add)
+                adjacency_lists_sub.append(i_adj_list_sub)
 
-        # Get the spans that come from the periodicity if they are smaller than
-        # the maximum cell size
-        periodic_spans = system.get_cell()
-        periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
-        periodic_filter = periodic_span_lengths <= self.max_cell_size
-        n_periodic_spans = periodic_filter.sum()
-        if n_periodic_spans != 0:
-            for i_per_span, per_span in enumerate(periodic_spans):
-                if periodic_filter[i_per_span]:
+        # Get the spans that come from the original cell basis if they are
+        # smaller than the maximum cell size.
+        with chronic.Timer("find_basis_spans"):
+            periodic_spans = system.get_cell()
+            periodic_span_lengths = np.linalg.norm(periodic_spans, axis=1)
+            periodic_filter = periodic_span_lengths <= self.max_cell_size
+            n_periodic_spans = periodic_filter.sum()
+            if n_periodic_spans != 0:
+                for i_per_span, per_span in enumerate(periodic_spans):
+                    if periodic_filter[i_per_span]:
 
-                    # Add the basis to the spans and add a full metric score
-                    # for it.
-                    possible_spans = np.concatenate((possible_spans, [per_span]), axis=0)
-                    metric = np.concatenate((metric, [2*n_neighbours]), axis=0)
+                        # Add the basis to the spans and add a full metric score
+                        # for it.
+                        possible_spans = np.concatenate((possible_spans, [per_span]), axis=0)
+                        metric = np.concatenate((metric, [2*n_neighbours]), axis=0)
 
-                    # Create the adjacency lists for the periodic span. There
-                    # is full periodicity to neighbouring cells.
-                    per_adjacency_list = defaultdict(list)
-                    per_adjacency_list_add = defaultdict(list)
-                    per_adjacency_list_sub = defaultdict(list)
-                    i_factor = np.array((0, 0, 0))
-                    i_factor[i_per_span] = 1
-                    for i_neigh, neigh_factor in neighbour_nodes:
+                        # Create the adjacency lists for the periodic span. There
+                        # is full periodicity to neighbouring cells.
+                        per_adjacency_list = defaultdict(list)
+                        per_adjacency_list_add = defaultdict(list)
+                        per_adjacency_list_sub = defaultdict(list)
+                        i_factor = np.array((0, 0, 0))
+                        i_factor[i_per_span] = 1
+                        for i_neigh, neigh_factor in neighbour_nodes:
 
-                        neigh_tuple = tuple(neigh_factor)
-                        per_adjacency_list[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor + i_factor)))
-                        per_adjacency_list[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor - i_factor)))
-                        per_adjacency_list_add[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor + i_factor)))
-                        per_adjacency_list_sub[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor - i_factor)))
+                            neigh_tuple = tuple(neigh_factor)
+                            per_adjacency_list[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor + i_factor)))
+                            per_adjacency_list[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor - i_factor)))
+                            per_adjacency_list_add[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor + i_factor)))
+                            per_adjacency_list_sub[(i_neigh, neigh_tuple)].append((i_neigh, tuple(neigh_factor - i_factor)))
 
-                    adjacency_lists.append(per_adjacency_list)
-                    adjacency_lists_add.append(per_adjacency_list_add)
-                    adjacency_lists_sub.append(per_adjacency_list_sub)
+                        adjacency_lists.append(per_adjacency_list)
+                        adjacency_lists_add.append(per_adjacency_list_add)
+                        adjacency_lists_sub.append(per_adjacency_list_sub)
 
         # Find the directions that repeat the neighbours above some preset
         # threshold. This is used to eliminate directions that are caused by
@@ -328,41 +331,44 @@ class PeriodicFinder():
         n_spans = len(best_spans)
 
         # Get the adjacency lists corresponding to the best spans
-        best_adjacency_lists = []
-        best_adjacency_lists_add = []
-        best_adjacency_lists_sub = []
-        for i_span in best_combo:
-            original_span_index = valid_span_indices[i_span]
-            i_adjacency_list = adjacency_lists[original_span_index]
-            i_adjacency_list_add = adjacency_lists_add[original_span_index]
-            i_adjacency_list_sub = adjacency_lists_sub[original_span_index]
-            best_adjacency_lists.append(i_adjacency_list)
-            best_adjacency_lists_add.append(i_adjacency_list_add)
-            best_adjacency_lists_sub.append(i_adjacency_list_sub)
+        with chronic.Timer("form_adjacency"):
+            best_adjacency_lists = []
+            best_adjacency_lists_add = []
+            best_adjacency_lists_sub = []
+            for i_span in best_combo:
+                original_span_index = valid_span_indices[i_span]
+                i_adjacency_list = adjacency_lists[original_span_index]
+                i_adjacency_list_add = adjacency_lists_add[original_span_index]
+                i_adjacency_list_sub = adjacency_lists_sub[original_span_index]
+                best_adjacency_lists.append(i_adjacency_list)
+                best_adjacency_lists_add.append(i_adjacency_list_add)
+                best_adjacency_lists_sub.append(i_adjacency_list_sub)
 
         # Create a full periodicity graph for the found basis
-        periodicity_graph_pbc = None
-        full_adjacency_list_pbc = defaultdict(list)
-        for i_adj in best_adjacency_lists:
-            for key, value in i_adj.items():
-                full_adjacency_list_pbc[key].extend(value)
-        periodicity_graph_pbc = nx.Graph(full_adjacency_list_pbc)
+        with chronic.Timer("form_periodicity_graph"):
+            periodicity_graph_pbc = None
+            full_adjacency_list_pbc = defaultdict(list)
+            for i_adj in best_adjacency_lists:
+                for key, value in i_adj.items():
+                    full_adjacency_list_pbc[key].extend(value)
+            periodicity_graph_pbc = nx.Graph(full_adjacency_list_pbc)
 
         # Expand the graph by exploring the links of the atoms that are in
         # neighbouring cells
-        node_conn = {}
-        for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
-            for node in periodicity_graph_pbc.nodes():
-                node_index, node_factor = node
-                if node_index == cell_node and node_factor == tuple(neigh_fact):
-                    connections = periodicity_graph_pbc[node]
-                    disp = []
-                    ns = []
-                    for neighbour_index, neighbour_factor in connections:
-                        i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
-                        disp.append(i_disp)
-                        ns.append(neighbour_index)
-                    node_conn[cell_node] = [ns, disp]
+        with chronic.Timer("form_periodicity_graph"):
+            node_conn = {}
+            for cell_node, neigh_fact in zip(neighbour_indices, neighbour_factors):
+                for node in periodicity_graph_pbc.nodes():
+                    node_index, node_factor = node
+                    if node_index == cell_node and node_factor == tuple(neigh_fact):
+                        connections = periodicity_graph_pbc[node]
+                        disp = []
+                        ns = []
+                        for neighbour_index, neighbour_factor in connections:
+                            i_disp = tuple(np.array(neighbour_factor) - np.array(node_factor))
+                            disp.append(i_disp)
+                            ns.append(neighbour_index)
+                        node_conn[cell_node] = [ns, disp]
 
         new_graph = periodicity_graph_pbc.copy()
         for node in periodicity_graph_pbc.nodes():
@@ -591,9 +597,9 @@ class PeriodicFinder():
                 if dimensionality != 2:
                     return None, None, None
 
-            # Check the cell thickness
+            # Check the cell thickness. 2D materials that are thicker than a
+            # specified threshold are accepted.
             proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
-            # view(proto_cell)
             offset = proto_cell.get_positions()[seed_group_index]
             thickness = matid.geometry.get_thickness(proto_cell, 2)
             if thickness > self.max_2d_cell_height:

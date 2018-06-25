@@ -39,6 +39,7 @@ html_context = {
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
@@ -62,7 +63,6 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'MatID'
-# copyright = u'2018, John Doe'
 author = u'Lauri Himanen'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -218,7 +218,7 @@ html_static_path = ['_static']
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
 #
-# html_show_copyright = True
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the
