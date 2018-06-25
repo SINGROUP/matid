@@ -12,7 +12,7 @@ loader = unittest.TestLoader()
 suite = unittest.TestSuite()
 
 # Add tests to the test suite
-# suite.addTests(loader.loadTestsFromModule(classificationtests))
+suite.addTests(loader.loadTestsFromModule(classificationtests))
 suite.addTests(loader.loadTestsFromModule(symmetrytests))
 
 # Initialize a runner, pass it the suite and run it

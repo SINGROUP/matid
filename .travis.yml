@@ -12,4 +12,5 @@ script:
   - regtests/runtests.sh
 
 # Run the coverage analysis after tests
-after_success: coveralls
+after_success:
+    coveralls
