@@ -16,18 +16,18 @@ be automatically installed during setup.
 The latest stable release is available through pip: (use the -\\-user flag if
 root access is not available)
 
-.. code-block:: sh
-
+```sh
     pip install matid
+```
 
 To install the latest development version, clone the source code from
 github and install with pip from local file:
 
-.. code-block:: sh
-
+```sh
     git clone https://github.com/SINGROUP/matid.git
     cd matid
     pip install .
+```
 
 ## Example: Surface detection and analysis
 
