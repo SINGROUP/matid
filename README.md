@@ -8,7 +8,7 @@ on their structure. See the homepage at
 [https://singroup.github.io/matid/](https://singroup.github.io/matid/) for more
 extensive information and tutorials.
 
-# Installation
+## Installation
 The package is compatible with Python 2.7, 3.4-3.6, and the dependencies are
 given in the file 'requirements.txt. These dependencies will be automatically
 installed during the setup of the package.
@@ -28,7 +28,7 @@ cd matid
 pip install .
 ```
 
-# Example: Surface detection and analysis
+## Example: Surface detection and analysis
 
 ```python
 import numpy as np
@@ -81,4 +81,3 @@ view(prim_sys)
 spg_number = analyzer.get_space_group_number()
 print("Space group number: {}".format(spg_number))
 ```
-

@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import unittest
 import signal
@@ -593,7 +595,7 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(TestSegfaultProtect))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
 
     alltests = unittest.TestSuite(suites)
