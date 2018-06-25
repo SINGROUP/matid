@@ -10,8 +10,9 @@ Interfaces at the Nanoscale (SIN) <http://physics.aalto.fi/en/groups/sin/>`_ gro
 Contact
 -------
 If you encounter issues with the software, or want to suggest improvements,
-please use the `https://github.com/SINGROUP/matid/issues>`_ of github where the code is hosted. This way the
-discussion is publicly available and the discussion history is preserved.
+please use the `issues feature <https://github.com/SINGROUP/matid/issues>`_ of
+github where the code is hosted. This way the discussion is publicly available
+and the discussion history is preserved.
 
 .. raw:: html
 

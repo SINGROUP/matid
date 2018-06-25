@@ -21,13 +21,13 @@ structural classes. The currently supported classes are:
     - :class:`.Atom`: Specific class for single atoms.
 
 The classification system is hierarchical: e.g. a Surface is a subclass of a
-Class2D. If a two-dimensional structure cannot be assigned wit certainty into a
+Class2D. If a two-dimensional structure cannot be assigned with certainty into a
 more specific subclass, the most specific applicable parent class is used.
 
 The classification is based on the structural properties of the system, i.e.
 atomic positions, unit cell, periodic boundary conditions and atomic numbers.
 The classification, like the whole MatID package supports the `ASE library
-<https://wiki.fysik.dtu.dk/ase/>`_ for handling atomic strucures. With ASE you
+<https://wiki.fysik.dtu.dk/ase/>`_ for handling atomic structures. With ASE you
 can read structures from multiple files, or define the structure yourself with
 the Atoms class or the different structure creation tools. Once the structure
 has been specified as an `ASE.Atoms
