@@ -1,7 +1,8 @@
+# MatID
+
 [![Build Status](https://travis-ci.org/SINGROUP/matid.svg?branch=master)](https://travis-ci.org/SINGROUP/matid)
 [![Coverage Status](https://coveralls.io/repos/github/SINGROUP/matid/badge.svg?branch=master)](https://coveralls.io/github/SINGROUP/matid?branch=master)
 
-# MatID
 MatID is a python package for identifying and analyzing atomistic systems based
 on their structure. See the homepage at
 [https://singroup.github.io/matid/](https://singroup.github.io/matid/) for more

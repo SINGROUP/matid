@@ -5,7 +5,7 @@ python:
 
 # Command to install dependencies
 install:
-  - .travis-install-dependencies.sh
+  - ./.travis-install-dependencies.sh
 
 # Command to run tests
 script:
