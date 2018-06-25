@@ -87,7 +87,6 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_equiv, [0, 0]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
-        self.assertVolumeOk(si, data.conv_system, data.lattice_fit)
 
     def test_fcc(self):
         """Test that a primitive NaCl fcc lattice is characterized correctly.
@@ -132,7 +131,6 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a", "b"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
-        self.assertVolumeOk(nacl, data.conv_system, data.lattice_fit)
 
     def test_bcc(self):
         """Test that a body centered cubic lattice for copper is characterized
@@ -166,7 +164,6 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
-        self.assertVolumeOk(system, data.conv_system, data.lattice_fit)
 
     def test_unsymmetric(self):
         """Test that a random system is handled correctly.
@@ -192,16 +189,6 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertEqual(data.bravais_lattice, "aP")
         self.assertTrue(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
-        self.assertVolumeOk(system, data.conv_system, data.lattice_fit)
-
-    def assertVolumeOk(self, orig_sys, conv_sys, lattice_fit):
-        """Check that the volume of the lattice fit is ok.
-        """
-        n_atoms_orig = len(orig_sys)
-        volume_orig = orig_sys.get_volume()
-        n_atoms_conv = len(conv_sys)
-        volume_conv = np.linalg.det(lattice_fit)
-        self.assertTrue(np.allclose(volume_orig/n_atoms_orig, volume_conv/n_atoms_conv, atol=1e-8))
 
     def assertWyckoffGroupsOk(self, system, wyckoff_groups):
         """Check that the Wyckoff groups contain all atoms and are ordered
@@ -257,7 +244,6 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         data.prim_equiv = analyzer.get_equivalent_atoms_primitive()
         data.equivalent_original = analyzer.get_equivalent_atoms_original()
         data.equivalent_conv = analyzer.get_equivalent_atoms_conventional()
-        data.lattice_fit = analyzer.get_conventional_lattice_fit()
         data.has_free_wyckoff_parameters = analyzer.get_has_free_wyckoff_parameters()
         data.chiral = analyzer.get_is_chiral()
 

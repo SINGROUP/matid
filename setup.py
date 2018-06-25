@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 if __name__ == "__main__":
     setup(name="matid",
         version="0.4.0",
-        url="https://gitlab.com/laurih/matid",
+        url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
             "systems based on their structure."

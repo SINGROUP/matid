@@ -23,7 +23,7 @@ Go Deeper
 =========
 
 Documentation for the source code :doc:`can be found here <doc/modules>`. The full source code can
-be explored at `gitlab <https://gitlab.com/laurih/matid/>`_.
+be explored at `github <https://github.com/SINGROUP/matid>`_.
 
 .. toctree::
     :hidden:

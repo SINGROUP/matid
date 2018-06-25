@@ -17,5 +17,5 @@ suite.addTests(loader.loadTestsFromModule(symmetrytests))
 runner = unittest.TextTestRunner(verbosity=3)
 result = runner.run(suite)
 
-# We need to return a non-zero exit code for the gitlab CI to detect errors
+# We need to return a non-zero exit code for the CI to detect errors
 sys.exit(not result.wasSuccessful())

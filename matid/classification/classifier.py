@@ -239,7 +239,7 @@ class Classifier():
                 dist_matrix_radii_pbc
             )
             if dimensionality is None:
-                return Unknown()
+                return Unknown(input_system)
 
         # 0D structures
         if dimensionality == 0:

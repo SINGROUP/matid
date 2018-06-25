@@ -1,7 +1,7 @@
 # MatID
 MatID is a python package for identifying and analyzing atomistic systems based
 on their structure. See the homepage at
-[https://laurih.gitlab.io/matid/](https://laurih.gitlab.io/matid/) for more
+[https://singroup.github.io/matid/](https://singroup.github.io/matid/) for more
 extensive information and tutorials.
 
 # Installation
@@ -19,7 +19,7 @@ To install the most recent development version, you can clone this repository
 and perform the install with pip directly from the source code:
 
 ```sh
-git clone https://gitlab.com/laurih/matid.git
+git clone https://github.com/SINGROUP/matid.git
 cd matid
 pip install .
 ```
