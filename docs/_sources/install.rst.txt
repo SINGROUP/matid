@@ -9,10 +9,14 @@ root access is not available)
     pip install matid
 
 To install the bleeding-edge development version, clone the source code from
-gitlab and install with pip from local file:
+github and install with pip from local file:
 
 .. code-block:: sh
 
-    git clone https://gitlab.com/laurih/matid.git
+    git clone https://github.com/SINGROUP/matid.git
     cd matid
     pip install .
+
+The package is compatible with Python 2.7, 3.4-3.6, and the dependencies are
+given in the file 'requirements.txt. These dependencies will be automatically
+installed during the setup of the package.

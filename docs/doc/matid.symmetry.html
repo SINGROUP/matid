@@ -250,31 +250,6 @@ settings.</td>
 </dd></dl>
 
 <dl class="method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_lattice_fit">
-<code class="descname">get_conventional_lattice_fit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_lattice_fit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to get a 3x3 matrix representing a best fit of the original
-simulation cell to the conventional cell. This lattice can be e.g. used
-to calculate the lattice parameters or the volume of the original
-system in the lattice of the conventional system. The order of the cell
-basis vectors is the same as in the cell returned by
-get_conventional_system().get_cell().</p>
-<p>This function roughly serves the same purpose as what you would get
-from spglib.standardize_cell(no_idealize=True). The benefit is that we
-do not need to make an expensive spglib call, as spglib does not seem
-to cache the symmetry information.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The lattice basis vectors as a matrix.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system">
 <code class="descname">get_conventional_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to get the conventional representation of this system.</p>
