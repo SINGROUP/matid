@@ -1,0 +1,731 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>matid.core package &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="matid.data package" href="matid.data.html" />
+    <link rel="prev" title="matid.classification package" href="matid.classification.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="matid.html">matid package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="matid.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="matid.classification.html">matid.classification package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">matid.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.data.html">matid.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.symmetry.html">matid.symmetry package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.utils.html">matid.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.classifications">matid.classifications module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.exceptions">matid.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.geometry">matid.geometry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">matid</a> &raquo;</li>
+        
+          <li><a href="matid.html">matid package</a> &raquo;</li>
+        
+      <li>matid.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/doc/matid.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="matid-core-package">
+<h1>matid.core package<a class="headerlink" href="#matid-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-matid.core.lattice">
+<span id="matid-core-lattice-module"></span><h2>matid.core.lattice module<a class="headerlink" href="#module-matid.core.lattice" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matid.core.lattice.Lattice">
+<em class="property">class </em><code class="descclassname">matid.core.lattice.</code><code class="descname">Lattice</code><span class="sig-paren">(</span><em>matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A lattice object.  Essentially a matrix with conversion matrices. In
+general, it is assumed that length units are in Angstroms and angles are in
+degrees unless otherwise stated.</p>
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.abc">
+<code class="descname">abc</code><a class="headerlink" href="#matid.core.lattice.Lattice.abc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lengths of the lattice vectors, i.e. (a, b, c)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.alpha">
+<code class="descname">alpha</code><a class="headerlink" href="#matid.core.lattice.Lattice.alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle alpha of lattice in degrees.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.angles">
+<code class="descname">angles</code><a class="headerlink" href="#matid.core.lattice.Lattice.angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the angles (alpha, beta, gamma) of the lattice.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.beta">
+<code class="descname">beta</code><a class="headerlink" href="#matid.core.lattice.Lattice.beta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle beta of lattice in degrees.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.gamma">
+<code class="descname">gamma</code><a class="headerlink" href="#matid.core.lattice.Lattice.gamma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle gamma of lattice in degrees.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.lattice.Lattice.get_cartesian_coords">
+<code class="descname">get_cartesian_coords</code><span class="sig-paren">(</span><em>fractional_coords</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice.get_cartesian_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the cartesian coordinates given fractional coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fractional_coords</strong> (<em>3x1 array</em>) – Fractional coords.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Cartesian coordinates</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.lattice.Lattice.get_fractional_coords">
+<code class="descname">get_fractional_coords</code><span class="sig-paren">(</span><em>cart_coords</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice.get_fractional_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the fractional coordinates given cartesian coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cart_coords</strong> (<em>3x1 array</em>) – Cartesian coords.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Fractional coordinates.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.lattice.Lattice.get_reciprocal_lattice">
+<code class="descname">get_reciprocal_lattice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice.get_reciprocal_lattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the reciprocal lattice. Note that this is the standard
+reciprocal lattice used for solid state physics with a factor of 2 *
+pi. If you are looking for the crystallographic reciprocal lattice,
+use the reciprocal_lattice_crystallographic property.
+The property is lazily generated for efficiency.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.lattice.Lattice.get_reciprocal_lattice_crystallographic">
+<code class="descname">get_reciprocal_lattice_crystallographic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice.get_reciprocal_lattice_crystallographic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the <em>crystallographic</em> reciprocal lattice, i.e., no factor of
+2 * pi.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.inv_matrix">
+<code class="descname">inv_matrix</code><a class="headerlink" href="#matid.core.lattice.Lattice.inv_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse of lattice matrix.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.lengths">
+<code class="descname">lengths</code><a class="headerlink" href="#matid.core.lattice.Lattice.lengths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.lengths_and_angles">
+<code class="descname">lengths_and_angles</code><a class="headerlink" href="#matid.core.lattice.Lattice.lengths_and_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns (lattice lengths, lattice angles).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.matrix">
+<code class="descname">matrix</code><a class="headerlink" href="#matid.core.lattice.Lattice.matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy of matrix representing the Lattice</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="matid.core.lattice.Lattice.volume">
+<code class="descname">volume</code><a class="headerlink" href="#matid.core.lattice.Lattice.volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volume of the unit cell.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid.core.linkedunits">
+<span id="matid-core-linkedunits-module"></span><h2>matid.core.linkedunits module<a class="headerlink" href="#module-matid.core.linkedunits" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matid.core.linkedunits.LinkedUnit">
+<em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">LinkedUnit</code><span class="sig-paren">(</span><em>index</em>, <em>seed_index</em>, <em>seed_coordinate</em>, <em>cell</em>, <em>basis_indices</em>, <em>substitutions</em>, <em>vacancies</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Represents a cell that is connected to others in 3D space to form a
+structure, e.g. a surface.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.core.linkedunits.LinkedUnitCollection">
+<em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">LinkedUnitCollection</code><span class="sig-paren">(</span><em>system</em>, <em>cell</em>, <em>is_2d</em>, <em>dist_matrix_radii_pbc</em>, <em>disp_tensor_finite</em>, <em>delaunay_threshold=1.5</em>, <em>chem_similarity_threshold=0.4</em>, <em>bond_threshold=0.75</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<p>Represents a collection of similar cells that are connected in 3D space
+to form a structure, e.g. a surface.</p>
+<p>Essentially this is a special flavor of a regular dictionary: the keys can
+only be a sequence of three integers, and the values should be LinkedUnits.</p>
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.create_animation">
+<code class="descname">create_animation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.create_animation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to create an animation of the search procedure. The unit cells are .</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_adsorbates">
+<code class="descname">get_adsorbates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_adsorbates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the indices of the adsorbate atoms in the region.</p>
+<p>All atoms that are outside the tesselation, and are either not part of
+the elements present in the surface or further away than a certain
+threshold, are labeled as adsorbate atoms.</p>
+<p>This function does not differentiate between different adsorbate
+molecules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Indices of the adsorbates in the original system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_all_indices">
+<code class="descname">get_all_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_all_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all the indices that are present in the full system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_basis_atom_neighbourhood">
+<code class="descname">get_basis_atom_neighbourhood</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_basis_atom_neighbourhood" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each atom in the basis calculates the chemical neighbourhood.
+The chemical neighbourhood consists of a list of atomic numbers that
+are closer than a certain threshold value when the covalent radii is
+taken into account.</p>
+<p>Args:</p>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_basis_indices">
+<code class="descname">get_basis_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_basis_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indices of the atoms that were found to belong to a unit
+cell basis in the LinkedUnits in this collection as a single list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Indices of the atoms in the original system that belong
+to this collection of LinkedUnits.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_chem_env_translations">
+<code class="descname">get_chem_env_translations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_chem_env_translations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to calculate the translations that are used in calculating the
+chemical enviroments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_chemical_environment">
+<code class="descname">get_chemical_environment</code><span class="sig-paren">(</span><em>system</em>, <em>index</em>, <em>disp_tensor_finite</em>, <em>translations</em>, <em>translations_reduced</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_chemical_environment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the chemical environment around an atom. The chemical
+environment is quantified simply by the number of different species
+around a certain distance when the covalent radii have been considered.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_chemical_similarity">
+<code class="descname">get_chemical_similarity</code><span class="sig-paren">(</span><em>ideal_env</em>, <em>real_env</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_chemical_similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a metric that quantifies the similarity between two chemical
+environments. Here the metric is defined simply by the number
+neighbours that are found to be same as in the ideal environmen within
+a certain radius.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_clusters">
+<code class="descname">get_clusters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to cluster the system in order to distinguish chemisorbed
+adsorbates from the surface.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_connected_directions">
+<code class="descname">get_connected_directions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_connected_directions" title="Permalink to this definition">¶</a></dt>
+<dd><p>During the tracking of the region the information about searches
+that matched an atom twive but with a negated multiplier are stored.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_inside_and_outside_indices">
+<code class="descname">get_inside_and_outside_indices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_inside_and_outside_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the indices of atoms that are inside and outside the tetrahedra
+tesselation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Indices of atoms that are inside and
+outside the tesselation. The inside indices are in the first array.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">(np.ndarray, np.ndarray)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_interstitials">
+<code class="descname">get_interstitials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_interstitials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the indices of interstitial atoms in the original system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_outliers">
+<code class="descname">get_outliers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indices of atoms that were not found to belong to the
+basis.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_substitutions">
+<code class="descname">get_substitutions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_substitutions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the substitutions in the region.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_tetrahedra_decomposition">
+<code class="descname">get_tetrahedra_decomposition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_tetrahedra_decomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the tetrahedra decomposition for this region.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_unknowns">
+<code class="descname">get_unknowns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_unknowns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns indices of the atoms that are in the outliers but are not
+recognized as any specialized group.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.get_vacancies">
+<code class="descname">get_vacancies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.get_vacancies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the vacancies in the region.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An atoms object representing the atoms that are missing.
+The Atoms object has the same properties as the original system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ASE.Atoms</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.linkedunits.LinkedUnitCollection.recreate_valid">
+<code class="descname">recreate_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection.recreate_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to recreate a new Atoms object, where each atom is created from
+a single unit cell. Atoms that were found not to belong to the periodic
+unit cell are not included.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.core.linkedunits.Substitution">
+<em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">Substitution</code><span class="sig-paren">(</span><em>index</em>, <em>position</em>, <em>original_element</em>, <em>substitutional_element</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.Substitution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Represents a substitutional point defect.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid.core.system">
+<span id="matid-core-system-module"></span><h2>matid.core.system module<a class="headerlink" href="#module-matid.core.system" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matid.core.system.System">
+<em class="property">class </em><code class="descclassname">matid.core.system.</code><code class="descname">System</code><span class="sig-paren">(</span><em>symbols=None</em>, <em>positions=None</em>, <em>numbers=None</em>, <em>tags=None</em>, <em>momenta=None</em>, <em>masses=None</em>, <em>magmoms=None</em>, <em>charges=None</em>, <em>scaled_positions=None</em>, <em>cell=None</em>, <em>pbc=None</em>, <em>celldisp=None</em>, <em>constraint=None</em>, <em>calculator=None</em>, <em>info=None</em>, <em>wyckoff_letters=None</em>, <em>equivalent_atoms=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ase.atoms.Atoms</span></code></p>
+<dl class="staticmethod">
+<dt id="matid.core.system.System.from_atoms">
+<em class="property">static </em><code class="descname">from_atoms</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.from_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a System object from ASE.Atoms object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.get_equivalent_atoms">
+<code class="descname">get_equivalent_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.get_equivalent_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of indices marking the equivalence for the atoms in
+the system. This information is only available is explicitly set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The equivalence information as a list of integers,
+where the same integer means equivalence and an integer is given
+for each atom.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.get_wyckoff_letters">
+<code class="descname">get_wyckoff_letters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.get_wyckoff_letters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of Wyckoff letters for the atoms in the system. This
+information is only available is explicitly set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Wyckoff letters as a list of strings.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.set_equivalent_atoms">
+<code class="descname">set_equivalent_atoms</code><span class="sig-paren">(</span><em>equivalent_atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.set_equivalent_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set the list of indices marking the equivalence for the
+atoms for the atoms in this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>equivalent_atoms</strong> (<em>sequence of int</em>) – list of indices marking the
+equivalence for the atoms the atoms in this system.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.set_wyckoff_letters">
+<code class="descname">set_wyckoff_letters</code><span class="sig-paren">(</span><em>wyckoff_letters</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.set_wyckoff_letters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to set the Wyckoff letters of for the atoms in this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>wyckoff_letters</strong> (<em>sequence of str</em>) – The Wyckoff letters for the atoms</li>
+<li><strong>this system.</strong> (<em>in</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.to_cartesian">
+<code class="descname">to_cartesian</code><span class="sig-paren">(</span><em>scaled_positions</em>, <em>wrap=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.to_cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to transofrm a set of relative positions to the cartesian basis
+defined by the cell of this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale</li>
+<li><strong>wrap</strong> (<em>numpy.ndarray</em>) – Whether the positions should be wrapped
+inside the cell.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The cartesian positions</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.to_scaled">
+<code class="descname">to_scaled</code><span class="sig-paren">(</span><em>positions</em>, <em>wrap=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.to_scaled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to transform a set of positions to the basis defined by the
+cell of this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale</li>
+<li><strong>wrap</strong> (<em>numpy.ndarray</em>) – Whether the positions should be wrapped
+inside the cell.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The scaled positions</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.core.system.System.translate">
+<code class="descname">translate</code><span class="sig-paren">(</span><em>translation</em>, <em>relative=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.system.System.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates the positions by the given translation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</li>
+<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – True if given translation is relative to cell
+vectors.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-matid.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="matid.data.html" class="btn btn-neutral float-right" title="matid.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="matid.classification.html" class="btn btn-neutral" title="matid.classification package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Analyzing a dataset &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Classification" href="classification.html" />
+    <link rel="prev" title="Tutorials" href="tutorials.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analyzing a dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classification.html">Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../doc/modules.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+        
+      <li>Analyzing a dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorials/overview.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="analyzing-a-dataset">
+<h1>Analyzing a dataset<a class="headerlink" href="#analyzing-a-dataset" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial introduces the basic functionality of the package when applied to
+a real-world analysis of a dataset containing atomic structures.</p>
+<p>Lets start by loading a series of geometries as <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/atoms.html">ASE.Atoms</a> objects. In this case we have
+used a list of extended xyz-files to represent our dataset. But in general as
+long as the atomic positions, unit cell, periodic boundary conditions and
+chemical symbols for the atoms are available, any dataset can be turned into an
+ASE.Atoms object and analyzed by MatID.</p>
+<p>So let’s start by loading a series of structures into a list:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">ase.io</span>
+
+<span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">Classifier</span>
+<span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">SymmetryAnalyzer</span>
+<span class="kn">from</span> <span class="nn">matid.classifications</span> <span class="kn">import</span> <span class="n">Class3D</span><span class="p">,</span> <span class="n">Material2D</span><span class="p">,</span> <span class="n">Surface</span>
+
+<span class="c1"># This is a folder containing 10 different extended XYZ files.</span>
+<span class="n">inpath</span> <span class="o">=</span> <span class="s2">&quot;./structures&quot;</span>
+
+<span class="c1"># Lets find all XYZ files and read the geometries as ASE.Atoms objects in to a</span>
+<span class="c1"># list</span>
+<span class="n">geometries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">inpath</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i_file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">i_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">):</span>
+            <span class="n">i_atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;{}/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i_file</span><span class="p">))</span>
+            <span class="n">geometries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_atoms</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With a list of geometries available, we can start analyzing them with MatID.
+Typically the first task is to get a generic classification for the structure.
+This is done with the Classifier-class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a Classifier instance. The default settings are used here</span>
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="p">()</span>
+
+<span class="c1"># Get a classification result for each geometry</span>
+<span class="n">classifications</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i_geom</span> <span class="ow">in</span> <span class="n">geometries</span><span class="p">:</span>
+    <span class="n">i_cls</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">i_geom</span><span class="p">)</span>
+    <span class="n">classifications</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_cls</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Once we have determined the structural class of each geometry, we can further
+query for additional information that depends on the detected classification,
+and create a summary of the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a summary of the geometries</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">i_file</span><span class="p">,</span> <span class="n">i_geom</span><span class="p">),</span> <span class="n">i_cls</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">geometries</span><span class="p">,</span> <span class="n">classifications</span><span class="p">):</span>
+    <span class="n">i_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">i_cls</span><span class="p">)</span>
+    <span class="n">i_atoms</span> <span class="o">=</span> <span class="n">i_cls</span><span class="o">.</span><span class="n">atoms</span>
+
+    <span class="n">i_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;system_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">i_cls</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Get symmetry information</span>
+    <span class="n">blk_cell</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">if</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Class3D</span><span class="p">:</span>
+        <span class="n">blk_cell</span> <span class="o">=</span> <span class="n">i_atoms</span>
+    <span class="k">elif</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Surface</span><span class="p">:</span>
+        <span class="n">blk_cell</span> <span class="o">=</span> <span class="n">i_cls</span><span class="o">.</span><span class="n">prototype_cell</span>
+    <span class="k">if</span> <span class="n">blk_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">symm_analyzer</span> <span class="o">=</span> <span class="n">SymmetryAnalyzer</span><span class="p">(</span><span class="n">blk_cell</span><span class="p">)</span>
+        <span class="n">formula</span> <span class="o">=</span> <span class="n">i_atoms</span><span class="o">.</span><span class="n">get_chemical_formula</span><span class="p">()</span>
+        <span class="n">crystal_system</span> <span class="o">=</span> <span class="n">symm_analyzer</span><span class="o">.</span><span class="n">get_crystal_system</span><span class="p">()</span>
+        <span class="n">bravais_lattice</span> <span class="o">=</span> <span class="n">symm_analyzer</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span>
+        <span class="n">space_group</span> <span class="o">=</span> <span class="n">symm_analyzer</span><span class="o">.</span><span class="n">get_space_group_number</span><span class="p">()</span>
+        <span class="n">i_data</span><span class="p">[</span><span class="s2">&quot;space_group_number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">space_group</span>
+        <span class="n">i_data</span><span class="p">[</span><span class="s2">&quot;crystal_system&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crystal_system</span>
+        <span class="n">i_data</span><span class="p">[</span><span class="s2">&quot;bravais_lattice&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bravais_lattice</span>
+
+    <span class="c1"># Get the outlier information from two-dimensional systems</span>
+    <span class="k">if</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Surface</span> <span class="ow">or</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Material2D</span><span class="p">:</span>
+        <span class="n">outlier_indices</span> <span class="o">=</span> <span class="n">i_cls</span><span class="o">.</span><span class="n">outliers</span>
+        <span class="n">outlier_formula</span> <span class="o">=</span> <span class="n">i_atoms</span><span class="p">[</span><span class="n">outlier_indices</span><span class="p">]</span><span class="o">.</span><span class="n">get_chemical_formula</span><span class="p">()</span>
+        <span class="n">i_data</span><span class="p">[</span><span class="s2">&quot;outlier_indices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlier_indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="n">i_data</span><span class="p">[</span><span class="s2">&quot;outlier_formula&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlier_formula</span>
+
+    <span class="n">summary</span><span class="p">[</span><span class="n">i_file</span><span class="p">]</span> <span class="o">=</span> <span class="n">i_data</span>
+
+<span class="c1"># Write a summary of the results</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You can find the full example in “examples/summary.py”. Here are the results:</p>
+<div class="table">
+    <div class="tableheader">
+        <p id="namecol">Filename</p><p>Results</p><p>Image</p>
+    </div>
+    <div class="tablerow">
+        <p>C32Mo32+CO2.xyz</p>
+        <p>
+        system_type: Surface<br/>
+        outlier_formula: CO2<br/>
+        outlier_indices: [64, 65, 66]<br/>
+        space_group_number: 225<br/>
+        crystal_system: cubic<br/>
+        bravais_lattice: cF
+        </p>
+        <img id="resultimg" src="../_static/img/C32Mo32+CO2.jpg">
+    </div>
+    <div class="tablerow">
+        <p>C49+N.xyz</p>
+        <p>
+        system_type: Material2D<br/>
+        outlier_formula: N<br/>
+        outlier_indices: [49]<br/>
+        </p>
+        <img id="resultimg" src="../_static/img/C49+N.jpg">
+    </div>
+    <div class="tablerow">
+        <p>H2O.xyz</p>
+        <p>
+        system_type: Class0D<br/>
+        </p>
+        <img id="resultimg" src="../_static/img/H2O.jpg">
+    </div>
+    <div class="tablerow">
+        <p>Si8.xyz</p>
+        <p>
+        system_type: Class3D<br/>
+        space_group_number: 227<br/>
+        crystal_system: cubic<br/>
+        bravais_lattice: cF
+        </p>
+        <img id="resultimg" src="../_static/img/Si8.jpg">
+    </div>
+    <div class="tablerow">
+        <p>Mg61O62+CH4Ni.xyz</p>
+        <p>
+        system_type: Surface<br/>
+        outlier_formula: CH4Ni<br/>
+        outlier_indices: [72, 124, 125,126, 127, 128]<br/>
+        space_group_number: 225<br/>
+        crystal_system: cubic<br/>
+        bravais_lattice: cF
+        </p>
+        <img id="resultimg" src="../_static/img/Mg61O62+CH4Ni.jpg">
+    </div>
+    <div class="tablerow">
+        <p>C26H24N4O2.xyz</p>
+        <p>
+        system_type: Class2D
+        </p>
+        <img id="resultimg" src="../_static/img/C26H24N4O2.jpg">
+    </div>
+    <div class="tablerow">
+        <p>Ru.xyz</p>
+        <p>
+        system_type: Atom
+        </p>
+        <img id="resultimg" src="../_static/img/Ru.jpg">
+    </div>
+</div</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="classification.html" class="btn btn-neutral float-right" title="Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tutorials.html" class="btn btn-neutral" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

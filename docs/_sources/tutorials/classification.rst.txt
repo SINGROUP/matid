@@ -37,12 +37,12 @@ classification.
 The following code shows an example of reading a structure from an extended XYZ
 file and classifying it.
 
-.. literalinclude:: ../../examples/classification1.py
+.. literalinclude:: ../../../examples/classification1.py
    :language: python
 
 An alternative way is to define the Atoms object yourself
 
-.. literalinclude:: ../../examples/classification2.py
+.. literalinclude:: ../../../examples/classification2.py
    :language: python
 
 The :class:`.Classifier` class provides multiple parameters that can be used to tune the

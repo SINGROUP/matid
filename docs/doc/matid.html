@@ -1,0 +1,1303 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>matid package &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="matid.classification package" href="matid.classification.html" />
+    <link rel="prev" title="matid" href="modules.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">matid package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="matid.classification.html">matid.classification package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.core.html">matid.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.data.html">matid.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.symmetry.html">matid.symmetry package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="matid.utils.html">matid.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-matid.classifications">matid.classifications module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-matid.exceptions">matid.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-matid.geometry">matid.geometry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-matid">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">matid</a> &raquo;</li>
+        
+      <li>matid package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/doc/matid.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="matid-package">
+<h1>matid package<a class="headerlink" href="#matid-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="matid.classification.html">matid.classification package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matid.classification.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.classification.html#module-matid.classification.classifier">matid.classification.classifier module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.classification.html#module-matid.classification.periodicfinder">matid.classification.periodicfinder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.classification.html#module-matid.classification">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matid.core.html">matid.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matid.core.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.core.html#module-matid.core.lattice">matid.core.lattice module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.core.html#module-matid.core.linkedunits">matid.core.linkedunits module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.core.html#module-matid.core.system">matid.core.system module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.core.html#module-matid.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matid.data.html">matid.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#module-matid.data.alphabet_data">matid.data.alphabet_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#module-matid.data.constants">matid.data.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#module-matid.data.element_data">matid.data.element_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#module-matid.data.symmetry_data">matid.data.symmetry_data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.data.html#module-matid.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matid.symmetry.html">matid.symmetry package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matid.symmetry.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.symmetry.html#module-matid.symmetry.symmetryanalyzer">matid.symmetry.symmetryanalyzer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.symmetry.html#module-matid.symmetry.symmetryinfo">matid.symmetry.symmetryinfo module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.symmetry.html#module-matid.symmetry.wyckoffgroup">matid.symmetry.wyckoffgroup module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.symmetry.html#module-matid.symmetry">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="matid.utils.html">matid.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="matid.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.utils.html#module-matid.utils.segfault_protect">matid.utils.segfault_protect module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matid.utils.html#module-matid.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-matid.classifications">
+<span id="matid-classifications-module"></span><h2>matid.classifications module<a class="headerlink" href="#module-matid.classifications" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="matid.classifications.Atom">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Atom</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Class0D" title="matid.classifications.Class0D"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Class0D</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Class0D">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Class0D</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Class0D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Classification" title="matid.classifications.Classification"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Classification</span></code></a></p>
+<p>Structures that have a structure that is isolated in all directions by a
+vacuum gap.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Class1D">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Class1D</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Class1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Classification" title="matid.classifications.Classification"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Classification</span></code></a></p>
+<p>All structures that are roughly 1-dimensional, meaning that one
+dimension is much larger than the two others.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Class2D">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Class2D</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Class2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Classification" title="matid.classifications.Classification"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Classification</span></code></a></p>
+<p>Base class for all structures that are roughly 2-dimensional, meaning that two of the
+dimensions are much larger than the remaining one.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Class2DWithCell">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Class2DWithCell</code><span class="sig-paren">(</span><em>atoms</em>, <em>region</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Class2DWithCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Class2D" title="matid.classifications.Class2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Class2D</span></code></a></p>
+<p>Two dimensional structures from which a periodic unit cell has been
+identified.</p>
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.adsorbates">
+<code class="descname">adsorbates</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.adsorbates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.basis_indices">
+<code class="descname">basis_indices</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.basis_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.interstitials">
+<code class="descname">interstitials</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.interstitials" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.outliers">
+<code class="descname">outliers</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.outliers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.prototype_cell">
+<code class="descname">prototype_cell</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.prototype_cell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.substitutions">
+<code class="descname">substitutions</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.substitutions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.unknowns">
+<code class="descname">unknowns</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.unknowns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="matid.classifications.Class2DWithCell.vacancies">
+<code class="descname">vacancies</code><a class="headerlink" href="#matid.classifications.Class2DWithCell.vacancies" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Class3D">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Class3D</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Class3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Classification" title="matid.classifications.Classification"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Classification</span></code></a></p>
+<p>All structures that periodically extend infinitely without vacuum gaps.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Classification">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Classification</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Classification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Material2D">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Material2D</code><span class="sig-paren">(</span><em>atoms</em>, <em>region</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Material2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Class2DWithCell" title="matid.classifications.Class2DWithCell"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Class2DWithCell</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Surface">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Surface</code><span class="sig-paren">(</span><em>atoms</em>, <em>region</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Class2DWithCell" title="matid.classifications.Class2DWithCell"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Class2DWithCell</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matid.classifications.Unknown">
+<em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Unknown</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Unknown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.classifications.Classification" title="matid.classifications.Classification"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.classifications.Classification</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid.exceptions">
+<span id="matid-exceptions-module"></span><h2>matid.exceptions module<a class="headerlink" href="#module-matid.exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="matid.exceptions.CellNormalizationError">
+<em class="property">exception </em><code class="descclassname">matid.exceptions.</code><code class="descname">CellNormalizationError</code><span class="sig-paren">(</span><em>message</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.exceptions.CellNormalizationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.exceptions.SystaxError" title="matid.exceptions.SystaxError"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.exceptions.SystaxError</span></code></a></p>
+<p>For errors in finding the normalized cell.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="matid.exceptions.ClassificationError">
+<em class="property">exception </em><code class="descclassname">matid.exceptions.</code><code class="descname">ClassificationError</code><span class="sig-paren">(</span><em>message</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.exceptions.ClassificationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matid.exceptions.SystaxError" title="matid.exceptions.SystaxError"><code class="xref py py-class docutils literal notranslate"><span class="pre">matid.exceptions.SystaxError</span></code></a></p>
+<p>Indicates that there was an error in finding a surface.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="matid.exceptions.SystaxError">
+<em class="property">exception </em><code class="descclassname">matid.exceptions.</code><code class="descname">SystaxError</code><span class="sig-paren">(</span><em>message</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.exceptions.SystaxError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid.geometry">
+<span id="matid-geometry-module"></span><h2>matid.geometry module<a class="headerlink" href="#module-matid.geometry" title="Permalink to this headline">¶</a></h2>
+<p>This module defines functions for deriving geometry related quantities from
+a atomic system.</p>
+<dl class="class">
+<dt id="matid.geometry.Intervals">
+<em class="property">class </em><code class="descclassname">matid.geometry.</code><code class="descname">Intervals</code><span class="sig-paren">(</span><em>intervals=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Handles list of intervals.</p>
+<p>This class allows sorting and adding up of intervals and taking into
+account if they overlap.</p>
+<dl class="method">
+<dt id="matid.geometry.Intervals.add_interval">
+<code class="descname">add_interval</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.add_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add one interval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>b</strong> (<em>a</em><em>,</em>) – Start and end of interval. The order does not matter.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.add_intervals">
+<code class="descname">add_intervals</code><span class="sig-paren">(</span><em>intervals</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.add_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add list of intervals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>intervals</strong> – List of intervals that are added.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.add_up_intervals">
+<code class="descname">add_up_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.add_up_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the added up lengths of intervals without accounting for overlap.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.add_up_merged_intervals">
+<code class="descname">add_up_merged_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.add_up_merged_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the added up lengths of merged intervals in order to account for overlap.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.get_intervals">
+<code class="descname">get_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.get_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the intervals.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.get_intervals_sorted_by_end">
+<code class="descname">get_intervals_sorted_by_end</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.get_intervals_sorted_by_end" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list with intervals ordered by their end.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.get_intervals_sorted_by_start">
+<code class="descname">get_intervals_sorted_by_start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.get_intervals_sorted_by_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list with intervals ordered by their start.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.get_max_distance_between_intervals">
+<code class="descname">get_max_distance_between_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.get_max_distance_between_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the maximum distance between the intervals while accounting for overlap.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.get_merged_intervals">
+<code class="descname">get_merged_intervals</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.get_merged_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of merged intervals so that they do not overlap anymore.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.remove_interval">
+<code class="descname">remove_interval</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.remove_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove one interval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> – Index of interval that is removed.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="matid.geometry.Intervals.set_intervals">
+<code class="descname">set_intervals</code><span class="sig-paren">(</span><em>intervals</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.set_intervals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set list of intervals.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>intervals</strong> – List of intervals that are set.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.cartesian">
+<code class="descclassname">matid.geometry.</code><code class="descname">cartesian</code><span class="sig-paren">(</span><em>arrays</em>, <em>out=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a cartesian product of input arrays.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arrays</strong> (<em>sequence of arrays</em>) – The arrays from which the product is
+created.</li>
+<li><strong>out</strong> (<em>ndarray</em>) – Array to place the cartesian product in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">2-D array of shape (M, len(arrays)) containing cartesian
+products formed of input arrays.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cartesian</span><span class="p">(([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span>
+<span class="go">array([[1, 4, 6],</span>
+<span class="go">       [1, 4, 7],</span>
+<span class="go">       [1, 5, 6],</span>
+<span class="go">       [1, 5, 7],</span>
+<span class="go">       [2, 4, 6],</span>
+<span class="go">       [2, 4, 7],</span>
+<span class="go">       [2, 5, 6],</span>
+<span class="go">       [2, 5, 7],</span>
+<span class="go">       [3, 4, 6],</span>
+<span class="go">       [3, 4, 7],</span>
+<span class="go">       [3, 5, 6],</span>
+<span class="go">       [3, 5, 7]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.change_basis">
+<code class="descclassname">matid.geometry.</code><code class="descname">change_basis</code><span class="sig-paren">(</span><em>positions</em>, <em>basis</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.change_basis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform the given cartesian coordinates to a basis that is defined by
+the given basis and origin offset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>positions</strong> (<em>np.ndarray</em>) – Positions in cartesian coordinates.</li>
+<li><strong>basis</strong> (<em>np.ndarray</em>) – Basis to which to transform.</li>
+<li><strong>offset</strong> (<em>np.ndarray</em>) – Offset of the origins. A vector from the old basis
+origin to the new basis origin.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Relative positions in the new basis</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.expand_pbc">
+<code class="descclassname">matid.geometry.</code><code class="descname">expand_pbc</code><span class="sig-paren">(</span><em>pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.expand_pbc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to expand a pbc definition into an array of three booleans.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pbc</strong> (<em>boolean</em><em> or </em><em>a list of booleans</em>) – The periodicity of the cell. This
+can be any of the values that is also supprted by ASE, namely: a
+boolean or a list of three booleans.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The periodicity expanded as an explicit list of
+three boolean values.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray of booleans</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.find_mic">
+<code class="descclassname">matid.geometry.</code><code class="descname">find_mic</code><span class="sig-paren">(</span><em>D</em>, <em>cell</em>, <em>pbc</em>, <em>max_distance=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.find_mic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the minimum-image representation of vector(s) D.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>D</strong> (<em>np.ndarray</em>) – A nx3 array of vectors.</li>
+<li><strong>cell</strong> (<em>np.ndarray</em>) – A valid ase Atoms cell definition.</li>
+<li><strong>pbc</strong> (<em>np.ndarray</em>) – A 3x1 boolean array for the periodic boundary
+conditions.</li>
+<li><strong>mic_copies</strong> (<em>np.ndarray</em>) – The maximum number of periodic copies to
+consider in each direction. If not specified, the maximum possible
+number of copies is determined and used.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>The minimum image versions of the given vectors.
+np.ndarray: The shifts corresponding to the indices of the neighbouring</p>
+<blockquote>
+<div><p>cells in which the vectors were found.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_biggest_gap_indices">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_biggest_gap_indices</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_biggest_gap_indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the list of coordinates for one axis, this function will find the
+maximum gap between them and return the index of the bottom and top
+coordinates. The bottom and top are defined as:</p>
+<dl class="docutils">
+<dt>===       ===============    —&gt;</dt>
+<dd>^top    ^bot               ^axis direction</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_center_of_mass">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_center_of_mass</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_center_of_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the center of mass and also takes the periodicity of the
+system into account.</p>
+<p>The algorithm is replicated from:
+<a class="reference external" href="https://en.wikipedia.org/wiki/Center_of_mass#Systems_with_periodic_boundary_conditions">https://en.wikipedia.org/wiki/Center_of_mass#Systems_with_periodic_boundary_conditions</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ase.Atoms</em>) – The system for which the center of mass is
+calculated.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The cartesian positions of the center of mass in the given
+system.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_closest_direction">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_closest_direction</code><span class="sig-paren">(</span><em>vec</em>, <em>directions</em>, <em>normalized=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_closest_direction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to return the direction that is most parallel to a given one.</p>
+<p>Args:</p>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_clusters">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_clusters</code><span class="sig-paren">(</span><em>dist_matrix</em>, <em>threshold</em>, <em>min_samples=1</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_clusters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to detect clusters with the DBSCAN algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dist_matrix</strong> (<em>np.ndarray</em>) – The 2D distance matrix from which the clusters
+are calculated.</li>
+<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The epsilon threshold value for the clustering</li>
+<li><strong>min_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The minimum allowed cluster size.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of clusters, where each cluster is a list of indices for
+the elements belonging to the cluster.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_covalent_distances">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_covalent_distances</code><span class="sig-paren">(</span><em>system</em>, <em>mic=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_covalent_distances" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a distance matrix where the covalent radii have been taken into
+account. Clips negative values to be zero.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_crystallinity">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_crystallinity</code><span class="sig-paren">(</span><em>symmetry_analyser</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_crystallinity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quantifies the crystallinity of the structure as a ratio of symmetries
+per number of unique atoms in primitive cell. This metric can be used to
+distinguish between amorphous and ‘regular’ crystals.</p>
+<p>The number of symmetry operations corresponds to the symmetry operations
+corresponding to the hall number of the structure. The symmetry operations
+as given by spglib.get_symmetry() are specific to the original structure,
+and they have not been reduced to the symmetries of the space group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>(</strong><strong>)</strong> (<em>symmetry_analyser</em>) – A SymmetryAnalyzer object that has been
+initialized with an atomic structure.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(float) A ratio of symmetries per unique atoms in the primitive cell.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_dimensionality">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_dimensionality</code><span class="sig-paren">(</span><em>system</em>, <em>cluster_threshold</em>, <em>dist_matrix_radii_mic_1x=None</em>, <em>return_clusters=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_dimensionality" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to calculate the dimensionality of a system with a modified
+Topology Scaling Algorithm (TSA) (Michael Ashton, Joshua Paul, Susan B.
+Sinnott, and Richard G. Hennig Phys. Rev. Lett. 118, 106101).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the dimensionality is
+evaluated.</li>
+<li><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The epsilon value for the DBSCAN algorithm
+that is used to identify clusters within the unit cell.</li>
+<li><strong>dist_matrix_radii_pbc</strong> (<em>np.ndarray</em>) – A precalculated distance matrix
+that takes in to account the periodicity and has the covalent radii of
+the atoms already subtracted.</li>
+<li><strong>return_clusters</strong> (<em>boolean</em>) – Whether the clusters are returned</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>The dimensionality of the system. If the dimensionality can’t be</dt>
+<dd><p class="first last">evaluated because the system has multiple disconnected components in
+the original cell, None is returned.</p>
+</dd>
+<dt>list: A list of clusters. Each entry in the list contains the indices</dt>
+<dd><p class="first last">of atoms in a cluster.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int|none</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_dimensions">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_dimensions</code><span class="sig-paren">(</span><em>system</em>, <em>vacuum_gaps</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_dimensions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a system with vacuum gaps, calculate its dimensions in the
+directions with vacuum gaps by also taking into account the atomic radii.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_displacement_tensor">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_displacement_tensor</code><span class="sig-paren">(</span><em>pos1</em>, <em>pos2</em>, <em>cell=None</em>, <em>pbc=None</em>, <em>mic=False</em>, <em>max_distance=None</em>, <em>return_factors=False</em>, <em>return_distances=False</em>, <em>use_self_distance=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_displacement_tensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an array of positions, calculates the 3D displacement tensor
+between the positions.</p>
+<p>The displacement tensor is a matrix where the entry A[i, j, :] is the
+vector pos1[i] - pos2[j], i.e. the vector from pos2 to pos1</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pos1</strong> (<em>np.ndarray</em>) – 2D array of positions</li>
+<li><strong>pos2</strong> (<em>np.ndarray</em>) – 2D array of positions</li>
+<li><strong>cell</strong> (<em>np.ndarray</em>) – Cell for taking into account the periodicity</li>
+<li><strong>pbc</strong> (<em>boolean</em><em> or </em><em>a list of booleans</em>) – Periodicity of the axes</li>
+<li><strong>mic</strong> (<em>boolean</em>) – Whether to return the displacement to the nearest
+periodic copy</li>
+<li><strong>mic_copies</strong> (<em>np.ndarray</em>) – The maximum number of periodic copies to
+consider in each direction. If not specified, the maximum possible
+number of copies is determined and used.</li>
+<li><strong>use_self_distance</strong> (<em>boolean</em>) – Determines how the distance from atom to
+itself is determined. If True, zero is returned, if false, the
+distance to the closest copy is returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>3D displacement tensor
+(optional) np.ndarray: The indices of the periodic copies in which the</p>
+<blockquote>
+<div><p>minimum image was found</p>
+</div></blockquote>
+<p>(optional) np.ndarray: The lengths of the displacement vectors</p>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_distance_matrix">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_distance_matrix</code><span class="sig-paren">(</span><em>pos1</em>, <em>pos2</em>, <em>cell=None</em>, <em>pbc=None</em>, <em>mic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_distance_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the distance matrix. If wrap_distances=True, calculates
+the matrix using periodic distances</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pos1</strong> (<em>np.ndarray</em>) – Array of cartesian positions</li>
+<li><strong>pos2</strong> (<em>np.ndarray</em>) – Array of cartesian positions</li>
+<li><strong>cell</strong><strong>(</strong><strong>)</strong> – </li>
+<li><strong>pbc</strong><strong>(</strong><strong>)</strong> – </li>
+<li><strong>mic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Whether to apply minimum image convention fo the distances,
+i.e. the distance to the closest periodic image is returned.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_extended_system">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_extended_system</code><span class="sig-paren">(</span><em>system</em>, <em>target_size</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_extended_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replicate the system in different directions to reach the given target
+size.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ase.Atoms</em>) – The original system.</li>
+<li><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The target size for the extended system in
+angstroms.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The extended system.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ase.Atoms</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_matches">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_matches</code><span class="sig-paren">(</span><em>system</em>, <em>positions</em>, <em>numbers</em>, <em>tolerances</em>, <em>mic=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a system and a list of cartesian positions and atomic numbers,
+returns a list of indices for the atoms corresponding to the given
+positions with some tolerance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – System where to search the positions</li>
+<li><strong>positions</strong> (<em>np.ndarray</em>) – Positions to match in the system.</li>
+<li><strong>tolerances</strong> (<em>np.ndarray</em>) – Maximum allowed distance for each vector that
+is allowed for a match in position.</li>
+<li><strong>mic</strong> (<em>boolean</em>) – Whether to find the minimum image copy.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>indices of matched atoms
+list: list of substitutions
+list: list of vacancies
+np.ndarray: for each searched position, an integer array representing</p>
+<blockquote>
+<div><p>the number of the periodic copy where the match was found.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_matches_old">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_matches_old</code><span class="sig-paren">(</span><em>system</em>, <em>positions</em>, <em>numbers</em>, <em>tolerance</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_matches_old" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a system and a list of cartesian positions and atomic numbers,
+returns a list of indices for the atoms corresponding to the given
+positions with some tolerance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – System where to search the positions</li>
+<li><strong>positions</strong> (<em>np.ndarray</em>) – Positions to match in the system.</li>
+<li><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – Maximum allowed distance that is required for a
+match in position.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>indices of matched atoms
+list: list of substitutions
+list: list of vacancies
+np.ndarray: for each searched position, an integer array representing</p>
+<blockquote>
+<div><p>the number of the periodic copy where the match was found.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_mic_vector">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_mic_vector</code><span class="sig-paren">(</span><em>w</em>, <em>v</em>, <em>cell</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_mic_vector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to calculate the minimum image version of a vector in the given
+cell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rel_vector</strong> (<em>np.ndarray</em>) – Relative vector in the cell basis:</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The MIC version of the given vector
+np.ndarray: The shift that corresponds to the neighbouring cell in<blockquote>
+<div>which the copy was found.</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_minimized_cell">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_minimized_cell</code><span class="sig-paren">(</span><em>system</em>, <em>axis</em>, <em>min_size</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_minimized_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to resize the cell in the given cell direction so that all atoms
+are within the cell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ase.Atoms</em>) – The system to minimize. Must have a cell with
+non-zero volume.</li>
+<li><strong>axis</strong> (<em>min_size</em>) – Index of the axis to minimize.</li>
+<li><strong>axis</strong> – The minimum size for the cell in the given direction.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The new minimized system.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ase.Atoms</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_moments_of_inertia">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_moments_of_inertia</code><span class="sig-paren">(</span><em>system</em>, <em>weight=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_moments_of_inertia" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates geometric inertia tensor, i.e., inertia tensor but with
+all masses are set to 1.</p>
+<p>I_ij = sum_k m_k (delta_ij * r_k^2 - x_ki * x_kj)
+with r_k^2 = x_k1^2 + x_k2^2 x_k3^2</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ASE Atoms</em>) – Atomic system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The eigenvalues and eigenvectors of the
+geometric inertia tensor.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(np.ndarray, np.ndarray)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_nearest_atom">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_nearest_atom</code><span class="sig-paren">(</span><em>system</em>, <em>position</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_nearest_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the index of the atom nearest to the given position in the given
+system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the atom is searched from.</li>
+<li><strong>position</strong> (<em>np.ndarray</em>) – The position to search.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index of the nearest atom.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)">int</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_nearest_neighbours">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_nearest_neighbours</code><span class="sig-paren">(</span><em>system</em>, <em>dist_matrix_pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_nearest_neighbours" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each atom in the given system, returns a list of indices for the
+nearest neighbours and a list of distances to the neighbour.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the nearest neighbours are
+calculated</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Index of the nearest atom.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)">int</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_neighbour_cells">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_neighbour_cells</code><span class="sig-paren">(</span><em>cell</em>, <em>cutoff</em>, <em>pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_neighbour_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a cell and a cutoff, returns the indices of the copies of the cell
+which have to be searched in order to reach atom within the cutoff
+distance.</p>
+<p>The number of neighboring images to search in each direction is equal to
+the ceiling of the cutoff distance (defined above) divided by the length of
+the projection of the lattice vector onto its corresponding surface normal.
+a’s surface normal vector is e.g.  b x c / (<a href="#id1"><span class="problematic" id="id2">|b|</span></a> <a href="#id3"><span class="problematic" id="id4">|c|</span></a>), so this projection is
+(a . (b x c)) / (<a href="#id5"><span class="problematic" id="id6">|b|</span></a> <a href="#id7"><span class="problematic" id="id8">|c|</span></a>).  The numerator is just the lattice volume, so
+this can be simplified to V / (<a href="#id9"><span class="problematic" id="id10">|b|</span></a> <a href="#id11"><span class="problematic" id="id12">|c|</span></a>). This is rewritten as V <a href="#id13"><span class="problematic" id="id14">|a|</span></a> / (<a href="#id15"><span class="problematic" id="id16">|a|</span></a>
+<a href="#id17"><span class="problematic" id="id18">|b|</span></a> <a href="#id19"><span class="problematic" id="id20">|c|</span></a>) for vectorization purposes.</p>
+<p>Args:</p>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_positions_within_basis">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_positions_within_basis</code><span class="sig-paren">(</span><em>system, basis, origin, tolerance_low, tolerance_high, mask=[True, True, True], pbc=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_positions_within_basis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to return the indices of positions that are inside a certain basis.
+Also takes periodic boundaries into account.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – System from which the positions are searched.</li>
+<li><strong>basis</strong> (<em>np.ndarray</em>) – New basis vectors.</li>
+<li><strong>origin</strong> (<em>np.ndarray</em>) – New origin of the basis in cartesian coordinates.</li>
+<li><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The tolerance for the end points of the cell.</li>
+<li><strong>mask</strong> (<em>sequence of bool</em>) – Mask for selecting the basis’s to consider.</li>
+<li><strong>pbc</strong> (<em>sequence of bool</em>) – The periodicity of the system.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>Indices of the atoms within this cell in the given</dt>
+<dd><p class="first last">system.</p>
+</dd>
+</dl>
+<p>np.ndarray: Relative positions of the found atoms.
+np.ndarray: The index of the periodic copy in which the position was</p>
+<blockquote>
+<div><p>found.</p>
+</div></blockquote>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">sequence of int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_space_filling">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_space_filling</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_space_filling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the ratio of vacuum to filled space by assuming covalent
+radii for the atoms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ASE.Atoms</em>) – Atomic system.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ratio of occupied volume to the cell volume.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)">float</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_tetrahedra_decomposition">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_tetrahedra_decomposition</code><span class="sig-paren">(</span><em>system</em>, <em>max_distance</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_tetrahedra_decomposition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to decompose a series of 3D atomic coordinates into non-overlapping
+tetrahedron that together represent the atomic structure.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_thickness">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_thickness</code><span class="sig-paren">(</span><em>system</em>, <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_thickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the thickness of an atomic system along a basis vector direction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the thickness is evaluated.</li>
+<li><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index of the unit cell basis in which direction the
+thickness is evaluated.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The thickness of the system as measured from the center of the
+topmost atom to the center of lowermost atom.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.get_wrapped_positions">
+<code class="descclassname">matid.geometry.</code><code class="descname">get_wrapped_positions</code><span class="sig-paren">(</span><em>scaled_pos</em>, <em>precision=1e-05</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_wrapped_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap the given relative positions so that each element in the array
+is within the half-closed interval [0, 1)</p>
+<p>By wrapping values near 1 to 0 we will have a consistent way of
+presenting systems.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.make_random_displacement">
+<code class="descclassname">matid.geometry.</code><code class="descname">make_random_displacement</code><span class="sig-paren">(</span><em>system</em>, <em>delta</em>, <em>rng=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.make_random_displacement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dislocate every atom in the given system in a random direction but by
+the same amount. Uses an internal random number generator to avoid touching
+the global numpy.random.seed()-function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the displacement are performed.</li>
+<li><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The magnitude of the displacements.</li>
+<li><strong>rng</strong> (<em>np.random.RandomState</em>) – Random number generator.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.to_cartesian">
+<code class="descclassname">matid.geometry.</code><code class="descname">to_cartesian</code><span class="sig-paren">(</span><em>cell</em>, <em>scaled_positions</em>, <em>wrap=False</em>, <em>pbc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.to_cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to transofrm a set of relative positions to the cartesian basis
+defined by the cell of this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – Reference system.</li>
+<li><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale</li>
+<li><strong>wrap</strong> (<em>numpy.ndarray</em>) – Whether the positions should be wrapped
+inside the cell.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The cartesian positions</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.to_scaled">
+<code class="descclassname">matid.geometry.</code><code class="descname">to_scaled</code><span class="sig-paren">(</span><em>cell</em>, <em>positions</em>, <em>wrap=False</em>, <em>pbc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.to_scaled" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to transform a set of positions to the basis defined by the
+cell of this system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>system</strong> (<em>ASE.Atoms</em>) – Reference system.</li>
+<li><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale</li>
+<li><strong>wrap</strong> (<em>numpy.ndarray</em>) – Whether the positions should be wrapped
+inside the cell.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The scaled positions</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="matid.geometry.translate">
+<code class="descclassname">matid.geometry.</code><code class="descname">translate</code><span class="sig-paren">(</span><em>system</em>, <em>translation</em>, <em>relative=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translates the positions by the given translation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</li>
+<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – True if given translation is relative to cell
+vectors.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-matid">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-matid" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="matid.classification.html" class="btn btn-neutral float-right" title="matid.classification package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="matid" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

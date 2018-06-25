@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Classification &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="matid" href="../doc/modules.html" />
+    <link rel="prev" title="Analyzing a dataset" href="overview.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Analyzing a dataset</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../doc/modules.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+        
+      <li>Classification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorials/classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="classification">
+<span id="id1"></span><h1>Classification<a class="headerlink" href="#classification" title="Permalink to this headline">¶</a></h1>
+<p>MatID can be used to automatically classify structures into different
+structural classes. The currently supported classes are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Class3D" title="matid.classifications.Class3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Class3D</span></code></a>: Generic class for all three-dimensional structures, e.g. bulk
+crystals, liquids, solid-liquid interfaces.</li>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Class2D" title="matid.classifications.Class2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Class2D</span></code></a>: Generic class for all two-dimensional structures, e.g. surfaces, 2D materials.<ul>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Surface" title="matid.classifications.Surface"><code class="xref py py-class docutils literal notranslate"><span class="pre">Surface</span></code></a>: Specific class for surface structures.</li>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Material2D" title="matid.classifications.Material2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Material2D</span></code></a>: Specific class for 2D materials.</li>
+</ul>
+</li>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Class1D" title="matid.classifications.Class1D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Class1D</span></code></a>: Generic class for all one-dimensional structures, e.g.
+polymers, nanotubes.</li>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Class0D" title="matid.classifications.Class0D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Class0D</span></code></a>: Generic class for all zero-dimensional structures, e.g.
+atoms, molecules, clusters.<ul>
+<li><a class="reference internal" href="../doc/matid.html#matid.classifications.Atom" title="matid.classifications.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a>: Specific class for single atoms.</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p>The classification system is hierarchical: e.g. a Surface is a subclass of a
+Class2D. If a two-dimensional structure cannot be assigned wit certainty into a
+more specific subclass, the most specific applicable parent class is used.</p>
+<p>The classification is based on the structural properties of the system, i.e.
+atomic positions, unit cell, periodic boundary conditions and atomic numbers.
+The classification, like the whole MatID package supports the <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/">ASE library</a> for handling atomic strucures. With ASE you
+can read structures from multiple files, or define the structure yourself with
+the Atoms class or the different structure creation tools. Once the structure
+has been specified as an <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/atoms.html">ASE.Atoms</a> object, you can input it into
+classification.</p>
+<p>The following code shows an example of reading a structure from an extended XYZ
+file and classifying it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ase.io</span>
+<span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">Classifier</span>
+
+<span class="c1"># Read an extended XYZ file containin an atomic geometry. Extended XYZ files</span>
+<span class="c1"># will also include the unit cell and periodic boundary conditions.</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;structure.xyz&quot;</span><span class="p">)</span>
+
+<span class="c1"># Define the classifier</span>
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="p">()</span>
+
+<span class="c1"># Perform classification</span>
+<span class="n">classification</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+<span class="c1"># Investigate result</span>
+<span class="k">print</span><span class="p">(</span><span class="n">classification</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An alternative way is to define the Atoms object yourself</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">Classifier</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
+
+<span class="c1"># Define the structure as an ASE Atoms object</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">Atoms</span><span class="p">(</span>
+    <span class="n">positions</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span>       <span class="mf">5.2981545</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">5.763239</span><span class="p">,</span> <span class="mf">4.7018455</span><span class="p">],</span>
+        <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">4.236761</span><span class="p">,</span> <span class="mf">4.7018455</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="n">symbols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">],</span>
+    <span class="n">cell</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span>
+    <span class="n">pbc</span><span class="o">=</span><span class="p">[</span><span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="c1"># Define the classifier</span>
+<span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="p">()</span>
+
+<span class="c1"># Perform classification</span>
+<span class="n">classification</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+<span class="c1"># Investigate result</span>
+<span class="k">print</span><span class="p">(</span><span class="n">classification</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="../doc/matid.classification.html#matid.classification.classifier.Classifier" title="matid.classification.classifier.Classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">Classifier</span></code></a> class provides multiple parameters that can be used to tune the
+classification to fit different scenarios. The default settings are quite
+conservative: they are good for a wide range of systems, but can result in slow
+classification for bigger systems. The speed can be improved by providing
+custom settings if more is known about the dataset.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../doc/modules.html" class="btn btn-neutral float-right" title="matid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="overview.html" class="btn btn-neutral" title="Analyzing a dataset" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
