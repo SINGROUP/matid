@@ -1,14 +1,7 @@
 language: python
 python:
-  #- "2.6"
   - "2.7"
-  #- "3.3"
-  #- "3.4"
-  #- "3.5"
-  #- "3.5-dev"  # 3.5 development branch
   - "3.6"
-  #- "3.6-dev"  # 3.6 development branch
-  #- "3.7-dev"  # 3.7 development branch
 
 # Command to install dependencies
 install:
@@ -16,4 +9,7 @@ install:
 
 # Command to run tests
 script:
-  - python regtests/testrunner.py
+  - regtests/runtests.sh
+
+# Run the coverage analysis after tests
+after_success: coveralls
