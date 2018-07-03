@@ -15,7 +15,7 @@ from ase import Atom, Atoms
 import ase.geometry
 
 from matid.data.element_data import get_covalent_radii
-from matid.exceptions import SystaxError
+# from matid.exceptions import SystaxError
 from matid.core.linkedunits import Substitution
 import matid.geometry
 
@@ -25,45 +25,26 @@ from scipy.spatial import Delaunay
 import spglib
 
 
-def get_nearest_atom(system, position):
+def get_nearest_atom(system, position, mic=True):
     """Finds the index of the atom nearest to the given position in the given
     system.
 
     Args:
         system(ase.Atoms): The system from which the atom is searched from.
         position(np.ndarray): The position to search.
+        mic(boolean): Whether to use the minimum image convention on periodic
+            systems.
 
     Returns:
-        int: Index of the nearest atom.
+        int: Index of the nearest atom in the given system.
     """
     positions = system.get_positions()
-    distances = get_distance_matrix(position, positions)
+    pbc = system.get_pbc()
+    cell = system.get_cell()
+    distances = get_distance_matrix(position, positions, cell=cell, pbc=pbc, mic=mic)
     min_index = np.argmin(distances)
 
     return min_index
-
-
-def get_nearest_neighbours(system, dist_matrix_pbc):
-    """For each atom in the given system, returns a list of indices for the
-    nearest neighbours and a list of distances to the neighbour.
-
-    Args:
-        system(ase.Atoms): The system from which the nearest neighbours are
-            calculated
-
-    Returns:
-        int: Index of the nearest atom.
-    """
-    cell = system.get_cell()
-    min_basis = np.linalg.norm(cell, axis=1).min()
-    dist_matrix_mod = np.array(dist_matrix_pbc)
-    np.fill_diagonal(dist_matrix_mod, min_basis)
-
-    columns = np.argmin(dist_matrix_mod, axis=1)
-    rows = range(len(system))
-    distances = dist_matrix_mod[rows, columns]
-
-    return columns, distances
 
 
 def get_dimensionality(
@@ -587,19 +568,27 @@ def get_wrapped_positions(scaled_pos, precision=1E-5):
     return scaled_pos
 
 
-def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False):
+def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False, use_self_distance=True):
     """Calculates the distance matrix. If wrap_distances=True, calculates
     the matrix using periodic distances
 
     Args:
         pos1(np.ndarray): Array of cartesian positions
         pos2(np.ndarray): Array of cartesian positions
-        cell():
-        pbc():
+        cell(): The 3x3 cell of the system. Needed if minimum image convention
+            enabled.
+        pbc(): The periodic boundary conditions of the system. Needed if
+            minimum image convention enabled.
         mic (bool): Whether to apply minimum image convention fo the distances,
             i.e. the distance to the closest periodic image is returned.
+        use_self_distance(boolean): Determines how the distance from atom to
+            itself is determined. If True, zero is returned, if false, the
+            distance to the closest copy is returned.
+
+    Returns:
+        np.ndarray: A :math:`N_{atoms} \times N_{atoms}` matrix of distances.
     """
-    disp_tensor = get_displacement_tensor(pos1, pos2, cell, pbc, mic)
+    disp_tensor = get_displacement_tensor(pos1, pos2, cell, pbc, mic, use_self_distance=use_self_distance)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
 
     return distance_matrix
@@ -698,7 +687,6 @@ def find_mic(D, cell, pbc, max_distance=None):
         np.ndarray: The shifts corresponding to the indices of the neighbouring
             cells in which the vectors were found.
     """
-
     cell = ase.geometry.complete_cell(cell)
     n_vectors = len(D)
 
