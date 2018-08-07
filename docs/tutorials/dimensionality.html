@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Dimensionality Detection &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="matid" href="../doc/modules.html" />
+    <link rel="prev" title="Classification" href="classification.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Analyzing a dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classification.html">Classification</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Dimensionality Detection</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../doc/modules.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+        
+      <li>Dimensionality Detection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorials/dimensionality.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dimensionality-detection">
+<h1>Dimensionality Detection<a class="headerlink" href="#dimensionality-detection" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial showcases how the package can be used to find out the
+dimensionality of any arbitrary atomistic geometry.</p>
+<p>To determine the dimensionality of a system, we use a modified version of the
+topological scaling algorithm (TSA) <a class="footnote-reference" href="#id4" id="id1">[1]</a>. The algorithm is based on analyzing
+the size scaling of atomic clusters when going from the original system to a
+bigger supercell of the same system. With TSA, the dimensionality <span class="math notranslate nohighlight">\(D\)</span> is
+given by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}D=\begin{cases}
+   n_\text{pbc}-\log_n (N_{n}) \text{, when}~n_\text{pbc} \neq 0  \\
+   0\text{, when}~n_\text{pbc} = 0
+\end{cases}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(N_n\)</span> is the number of clusters in a supercell that is repeated
+<span class="math notranslate nohighlight">\(n\)</span> times in each periodic direction and <span class="math notranslate nohighlight">\(n_\mathrm{pbc}\)</span> is the
+number of periodic dimensions. For the clustering we use the Density-Based
+Spatial Clustering of Applications with Noise <a class="footnote-reference" href="#id5" id="id2">[2]</a> data clustering algorithm.
+The advantage of this algorithm is that it does not require an initial guess
+for the number of clusters and it can find arbitrarily shaped clusters. The
+clustering requires that we define a metric for the distance between atoms. We
+use the following metric:</p>
+<div class="math notranslate nohighlight">
+\[d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i^{\text{cov}} - r_j^{\text{cov}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> and <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> are the cartesian positions of
+atom <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>, respectively, and <span class="math notranslate nohighlight">\(r_i^{\text{cov}}\)</span> and
+<span class="math notranslate nohighlight">\(r_j^{\text{cov}}\)</span> their covalent radii <a class="footnote-reference" href="#id6" id="id3">[3]</a> . It is important to
+notice that in this metric the distances always follow the minimum image
+convention (MIC), i.e.  the distance is calculated between two closest periodic
+neighbours. By using the distance to the closest periodic neighbour we obtain
+the correct clusters regardless of what shape of cell is used in the original
+simulation.</p>
+<p>The clustering uses two parameters: the minimum cluster size
+<span class="math notranslate nohighlight">\(n_\mathrm{min}\)</span> and the neighbourhood radius <span class="math notranslate nohighlight">\(\epsilon\)</span>. We set
+<span class="math notranslate nohighlight">\(n_\mathrm{min}\)</span> to 1 to allow clusters consisting of even single atoms
+and <span class="math notranslate nohighlight">\(\epsilon\)</span> defaults to 3.5 Å. At present, a system, in which there is
+more than one cluster in the original non-repeated system (<span class="math notranslate nohighlight">\(N_1 \gt 1\)</span>),
+is classified as unknown. Such a case corresponds to systems with multiple
+components that are spatially separated, such as a molecule far above a
+surface, low density gases, widely spaced clusters in vacuum, etc.</p>
+<p>The following code illustrates how dimensionality detection can be performed
+with MatID.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matid.geometry</span> <span class="kn">import</span> <span class="n">get_dimensionality</span>
+
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">molecule</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">nanotube</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">mx2</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
+
+<span class="c1"># Here we create one example of each dimensionality class</span>
+<span class="n">zero_d</span> <span class="o">=</span> <span class="n">molecule</span><span class="p">(</span><span class="s2">&quot;H2O&quot;</span><span class="p">,</span> <span class="n">vacuum</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">one_d</span> <span class="o">=</span> <span class="n">nanotube</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">vacuum</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">two_d</span> <span class="o">=</span> <span class="n">mx2</span><span class="p">(</span><span class="n">vacuum</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">three_d</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s2">&quot;NaCl&quot;</span><span class="p">,</span> <span class="s2">&quot;rocksalt&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">5.64</span><span class="p">)</span>
+
+<span class="c1"># In order to make the dimensionality detection interesting, we add periodic</span>
+<span class="c1"># boundary conditions. This is more realistic as not that many electronic</span>
+<span class="c1"># structure codes support anything else than full periodic boundary conditions,</span>
+<span class="c1"># and thus the dimensionality information is typically not available.</span>
+<span class="n">zero_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">one_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">two_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">three_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Here we perform the dimensionality detection with clustering threshold eta</span>
+<span class="n">epsilon</span> <span class="o">=</span> <span class="mf">3.5</span>
+<span class="n">dim0</span> <span class="o">=</span> <span class="n">get_dimensionality</span><span class="p">(</span><span class="n">zero_d</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+<span class="n">dim1</span> <span class="o">=</span> <span class="n">get_dimensionality</span><span class="p">(</span><span class="n">one_d</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+<span class="n">dim2</span> <span class="o">=</span> <span class="n">get_dimensionality</span><span class="p">(</span><span class="n">two_d</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+<span class="n">dim3</span> <span class="o">=</span> <span class="n">get_dimensionality</span><span class="p">(</span><span class="n">three_d</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
+
+<span class="c1"># Printing out the results</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dim0</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dim1</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dim2</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">dim3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This example if also available in “examples/dimensionality.py”.</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Ashton, M., Paul, J., Sinnott, S. B. &amp; Hennig, R. G. Topology-scaling identification of layered solids and stable exfoliated 2d materials. Phys. Rev. Lett. 118, 106101 (2017)</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Ester, M., Kriegel, H.-P., Sander, J. &amp; Xu, X. A density-based algorithm for discovering clusters in large spatial databases with noise. KDD’96 Proceedings of the Second International Conference on Knowledge Discovery and Data Mining 226–231 (1996).</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Cordero, B. et al. Covalent radii revisited. Dalton Trans. 2832–2838 (2008)</td></tr>
+</tbody>
+</table>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../doc/modules.html" class="btn btn-neutral float-right" title="matid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="classification.html" class="btn btn-neutral" title="Classification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
