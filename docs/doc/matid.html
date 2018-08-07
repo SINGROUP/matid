@@ -312,7 +312,7 @@ identified.</p>
 <dl class="class">
 <dt id="matid.classifications.Classification">
 <em class="property">class </em><code class="descclassname">matid.classifications.</code><code class="descname">Classification</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Classification" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
@@ -353,7 +353,7 @@ identified.</p>
 <dl class="exception">
 <dt id="matid.exceptions.SystaxError">
 <em class="property">exception </em><code class="descclassname">matid.exceptions.</code><code class="descname">SystaxError</code><span class="sig-paren">(</span><em>message</em>, <em>value=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.exceptions.SystaxError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 </dd></dl>
 
 </div>
@@ -364,7 +364,7 @@ a atomic system.</p>
 <dl class="class">
 <dt id="matid.geometry.Intervals">
 <em class="property">class </em><code class="descclassname">matid.geometry.</code><code class="descname">Intervals</code><span class="sig-paren">(</span><em>intervals=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Handles list of intervals.</p>
 <p>This class allows sorting and adding up of intervals and taking into
 account if they overlap.</p>
@@ -645,8 +645,8 @@ system.</td>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dist_matrix</strong> (<em>np.ndarray</em>) – The 2D distance matrix from which the clusters
 are calculated.</li>
-<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The epsilon threshold value for the clustering</li>
-<li><strong>min_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The minimum allowed cluster size.</li>
+<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The epsilon threshold value for the clustering</li>
+<li><strong>min_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The minimum allowed cluster size.</li>
 </ul>
 </td>
 </tr>
@@ -654,7 +654,7 @@ are calculated.</li>
 the elements belonging to the cluster.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.6)">list</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)">list</a></p>
 </td>
 </tr>
 </tbody>
@@ -704,7 +704,7 @@ Sinnott, and Richard G. Hennig Phys. Rev. Lett. 118, 106101).</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the dimensionality is
 evaluated.</li>
-<li><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The epsilon value for the DBSCAN algorithm
+<li><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The epsilon value for the DBSCAN algorithm
 that is used to identify clusters within the unit cell.</li>
 <li><strong>dist_matrix_radii_pbc</strong> (<em>np.ndarray</em>) – A precalculated distance matrix
 that takes in to account the periodicity and has the covalent radii of
@@ -784,21 +784,32 @@ distance to the closest copy is returned.</li>
 
 <dl class="function">
 <dt id="matid.geometry.get_distance_matrix">
-<code class="descclassname">matid.geometry.</code><code class="descname">get_distance_matrix</code><span class="sig-paren">(</span><em>pos1</em>, <em>pos2</em>, <em>cell=None</em>, <em>pbc=None</em>, <em>mic=False</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_distance_matrix" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">matid.geometry.</code><code class="descname">get_distance_matrix</code><span class="sig-paren">(</span><em>pos1</em>, <em>pos2</em>, <em>cell=None</em>, <em>pbc=None</em>, <em>mic=False</em>, <em>use_self_distance=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_distance_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the distance matrix. If wrap_distances=True, calculates
 the matrix using periodic distances</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>pos1</strong> (<em>np.ndarray</em>) – Array of cartesian positions</li>
 <li><strong>pos2</strong> (<em>np.ndarray</em>) – Array of cartesian positions</li>
-<li><strong>cell</strong><strong>(</strong><strong>)</strong> – </li>
-<li><strong>pbc</strong><strong>(</strong><strong>)</strong> – </li>
-<li><strong>mic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – Whether to apply minimum image convention fo the distances,
+<li><strong>cell</strong><strong>(</strong><strong>)</strong> – The 3x3 cell of the system. Needed if minimum image convention
+enabled.</li>
+<li><strong>pbc</strong><strong>(</strong><strong>)</strong> – The periodic boundary conditions of the system. Needed if
+minimum image convention enabled.</li>
+<li><strong>mic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to apply minimum image convention fo the distances,
 i.e. the distance to the closest periodic image is returned.</li>
+<li><strong>use_self_distance</strong> (<em>boolean</em>) – Determines how the distance from atom to
+itself is determined. If True, zero is returned, if false, the
+distance to the closest copy is returned.</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A <span class="math notranslate nohighlight">\(N_{atoms}  imes N_{atoms}\)</span> matrix of distances.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
 </td>
 </tr>
 </tbody>
@@ -816,7 +827,7 @@ size.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>system</strong> (<em>ase.Atoms</em>) – The original system.</li>
-<li><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The target size for the extended system in
+<li><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The target size for the extended system in
 angstroms.</li>
 </ul>
 </td>
@@ -847,41 +858,6 @@ positions with some tolerance.</p>
 <li><strong>tolerances</strong> (<em>np.ndarray</em>) – Maximum allowed distance for each vector that
 is allowed for a match in position.</li>
 <li><strong>mic</strong> (<em>boolean</em>) – Whether to find the minimum image copy.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>indices of matched atoms
-list: list of substitutions
-list: list of vacancies
-np.ndarray: for each searched position, an integer array representing</p>
-<blockquote>
-<div><p>the number of the periodic copy where the match was found.</p>
-</div></blockquote>
-</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="matid.geometry.get_matches_old">
-<code class="descclassname">matid.geometry.</code><code class="descname">get_matches_old</code><span class="sig-paren">(</span><em>system</em>, <em>positions</em>, <em>numbers</em>, <em>tolerance</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_matches_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a system and a list of cartesian positions and atomic numbers,
-returns a list of indices for the atoms corresponding to the given
-positions with some tolerance.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>system</strong> (<em>ASE.Atoms</em>) – System where to search the positions</li>
-<li><strong>positions</strong> (<em>np.ndarray</em>) – Positions to match in the system.</li>
-<li><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – Maximum allowed distance that is required for a
-match in position.</li>
 </ul>
 </td>
 </tr>
@@ -975,7 +951,7 @@ geometric inertia tensor.</td>
 
 <dl class="function">
 <dt id="matid.geometry.get_nearest_atom">
-<code class="descclassname">matid.geometry.</code><code class="descname">get_nearest_atom</code><span class="sig-paren">(</span><em>system</em>, <em>position</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_nearest_atom" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">matid.geometry.</code><code class="descname">get_nearest_atom</code><span class="sig-paren">(</span><em>system</em>, <em>position</em>, <em>mic=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_nearest_atom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Finds the index of the atom nearest to the given position in the given
 system.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -985,34 +961,16 @@ system.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the atom is searched from.</li>
 <li><strong>position</strong> (<em>np.ndarray</em>) – The position to search.</li>
+<li><strong>mic</strong> (<em>boolean</em>) – Whether to use the minimum image convention on periodic
+systems.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index of the nearest atom.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Index of the nearest atom in the given system.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)">int</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)">int</a></p>
 </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="matid.geometry.get_nearest_neighbours">
-<code class="descclassname">matid.geometry.</code><code class="descname">get_nearest_neighbours</code><span class="sig-paren">(</span><em>system</em>, <em>dist_matrix_pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_nearest_neighbours" title="Permalink to this definition">¶</a></dt>
-<dd><p>For each atom in the given system, returns a list of indices for the
-nearest neighbours and a list of distances to the neighbour.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the nearest neighbours are
-calculated</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Index of the nearest atom.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)">int</a></td>
 </tr>
 </tbody>
 </table>
@@ -1048,7 +1006,7 @@ Also takes periodic boundaries into account.</p>
 <li><strong>system</strong> (<em>ASE.Atoms</em>) – System from which the positions are searched.</li>
 <li><strong>basis</strong> (<em>np.ndarray</em>) – New basis vectors.</li>
 <li><strong>origin</strong> (<em>np.ndarray</em>) – New origin of the basis in cartesian coordinates.</li>
-<li><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The tolerance for the end points of the cell.</li>
+<li><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The tolerance for the end points of the cell.</li>
 <li><strong>mask</strong> (<em>sequence of bool</em>) – Mask for selecting the basis’s to consider.</li>
 <li><strong>pbc</strong> (<em>sequence of bool</em>) – The periodicity of the system.</li>
 </ul>
@@ -1087,7 +1045,7 @@ radii for the atoms.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The ratio of occupied volume to the cell volume.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)">float</a></td>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></td>
 </tr>
 </tbody>
 </table>
@@ -1110,7 +1068,7 @@ tetrahedron that together represent the atomic structure.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the thickness is evaluated.</li>
-<li><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index of the unit cell basis in which direction the
+<li><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The index of the unit cell basis in which direction the
 thickness is evaluated.</li>
 </ul>
 </td>
@@ -1119,7 +1077,7 @@ thickness is evaluated.</li>
 topmost atom to the center of lowermost atom.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)">float</a></p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)">float</a></p>
 </td>
 </tr>
 </tbody>
@@ -1147,7 +1105,7 @@ the global numpy.random.seed()-function.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the displacement are performed.</li>
-<li><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The magnitude of the displacements.</li>
+<li><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The magnitude of the displacements.</li>
 <li><strong>rng</strong> (<em>np.random.RandomState</em>) – Random number generator.</li>
 </ul>
 </td>
@@ -1220,7 +1178,7 @@ inside the cell.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</li>
-<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – True if given translation is relative to cell
+<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True if given translation is relative to cell
 vectors.</li>
 </ul>
 </td>

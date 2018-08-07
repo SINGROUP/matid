@@ -8,3 +8,4 @@ Tutorials
 
    overview
    classification
+   dimensionality

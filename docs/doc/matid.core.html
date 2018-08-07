@@ -184,7 +184,7 @@
 <dl class="class">
 <dt id="matid.core.lattice.Lattice">
 <em class="property">class </em><code class="descclassname">matid.core.lattice.</code><code class="descname">Lattice</code><span class="sig-paren">(</span><em>matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A lattice object.  Essentially a matrix with conversion matrices. In
 general, it is assumed that length units are in Angstroms and angles are in
 degrees unless otherwise stated.</p>
@@ -304,7 +304,7 @@ The property is lazily generated for efficiency.</p>
 <dl class="class">
 <dt id="matid.core.linkedunits.LinkedUnit">
 <em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">LinkedUnit</code><span class="sig-paren">(</span><em>index</em>, <em>seed_index</em>, <em>seed_coordinate</em>, <em>cell</em>, <em>basis_indices</em>, <em>substitutions</em>, <em>vacancies</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a cell that is connected to others in 3D space to form a
 structure, e.g. a surface.</p>
 </dd></dl>
@@ -312,7 +312,7 @@ structure, e.g. a surface.</p>
 <dl class="class">
 <dt id="matid.core.linkedunits.LinkedUnitCollection">
 <em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">LinkedUnitCollection</code><span class="sig-paren">(</span><em>system</em>, <em>cell</em>, <em>is_2d</em>, <em>dist_matrix_radii_pbc</em>, <em>disp_tensor_finite</em>, <em>delaunay_threshold=1.5</em>, <em>chem_similarity_threshold=0.4</em>, <em>bond_threshold=0.75</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
 <p>Represents a collection of similar cells that are connected in 3D space
 to form a structure, e.g. a surface.</p>
 <p>Essentially this is a special flavor of a regular dictionary: the keys can
@@ -497,7 +497,7 @@ unit cell are not included.</p>
 <dl class="class">
 <dt id="matid.core.linkedunits.Substitution">
 <em class="property">class </em><code class="descclassname">matid.core.linkedunits.</code><code class="descname">Substitution</code><span class="sig-paren">(</span><em>index</em>, <em>position</em>, <em>original_element</em>, <em>substitutional_element</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.Substitution" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a substitutional point defect.</p>
 </dd></dl>
 
@@ -646,7 +646,7 @@ inside the cell.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</li>
-<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) – True if given translation is relative to cell
+<li><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – True if given translation is relative to cell
 vectors.</li>
 </ul>
 </td>

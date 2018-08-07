@@ -311,7 +311,7 @@ class PeriodicFinder():
         # Find the directions that repeat the neighbours above some preset
         # threshold. This is used to eliminate directions that are caused by
         # pure chance. The maximum score that a direction can get is
-        # 2*n_neighbours. We specify that the score must be above 37.5% percent
+        # 2*n_neighbours. We specify that the score must be above 75% percent
         # of this maximum score to be considered a valid direction.
         valid_span_indices = np.where(metric >= 0.75*n_neighbours)[0]
         if len(valid_span_indices) == 0:
@@ -1358,9 +1358,6 @@ class PeriodicFinder():
             if match is not None:
                 collection._index_cell_map[match] = cell_index
 
-        # Save the search pattern for debugging purposes
-        # collection._search_pattern += Atoms(positions=test_pos, symbols=cell_num)
-
         # Add all the matches into the lists containing already searched
         # locations.
         used_indices.update(matches)
@@ -1395,27 +1392,6 @@ class PeriodicFinder():
                 new_vacancy_pos.append(vacancy.position)
                 valid_vacancies.append(vacancy)
         searched_vacancy_positions.extend(new_vacancy_pos)
-
-        # Save a snapshot of the process
-        # from ase.io import write
-        # rec = collection.recreate_valid()
-        # view(rec)
-        # if len(collection) == 2:
-            # raise Exception
-        # rec.set_cell(system.get_cell())
-        # num = len(collection)
-        # str_num = str(num)
-        # str_len = len(str_num)
-        # num = (3-str_len)*"0" + str_num
-        # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
-        # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
-        # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
-        # try:
-            # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
-        # except Exception:
-            # pass
-        # else:
-            # raise Exception("")
 
         # Find the neighbouring cells for extending the search
         dislocations = np.dot(multipliers, old_basis)
@@ -1540,10 +1516,6 @@ class PeriodicFinder():
         dislocations = dislocations[valid_multipliers]
         test_cell_indices = test_cell_indices[valid_multipliers]
 
-        # a_vectors = []
-        # b_vectors = []
-        # c_vectors = []
-
         if seed_index is not None:
 
             # Find out the atoms that match the seed_guesses in the original
@@ -1606,14 +1578,6 @@ class PeriodicFinder():
                     search_graph.add_node(tuple(target_cell), index=match)
                     search_graph.add_edge(tuple(cell_index), tuple(target_cell), multiplier=multiplier)
 
-                    # if (seed_index == 6 and match == 17) or (seed_index == 17 and match == 6):
-                        # print("==============")
-                        # print(target_cell)
-                        # print(disloc)
-                        # print(seed_pos)
-                        # print(multiplier)
-                        # print(cell_index)
-
                     if match in used_indices:
                         add = False
 
@@ -1641,36 +1605,5 @@ class PeriodicFinder():
         #TODO: Calculate the average cell for this seed atom. The average cell
         # is then used in the next phase of the search for the neighbouring
         # cells.
-
-        # Store vectors for calculating averages
-        # if multiplier == (1, 0, 0):
-            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
-            # a_vectors.append(new_vec)
-        # elif multiplier == (-1, 0, 0):
-            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
-            # a_vectors.append(new_vec)
-        # elif multiplier == (0, 1, 0):
-            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
-            # b_vectors.append(new_vec)
-        # elif multiplier == (0, -1, 0):
-            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
-            # b_vectors.append(new_vec)
-        # elif multiplier == (0, 0, 1):
-            # new_vec = i_seed_pos + np.dot(factor, orig_cell) - seed_pos
-            # c_vectors.append(new_vec)
-        # elif multiplier == (0, 0, -1):
-            # new_vec = seed_pos - (i_seed_pos + np.dot(factor, orig_cell))
-            # c_vectors.append(new_vec)
-
-        # if len(a_vectors) == 0:
-            # a_vectors.append(old_cell[0, :])
-        # if len(b_vectors) == 0:
-            # b_vectors.append(old_cell[1, :])
-        # if len(c_vectors) == 0:
-            # c_vectors.append(old_cell[2, :])
-        # average_a = np.mean(np.array(a_vectors), axis=0)
-        # average_b = np.mean(np.array(b_vectors), axis=0)
-        # average_c = np.mean(np.array(c_vectors), axis=0)
-        # average_cell = np.vstack((average_a, average_b, average_c))
 
         return new_cell, new_seed_indices, new_seed_pos, new_cell_indices

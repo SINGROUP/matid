@@ -19,9 +19,8 @@ With MatID you can:
   - :doc:`Automatically analyze structural features in a dataset <tutorials/overview>`
   - :doc:`Automatically classify atomic geometries into different structural classes <tutorials/classification>`
   - Automatically identify outlier atoms such as adsorbates in surfaces geometries (tutorial in development)
-  - Determine the dimensionality of an atomistic object (tutorial in development)
+  - :doc:`Determine the dimensionality of an atomistic object <tutorials/dimensionality>`
   - Analyze symmetry properties of 3D structures (tutorial in development)
-  - Find surface atoms of structures (tutorial in development)
 
 Check the tutorials to see more information.
 

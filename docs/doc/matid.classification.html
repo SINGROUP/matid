@@ -184,7 +184,7 @@
 <dl class="class">
 <dt id="matid.classification.classifier.Classifier">
 <em class="property">class </em><code class="descclassname">matid.classification.classifier.</code><code class="descname">Classifier</code><span class="sig-paren">(</span><em>seed_position='cm', max_cell_size=[12], pos_tol=None, pos_tol_mode='relative', pos_tol_scaling=0.0, angle_tol=20, cluster_threshold=3.5, crystallinity_threshold=0.25, delaunay_threshold=1.5, bond_threshold=0.75, delaunay_threshold_mode='relative', chem_similarity_threshold=0.4, cell_size_tol=0.25, max_n_atoms=1000, max_2d_cell_height=5, max_2d_single_cell_size=5, symmetry_tol=0.4, min_coverage=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A class that is used to analyze the contents of an atomistic system and
 separate the consituent atoms into different components along with other
 meaningful information.</p>
@@ -204,7 +204,7 @@ class that represents a classification.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="matid.html#matid.classifications.Classification" title="matid.classifications.Classification">Classification</a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.6)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If the system has more atoms than self.max_n_atoms</td>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If the system has more atoms than self.max_n_atoms</td>
 </tr>
 </tbody>
 </table>
@@ -228,7 +228,7 @@ Returns:</p>
 <dl class="class">
 <dt id="matid.classification.periodicfinder.PeriodicFinder">
 <em class="property">class </em><code class="descclassname">matid.classification.periodicfinder.</code><code class="descname">PeriodicFinder</code><span class="sig-paren">(</span><em>angle_tol=20</em>, <em>pos_tol_scaling=0.0</em>, <em>cell_size_tol=0.25</em>, <em>max_2d_cell_height=5</em>, <em>max_2d_single_cell_size=5</em>, <em>chem_similarity_threshold=0.4</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.6)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Used to find translationally periodic structures within atomic systems.</p>
 <dl class="method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_region">
@@ -242,10 +242,10 @@ system.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which to find the periodic
 regions.</li>
-<li><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) – The index of the atom from which the search is
+<li><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The index of the atom from which the search is
 initiated.</li>
-<li><strong>max_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The maximum size of cell basis vectors.</li>
-<li><strong>pos_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) – The tolerance that is allowed in the search. Given
+<li><strong>max_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The maximum size of cell basis vectors.</li>
+<li><strong>pos_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The tolerance that is allowed in the search. Given
 as absolute value in angstroms.</li>
 </ul>
 </td>
