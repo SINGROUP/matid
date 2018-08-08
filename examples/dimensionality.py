@@ -20,7 +20,7 @@ one_d.set_pbc(True)
 two_d.set_pbc(True)
 three_d.set_pbc(True)
 
-# Here we perform the dimensionality detection with clustering threshold eta
+# Here we perform the dimensionality detection with clustering threshold epsilon
 epsilon = 3.5
 dim0 = get_dimensionality(zero_d, epsilon)
 dim1 = get_dimensionality(one_d, epsilon)
