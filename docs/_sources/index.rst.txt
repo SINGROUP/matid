@@ -38,3 +38,24 @@ full source code with examples and regression tests can be explored at `github
     tutorials/tutorials
     Documentation <doc/modules>
     about
+
+Cite
+====
+If you found MatID useful in your research, please cite:
+`Himanen, L. and Rinke, P. and Foster, A. S., Materials structure genealogy and high-throughput topological classification of surfaces and 2D materials, npj Comput. Mater. 4, 52, (2018) <http://www.nature.com/articles/s41524-018-0107-6>`_
+
+BibTex entry:
+
+.. code-block:: none
+
+   @article{matid,
+      author = {Himanen, Lauri and Rinke, Patrick and Foster, Adam Stuart},
+      title = {{Materials structure genealogy and high-throughput topological classification of surfaces and 2D materials}},
+      journal = {npj Computational Materials},
+      volume = {4},
+      number = {52},
+      year = {2018}
+      publisher = {Springer US},
+      doi = {10.1038/s41524-018-0107-6},
+      url = {http://www.nature.com/articles/s41524-018-0107-6},
+   }
