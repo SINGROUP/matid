@@ -4,8 +4,7 @@ import spglib
 
 import numpy as np
 
-from fractions import Fraction
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 import ast
 import operator as op
 from operator import attrgetter
@@ -16,17 +15,15 @@ from matid.exceptions import CellNormalizationError, SystaxError
 from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
 from matid.data import constants
 from matid.core.system import System
-from matid.symmetry import WyckoffGroup
+from matid.symmetry import WyckoffSet
 import matid.geometry
 
 from ase import Atoms
-from ase.visualize import view
 
 
 class SymmetryAnalyzer(object):
     """A base class for getting symmetry related properties of unit cells.
     """
-
     def __init__(self, system=None, symmetry_tol=None, min_2d_thickness=1):
         """
         Args:
@@ -463,28 +460,34 @@ class SymmetryAnalyzer(object):
             self.get_conventional_system()
         return self._conventional_wyckoff_letters
 
-    def get_wyckoff_groups_conventional(self):
-        """Get a list of Wyckoff groups for this system. Wyckoff groups combine
-        information about the atoms and their postiions at specific Wyckoff
+    def get_wyckoff_sets_conventional(self, return_parameters=True):
+        """Get a list of Wyckoff sets for this system. Wyckoff sets combine
+        information about the atoms and their positions at specific Wyckoff
         positions.
 
+        Args:
+            return_parameters (bool): Whether to return the value of possible
+                free Wyckoff parameters. Set to false if the are needed, as
+                their determination can take time.
+
         Returns:
-            list of WyckoffGroup: A list of WyckoffGroup objects for this
-            system.
+            list of WyckoffSets: A list of :class:`.WyckoffSet` objects for the
+            conventional system.
         """
         space_group = self.get_space_group_number()
         conv_sys = self.get_conventional_system()
         wyckoff_letters = self.get_wyckoff_letters_conventional()
         equivalent_atoms = self.get_equivalent_atoms_conventional()
-        groups = self._get_wyckoff_groups(
+        sets = self._get_wyckoff_sets(
             conv_sys,
             space_group,
             wyckoff_letters,
             equivalent_atoms,
             precision=0.5*self.symmetry_tol,
+            return_parameters=return_parameters,
         )
 
-        return groups
+        return sets
 
     def get_equivalent_atoms_conventional(self):
         """List of equivalent atoms in the idealized system.
@@ -1182,69 +1185,20 @@ class SymmetryAnalyzer(object):
 
             return new_system, new_wyckoff_letters
 
-    def _make_wyckoff_groups(self, system, space_group):
-        """Used to form a dictionary of WyckoffGroup objects when given a space
-        group and a system with wyckoff_letters and equivalent atoms.
-
-        Args:
-            system(System): The system for which the groups are formed. This
-                system has to have the Wyckoff letters and the equivalent atoms
-                set.
-        Returns:
-            OrderedDict: An ordered dictionary that maps a tuple (wyckoff
-                letter, atomic number) into a list of WyckoffGroups. The order
-                is such that they groups are first ordered by Wyckoff letter
-                and then by the atomic number.
-        """
-        equivalent_atoms = system.get_equivalent_atoms()
-        wyckoff_letters = system.get_wyckoff_letters()
-        atomic_numbers = system.get_atomic_numbers()
-        positions = system.get_scaled_positions()
-
-        # Get a list of of unique elements in the list of equivalent atoms and also
-        # store a mapping that can be used to construct the original array from the
-        # unique elements
-        uniques, indices = np.unique(equivalent_atoms, return_inverse=True)
-
-        # Create a dictionary that maps each group to a set of atoms
-        groups = defaultdict(list)
-        unique_to_indices = defaultdict(list)
-        for i_index, index in enumerate(indices):
-            uniq = uniques[index]
-            unique_to_indices[uniq].append(i_index)
-
-        # Create the WyckoffGroups
-        for unique in uniques:
-
-            i_positions = []
-            for index in unique_to_indices[unique]:
-                i_pos = positions[index]
-                i_positions.append(i_pos)
-            i_positions = np.array(i_positions)
-
-            w = wyckoff_letters[index]
-            z = atomic_numbers[index]
-
-            group = WyckoffGroup(w, z, i_positions, space_group)
-            groups[(w, z)].append(group)
-
-        # First sort by Wyckoff letter, then by atomic number
-        groups = OrderedDict(sorted(groups.items(), key=lambda t: (t[0][0], t[0][1])))
-
-        return groups
-
-    def _get_wyckoff_groups(
+    def _get_wyckoff_sets(
             self,
             system,
             space_group,
             wyckoff_letters,
             equivalent_atoms,
-            precision):
-        """Used to get detailed information about about the groups of equivalent
+            precision,
+            return_parameters
+            ):
+        """Used to get detailed information about about the sets of equivalent
         atoms.
 
         Because spglib does not currently print out detailed information about
-        free parameters for Wyckoff groups, we use information from the Bilbao
+        free parameters for Wyckoff sets, we use information from the Bilbao
         Crystallographic Database to get the values of the free variables for
         each group of symmetry related atoms.
 
@@ -1258,12 +1212,15 @@ class SymmetryAnalyzer(object):
                 that are related by symmetry.
             precision (float): The precision for matching atoms to Wyckoff
                 positions.
+            return_parameters (bool): Whether to return the value of possible
+                free Wyckoff parameters. Set to false if the are needed, as
+                their determination can take time.
 
         Returns:
-            List of dictionaries that correspond to a different group of equivalent
-            atoms and contains information about that group.
+            list of WyckoffSets: A list of :class:`.WyckoffSet` objects for this
+            system.
         """
-        # A dictonary of the supported operators for parsing a mathematical
+        # A dictionary of the supported operators for parsing a mathematical
         # expression.
         operators = {
             ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul,
@@ -1292,148 +1249,156 @@ class SymmetryAnalyzer(object):
         positions = system.get_scaled_positions()
         wyckoff_infos = WYCKOFF_POSITIONS[space_group]
 
-        # Form the Wyckoff groups
-        groups = {}
-        unique_groups, unique_indices = np.unique(
+        # Include the representative coordinate in the set
+
+        # Form the Wyckoff sets
+        sets = {}
+        unique_sets, unique_indices = np.unique(
             equivalent_atoms,
             return_index=True
         )
-        for i_group, index in enumerate(unique_indices):
-            group_index = unique_groups[i_group]
-            group_data = WyckoffGroup(
+        for i_set, index in enumerate(unique_indices):
+            set_index = unique_sets[i_set]
+
+            set_data = WyckoffSet(
                 wyckoff_letter=str(wyckoff_letters[index]),
                 element=str(elements[index]),
                 atomic_number=int(numbers[index]),
+                representative=wyckoff_infos[wyckoff_letters[index]]["expressions"][0],
             )
-            group_data.indices = []
-            groups[group_index] = group_data
+            set_data.indices = []
+            sets[set_index] = set_data
 
-        # Add the indices of the atoms that belong to these groups
-        for i_atom, group_number in enumerate(equivalent_atoms):
-            groups[group_number].indices.append(i_atom)
+        # Add the indices of the atoms that belong to these sets, and add the
+        # multiplicity of the set
+        for i_atom, set_number in enumerate(equivalent_atoms):
+            sets[set_number].indices.append(i_atom)
+        for wset in sets.values():
+            wset.multiplicity = len(wset.indices)
 
-        # For each group, solve the free variables if any present
-        for i_group, group in groups.items():
-            indices = group.indices[:]
-            wyckoff_letter = group.wyckoff_letter
-            wyckoff_info = wyckoff_infos[wyckoff_letter]
-            coordinate_expressions = wyckoff_info["expressions"]
-            variables_present = wyckoff_info["variables"]
+        # For each set, solve the free variables if any present
+        if return_parameters:
+            for i_set, wset in sets.items():
+                indices = wset.indices[:]
+                wyckoff_letter = wset.wyckoff_letter
+                wyckoff_info = wyckoff_infos[wyckoff_letter]
+                coordinate_expressions = wyckoff_info["expressions"]
+                variables_present = wyckoff_info["variables"]
 
-            # Resolve the needed variables
-            if variables_present:
-                variables_resolved = False
-                variables_values = []
-                position_for_variable = []
+                # Resolve the needed variables
+                if variables_present:
+                    variables_resolved = False
+                    variables_values = []
+                    position_for_variable = []
 
-                # For each atom, evaluate the values of the free parameters.
-                # Then check if all other atoms can be consistently identified
-                # according to their symmetry locations.
-                for atom_index in indices:
-                    pos = positions[atom_index]
-                    evaluated_pos = np.zeros(3)
-                    values = {}
-                    for i_coord, expr in enumerate(coordinate_expressions[0]):
-                        for variable in variables_present:
-                            if variable == "x":
-                                value = pos[0]
-                            elif variable == "y":
-                                value = pos[1]
-                            elif variable == "z":
-                                value = pos[2]
-                            values[variable] = value
-                            expr = expr.replace(variable, str(value))
-                        evaluated_pos[i_coord] = eval_expr(expr)
+                    # For each atom, evaluate the values of the free parameters.
+                    # Then check if all other atoms can be consistently identified
+                    # according to their symmetry locations.
+                    for atom_index in indices:
+                        pos = positions[atom_index]
+                        evaluated_pos = np.zeros(3)
+                        values = {}
+                        for i_coord, expr in enumerate(coordinate_expressions[0]):
+                            for variable in variables_present:
+                                if variable == "x":
+                                    value = pos[0]
+                                elif variable == "y":
+                                    value = pos[1]
+                                elif variable == "z":
+                                    value = pos[2]
+                                values[variable] = value
+                                expr = expr.replace(variable, str(value))
+                            evaluated_pos[i_coord] = eval_expr(expr)
 
-                    # See if we have found the position that uniquely determines
-                    # the free variables.
-                    evaluated_pos = matid.geometry.get_wrapped_positions(evaluated_pos)
+                        # See if we have found the position that uniquely determines
+                        # the free variables.
+                        evaluated_pos = matid.geometry.get_wrapped_positions(evaluated_pos)
 
-                    if self._search_periodic_positions(
-                            evaluated_pos,
-                            pos,
-                            cell,
-                            precision) is not None:
-                        # Test the found variables against all the other
-                        # coordinates.
-                        variables_ok = True
-                        for expression in coordinate_expressions[1:]:
-                            eval_pos = np.zeros(3)
-                            for i_coord, expr in enumerate(expression):
-                                for variable in variables_present:
-                                    expr = expr.replace(variable, str(values[variable]))
-                                eval_pos[i_coord] = eval_expr(expr)
-                            eval_pos = matid.geometry.get_wrapped_positions(eval_pos)
+                        if self._search_periodic_positions(
+                                evaluated_pos,
+                                pos,
+                                cell,
+                                precision) is not None:
+                            # Test the found variables against all the other
+                            # coordinates.
+                            variables_ok = True
+                            for expression in coordinate_expressions[1:]:
+                                eval_pos = np.zeros(3)
+                                for i_coord, expr in enumerate(expression):
+                                    for variable in variables_present:
+                                        expr = expr.replace(variable, str(values[variable]))
+                                    eval_pos[i_coord] = eval_expr(expr)
+                                eval_pos = matid.geometry.get_wrapped_positions(eval_pos)
 
-                            wyckoff_coord_matched = False
-                            for atom_index in indices:
-                                pos = positions[atom_index]
-                                if self._search_periodic_positions(
-                                        evaluated_pos,
-                                        pos,
-                                        cell,
-                                        precision) is not None:
-                                    wyckoff_coord_matched = True
-                                    break
-                            if not wyckoff_coord_matched:
-                                variables_ok = False
-                        if variables_ok:
-                            variables_values.append(values)
-                            position_for_variable.append(evaluated_pos)
+                                wyckoff_coord_matched = False
+                                for atom_index in indices:
+                                    pos = positions[atom_index]
+                                    if self._search_periodic_positions(
+                                            evaluated_pos,
+                                            pos,
+                                            cell,
+                                            precision) is not None:
+                                        wyckoff_coord_matched = True
+                                        break
+                                if not wyckoff_coord_matched:
+                                    variables_ok = False
+                            if variables_ok:
+                                variables_values.append(values)
+                                position_for_variable.append(evaluated_pos)
 
-                n_variable_sets = len(variables_values)
-                variables_resolved = False
-                wyckoff_exception = ValueError(
-                    "Could not resolve the free Wyckoff parameters for a group "
-                    "of equivalent atoms. Could not determine the variables for"
-                    " element '{}' and the following indices '{}'"
-                    .format(group.element, group.indices)
-                )
-                if n_variable_sets == 0:
-                    raise wyckoff_exception
-                if n_variable_sets == 1:
-                    final_variables = variables_values[0]
-                    for key, value in final_variables.items():
-                        setattr(group, key, value)
-                    variables_resolved = True
-                elif n_variable_sets > 1:
+                    n_variable_sets = len(variables_values)
+                    variables_resolved = False
+                    wyckoff_exception = ValueError(
+                        "Could not resolve the free Wyckoff parameters for a set "
+                        "of equivalent atoms. Could not determine the variables for"
+                        " element '{}' and the following indices '{}'"
+                        .format(wset.element, wset.indices)
+                    )
+                    if n_variable_sets == 0:
+                        raise wyckoff_exception
+                    if n_variable_sets == 1:
+                        final_variables = variables_values[0]
+                        for key, value in final_variables.items():
+                            setattr(wset, key, value)
+                        variables_resolved = True
+                    elif n_variable_sets > 1:
 
-                    # If multiple options are present, we choose the one that
-                    # has the smallest values when ordered by x, then y, and
-                    # finally z.
-                    n_variables = len(variables_values[0])
-                    test_variables = np.zeros((n_variable_sets, n_variables))
-                    for i_variable_set, variable_set in enumerate(variables_values):
-                        inversion_variables = []
-                        x_val = variable_set.get("x")
-                        y_val = variable_set.get("y")
-                        z_val = variable_set.get("z")
-                        if x_val is not None:
-                            inversion_variables.append(variable_set["x"])
-                        if y_val is not None:
-                            inversion_variables.append(variable_set["y"])
-                        if z_val is not None:
-                            inversion_variables.append(variable_set["z"])
-                        test_variables[i_variable_set, :] = np.array(inversion_variables)
-                    variable_columns = []
-                    for i_var in range(n_variables):
-                        variable_columns.append(test_variables[:, i_var])
-                    sorted_indices = np.lexsort(variable_columns)
-                    min_index = sorted_indices[0]
+                        # If multiple options are present, we choose the one that
+                        # has the smallest values when ordered by x, then y, and
+                        # finally z.
+                        n_variables = len(variables_values[0])
+                        test_variables = np.zeros((n_variable_sets, n_variables))
+                        for i_variable_set, variable_set in enumerate(variables_values):
+                            inversion_variables = []
+                            x_val = variable_set.get("x")
+                            y_val = variable_set.get("y")
+                            z_val = variable_set.get("z")
+                            if x_val is not None:
+                                inversion_variables.append(variable_set["x"])
+                            if y_val is not None:
+                                inversion_variables.append(variable_set["y"])
+                            if z_val is not None:
+                                inversion_variables.append(variable_set["z"])
+                            test_variables[i_variable_set, :] = np.array(inversion_variables)
+                        variable_columns = []
+                        for i_var in range(n_variables):
+                            variable_columns.append(test_variables[:, i_var])
+                        sorted_indices = np.lexsort(variable_columns)
+                        min_index = sorted_indices[0]
 
-                    final_variables = variables_values[min_index]
-                    for key, value in final_variables.items():
-                        setattr(group, key, value)
-                    variables_resolved = True
+                        final_variables = variables_values[min_index]
+                        for key, value in final_variables.items():
+                            setattr(wset, key, value)
+                        variables_resolved = True
 
-                if not variables_resolved:
-                    raise wyckoff_exception
+                    if not variables_resolved:
+                        raise wyckoff_exception
 
-        # Sort the list so that groups with Wyckoff letter earlier in the
-        # alphabet are first, and groups with the same Wyckoff letter are
+        # Sort the list so that sets with Wyckoff letter earlier in the
+        # alphabet are first, and sets with the same Wyckoff letter are
         # sorted by atomic number. Groups with the same Wyckoff letter and
         # atomic number are still randomly sorted.
-        unsorted_list = list(groups.values())
+        unsorted_list = list(sets.values())
         sorted_list = sorted(unsorted_list, key=attrgetter('wyckoff_letter', 'atomic_number'))
 
         return sorted_list

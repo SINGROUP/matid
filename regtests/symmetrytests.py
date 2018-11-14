@@ -88,7 +88,7 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a", "a"]))
         self.assertTrue(np.array_equal(data.prim_equiv, [0, 0]))
         self.assertFalse(data.has_free_wyckoff_parameters)
-        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
+        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
 
     def test_fcc(self):
         """Test that a primitive NaCl fcc lattice is characterized correctly.
@@ -132,7 +132,7 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_equiv, [0, 1]))
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a", "b"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
-        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
+        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
 
     def test_bcc(self):
         """Test that a body centered cubic lattice for copper is characterized
@@ -165,7 +165,7 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_equiv, [0]))
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
-        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
+        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
 
     def test_unsymmetric(self):
         """Test that a random system is handled correctly.
@@ -190,21 +190,21 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertEqual(data.crystal_system, "triclinic")
         self.assertEqual(data.bravais_lattice, "aP")
         self.assertTrue(data.has_free_wyckoff_parameters)
-        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_groups_conv)
+        self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
 
-    def assertWyckoffGroupsOk(self, system, wyckoff_groups):
-        """Check that the Wyckoff groups contain all atoms and are ordered
+    def assertWyckoffGroupsOk(self, system, wyckoff_sets):
+        """Check that the Wyckoff sets contain all atoms and are ordered
         """
         prev_w_index = None
         prev_z = None
         n_atoms = len(system)
         n_atoms_wyckoff = 0
-        for group in wyckoff_groups:
+        for wset in wyckoff_sets:
 
             # Check that the current Wyckoff letter index is greater than
             # previous, if not the atomic number must be greater
-            wyckoff_letter = group.wyckoff_letter
-            atomic_number = group.atomic_number
+            wyckoff_letter = wset.wyckoff_letter
+            atomic_number = wset.atomic_number
             i_w_index = WYCKOFF_LETTER_POSITIONS[wyckoff_letter]
             if prev_w_index is not None:
                 self.assertGreaterEqual(i_w_index, prev_w_index)
@@ -214,9 +214,9 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
             prev_w_index = i_w_index
             prev_z = atomic_number
 
-            # Gather the number of atoms in eaach group to see that it matches
+            # Gather the number of atoms in eaach set to see that it matches
             # the amount of atoms in the system
-            n = len(group.indices)
+            n = len(wset.indices)
             n_atoms_wyckoff += n
 
         self.assertEqual(n_atoms, n_atoms_wyckoff)
@@ -241,7 +241,7 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         data.transformation_matrix = analyzer._get_spglib_transformation_matrix()
         data.wyckoff_original = analyzer.get_wyckoff_letters_original()
         data.wyckoff_conv = analyzer.get_wyckoff_letters_conventional()
-        data.wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
+        data.wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
         data.prim_wyckoff = analyzer.get_wyckoff_letters_primitive()
         data.prim_equiv = analyzer.get_equivalent_atoms_primitive()
         data.equivalent_original = analyzer.get_equivalent_atoms_original()
@@ -339,12 +339,12 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
 
         # Check that the correct Wyckoff positions are present in the
         # normalized system
-        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
-        for group in wyckoff_groups_conv:
-            if group.element == "N":
-                self.assertEqual(group.wyckoff_letter, "c")
-            if group.element == "B":
-                self.assertEqual(group.wyckoff_letter, "a")
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "N":
+                self.assertEqual(wset.wyckoff_letter, "c")
+            if wset.element == "B":
+                self.assertEqual(wset.wyckoff_letter, "a")
 
         conv_system = analyzer.get_conventional_system()
         pbc = conv_system.get_pbc()
@@ -377,12 +377,12 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
 
         # Check that the correct Wyckoff positions are present in the
         # normalized system
-        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
-        for group in wyckoff_groups_conv:
-            if group.element == "N":
-                self.assertEqual(group.wyckoff_letter, "c")
-            if group.element == "B":
-                self.assertEqual(group.wyckoff_letter, "a")
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "N":
+                self.assertEqual(wset.wyckoff_letter, "c")
+            if wset.element == "B":
+                self.assertEqual(wset.wyckoff_letter, "a")
 
         conv_system = analyzer.get_conventional_system()
         pbc = conv_system.get_pbc()
@@ -404,18 +404,18 @@ class WyckoffTests(unittest.TestCase):
 
         # Find the Wyckoff groups
         analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_groups = analyzer.get_wyckoff_groups_conventional()
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
         # Check that the information matches
-        self.assertEqual(len(wyckoff_groups), 1)
-        group = wyckoff_groups[0]
-        self.assertEqual(group.atomic_number, 13)
-        self.assertEqual(group.element, "Al")
-        self.assertEqual(group.wyckoff_letter, "a")
-        self.assertEqual(group.indices, [0, 1, 2, 3])
-        self.assertEqual(group.x, None)
-        self.assertEqual(group.y, None)
-        self.assertEqual(group.z, None)
+        self.assertEqual(len(wyckoff_sets), 1)
+        wset = wyckoff_sets[0]
+        self.assertEqual(wset.atomic_number, 13)
+        self.assertEqual(wset.element, "Al")
+        self.assertEqual(wset.wyckoff_letter, "a")
+        self.assertEqual(wset.indices, [0, 1, 2, 3])
+        self.assertEqual(wset.x, None)
+        self.assertEqual(wset.y, None)
+        self.assertEqual(wset.z, None)
 
     def test_one_free(self):
         """Test finding the value of the Wyckoff free parameter when one
@@ -431,17 +431,17 @@ class WyckoffTests(unittest.TestCase):
 
         # Find the Wyckoff groups
         analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_groups = analyzer.get_wyckoff_groups_conventional()
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
         # Check that the information matches
-        self.assertEqual(len(wyckoff_groups), 1)
-        group = wyckoff_groups[0]
-        self.assertEqual(group.atomic_number, 13)
-        self.assertEqual(group.element, "Al")
-        self.assertEqual(group.wyckoff_letter, "e")
-        self.assertEqual(group.indices, list(range(len(fcc))))
+        self.assertEqual(len(wyckoff_sets), 1)
+        wset = wyckoff_sets[0]
+        self.assertEqual(wset.atomic_number, 13)
+        self.assertEqual(wset.element, "Al")
+        self.assertEqual(wset.wyckoff_letter, "e")
+        self.assertEqual(wset.indices, list(range(len(fcc))))
         for var, value in free_variables.items():
-            calculated_value = getattr(group, var)
+            calculated_value = getattr(wset, var)
             self.assertTrue(calculated_value - value <= 1e-2)
 
     def test_two_free(self):
@@ -459,17 +459,17 @@ class WyckoffTests(unittest.TestCase):
 
         # Find the Wyckoff groups
         analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_groups = analyzer.get_wyckoff_groups_conventional()
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
         # Check that the information matches
-        self.assertEqual(len(wyckoff_groups), 1)
-        group = wyckoff_groups[0]
-        self.assertEqual(group.atomic_number, 13)
-        self.assertEqual(group.element, "Al")
-        self.assertEqual(group.wyckoff_letter, "j")
-        self.assertEqual(group.indices, list(range(len(fcc))))
+        self.assertEqual(len(wyckoff_sets), 1)
+        wset = wyckoff_sets[0]
+        self.assertEqual(wset.atomic_number, 13)
+        self.assertEqual(wset.element, "Al")
+        self.assertEqual(wset.wyckoff_letter, "j")
+        self.assertEqual(wset.indices, list(range(len(fcc))))
         for var, value in free_variables.items():
-            calculated_value = getattr(group, var)
+            calculated_value = getattr(wset, var)
             self.assertTrue(calculated_value - value <= 1e-2)
 
     def test_three_free(self):
@@ -488,17 +488,17 @@ class WyckoffTests(unittest.TestCase):
 
         # Find the Wyckoff groups
         analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_groups = analyzer.get_wyckoff_groups_conventional()
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
         # Check that the information matches
-        self.assertEqual(len(wyckoff_groups), 1)
-        group = wyckoff_groups[0]
-        self.assertEqual(group.atomic_number, 13)
-        self.assertEqual(group.element, "Al")
-        self.assertEqual(group.wyckoff_letter, "l")
-        self.assertEqual(group.indices, list(range(len(fcc))))
+        self.assertEqual(len(wyckoff_sets), 1)
+        wset = wyckoff_sets[0]
+        self.assertEqual(wset.atomic_number, 13)
+        self.assertEqual(wset.element, "Al")
+        self.assertEqual(wset.wyckoff_letter, "l")
+        self.assertEqual(wset.indices, list(range(len(fcc))))
         for var, value in free_variables.items():
-            calculated_value = getattr(group, var)
+            calculated_value = getattr(wset, var)
             self.assertTrue(calculated_value - value <= 1e-2)
 
 
@@ -582,12 +582,12 @@ class GroundStateTests(unittest.TestCase):
 
         # Check that the correct Wyckoff positions are occupied, and that an
         # axis swap transformation has not been applied.
-        wyckoff_groups_conv = analyzer.get_wyckoff_groups_conventional()
-        for group in wyckoff_groups_conv:
-            if group.element == "H":
-                self.assertEqual(group.wyckoff_letter, "a")
-            if group.element == "C":
-                self.assertEqual(group.wyckoff_letter, "c")
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "H":
+                self.assertEqual(wset.wyckoff_letter, "a")
+            if wset.element == "C":
+                self.assertEqual(wset.wyckoff_letter, "c")
 
 
 if __name__ == '__main__':

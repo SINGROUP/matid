@@ -332,12 +332,7 @@ class GeometryTests(unittest.TestCase):
         self.assertTrue(np.allclose(cart_pos, expected_pos))
 
 if __name__ == '__main__':
-    # suites = []
-    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
-    # alltests = unittest.TestSuite(suites)
-
-    suite = unittest.TestSuite()
-    # suite.addTest(GeometryTests("test_get_nearest_atom"))
-    suite.addTest(GeometryTests("test_get_nearest_neighbours"))
-
-    result = unittest.TextTestRunner(verbosity=0).run(suite)
+    suites = []
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(GeometryTests))
+    alltests = unittest.TestSuite(suites)
+    result = unittest.TextTestRunner(verbosity=0).run(alltests)

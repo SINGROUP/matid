@@ -1,4 +1,4 @@
-class WyckoffGroup():
+class WyckoffSet():
     """Represents a group of atoms in a certain Wyckoff position, for a certain
     space group.
     """
@@ -12,6 +12,8 @@ class WyckoffGroup():
             y=None,
             z=None,
             space_group=None,
+            representative=None,
+            multiplicity=None,
             ):
         """
         Args:
@@ -29,7 +31,8 @@ class WyckoffGroup():
         self.element = element
         self.space_group = space_group
         self.indices = indices
+        self.multiplicity = multiplicity
+        self.representative = representative
         self.x = x
         self.y = y
         self.z = z
-        self.multiplicity = None

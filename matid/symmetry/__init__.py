@@ -1,2 +1,1 @@
-from matid.symmetry.symmetryinfo import SymmetryInfo
-from matid.symmetry.wyckoffgroup import WyckoffGroup
+from matid.symmetry.wyckoffset import WyckoffSet
