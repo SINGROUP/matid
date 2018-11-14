@@ -89,6 +89,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Analyzing a dataset</a></li>
 <li class="toctree-l2"><a class="reference internal" href="classification.html">Classification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="dimensionality.html">Dimensionality Detection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="symmetry.html">Symmetry analysis</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../doc/modules.html">Documentation</a></li>
@@ -169,14 +170,14 @@ long as the atomic positions, unit cell, periodic boundary conditions and
 chemical symbols for the atoms are available, any dataset can be turned into an
 ASE.Atoms object and analyzed by MatID.</p>
 <p>So let’s start by loading a series of structures into a list:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
 
 <span class="kn">import</span> <span class="nn">ase.io</span>
 
-<span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">Classifier</span>
-<span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">SymmetryAnalyzer</span>
-<span class="kn">from</span> <span class="nn">matid.classifications</span> <span class="kn">import</span> <span class="n">Class3D</span><span class="p">,</span> <span class="n">Material2D</span><span class="p">,</span> <span class="n">Surface</span>
+<span class="kn">from</span> <span class="nn">matid</span> <span class="k">import</span> <span class="n">Classifier</span>
+<span class="kn">from</span> <span class="nn">matid</span> <span class="k">import</span> <span class="n">SymmetryAnalyzer</span>
+<span class="kn">from</span> <span class="nn">matid.classifications</span> <span class="k">import</span> <span class="n">Class3D</span><span class="p">,</span> <span class="n">Material2D</span><span class="p">,</span> <span class="n">Surface</span>
 
 <span class="c1"># This is a folder containing 10 different extended XYZ files.</span>
 <span class="n">inpath</span> <span class="o">=</span> <span class="s2">&quot;./structures&quot;</span>
@@ -186,28 +187,32 @@ ASE.Atoms object and analyzed by MatID.</p>
 <span class="n">geometries</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">inpath</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i_file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="c1"># if i_file.endswith(&quot;C96Si96+C54H16.xyz&quot;):</span>
         <span class="k">if</span> <span class="n">i_file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;xyz&quot;</span><span class="p">):</span>
-            <span class="n">i_atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;{}/{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i_file</span><span class="p">))</span>
-            <span class="n">geometries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_atoms</span><span class="p">)</span>
+            <span class="n">i_atoms</span> <span class="o">=</span> <span class="n">ase</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">i_file</span><span class="p">))</span>
+            <span class="c1"># view(i_atoms)</span>
+            <span class="n">geometries</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i_file</span><span class="p">,</span> <span class="n">i_atoms</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>With a list of geometries available, we can start analyzing them with MatID.
 Typically the first task is to get a generic classification for the structure.
 This is done with the Classifier-class:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a Classifier instance. The default settings are used here</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a Classifier instance. The default settings are used here</span>
 <span class="n">classifier</span> <span class="o">=</span> <span class="n">Classifier</span><span class="p">()</span>
 
 <span class="c1"># Get a classification result for each geometry</span>
 <span class="n">classifications</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i_geom</span> <span class="ow">in</span> <span class="n">geometries</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">i_file</span><span class="p">,</span> <span class="n">i_geom</span> <span class="ow">in</span> <span class="n">geometries</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Classifying&quot;</span><span class="p">)</span>
     <span class="n">i_cls</span> <span class="o">=</span> <span class="n">classifier</span><span class="o">.</span><span class="n">classify</span><span class="p">(</span><span class="n">i_geom</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Done&quot;</span><span class="p">)</span>
     <span class="n">classifications</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_cls</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Once we have determined the structural class of each geometry, we can further
 query for additional information that depends on the detected classification,
 and create a summary of the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a summary of the geometries</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a summary of the geometries</span>
 <span class="n">summary</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="p">(</span><span class="n">i_file</span><span class="p">,</span> <span class="n">i_geom</span><span class="p">),</span> <span class="n">i_cls</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">geometries</span><span class="p">,</span> <span class="n">classifications</span><span class="p">):</span>
     <span class="n">i_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">i_cls</span><span class="p">)</span>
@@ -218,12 +223,12 @@ and create a summary of the results:</p>
     <span class="p">}</span>
 
     <span class="c1"># Get symmetry information</span>
-    <span class="n">blk_cell</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">blk_cell</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Class3D</span><span class="p">:</span>
         <span class="n">blk_cell</span> <span class="o">=</span> <span class="n">i_atoms</span>
     <span class="k">elif</span> <span class="n">i_type</span> <span class="o">==</span> <span class="n">Surface</span><span class="p">:</span>
         <span class="n">blk_cell</span> <span class="o">=</span> <span class="n">i_cls</span><span class="o">.</span><span class="n">prototype_cell</span>
-    <span class="k">if</span> <span class="n">blk_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">blk_cell</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">symm_analyzer</span> <span class="o">=</span> <span class="n">SymmetryAnalyzer</span><span class="p">(</span><span class="n">blk_cell</span><span class="p">)</span>
         <span class="n">formula</span> <span class="o">=</span> <span class="n">i_atoms</span><span class="o">.</span><span class="n">get_chemical_formula</span><span class="p">()</span>
         <span class="n">crystal_system</span> <span class="o">=</span> <span class="n">symm_analyzer</span><span class="o">.</span><span class="n">get_crystal_system</span><span class="p">()</span>
@@ -244,7 +249,7 @@ and create a summary of the results:</p>
 
 <span class="c1"># Write a summary of the results</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;summary.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
-    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>You can find the full example in “examples/summary.py”. Here are the results:</p>

@@ -538,25 +538,6 @@ by a rotational matrix with the same index.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_groups_conventional">
-<code class="descname">get_wyckoff_groups_conventional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_groups_conventional" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a list of Wyckoff groups for this system. Wyckoff groups combine
-information about the atoms and their postiions at specific Wyckoff
-positions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of WyckoffGroup objects for this
-system.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list of WyckoffGroup</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_conventional">
 <code class="descname">get_wyckoff_letters_conventional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_conventional" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the Wyckoff letters of the atoms in the conventional system.</p>
@@ -604,6 +585,29 @@ system.</td>
 </dd></dl>
 
 <dl class="method">
+<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_sets_conventional">
+<code class="descname">get_wyckoff_sets_conventional</code><span class="sig-paren">(</span><em>return_parameters=True</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_sets_conventional" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of Wyckoff sets for this system. Wyckoff sets combine
+information about the atoms and their positions at specific Wyckoff
+positions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>return_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – Whether to return the value of possible
+free Wyckoff parameters. Set to false if the are needed, as
+their determination can take time.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of <a class="reference internal" href="#matid.symmetry.wyckoffset.WyckoffSet" title="matid.symmetry.wyckoffset.WyckoffSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">WyckoffSet</span></code></a> objects for the
+conventional system.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of WyckoffSets</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to reset all the cached values.</p>
@@ -618,22 +622,11 @@ system.</td>
 </dd></dl>
 
 </div>
-<div class="section" id="module-matid.symmetry.symmetryinfo">
-<span id="matid-symmetry-symmetryinfo-module"></span><h2>matid.symmetry.symmetryinfo module<a class="headerlink" href="#module-matid.symmetry.symmetryinfo" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-matid.symmetry.wyckoffset">
+<span id="matid-symmetry-wyckoffset-module"></span><h2>matid.symmetry.wyckoffset module<a class="headerlink" href="#module-matid.symmetry.wyckoffset" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="matid.symmetry.symmetryinfo.SymmetryInfo">
-<em class="property">class </em><code class="descclassname">matid.symmetry.symmetryinfo.</code><code class="descname">SymmetryInfo</code><span class="sig-paren">(</span><em>spacegroup</em>, <em>setting</em>, <em>hall_number</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryinfo.SymmetryInfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A convenience class for getting symmetry information related to space
-groups.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-matid.symmetry.wyckoffgroup">
-<span id="matid-symmetry-wyckoffgroup-module"></span><h2>matid.symmetry.wyckoffgroup module<a class="headerlink" href="#module-matid.symmetry.wyckoffgroup" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="matid.symmetry.wyckoffgroup.WyckoffGroup">
-<em class="property">class </em><code class="descclassname">matid.symmetry.wyckoffgroup.</code><code class="descname">WyckoffGroup</code><span class="sig-paren">(</span><em>wyckoff_letter=None</em>, <em>atomic_number=None</em>, <em>element=None</em>, <em>indices=None</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em>, <em>space_group=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.wyckoffgroup.WyckoffGroup" title="Permalink to this definition">¶</a></dt>
+<dt id="matid.symmetry.wyckoffset.WyckoffSet">
+<em class="property">class </em><code class="descclassname">matid.symmetry.wyckoffset.</code><code class="descname">WyckoffSet</code><span class="sig-paren">(</span><em>wyckoff_letter=None</em>, <em>atomic_number=None</em>, <em>element=None</em>, <em>indices=None</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em>, <em>space_group=None</em>, <em>representative=None</em>, <em>multiplicity=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.wyckoffset.WyckoffSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a group of atoms in a certain Wyckoff position, for a certain
 space group.</p>

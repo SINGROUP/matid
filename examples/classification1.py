@@ -1,5 +1,5 @@
-import ase.io
 from matid import Classifier
+import ase.io
 
 # Read an extended XYZ file containin an atomic geometry. Extended XYZ files
 # will also include the unit cell and periodic boundary conditions.

@@ -20,7 +20,7 @@ With MatID you can:
   - :doc:`Automatically classify atomic geometries into different structural classes <tutorials/classification>`
   - Automatically identify outlier atoms such as adsorbates in surfaces geometries (tutorial in development)
   - :doc:`Determine the dimensionality of an atomistic object <tutorials/dimensionality>`
-  - Analyze symmetry properties of 3D structures (tutorial in development)
+  - :doc:`Analyze symmetry properties of 3D structures <tutorials/symmetry>`
 
 Check the tutorials to see more information.
 

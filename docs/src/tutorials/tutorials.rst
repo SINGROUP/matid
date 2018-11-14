@@ -9,3 +9,4 @@ Tutorials
    overview
    classification
    dimensionality
+   symmetry

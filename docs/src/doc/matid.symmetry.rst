@@ -12,18 +12,10 @@ matid.symmetry.symmetryanalyzer module
     :undoc-members:
     :show-inheritance:
 
-matid.symmetry.symmetryinfo module
-----------------------------------
+matid.symmetry.wyckoffset module
+--------------------------------
 
-.. automodule:: matid.symmetry.symmetryinfo
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-matid.symmetry.wyckoffgroup module
-----------------------------------
-
-.. automodule:: matid.symmetry.wyckoffgroup
+.. automodule:: matid.symmetry.wyckoffset
     :members:
     :undoc-members:
     :show-inheritance:

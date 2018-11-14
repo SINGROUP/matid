@@ -1,0 +1,414 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Symmetry analysis &mdash; MatID  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="matid" href="../doc/modules.html" />
+    <link rel="prev" title="Dimensionality Detection" href="dimensionality.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="overview.html">Analyzing a dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classification.html">Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimensionality.html">Dimensionality Detection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Symmetry analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../doc/modules.html">Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MatID</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tutorials.html">Tutorials</a> &raquo;</li>
+        
+      <li>Symmetry analysis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/tutorials/symmetry.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="symmetry-analysis">
+<h1>Symmetry analysis<a class="headerlink" href="#symmetry-analysis" title="Permalink to this headline">¶</a></h1>
+<p>MatID has extensive symmetry analysis tools for 3D periodic systems. The
+symmetry detection is powered by <a class="reference external" href="https://atztogo.github.io/spglib/">spglib</a>,
+but has been extended with additional analysis and caching functionality for
+increased performance on closely related queries.</p>
+<p>The basis of symmetry analysis is the <a class="reference internal" href="../doc/matid.symmetry.html#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer" title="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SymmetryAnalyzer</span></code></a>-class. It
+takes as input an atomic geometry, and symmetry tolerance settings.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matid</span> <span class="k">import</span> <span class="n">SymmetryAnalyzer</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="k">import</span> <span class="n">bulk</span>
+<span class="kn">from</span> <span class="nn">ase.visualize</span> <span class="k">import</span> <span class="n">view</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">Atoms</span>
+
+<span class="c1"># Prepare a geometry to be analyzed</span>
+<span class="n">nacl</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s2">&quot;NaCl&quot;</span><span class="p">,</span> <span class="s2">&quot;rocksalt&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">5.64</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">view</span><span class="p">(</span><span class="n">nacl</span><span class="p">)</span>
+
+<span class="c1"># Setup the symmetry analyzer</span>
+<span class="n">symm</span> <span class="o">=</span> <span class="n">SymmetryAnalyzer</span><span class="p">(</span><span class="n">nacl</span><span class="p">,</span> <span class="n">symmetry_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The conventional and primitive systems corresponding to the given structure can
+be directly queried as <a class="reference external" href="https://wiki.fysik.dtu.dk/ase/ase/atoms.html">ASE.Atoms</a>-objects</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the conventional system as an ase.Atoms-object.</span>
+<span class="n">conv</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_conventional_system</span><span class="p">()</span>
+<span class="n">view</span><span class="p">(</span><span class="n">conv</span><span class="p">)</span>
+
+<span class="c1"># Get the primitive system as an ase.Atoms-object</span>
+<span class="n">prim</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_primitive_system</span><span class="p">()</span>
+<span class="n">view</span><span class="p">(</span><span class="n">prim</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Further symmetry information can be queried as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">space_group_number</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_space_group_number</span><span class="p">()</span>
+<span class="n">space_group_symbol</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_space_group_international_short</span><span class="p">()</span>
+<span class="n">is_chiral</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_is_chiral</span><span class="p">()</span>
+<span class="n">hall_number</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_hall_number</span><span class="p">()</span>
+<span class="n">hall_symbol</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_hall_symbol</span><span class="p">()</span>
+<span class="n">crystal_system</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_crystal_system</span><span class="p">()</span>
+<span class="n">bravais_lattice</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_bravais_lattice</span><span class="p">()</span>
+<span class="n">point_group</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_point_group</span><span class="p">()</span>
+<span class="n">wyckoff_letters_orig</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_wyckoff_letters_original</span><span class="p">()</span>
+<span class="n">wyckoff_letters_prim</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_wyckoff_letters_primitive</span><span class="p">()</span>
+<span class="n">wyckoff_letters_conv</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_wyckoff_letters_conventional</span><span class="p">()</span>
+<span class="n">equivalent_atoms_orig</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_equivalent_atoms_original</span><span class="p">()</span>
+<span class="n">equivalent_atoms_prim</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_equivalent_atoms_primitive</span><span class="p">()</span>
+<span class="n">equivalent_atoms_conv</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_equivalent_atoms_conventional</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Space group number: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">space_group_number</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Space group international short symbol: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">space_group_symbol</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is chiral: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">is_chiral</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hall number: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hall_number</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Hall symbol: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hall_symbol</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Crystal system: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">crystal_system</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Bravais lattice: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bravais_lattice</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Point group: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">point_group</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wyckoff letters original: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wyckoff_letters_orig</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wyckoff letters primitive: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wyckoff_letters_prim</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Wyckoff letters conventional: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">wyckoff_letters_conv</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Which will output the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Space group number: 225
+Space group international short symbol: Fm-3m
+Is chiral: False
+Hall number: 523
+Hall symbol: -F 4 2 3
+Crystal system: cubic
+Bravais lattice: cF
+Point group: m-3m
+Wyckoff letters original: [&#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39;]
+Wyckoff letters primitive: [&#39;a&#39; &#39;b&#39;]
+Wyckoff letters conventional: [&#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39; &#39;a&#39; &#39;b&#39;]
+</pre></div>
+</div>
+<p>MatID also utilises information from the <a href="#id1"><span class="problematic" id="id2">`Bilbao crystallographic
+server&lt;http://www.cryst.ehu.es/&gt;`_</span></a> to analyze the detailed Wyckoff set
+information for structures. With this information the details of the Wyckoff
+sets contained in the structure can be analyzed. Here we demonstrate this
+functionality on a more complex silicon clathrate structure.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scaled_positions</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.31630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">,</span> <span class="mf">0.68370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.18370000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">,</span> <span class="mf">0.81630000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.11720000000000</span><span class="p">,</span> <span class="mf">0.30770000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.11720000000000</span><span class="p">,</span> <span class="mf">0.69230000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.88280000000000</span><span class="p">,</span> <span class="mf">0.30770000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.88280000000000</span><span class="p">,</span> <span class="mf">0.69230000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.11720000000000</span><span class="p">,</span> <span class="mf">0.30770000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.11720000000000</span><span class="p">,</span> <span class="mf">0.69230000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.19230000000000</span><span class="p">,</span> <span class="mf">0.38280000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.19230000000000</span><span class="p">,</span> <span class="mf">0.61720000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.30770000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.11720000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.30770000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.88280000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.38280000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.19230000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.38280000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.80770000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.19230000000000</span><span class="p">,</span> <span class="mf">0.38280000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.19230000000000</span><span class="p">,</span> <span class="mf">0.61720000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.80770000000000</span><span class="p">,</span> <span class="mf">0.38280000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.80770000000000</span><span class="p">,</span> <span class="mf">0.61720000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.61720000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.19230000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.61720000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.80770000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.69230000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.11720000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.69230000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.88280000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.80770000000000</span><span class="p">,</span> <span class="mf">0.38280000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.80770000000000</span><span class="p">,</span> <span class="mf">0.61720000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.88280000000000</span><span class="p">,</span> <span class="mf">0.30770000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.88280000000000</span><span class="p">,</span> <span class="mf">0.69230000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.25000000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.75000000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.25000000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.25000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.75000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.75000000000000</span><span class="p">,</span> <span class="mf">0.50000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+<span class="p">]</span>
+<span class="n">cell</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">[</span><span class="mf">10.35500000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">10.35500000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">],</span>
+    <span class="p">[</span><span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">0.00000000000000</span><span class="p">,</span> <span class="mf">10.35500000000000</span><span class="p">]</span>
+<span class="p">]</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Si&quot;</span><span class="p">]</span><span class="o">*</span><span class="mi">46</span>
+<span class="n">clathrate</span> <span class="o">=</span> <span class="n">Atoms</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">scaled_positions</span><span class="o">=</span><span class="n">scaled_positions</span><span class="p">,</span> <span class="n">cell</span><span class="o">=</span><span class="n">cell</span><span class="p">,</span> <span class="n">pbc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Setup the symmetry analyzer</span>
+<span class="n">symm</span> <span class="o">=</span> <span class="n">SymmetryAnalyzer</span><span class="p">(</span><span class="n">clathrate</span><span class="p">,</span> <span class="n">symmetry_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="n">has_free_param</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_has_free_wyckoff_parameters</span><span class="p">()</span>
+<span class="n">wyckoff_sets_conv</span> <span class="o">=</span> <span class="n">symm</span><span class="o">.</span><span class="n">get_wyckoff_sets_conventional</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">i_group</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">wyckoff_sets_conv</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Set </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i_group</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Letter: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">wyckoff_letter</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Element: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">element</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Indices: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">indices</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Multiplicity: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Repr.: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">representative</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    x: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    y: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">y</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    z: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">z</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Which will output the following information:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Set 0
+   Letter: c
+   Element: Si
+   Indices: [40, 41, 42, 43, 44, 45]
+   Multiplicity: 6
+   Repr.: [&#39;1/4&#39;, &#39;0&#39;, &#39;1/2&#39;]
+   x: None
+   y: None
+   z: None
+Set 1
+   Letter: i
+   Element: Si
+   Indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+   Multiplicity: 16
+   Repr.: [&#39;x&#39;, &#39;x&#39;, &#39;x&#39;]
+   x: 0.18369999999999995
+   y: None
+   z: None
+Set 2
+   Letter: k
+   Element: Si
+   Indices: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+   Multiplicity: 24
+   Repr.: [&#39;0&#39;, &#39;y&#39;, &#39;z&#39;]
+   x: None
+   y: 0.30769999999999975
+   z: 0.11719999999999986
+</pre></div>
+</div>
+<p>You can find the full example in “examples/symmetry.py”.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../doc/modules.html" class="btn btn-neutral float-right" title="matid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dimensionality.html" class="btn btn-neutral" title="Dimensionality Detection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
