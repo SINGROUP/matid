@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 if __name__ == "__main__":
     setup(name="matid",
-        version="0.5.0",
+        version="0.5.1",
         url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
@@ -15,7 +15,7 @@ if __name__ == "__main__":
         ),
         author='Lauri Himanen',
         author_email='lauri.himanen@aalto.fi',
-        license="Apache 2.0",
+        license="Apache License 2.0",
         classifiers=[
             'Development Status :: 4 - Beta',
             'Intended Audience :: Developers',

@@ -386,7 +386,7 @@ class SymmetryAnalyzer(object):
             raise ValueError("The provided system does not have 3 or 2 periodic directions.")
 
     def get_rotations(self):
-        """Get the rotational parts of the Seits matrices that are associated
+        """Get the rotational parts of the Seitz matrices that are associated
         with this space group. Each rotational matrix is accompanied by a
         translation with the same index.
 
@@ -399,7 +399,7 @@ class SymmetryAnalyzer(object):
         return value
 
     def get_translations(self):
-        """Get the translational parts of the Seits matrices that are
+        """Get the translational parts of the Seitz matrices that are
         associated with this space group. Each translation is accompanied
         by a rotational matrix with the same index.
 
