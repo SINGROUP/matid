@@ -835,7 +835,7 @@ class PeriodicFinder():
                 a_sub = adjacency_sub[i_basis][node]
                 if a_add:
                     a_add_neighbour, i_add_factor = a_add[0]
-                    if a_add_neighbour != node:
+                    if not np.array_equal(a_add_neighbour, node):
                         a_final_neighbour = a_add_neighbour
                         i_factor = i_add_factor
                         multiplier = 1
