@@ -464,20 +464,8 @@ class PeriodicFinder():
         # Determine the indices, nodes and numbers for each valid subgraph.
         # index_set = set()
         for i_graph, graph in enumerate(valid_graphs):
-            nodes = graph.nodes(data=True)
-            nodes = [node[0] for node in nodes]
+            nodes = graph.nodes()
             node_indices = [node[0] for node in nodes]
-
-            # TODO: Get rid of multiple occurrences of the same index
-            # new_node_ind = []
-            # new_nodes = []
-            # for node_ind, node in zip(node_indices, nodes):
-                # if node_ind not in index_set:
-                    # new_node_ind.append(node_ind)
-                    # new_nodes.append(node)
-                    # index_set.add(node_ind)
-            # node_indices = new_node_ind
-            # nodes = new_nodes
 
             if seed_index in set(node_indices):
                 seed_group_index = i_graph
@@ -619,7 +607,23 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
-        """
+        """Given a cell shape, this function is used to return a fully
+        populated prototype unit cell for 3D systems.
+
+        Args:
+            seed_index(int): Index of the seed atom in the original system
+            seed_nodes(list): List of tuples containing the node index as first
+                entry, and the 3D index of the cell repetition as second entry.
+                E.g. (0, (-1, 1, 2))
+            best_span_indices():
+            best_spans(np.ndarray): A set of basis vectors for the cell as 3x3
+                array.
+            system(ase.Atoms): Original system
+            group_data_pbc():
+            seed_group_index():
+            adjacency_add():
+            adjacency_sub():
+
         Returns:
             unit_cell(ase.Atoms): The unit cell
             offset(np.ndarray): The cartesian offset of the seed atom in the
@@ -646,22 +650,22 @@ class PeriodicFinder():
 
             # Handle each basis
             for i_basis in range(3):
+                a_final_neighbour = None
                 a_add = adjacency_add[i_basis][node]
                 a_sub = adjacency_sub[i_basis][node]
+
                 if a_add:
                     a_add_neighbour, i_add_factor = a_add[0]
-                    if a_add_neighbour != node:
+                    if a_add_neighbour != node_index:
                         a_final_neighbour = a_add_neighbour
                         i_factor = i_add_factor
                         multiplier = 1
                 elif a_sub:
                     a_sub_neighbour, i_sub_factor = a_sub[0]
-                    if a_sub_neighbour != node:
+                    if a_sub_neighbour != node_index:
                         a_final_neighbour = a_sub_neighbour
                         i_factor = i_sub_factor
                         multiplier = -1
-                else:
-                    a_final_neighbour = None
 
                 if a_final_neighbour is not None:
                     # Old version
@@ -677,10 +681,6 @@ class PeriodicFinder():
                     a = best_spans[i_basis, :]
 
                 cells[i_node, i_basis, :] = a
-
-        # for cell in cells:
-            # if not np.array_equal(cell, best_spans):
-                # print(cell)
 
         # Find the relative positions of atoms inside the cell. If for too many
         # cells atoms are found that do not belong to the basis, then the found
@@ -795,7 +795,23 @@ class PeriodicFinder():
             adjacency_add,
             adjacency_sub,
         ):
-        """
+        """Given a cell shape, this function is used to return a fully
+        populated prototype unit cell for 2D systems.
+
+        Args:
+            seed_index(int): Index of the seed atom in the original system
+            seed_nodes(list): List of tuples containing the node index as first
+                entry, and the 3D index of the cell repetition as second entry.
+                E.g. (0, (-1, 1, 2))
+            best_span_indices():
+            best_spans(np.ndarray): A set of basis vectors for the cell as 3x3
+                array.
+            system(ase.Atoms): Original system
+            group_data_pbc():
+            seed_group_index():
+            adjacency_add():
+            adjacency_sub():
+
         Returns:
             unit_cell(ase.Atoms): The unit cell
             offset(np.ndarray): The cartesian offset of the seed atom in the
@@ -830,23 +846,22 @@ class PeriodicFinder():
 
             # Handle each basis
             for i_basis in range(2):
-
+                a_final_neighbour = None
                 a_add = adjacency_add[i_basis][node]
                 a_sub = adjacency_sub[i_basis][node]
+
                 if a_add:
                     a_add_neighbour, i_add_factor = a_add[0]
-                    if a_add_neighbour != node:
+                    if a_add_neighbour != node_index:
                         a_final_neighbour = a_add_neighbour
                         i_factor = i_add_factor
                         multiplier = 1
                 elif a_sub:
                     a_sub_neighbour, i_sub_factor = a_sub[0]
-                    if a_sub_neighbour != node:
+                    if a_sub_neighbour != node_index:
                         a_final_neighbour = a_sub_neighbour
                         i_factor = i_sub_factor
                         multiplier = -1
-                else:
-                    a_final_neighbour = None
 
                 if a_final_neighbour is not None:
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
