@@ -10,12 +10,10 @@ from numpy.random import RandomState
 from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
-from ase.visualize import view
 
 from matid import SymmetryAnalyzer
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
 from matid.utils.segfault_protect import segfault_protect
-import matid.geometry
 
 
 class dotdict(dict):
