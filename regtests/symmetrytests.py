@@ -10,7 +10,7 @@ from numpy.random import RandomState
 from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
-# from ase.visualize import view
+from ase.visualize import view
 
 from matid import SymmetryAnalyzer
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
@@ -534,23 +534,32 @@ class GroundStateTests(unittest.TestCase):
         orig_wyckoffs = analyzer.get_wyckoff_letters_original()
         self.assertTrue(np.array_equal(orig_wyckoffs, correct_state))
 
-        # Check that the system has been translated correctly
-        correct_translation = np.array([
-            [1, 0, 0, 1/2],
-            [0, 1, 0, 0],
-            [0, 0, 1, 1/2],
-            [0, 0, 0, 1],
-        ])
+        # Check that the system has been translated correctly. The correct
+        # positions can be seen at
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
         conv_system = analyzer.get_conventional_system()
         conv_pos = conv_system.get_scaled_positions()
-        orig_pos = np.zeros((4, 4))
-        orig_pos[:, 3] = 1
-        orig_pos[:, 0:3] = system.get_scaled_positions()
 
-        assumed_pos = np.dot(orig_pos, correct_translation.T)
-        assumed_pos = assumed_pos[:, 0:3]
-        assumed_pos = matid.geometry.get_wrapped_positions(assumed_pos)
-        self.assertTrue(np.array_equal(assumed_pos, conv_pos))
+        a1 = [0.0, 0.0, 0.0]
+        a2 = [0.5, 0.5, 0.0]
+        d1 = [0, 0.5, 0.5]
+        d2 = [0.5, 0.0, 0.5]
+
+        # Test that the Wyckoff positions d are correct, order does not matter
+        pos1 = np.array_equal(conv_pos[0], d1)
+        if pos1:
+            self.assertTrue(np.array_equal(conv_pos[2], d2))
+        else:
+            self.assertTrue(np.array_equal(conv_pos[0], d2))
+            self.assertTrue(np.array_equal(conv_pos[2], d1))
+
+        # Test that the Wyckoff positions a are correct, order does not matter
+        pos1 = np.array_equal(conv_pos[1], a1)
+        if pos1:
+            self.assertTrue(np.array_equal(conv_pos[3], a2))
+        else:
+            self.assertTrue(np.array_equal(conv_pos[1], a2))
+            self.assertTrue(np.array_equal(conv_pos[3], a1))
 
     def test_transformation_affine(self):
         """Test a tranform where the transformation is a proper rigid
