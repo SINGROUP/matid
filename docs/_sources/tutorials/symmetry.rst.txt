@@ -39,8 +39,8 @@ Which will output the following:
    Wyckoff letters primitive: ['a' 'b']
    Wyckoff letters conventional: ['a' 'b' 'a' 'b' 'a' 'b' 'a' 'b']
 
-MatID also utilises information from the `Bilbao crystallographic
-server<http://www.cryst.ehu.es/>`_ to analyze the detailed Wyckoff set
+MatID also utilises offline information from the `Bilbao crystallographic
+server <http://www.cryst.ehu.es/>`_ to analyze the detailed Wyckoff set
 information for structures. With this information the details of the Wyckoff
 sets contained in the structure can be analyzed. Here we demonstrate this
 functionality on a more complex silicon clathrate structure.
