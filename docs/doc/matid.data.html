@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.data package &mdash; MatID 0.5.2 documentation</title>
+  <title>matid.data package &mdash; MatID 0.5.5 documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.5.2
+                0.5.5
               </div>
             
           
@@ -196,95 +196,83 @@
 <span id="matid-data-element-data-module"></span><h2>matid.data.element_data module<a class="headerlink" href="#module-matid.data.element_data" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="matid.data.element_data.NUMBER_TO_SYMBOL_MAP">
-<code class="descclassname">matid.data.element_data.</code><code class="descname">NUMBER_TO_SYMBOL_MAP</code><em class="property"> = [None, 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#matid.data.element_data.NUMBER_TO_SYMBOL_MAP" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">NUMBER_TO_SYMBOL_MAP</code><em class="property"> = [None, 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#matid.data.element_data.NUMBER_TO_SYMBOL_MAP" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of atomic names in order.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="matid.data.element_data.get_covalent_radii">
-<code class="descclassname">matid.data.element_data.</code><code class="descname">get_covalent_radii</code><span class="sig-paren">(</span><em>species</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_covalent_radii" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_covalent_radii</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_covalent_radii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Give a list of species, returns the covalent radii.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><em>list</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – One or multiple atomic species as symbols or
-atomic numbers.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A numpy array of covalent radii.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">(numpy.ndarray)</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – One or multiple atomic species as symbols or
+atomic numbers.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A numpy array of covalent radii.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(numpy.ndarray)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="matid.data.element_data.get_numbers">
-<code class="descclassname">matid.data.element_data.</code><code class="descname">get_numbers</code><span class="sig-paren">(</span><em>symbols</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_numbers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_numbers</code><span class="sig-paren">(</span><em class="sig-param">symbols</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_numbers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given element symbol(s), return the atomic number(s) (number of protons).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>symbols</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a><em> or </em><em>list of str</em>) – Atomic symbol(s).</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Atomic number(s) (number of protons).</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">ndarray</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If a given atomic symbol is invalid and doesn’t have a</li>
-<li>corresponding number.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>symbols</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>list of str</em>) – Atomic symbol(s).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Atomic number(s) (number of protons).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – If a given atomic symbol is invalid and doesn’t have a</p></li>
+<li><p><strong>corresponding number.</strong> – </p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="matid.data.element_data.get_symbols">
-<code class="descclassname">matid.data.element_data.</code><code class="descname">get_symbols</code><span class="sig-paren">(</span><em>numbers</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_symbols" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_symbols</code><span class="sig-paren">(</span><em class="sig-param">numbers</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_symbols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given atomic number(s), returns the symbol(s).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>numbers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em> or </em><em>list of int</em>) – Atomic numbers(s) (number of protons).</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Atomic symbol(s).</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">ndarray</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If a given atomic number is invalid and doesn’t have a</li>
-<li>corresponding symbol.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>numbers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em> or </em><em>list of int</em>) – Atomic numbers(s) (number of protons).</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Atomic symbol(s).</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – If a given atomic number is invalid and doesn’t have a</p></li>
+<li><p><strong>corresponding symbol.</strong> – </p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="matid.data.element_data.listify">
-<code class="descclassname">matid.data.element_data.</code><code class="descname">listify</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.listify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">listify</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.listify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a value, force it into a list.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> – </td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> – </p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

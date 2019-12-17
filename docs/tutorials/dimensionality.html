@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Dimensionality Detection &mdash; MatID 0.5.2 documentation</title>
+  <title>Dimensionality Detection &mdash; MatID 0.5.5 documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.5.2
+                0.5.5
               </div>
             
           
@@ -172,7 +172,7 @@
 <p>This tutorial showcases how the package can be used to find out the
 dimensionality of any arbitrary atomistic geometry.</p>
 <p>To determine the dimensionality of a system, we use a modified version of the
-topological scaling algorithm (TSA) <a class="footnote-reference" href="#id4" id="id1">[1]</a>. The algorithm is based on analyzing
+topological scaling algorithm (TSA) <a class="footnote-reference brackets" href="#id4" id="id1">1</a>. The algorithm is based on analyzing
 the size scaling of atomic clusters when going from the original system to a
 bigger supercell of the same system. With TSA, the dimensionality <span class="math notranslate nohighlight">\(D\)</span> is
 given by</p>
@@ -184,7 +184,7 @@ given by</p>
 <p>where <span class="math notranslate nohighlight">\(N_n\)</span> is the number of clusters in a supercell that is repeated
 <span class="math notranslate nohighlight">\(n\)</span> times in each periodic direction and <span class="math notranslate nohighlight">\(n_\mathrm{pbc}\)</span> is the
 number of periodic dimensions. For the clustering we use the Density-Based
-Spatial Clustering of Applications with Noise <a class="footnote-reference" href="#id5" id="id2">[2]</a> data clustering algorithm.
+Spatial Clustering of Applications with Noise <a class="footnote-reference brackets" href="#id5" id="id2">2</a> data clustering algorithm.
 The advantage of this algorithm is that it does not require an initial guess
 for the number of clusters and it can find arbitrarily shaped clusters. The
 clustering requires that we define a metric for the distance between atoms. We
@@ -193,7 +193,7 @@ use the following metric:</p>
 \[d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i^{\text{cov}} - r_j^{\text{cov}}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> and <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> are the cartesian positions of
 atom <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>, respectively, and <span class="math notranslate nohighlight">\(r_i^{\text{cov}}\)</span> and
-<span class="math notranslate nohighlight">\(r_j^{\text{cov}}\)</span> their covalent radii <a class="footnote-reference" href="#id6" id="id3">[3]</a> . It is important to
+<span class="math notranslate nohighlight">\(r_j^{\text{cov}}\)</span> their covalent radii <a class="footnote-reference brackets" href="#id6" id="id3">3</a> . It is important to
 notice that in this metric the distances always follow the minimum image
 convention (MIC), i.e.  the distance is calculated between two closest periodic
 neighbours. By using the distance to the closest periodic neighbour we obtain
@@ -246,24 +246,17 @@ with MatID.</p>
 </pre></div>
 </div>
 <p>This example if also available in “examples/dimensionality.py”.</p>
-<table class="docutils footnote" frame="void" id="id4" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Ashton, M., Paul, J., Sinnott, S. B. &amp; Hennig, R. G. Topology-scaling identification of layered solids and stable exfoliated 2d materials. Phys. Rev. Lett. 118, 106101 (2017)</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id5" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Ester, M., Kriegel, H.-P., Sander, J. &amp; Xu, X. A density-based algorithm for discovering clusters in large spatial databases with noise. KDD’96 Proceedings of the Second International Conference on Knowledge Discovery and Data Mining 226–231 (1996).</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Cordero, B. et al. Covalent radii revisited. Dalton Trans. 2832–2838 (2008)</td></tr>
-</tbody>
-</table>
+<dl class="footnote brackets">
+<dt class="label" id="id4"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>Ashton, M., Paul, J., Sinnott, S. B. &amp; Hennig, R. G. Topology-scaling identification of layered solids and stable exfoliated 2d materials. Phys. Rev. Lett. 118, 106101 (2017)</p>
+</dd>
+<dt class="label" id="id5"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dd><p>Ester, M., Kriegel, H.-P., Sander, J. &amp; Xu, X. A density-based algorithm for discovering clusters in large spatial databases with noise. KDD’96 Proceedings of the Second International Conference on Knowledge Discovery and Data Mining 226–231 (1996).</p>
+</dd>
+<dt class="label" id="id6"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
+<dd><p>Cordero, B. et al. Covalent radii revisited. Dalton Trans. 2832–2838 (2008)</p>
+</dd>
+</dl>
 </div>
 
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.classification package &mdash; MatID 0.5.2 documentation</title>
+  <title>matid.classification package &mdash; MatID 0.5.5 documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.5.2
+                0.5.5
               </div>
             
           
@@ -190,36 +190,36 @@
 <span id="matid-classification-classifier-module"></span><h2>matid.classification.classifier module<a class="headerlink" href="#module-matid.classification.classifier" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="matid.classification.classifier.Classifier">
-<em class="property">class </em><code class="descclassname">matid.classification.classifier.</code><code class="descname">Classifier</code><span class="sig-paren">(</span><em>seed_position='cm', max_cell_size=[12], pos_tol=None, pos_tol_mode='relative', pos_tol_scaling=0.0, angle_tol=20, cluster_threshold=3.5, crystallinity_threshold=0.25, delaunay_threshold=1.5, bond_threshold=0.75, delaunay_threshold_mode='relative', chem_similarity_threshold=0.4, cell_size_tol=0.25, max_n_atoms=1000, max_2d_cell_height=5, max_2d_single_cell_size=5, symmetry_tol=0.4, min_coverage=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">matid.classification.classifier.</code><code class="sig-name descname">Classifier</code><span class="sig-paren">(</span><em class="sig-param">seed_position='cm', max_cell_size=[12], pos_tol=None, pos_tol_mode='relative', pos_tol_scaling=0.0, angle_tol=20, cluster_threshold=3.5, crystallinity_threshold=0.25, delaunay_threshold=1.5, bond_threshold=0.75, delaunay_threshold_mode='relative', chem_similarity_threshold=0.4, cell_size_tol=0.25, max_n_atoms=1000, max_2d_cell_height=5, max_2d_single_cell_size=5, symmetry_tol=0.4, min_coverage=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A class that is used to analyze the contents of an atomistic system and
 separate the consituent atoms into different components along with other
 meaningful information.</p>
 <dl class="method">
 <dt id="matid.classification.classifier.Classifier.classify">
-<code class="descname">classify</code><span class="sig-paren">(</span><em>input_system</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.classify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">classify</code><span class="sig-paren">(</span><em class="sig-param">input_system</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.classify" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that analyzes the system and breaks it into different
 components.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>system</strong> (<em>ASE.Atoms</em><em> or </em><a class="reference internal" href="matid.core.html#matid.core.system.System" title="matid.core.system.System"><em>System</em></a>) – Atomic system to classify.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">One of the subclasses of the Classification base
-class that represents a classification.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="matid.html#matid.classifications.Classification" title="matid.classifications.Classification">Classification</a></td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.7)"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code></a> – If the system has more atoms than self.max_n_atoms</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>system</strong> (<em>ASE.Atoms</em><em> or </em><a class="reference internal" href="matid.core.html#matid.core.system.System" title="matid.core.system.System"><em>System</em></a>) – Atomic system to classify.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>One of the subclasses of the Classification base
+class that represents a classification.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="matid.html#matid.classifications.Classification" title="matid.classifications.Classification">Classification</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><strong>ValueError</strong></a> – If the system has more atoms than self.max_n_atoms</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="matid.classification.classifier.Classifier.cross_validate_region">
-<code class="descname">cross_validate_region</code><span class="sig-paren">(</span><em>system</em>, <em>seed_indices</em>, <em>disp_tensor_pbc</em>, <em>disp_factors</em>, <em>disp_tensor</em>, <em>dist_matrix_radii_pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.cross_validate_region" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">cross_validate_region</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">seed_indices</em>, <em class="sig-param">disp_tensor_pbc</em>, <em class="sig-param">disp_factors</em>, <em class="sig-param">disp_tensor</em>, <em class="sig-param">dist_matrix_radii_pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.cross_validate_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a system tries multiple combinations of different search
 parameters to find a prototype cell and a corresponding region that
 best explains the underlying structure.</p>
@@ -234,47 +234,42 @@ Returns:</p>
 <span id="matid-classification-periodicfinder-module"></span><h2>matid.classification.periodicfinder module<a class="headerlink" href="#module-matid.classification.periodicfinder" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="matid.classification.periodicfinder.PeriodicFinder">
-<em class="property">class </em><code class="descclassname">matid.classification.periodicfinder.</code><code class="descname">PeriodicFinder</code><span class="sig-paren">(</span><em>angle_tol=20</em>, <em>pos_tol_scaling=0.0</em>, <em>cell_size_tol=0.25</em>, <em>max_2d_cell_height=5</em>, <em>max_2d_single_cell_size=5</em>, <em>chem_similarity_threshold=0.4</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">matid.classification.periodicfinder.</code><code class="sig-name descname">PeriodicFinder</code><span class="sig-paren">(</span><em class="sig-param">angle_tol=20</em>, <em class="sig-param">pos_tol_scaling=0.0</em>, <em class="sig-param">cell_size_tol=0.25</em>, <em class="sig-param">max_2d_cell_height=5</em>, <em class="sig-param">max_2d_single_cell_size=5</em>, <em class="sig-param">chem_similarity_threshold=0.4</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Used to find translationally periodic structures within atomic systems.</p>
 <dl class="method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_region">
-<code class="descname">get_region</code><span class="sig-paren">(</span><em>system</em>, <em>seed_index</em>, <em>max_cell_size</em>, <em>pos_tol</em>, <em>delaunay_threshold=None</em>, <em>bond_threshold=None</em>, <em>disp_tensor_mic=None</em>, <em>disp_factors=None</em>, <em>disp_tensor_finite=None</em>, <em>dist_matrix_radii_mic=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_region" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_region</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">seed_index</em>, <em class="sig-param">max_cell_size</em>, <em class="sig-param">pos_tol</em>, <em class="sig-param">delaunay_threshold=None</em>, <em class="sig-param">bond_threshold=None</em>, <em class="sig-param">disp_tensor_mic=None</em>, <em class="sig-param">disp_factors=None</em>, <em class="sig-param">disp_tensor_finite=None</em>, <em class="sig-param">dist_matrix_radii_mic=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tries to find the periodic regions, like surfaces, in an atomic
 system.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>system</strong> (<em>ase.Atoms</em>) – The system from which to find the periodic
-regions.</li>
-<li><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The index of the atom from which the search is
-initiated.</li>
-<li><strong>max_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The maximum size of cell basis vectors.</li>
-<li><strong>pos_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – The tolerance that is allowed in the search. Given
-as absolute value in angstroms.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<em>ase.Atoms</em>) – The system from which to find the periodic
+regions.</p></li>
+<li><p><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The index of the atom from which the search is
+initiated.</p></li>
+<li><p><strong>max_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The maximum size of cell basis vectors.</p></li>
+<li><p><strong>pos_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance that is allowed in the search. Given
+as absolute value in angstroms.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt>A LinkedUnitCollection object representing</dt>
-<dd><p class="first last">the region or None if no region could be identified.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A LinkedUnitCollection object representing</dt><dd><p>the region or None if no region could be identified.</p>
 </dd>
 </dl>
 </p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">linkedunitcollection or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)">None</a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>linkedunitcollection or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)">None</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance">
-<code class="descname">get_scaled_position_tolerance</code><span class="sig-paren">(</span><em>displacements</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_scaled_position_tolerance</code><span class="sig-paren">(</span><em class="sig-param">displacements</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to calculate the position tolerance that is scaled by the
 search distance.</p>
 </dd></dl>
