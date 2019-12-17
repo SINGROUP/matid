@@ -1,9 +1,13 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
+import sys
 from setuptools import setup, find_packages
+
+# Check python version
+if sys.version_info[:2] < (3, 0):
+    raise RuntimeError("Python version >= 3.0 required.")
 
 if __name__ == "__main__":
     setup(name="matid",
-        version="0.5.4",
+        version="0.5.5",
         url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
@@ -17,18 +21,17 @@ if __name__ == "__main__":
         author_email='lauri.himanen@aalto.fi',
         license="Apache License 2.0",
         classifiers=[
-            'Development Status :: 4 - Beta',
-            'Intended Audience :: Developers',
-            'Topic :: Scientific/Engineering :: Physics',
-            'License :: OSI Approved :: Apache Software License',
-            'Programming Language :: Python :: 2',
-            'Programming Language :: Python :: 2.6',
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.2',
-            'Programming Language :: Python :: 3.3',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Developers",
+            "Topic :: Scientific/Engineering :: Physics",
+            "License :: OSI Approved :: Apache Software License",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3 :: Only",
         ],
         keywords='atoms structure materials science crystal symmetry',
         packages=find_packages(),
@@ -42,5 +45,5 @@ if __name__ == "__main__":
             "networkx",
             "chronic"
         ],
-        python_requires='>=2.6, <4',
+        python_requires=">=3.5",
     )
