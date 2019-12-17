@@ -8,7 +8,7 @@ on their structure.
 
 ## Homepage
 For more details and tutorials, visit the homepage at:
-[https://singroup.github.io/dscribe/](https://singroup.github.io/dscribe/)
+[https://singroup.github.io/dscribe/](https://singroup.github.io/matid/)
 
 ## Installation
 The newest versions of the package are compatible with Python 3.X (tested on
