@@ -442,6 +442,15 @@ def get_clusters(dist_matrix, threshold, min_samples=1):
         list: A list of clusters, where each cluster is a list of indices for
         the elements belonging to the cluster.
     """
+    # As the distance have been normalized with respect to the covalent radiis,
+    # the distance matrix may in some cases have negative values. This simply
+    # means that the distance between two atoms is smaller than the sum of
+    # their covalent radiis. The distance values are here clipped to
+    # zero to avoid problems in the cluster detection. Another option would be
+    # to normalize the distances so that unity would correspond to the sum of
+    # the two radii.
+    np.clip(dist_matrix, a_min=0, a_max=None, out=dist_matrix)
+
     # Detect clusters
     db = DBSCAN(eps=threshold, min_samples=min_samples, metric='precomputed', n_jobs=1)
     db.fit(dist_matrix)
