@@ -385,11 +385,6 @@ class PeriodicFinder():
                         new_graph.add_edge(node, new_node)
         periodicity_graph_pbc = new_graph
 
-        # print(seed_index)
-        # print(neighbour_nodes)
-        # print(best_spans)
-        # print(system.get_cell())
-
         # import matplotlib.pyplot as plt
         # plt.subplot(111)
         # pos = nx.spring_layout(periodicity_graph_pbc)
@@ -402,7 +397,7 @@ class PeriodicFinder():
 
         # Get all disconnected subgraphs in the periodicity graph that takes
         # periodic boundaries into account
-        graphs = list(nx.connected_component_subgraphs(periodicity_graph_pbc))
+        graphs = [periodicity_graph_pbc.subgraph(c) for c in nx.connected_components(periodicity_graph_pbc)]
 
         # Filter out the basis atoms by checking how many were found with
         # respect to the number of copies of the seed atom. This equals to

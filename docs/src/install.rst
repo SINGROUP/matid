@@ -1,8 +1,9 @@
 Installation
 ============
-The package is compatible both with Python 2 and Python 3 (tested on 2.7 and
-3.6). The exact list of dependencies are given in setup.py and all of them will
-be automatically installed during setup.
+The newest versions of the package are compatible with Python 3.X (tested on
+3.5, 3.6 and 3.7). MatID versions <= 0.5.4 also support Python 2.7. The exact
+list of dependencies are given in setup.py and all of them will be
+automatically installed during setup.
 
 The latest stable release is available through pip: (use the -\\-user flag if
 root access is not available)

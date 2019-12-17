@@ -4,14 +4,17 @@
 [![Coverage Status](https://coveralls.io/repos/github/SINGROUP/matid/badge.svg?branch=master)](https://coveralls.io/github/SINGROUP/matid?branch=master)
 
 MatID is a python package for identifying and analyzing atomistic systems based
-on their structure. See the homepage at
-[https://singroup.github.io/matid/](https://singroup.github.io/matid/) for more
-extensive information and tutorials.
+on their structure.
+
+## Homepage
+For more details and tutorials, visit the homepage at:
+[https://singroup.github.io/dscribe/](https://singroup.github.io/dscribe/)
 
 ## Installation
-The package is compatible both with Python 2 and Python 3 (tested on 2.7 and
-3.6). The exact list of dependencies are given in setup.py and all of them will
-be automatically installed during setup.
+The newest versions of the package are compatible with Python 3.X (tested on
+3.5, 3.6 and 3.7). MatID versions <= 0.5.4 also support Python 2.7. The exact
+list of dependencies are given in setup.py and all of them will be
+automatically installed during setup.
 
 The latest stable release is available through pip: (use the -\\-user flag if
 root access is not available)
