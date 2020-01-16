@@ -90,3 +90,6 @@ ENV/
 
 # Coverage report
 regtests/.coverage
+
+# .vim configuration
+.vim

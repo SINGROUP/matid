@@ -257,12 +257,13 @@ class SymmetryAnalyzer(object):
         return bravais_lattice
 
     def get_primitive_system(self):
-        """Returns a primitive description for this system. This description
-        uses a primitive lattice where positions of the atoms, and the cell
-        basis vectors are idealized to follow the symmetries that were found
-        with the given precision. This means that e.g. the volume, angles
-        between basis vectors and basis vector lengths may have deviations from
-        the the original system.
+        """Returns a primitive description for this system.
+
+        This description uses a primitive lattice where positions of the
+        atoms, and the cell basis vectors are idealized to follow the
+        symmetries that were found with the given precision. This means that
+        e.g. the volume, density, angles between basis vectors and basis vector
+        lengths may have small deviations from the original system.
 
         Returns:
             ASE.Atoms: The primitive system.
@@ -286,6 +287,12 @@ class SymmetryAnalyzer(object):
 
     def get_conventional_system(self):
         """Used to get the conventional representation of this system.
+
+        This description uses a conventional lattice where positions of the
+        atoms, and the cell basis vectors are idealized to follow the
+        symmetries that were found with the given precision. This means that
+        e.g. the volume, density, angles between basis vectors and basis vector
+        lengths may have small deviations from the original system.
         """
         if self._conventional_system is not None:
             return self._conventional_system
