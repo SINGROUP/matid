@@ -254,6 +254,11 @@ settings.</p>
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system">
 <code class="sig-name descname">get_conventional_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to get the conventional representation of this system.</p>
+<p>This description uses a conventional lattice where positions of the
+atoms, and the cell basis vectors are idealized to follow the
+symmetries that were found with the given precision. This means that
+e.g. the volume, density, angles between basis vectors and basis vector
+lengths may have small deviations from the original system.</p>
 </dd></dl>
 
 <dl class="method">
@@ -411,12 +416,12 @@ notation.</p>
 <dl class="method">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_primitive_system">
 <code class="sig-name descname">get_primitive_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_primitive_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a primitive description for this system. This description
-uses a primitive lattice where positions of the atoms, and the cell
-basis vectors are idealized to follow the symmetries that were found
-with the given precision. This means that e.g. the volume, angles
-between basis vectors and basis vector lengths may have deviations from
-the the original system.</p>
+<dd><p>Returns a primitive description for this system.</p>
+<p>This description uses a primitive lattice where positions of the
+atoms, and the cell basis vectors are idealized to follow the
+symmetries that were found with the given precision. This means that
+e.g. the volume, density, angles between basis vectors and basis vector
+lengths may have small deviations from the original system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>The primitive system.</p>

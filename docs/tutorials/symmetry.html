@@ -175,10 +175,10 @@ but has been extended with additional analysis and caching functionality for
 increased performance on closely related queries.</p>
 <p>The basis of symmetry analysis is the <a class="reference internal" href="../doc/matid.symmetry.html#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer" title="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer"><code class="xref py py-class docutils literal notranslate"><span class="pre">SymmetryAnalyzer</span></code></a>-class. It
 takes as input an atomic geometry, and symmetry tolerance settings.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matid</span> <span class="k">import</span> <span class="n">SymmetryAnalyzer</span>
-<span class="kn">from</span> <span class="nn">ase.build</span> <span class="k">import</span> <span class="n">bulk</span>
-<span class="kn">from</span> <span class="nn">ase.visualize</span> <span class="k">import</span> <span class="n">view</span>
-<span class="kn">from</span> <span class="nn">ase</span> <span class="k">import</span> <span class="n">Atoms</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matid</span> <span class="kn">import</span> <span class="n">SymmetryAnalyzer</span>
+<span class="kn">from</span> <span class="nn">ase.build</span> <span class="kn">import</span> <span class="n">bulk</span>
+<span class="kn">from</span> <span class="nn">ase.visualize</span> <span class="kn">import</span> <span class="n">view</span>
+<span class="kn">from</span> <span class="nn">ase</span> <span class="kn">import</span> <span class="n">Atoms</span>
 
 <span class="c1"># Prepare a geometry to be analyzed</span>
 <span class="n">nacl</span> <span class="o">=</span> <span class="n">bulk</span><span class="p">(</span><span class="s2">&quot;NaCl&quot;</span><span class="p">,</span> <span class="s2">&quot;rocksalt&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">5.64</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>

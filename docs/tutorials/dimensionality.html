@@ -226,10 +226,10 @@ with MatID.</p>
 <span class="c1"># boundary conditions. This is more realistic as not that many electronic</span>
 <span class="c1"># structure codes support anything else than full periodic boundary conditions,</span>
 <span class="c1"># and thus the dimensionality information is typically not available.</span>
-<span class="n">zero_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">one_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">two_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">three_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">zero_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">one_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">two_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">three_d</span><span class="o">.</span><span class="n">set_pbc</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Here we perform the dimensionality detection with clustering threshold epsilon</span>
 <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">3.5</span>
@@ -239,10 +239,10 @@ with MatID.</p>
 <span class="n">dim3</span> <span class="o">=</span> <span class="n">get_dimensionality</span><span class="p">(</span><span class="n">three_d</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">)</span>
 
 <span class="c1"># Printing out the results</span>
-<span class="k">print</span><span class="p">(</span><span class="n">dim0</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">dim1</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">dim2</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">dim3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dim0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dim1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dim2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">dim3</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This example if also available in “examples/dimensionality.py”.</p>
