@@ -374,6 +374,19 @@ class SymmetryAnalyzer(object):
                 nonperiodic_axis=nonperiodic_axis
             )
 
+            # Center the system in the non-periodic direction, also taking
+            # periodicity into account. Without the centering the structure may end up being split at the cell boundary. The get_center_of_mass()-function in MatID
+            # takes into account periodicity and can produce the correct CM unlike
+            # the similar function in ASE.
+            conv_pbc = np.array([True, True, True])
+            conv_pbc[nonperiodic_axis] = False
+            pbc_cm = matid.geometry.get_center_of_mass(ideal_sys)
+            cell_center = 0.5 * np.sum(ideal_sys.get_cell(), axis=0)
+            translation = cell_center - pbc_cm
+            translation[conv_pbc] = 0
+            ideal_sys.translate(translation)
+            ideal_sys.wrap()
+
             # Minimize the cell to only just fit the atoms in the non-periodic
             # direction
             min_conv_cell = matid.geometry.get_minimized_cell(
@@ -381,8 +394,6 @@ class SymmetryAnalyzer(object):
                 nonperiodic_axis,
                 self.min_2d_thickness
             )
-            conv_pbc = np.array([True, True, True])
-            conv_pbc[nonperiodic_axis] = False
             min_conv_cell.set_pbc(conv_pbc)
 
             self._conventional_system = min_conv_cell
