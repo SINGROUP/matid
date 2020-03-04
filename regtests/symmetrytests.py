@@ -10,6 +10,7 @@ from numpy.random import RandomState
 from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
+import ase.build
 
 from matid import SymmetryAnalyzer
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
@@ -505,7 +506,7 @@ class GroundStateTests(unittest.TestCase):
     configuration score that defines the Wyckoff positions.
     """
     def test_translation(self):
-        """Test a tranform that translates atoms.
+        """Test a transform that translates atoms.
         """
         # The original system belongs to space group 12, see
         # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-normsets?from=wycksets&gnum=12
@@ -560,7 +561,7 @@ class GroundStateTests(unittest.TestCase):
             self.assertTrue(np.array_equal(conv_pos[3], a1))
 
     def test_transformation_affine(self):
-        """Test a tranform where the transformation is a proper rigid
+        """Test a transform where the transformation is a proper rigid
         transformation in the scaled cell basis, but will be non-rigid in the
         cartesian basis. This kind of transformations should not be allowed.
         """
@@ -578,14 +579,11 @@ class GroundStateTests(unittest.TestCase):
             pbc=True
         )
         analyzer = SymmetryAnalyzer(system)
-        # space_group = analyzer.get_space_group_number()
-        # print(space_group)
-        # view(system)
+        space_group = analyzer.get_space_group_number()
 
         # The assumed ground state
         analyzer = SymmetryAnalyzer(system)
-        # conv_system = analyzer.get_conventional_system()
-        # view(conv_system)
+        conv_system = analyzer.get_conventional_system()
 
         # Check that the correct Wyckoff positions are occupied, and that an
         # axis swap transformation has not been applied.
@@ -595,6 +593,69 @@ class GroundStateTests(unittest.TestCase):
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "C":
                 self.assertEqual(wset.wyckoff_letter, "c")
+
+    # def test_zinc_blende(self):
+        # """Tests that all different forms of the zinc-blende structure can be
+        # normalized to the same structure. The use of improper normalizers
+        # from Bilbao is required to achieve this, but the resulting structure
+        # must then have a rigid translation in cartesian coordinates to the
+        # original system.
+        # """
+        # # Primitive
+        # zb_prim = ase.build.bulk("ZnS", crystalstructure="zincblende", a=5.42)
+        # analyzer_prim = SymmetryAnalyzer(zb_prim)
+        # zb_prim_conv = analyzer_prim.get_conventional_system()
+        # wyckoff_prim = analyzer_prim.get_wyckoff_letters_conventional()
+        # pos_prim = zb_prim_conv.get_positions()
+        # z_prim = zb_prim_conv.get_atomic_numbers()
+
+        # # Conventional
+        # zb_conv = ase.build.bulk("ZnS", crystalstructure="zincblende", a=5.42, cubic=True)
+        # analyzer_conv = SymmetryAnalyzer(zb_conv)
+        # zb_conv_conv = analyzer_conv.get_conventional_system()
+        # wyckoff_conv = analyzer_conv.get_wyckoff_letters_conventional()
+        # pos_conv = zb_conv_conv.get_positions()
+        # z_conv = zb_conv_conv.get_atomic_numbers()
+        # # print(wyckoff_conv)
+        # # print(pos_conv)
+
+        # # Rotate along x -90
+        # # transform = np.array([
+            # # [1, 0, 0],
+            # # [0, 0, 1],
+            # # [0, -1, 0],
+        # # ])
+        # # pos_conv = np.dot(pos_conv, transform)
+        # # zb_conv_conv.set_positions(pos_conv)
+
+        # # Inversion
+        # # transform = np.array([
+            # # [-1, 0, 0],
+            # # [0, -1, 0],
+            # # [0, 0, -1],
+        # # ])
+        # # pos_conv = zb_conv_conv.get_scaled_positions()
+        # # pos_conv = np.dot(pos_conv, transform)
+        # # zb_conv_conv.set_scaled_positions(pos_conv)
+
+        # # zb_conv_conv.set_pbc(True)
+        # # zb_conv_conv.wrap()
+        # # pos_conv = zb_conv_conv.get_positions()
+
+        # # Assume that the same atoms are at same positions
+        # for ipos, iz, iw in zip(pos_prim, z_prim, wyckoff_prim):
+            # found = False
+            # for jpos, jz, jw in zip(pos_prim, z_prim, wyckoff_prim):
+                # match_pos = np.allclose(ipos, jpos)
+                # match_z = iz == jz
+                # match_w = iw == jw
+                # if match_pos and match_z and match_w:
+                    # found = True
+            # self.assertTrue(found)
+
+        # from ase.visualize import view
+        # view(zb_prim_conv)
+        # view(zb_conv_conv)
 
 
 if __name__ == '__main__':

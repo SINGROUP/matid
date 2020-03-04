@@ -490,8 +490,8 @@ class SymmetryAnalyzer(object):
 
         Args:
             return_parameters (bool): Whether to return the value of possible
-                free Wyckoff parameters. Set to false if the are needed, as
-                their determination can take time.
+                free Wyckoff parameters. Set to false if they are not needed,
+                as their determination can take some time.
 
         Returns:
             list of WyckoffSets: A list of :class:`.WyckoffSet` objects for the
@@ -1030,6 +1030,7 @@ class SymmetryAnalyzer(object):
         proper_rigid_trans = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
         if proper_rigid_trans is not None:
             transform_list.extend(proper_rigid_trans)
+        improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
         if is_flat:
             improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
             if improper_rigid_trans is not None:
