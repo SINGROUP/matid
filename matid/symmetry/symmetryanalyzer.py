@@ -1027,14 +1027,18 @@ class SymmetryAnalyzer(object):
         }
         transform_list.append(identity)
 
-        proper_rigid_trans = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
-        if proper_rigid_trans is not None:
-            transform_list.extend(proper_rigid_trans)
-        improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
-        if is_flat:
-            improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
-            if improper_rigid_trans is not None:
-                transform_list.extend(improper_rigid_trans)
+        # Get all normalizers for this space group. In general they can be both
+        # affine and euclidean at this point.
+        normalizers = PROPER_RIGID_TRANSFORMATIONS.get(space_group) + IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
+
+        # proper_rigid_trans = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
+        # if proper_rigid_trans is not None:
+            # transform_list.extend(proper_rigid_trans)
+        # improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
+        # if is_flat:
+            # improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
+            # if improper_rigid_trans is not None:
+                # transform_list.extend(improper_rigid_trans)
 
         # Test which transformations are proper rigid transformation for the
         # current cell. TODO: Could the proper rigid transformation be checked
