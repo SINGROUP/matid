@@ -1492,6 +1492,22 @@ def get_crystallinity(symmetry_analyser):
 
     return ratio
 
+def find_proper_rigid_transformation(pos1, pos2):
+    """Given two equally sized sets of 3D positions, attempts to find the best
+    proper rigid transformation between them. If one can be found, returns
+    True. Otherwise returns false.
+
+    The algorithms is based on ...
+
+    Args:
+        pos1 (np.array): The first set of coordinates to consider.
+        pos2 (np.array): The second set of coordinates to consider.
+
+    Returns:
+        (bool): Whether a proper rigid transformation could be identified.
+    """
+    return True
+
 
 # def get_surface_normal_direction(system):
     # """Used to estimate a normal vector for a 2D like structure.

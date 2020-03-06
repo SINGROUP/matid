@@ -20,7 +20,7 @@ from ase.data import covalent_radii
 import matid.geometry
 from matid.data import constants
 from matid.core.linkedunits import LinkedUnitCollection, LinkedUnit
-from matid.exceptions import SystaxError
+from matid.exceptions import MatIDError
 
 
 class PeriodicFinder():
@@ -512,7 +512,7 @@ class PeriodicFinder():
             # found 3D cell is correct.
             try:
                 dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
-            except SystaxError:
+            except MatIDError:
                 return None, None, None
             if dimensionality != 3:
                 # If the cell has three unit vectors, but does not exhibit the

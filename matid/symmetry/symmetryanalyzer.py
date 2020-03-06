@@ -11,7 +11,7 @@ from operator import attrgetter
 
 from matid.utils.segfault_protect import segfault_protect
 from matid.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
-from matid.exceptions import CellNormalizationError, SystaxError
+from matid.exceptions import CellNormalizationError
 from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
 from matid.data import constants
 from matid.core.system import System
@@ -967,6 +967,166 @@ class SymmetryAnalyzer(object):
             return None
 
     def _find_wyckoff_ground_state(
+            self,
+            space_group,
+            old_wyckoff_letters,
+            system,
+            is_flat=False,
+            nonperiodic_axis=None):
+
+        print(old_wyckoff_letters)
+        print(system.get_chemical_symbols())
+
+        # Get all normalizers for this space group. In general they can be both
+        # affine and euclidean at this point. It might be that only Eudlidean
+        # normalizers should be considered here, but because the Bilbao Server
+        # does not directly tell which representations use only Euclidean
+        # normalizers, the whole list is currently looped.
+        transform_list = []
+        identity = {
+            "transformation": np.identity(4),
+            "permutations": {x: x for x in old_wyckoff_letters},
+            "identity": True,
+        }
+        transform_list.append(identity)
+        proper_transforms = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
+        if proper_transforms is not None:
+            transform_list = proper_transforms
+        improper_transforms = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
+        if improper_transforms is not None:
+            transform_list = improper_transforms
+
+        # Form all available representations
+        representations = []
+        atomic_numbers = system.get_atomic_numbers()
+        for i, transform in enumerate(transform_list):
+            perm = transform["permutations"]
+            representation = {
+                "transformation": transform["transformation"],
+                "permutations": perm,
+                "id": i,
+            }
+            wyckoff_positions = {}
+            wyckoff_letters = []
+            i_perm = 0
+            for i_atom, old_w in enumerate(old_wyckoff_letters):
+                new_w = perm.get(old_w)
+                wyckoff_letters.append(new_w)
+                if new_w is not None:
+                    z = atomic_numbers[i_atom]
+                    old_n_atoms = wyckoff_positions.get((new_w, z))
+                    if old_n_atoms is None:
+                        wyckoff_positions[(new_w, z)] = 1
+                    else:
+                        wyckoff_positions[(new_w, z)] += 1
+                    i_perm += 1
+            representation["wyckoff_positions"] = wyckoff_positions
+            representations.append(representation)
+
+        # Gather all available Wyckoff letters and atomic number in all
+        # representations
+        all_wyckoff_letters = set()
+        for transform in transform_list:
+            i_perm = transform["permutations"]
+            for orig, new in i_perm.items():
+                all_wyckoff_letters.add(new)
+        all_wyckoff_letters = sorted(all_wyckoff_letters)
+        all_atomic_numbers = sorted(set(system.get_atomic_numbers()))
+
+        # Decide the best representation
+        original_pos = system.get_positions()
+        best_representation = None
+        found = False
+        error = CellNormalizationError("Could not successfully find best Wyckoff positions.")
+        while not found and len(representations) != 0:
+
+            def test_branch(representations):
+                best_representation = None
+                found = False
+                for w in all_wyckoff_letters:
+                    for z in all_atomic_numbers:
+                        print(w, z)
+                        n_atoms_map = defaultdict(list)
+                        n_atoms_max = 0
+                        for r in representations:
+                            i_n = r["wyckoff_positions"].get((w, z))
+                            if i_n is not None:
+                                n_atoms_map[i_n].append(r)
+                                if i_n > n_atoms_max:
+                                    n_atoms_max = i_n
+                        if n_atoms_max != 0:
+                            representations = n_atoms_map[n_atoms_max]
+                        if len(representations) == 1:
+                            return representations
+                return representations
+
+            # If no best transformation was found, then multiple transformation are
+            # equal. Ensure this and then choose the first one.
+            branch_representations = list(representations)
+            branch_representations = test_branch(branch_representations)
+            if len(branch_representations) > 1:
+                new_wyckoffs = branch_representations[0]["wyckoff_positions"]
+                n_items = len(new_wyckoffs)
+                for representation in branch_representations[1:]:
+                    i_wyckoffs = representation["wyckoff_positions"]
+                    if len(i_wyckoffs) != n_items:
+                        raise error
+                    for key in new_wyckoffs.keys():
+                        if i_wyckoffs[key] != new_wyckoffs[key]:
+                            raise error
+            best_representation = branch_representations[0]
+            print(best_representation)
+
+            # Finally we test whether the representation represents a proper
+            # rigid transformation. This depends on the current cell (lattice
+            # parameters + space group symmetries) so checking these properly
+            # beforehand becomes quite hard.
+            transformed_positions = original_pos
+            found = matid.geometry.find_proper_rigid_transformation(original_pos, transformed_positions)
+            if not found:
+                removed_indices = set(x["id"] for x in branch_representations)
+                representations = [i for i in representations if j["id"] not in remove_indices]
+
+        # If for some reason we go through all representations but none is
+        # valid, an exception is raised
+        if not found:
+            raise error
+
+        # Apply the best transform
+        new_system = system.copy()
+        if best_representation.get("identity"):
+            self._best_transform = identity
+            return new_system, old_wyckoff_letters
+        else:
+            self._best_transform = best_representation
+            best_transformation_matrix = best_representation["transformation"]
+            best_permutations = best_representation["permutations"]
+            new_wyckoff_letters = []
+            for i_atom, old_w in enumerate(old_wyckoff_letters):
+                new_w = best_permutations.get(old_w)
+                new_wyckoff_letters.append(new_w)
+            new_wyckoff_letters = np.array(new_wyckoff_letters)
+
+            # Create the homogeneus coordinates
+            n_pos = len(system)
+            old_pos = np.empty((n_pos, 4))
+            old_pos[:, 3] = 1
+            old_pos[:, 0:3] = system.get_scaled_positions()
+
+            # Apply transformation with the augmented 3x4 matrix that is used
+            # for homogeneous coordinates
+            transformed_positions = np.dot(old_pos, best_transformation_matrix.T)
+
+            # Get rid of the extra dimension of the homogeneous coordinates
+            transformed_positions = transformed_positions[:, 0:3]
+
+            # Wrap the positions to the half-closed interval [0, 1)
+            wrapped_pos = matid.geometry.get_wrapped_positions(transformed_positions)
+            new_system.set_scaled_positions(wrapped_pos)
+
+            return new_system, new_wyckoff_letters
+
+    def _find_wyckoff_ground_state_old(
             self,
             space_group,
             old_wyckoff_letters,
