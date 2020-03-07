@@ -974,14 +974,17 @@ class SymmetryAnalyzer(object):
             is_flat=False,
             nonperiodic_axis=None):
 
-        print(old_wyckoff_letters)
-        print(system.get_chemical_symbols())
+        # Precalculate the transformation from scaled to cartesian
+        cart_basis = np.eye(3)
+        cell_basis = system.get_cell()
+        cart_to_cell = np.dot(cart_basis, np.linalg.inv(cell_basis))
+        cell_to_cart = np.dot(cell_basis, np.linalg.inv(cart_basis))
 
         # Get all normalizers for this space group. In general they can be both
         # affine and euclidean at this point. It might be that only Eudlidean
         # normalizers should be considered here, but because the Bilbao Server
         # does not directly tell which representations use only Euclidean
-        # normalizers, the whole list is currently looped.
+        # normalizers, the whole list is currently used.
         transform_list = []
         identity = {
             "transformation": np.identity(4),
@@ -991,10 +994,10 @@ class SymmetryAnalyzer(object):
         transform_list.append(identity)
         proper_transforms = PROPER_RIGID_TRANSFORMATIONS.get(space_group)
         if proper_transforms is not None:
-            transform_list = proper_transforms
+            transform_list += proper_transforms
         improper_transforms = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
         if improper_transforms is not None:
-            transform_list = improper_transforms
+            transform_list += improper_transforms
 
         # Form all available representations
         representations = []
@@ -1022,6 +1025,7 @@ class SymmetryAnalyzer(object):
                     i_perm += 1
             representation["wyckoff_positions"] = wyckoff_positions
             representations.append(representation)
+            
 
         # Gather all available Wyckoff letters and atomic number in all
         # representations
@@ -1036,6 +1040,7 @@ class SymmetryAnalyzer(object):
         # Decide the best representation
         original_pos = system.get_positions()
         best_representation = None
+        transformed_positions = None
         found = False
         error = CellNormalizationError("Could not successfully find best Wyckoff positions.")
         while not found and len(representations) != 0:
@@ -1045,7 +1050,6 @@ class SymmetryAnalyzer(object):
                 found = False
                 for w in all_wyckoff_letters:
                     for z in all_atomic_numbers:
-                        print(w, z)
                         n_atoms_map = defaultdict(list)
                         n_atoms_max = 0
                         for r in representations:
@@ -1075,17 +1079,30 @@ class SymmetryAnalyzer(object):
                         if i_wyckoffs[key] != new_wyckoffs[key]:
                             raise error
             best_representation = branch_representations[0]
-            print(best_representation)
 
             # Finally we test whether the representation represents a proper
             # rigid transformation. This depends on the current cell (lattice
             # parameters + space group symmetries) so checking these properly
             # beforehand becomes quite hard.
-            transformed_positions = original_pos
-            found = matid.geometry.find_proper_rigid_transformation(original_pos, transformed_positions)
+            best_trans = best_representation["transformation"]
+            nonaugmented_trans = best_trans[0:3, 0:3]
+
+            # Remove the non-periodic dimension from the transformation
+            if nonperiodic_axis is not None:
+                nonaugmented_trans = nonaugmented_trans[dim_mask, :]
+                nonaugmented_trans = nonaugmented_trans[:, dim_mask]
+
+            cart_trans = np.dot(cart_to_cell, np.dot(nonaugmented_trans, cell_to_cart))
+            tested_positions = np.dot(original_pos, cart_trans.T)
+            rotation, translation = matid.geometry.find_best_rigid_transformation(original_pos, tested_positions, is_proper=False)
+            best_rigid_coordinates = np.dot(original_pos, rotation) + translation
+            max_displacement = np.linalg.norm(tested_positions - best_rigid_coordinates, axis=1).max()
+            found = max_displacement <= 1e-6
+            if found:
+                transformed_positions = tested_positions
             if not found:
                 removed_indices = set(x["id"] for x in branch_representations)
-                representations = [i for i in representations if j["id"] not in remove_indices]
+                representations = [i for i in representations if i["id"] not in removed_indices]
 
         # If for some reason we go through all representations but none is
         # valid, an exception is raised
@@ -1107,21 +1124,9 @@ class SymmetryAnalyzer(object):
                 new_wyckoff_letters.append(new_w)
             new_wyckoff_letters = np.array(new_wyckoff_letters)
 
-            # Create the homogeneus coordinates
-            n_pos = len(system)
-            old_pos = np.empty((n_pos, 4))
-            old_pos[:, 3] = 1
-            old_pos[:, 0:3] = system.get_scaled_positions()
-
-            # Apply transformation with the augmented 3x4 matrix that is used
-            # for homogeneous coordinates
-            transformed_positions = np.dot(old_pos, best_transformation_matrix.T)
-
-            # Get rid of the extra dimension of the homogeneous coordinates
-            transformed_positions = transformed_positions[:, 0:3]
-
             # Wrap the positions to the half-closed interval [0, 1)
-            wrapped_pos = matid.geometry.get_wrapped_positions(transformed_positions)
+            transformed_positions_scaled = np.dot(transformed_positions, cart_to_cell)
+            wrapped_pos = matid.geometry.get_wrapped_positions(transformed_positions_scaled)
             new_system.set_scaled_positions(wrapped_pos)
 
             return new_system, new_wyckoff_letters

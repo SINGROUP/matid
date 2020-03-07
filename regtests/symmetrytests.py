@@ -505,95 +505,94 @@ class GroundStateTests(unittest.TestCase):
     """Tests that the correct normalizer is applied to reach minimal
     configuration score that defines the Wyckoff positions.
     """
-    # def test_translation(self):
-        # """Test a transform that translates atoms.
-        # """
-        # # The original system belongs to space group 12, see
-        # # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-normsets?from=wycksets&gnum=12
-        # # and
-        # # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
-        # system = Atoms(
-            # cell=[
-                # [3.3, 0., 0.],
-                # [0., 1., 0.],
-                # [-1., 0., 3.],
-            # ],
-            # scaled_positions=[
-                # [0.5, 0.5, 0.],
-                # [0.5, 0.,  0.5],
-                # [0.,  0.,  0.],
-                # [0.,  0.5, 0.5],
-            # ],
-            # symbols=["C", "H", "C", "H"],
-            # pbc=True
-        # )
-        # # The assumed ground state
-        # correct_state = ["d", "a", "d", "a"]
-        # analyzer = SymmetryAnalyzer(system)
-        # orig_wyckoffs = analyzer.get_wyckoff_letters_original()
-        # self.assertTrue(np.array_equal(orig_wyckoffs, correct_state))
+    def test_translation(self):
+        """Test a transform that translates atoms.
+        """
+        # The original system belongs to space group 12, see
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-normsets?from=wycksets&gnum=12
+        # and
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
+        system = Atoms(
+            cell=[
+                [3.3, 0., 0.],
+                [0., 1., 0.],
+                [-1., 0., 3.],
+            ],
+            scaled_positions=[
+                [0.5, 0.5, 0.],
+                [0.5, 0.,  0.5],
+                [0.,  0.,  0.],
+                [0.,  0.5, 0.5],
+            ],
+            symbols=["C", "H", "C", "H"],
+            pbc=True
+        )
+        # The assumed ground state
+        correct_state = ["d", "a", "d", "a"]
+        analyzer = SymmetryAnalyzer(system)
+        orig_wyckoffs = analyzer.get_wyckoff_letters_original()
+        self.assertTrue(np.array_equal(orig_wyckoffs, correct_state))
 
-        # # Check that the system has been translated correctly. The correct
-        # # positions can be seen at
-        # # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
-        # conv_system = analyzer.get_conventional_system()
-        # conv_pos = conv_system.get_scaled_positions()
+        # Check that the system has been translated correctly. The correct
+        # positions can be seen at
+        # http://www.cryst.ehu.es/cgi-bin/cryst/programs/nph-wp-list?gnum=012
+        conv_system = analyzer.get_conventional_system()
+        conv_pos = conv_system.get_scaled_positions()
 
-        # a1 = [0.0, 0.0, 0.0]
-        # a2 = [0.5, 0.5, 0.0]
-        # d1 = [0, 0.5, 0.5]
-        # d2 = [0.5, 0.0, 0.5]
+        a1 = [0.0, 0.0, 0.0]
+        a2 = [0.5, 0.5, 0.0]
+        d1 = [0, 0.5, 0.5]
+        d2 = [0.5, 0.0, 0.5]
 
-        # # Test that the Wyckoff positions d are correct, order does not matter
-        # pos1 = np.array_equal(conv_pos[0], d1)
-        # if pos1:
-            # self.assertTrue(np.array_equal(conv_pos[2], d2))
-        # else:
-            # self.assertTrue(np.array_equal(conv_pos[0], d2))
-            # self.assertTrue(np.array_equal(conv_pos[2], d1))
+        # Test that the Wyckoff positions d are correct, order does not matter
+        pos1 = np.array_equal(conv_pos[0], d1)
+        if pos1:
+            self.assertTrue(np.array_equal(conv_pos[2], d2))
+        else:
+            self.assertTrue(np.array_equal(conv_pos[0], d2))
+            self.assertTrue(np.array_equal(conv_pos[2], d1))
 
-        # # Test that the Wyckoff positions a are correct, order does not matter
-        # pos1 = np.array_equal(conv_pos[1], a1)
-        # if pos1:
-            # self.assertTrue(np.array_equal(conv_pos[3], a2))
-        # else:
-            # self.assertTrue(np.array_equal(conv_pos[1], a2))
-            # self.assertTrue(np.array_equal(conv_pos[3], a1))
+        # Test that the Wyckoff positions a are correct, order does not matter
+        pos1 = np.array_equal(conv_pos[1], a1)
+        if pos1:
+            self.assertTrue(np.array_equal(conv_pos[3], a2))
+        else:
+            self.assertTrue(np.array_equal(conv_pos[1], a2))
+            self.assertTrue(np.array_equal(conv_pos[3], a1))
 
-    # def test_transformation_affine(self):
-        # """Test a transform where the transformation is a proper rigid
-        # transformation in the scaled cell basis, but will be non-rigid in the
-        # cartesian basis. This kind of transformations should not be allowed.
-        # """
-        # system = Atoms(
-            # cell=[
-                # [1, 0., 0.],
-                # [0., 2.66, 0.],
-                # [0., 0., 1.66],
-            # ],
-            # scaled_positions=[
-                # [0.0, 1/2, 0.0],
-                # [0.0, 0.0, 0.0],
-            # ],
-            # symbols=["H", "C"],
-            # pbc=True
-        # )
-        # analyzer = SymmetryAnalyzer(system)
-        # space_group = analyzer.get_space_group_number()
-        # print(space_group)
+    def test_transformation_affine(self):
+        """Test a transform where the transformation is a proper rigid
+        transformation in the scaled cell basis, but will be non-rigid in the
+        cartesian basis. This kind of transformations should not be allowed.
+        """
+        system = Atoms(
+            cell=[
+                [1, 0., 0.],
+                [0., 2.66, 0.],
+                [0., 0., 1.66],
+            ],
+            scaled_positions=[
+                [0.0, 1/2, 0.0],
+                [0.0, 0.0, 0.0],
+            ],
+            symbols=["H", "C"],
+            pbc=True
+        )
+        analyzer = SymmetryAnalyzer(system)
+        space_group = analyzer.get_space_group_number()
 
-        # # The assumed ground state
-        # analyzer = SymmetryAnalyzer(system)
-        # conv_system = analyzer.get_conventional_system()
+        # The assumed ground state
+        analyzer = SymmetryAnalyzer(system)
+        conv_system = analyzer.get_conventional_system()
 
-        # # Check that the correct Wyckoff positions are occupied, and that an
-        # # axis swap transformation has not been applied.
-        # wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
-        # for wset in wyckoff_sets_conv:
-            # if wset.element == "H":
-                # self.assertEqual(wset.wyckoff_letter, "a")
-            # if wset.element == "C":
-                # self.assertEqual(wset.wyckoff_letter, "c")
+        # Check that the correct Wyckoff positions are occupied, and that an
+        # axis swap transformation has not been applied.
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "H":
+                self.assertEqual(wset.wyckoff_letter, "a")
+            if wset.element == "C":
+                self.assertEqual(wset.wyckoff_letter, "c")
 
     def test_zinc_blende(self):
         """Tests that all different forms of the zinc-blende structure can be
@@ -642,19 +641,19 @@ class GroundStateTests(unittest.TestCase):
         # pos_conv = zb_conv_conv.get_positions()
 
         # Assume that the same atoms are at same positions
-        # for ipos, iz, iw in zip(pos_prim, z_prim, wyckoff_prim):
-            # found = False
-            # for jpos, jz, jw in zip(pos_conv, z_conv, wyckoff_conv):
-                # match_pos = np.allclose(ipos, jpos)
-                # match_z = iz == jz
-                # match_w = iw == jw
-                # if match_pos and match_z and match_w:
-                    # found = True
-            # self.assertTrue(found)
+        for ipos, iz, iw in zip(pos_prim, z_prim, wyckoff_prim):
+            found = False
+            for jpos, jz, jw in zip(pos_conv, z_conv, wyckoff_conv):
+                match_pos = np.allclose(ipos, jpos)
+                match_z = iz == jz
+                match_w = iw == jw
+                if match_pos and match_z and match_w:
+                    found = True
+            self.assertTrue(found)
 
-        from ase.visualize import view
-        view(zb_prim_conv)
-        view(zb_conv_conv)
+        # from ase.visualize import view
+        # view(zb_prim_conv)
+        # view(zb_conv_conv)
 
 
 if __name__ == '__main__':

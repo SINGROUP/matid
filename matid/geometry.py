@@ -1492,7 +1492,8 @@ def get_crystallinity(symmetry_analyser):
 
     return ratio
 
-def find_proper_rigid_transformation(pos1, pos2):
+
+def find_best_rigid_transformation(A, B, is_proper=True):
     """Given two equally sized sets of 3D positions, attempts to find the best
     proper rigid transformation between them. If one can be found, returns
     True. Otherwise returns false.
@@ -1502,11 +1503,45 @@ def find_proper_rigid_transformation(pos1, pos2):
     Args:
         pos1 (np.array): The first set of coordinates to consider.
         pos2 (np.array): The second set of coordinates to consider.
+        is_proper (np.array): Whether the transformation need to be proper,
+            i.e. inversion is not allowed.
 
     Returns:
-        (bool): Whether a proper rigid transformation could be identified.
+        (tuple): Returns a tuple containing the rotation matrix, translation
+        vector and optionally a boolean indicating if the transformation is
+        proper rigid.
+
+    Raises:
+        ValueError: If the dimensions of the positions do not match.
     """
-    return True
+    # Check data validity
+    if len(A) != len(B):
+        raise ValueError("The provided positions do not have the same dimensions.")
+
+    # Find centroids
+    centroid_A = np.mean(A, axis=0)
+    centroid_B = np.mean(B, axis=0)
+
+    # Center to centroid
+    Am = A - centroid_A
+    Bm = B - centroid_B
+    H = np.dot(Am.T, Bm)
+
+    # Find rotation with SVD
+    U, S, Vt = np.linalg.svd(H)
+    rotation = np.dot(U, Vt)
+
+    # Handle special reflection case
+    if is_proper:
+        determinant = np.linalg.det(rotation)
+        if determinant < 0:
+            Vt[2,:] *= -1
+            rotation = np.dot(U, Vt)
+
+    # Compute translation
+    translation = -np.dot(centroid_A, rotation) + centroid_B
+
+    return rotation, translation
 
 
 # def get_surface_normal_direction(system):
