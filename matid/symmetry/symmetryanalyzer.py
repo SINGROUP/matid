@@ -12,7 +12,7 @@ from operator import attrgetter
 from matid.utils.segfault_protect import segfault_protect
 from matid.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
 from matid.exceptions import CellNormalizationError, SystaxError
-from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_POSITIONS
+from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_SETS
 from matid.data import constants
 from matid.core.system import System
 from matid.symmetry import WyckoffSet
@@ -186,7 +186,7 @@ class SymmetryAnalyzer(object):
         """
         space_group = self.get_space_group_number()
         wyckoff_letters = set(self.get_wyckoff_letters_original())
-        wyckoff_info = WYCKOFF_POSITIONS[space_group]
+        wyckoff_info = WYCKOFF_SETS[space_group]
         for wyckoff_letter in wyckoff_letters:
             variables = wyckoff_info[wyckoff_letter]["variables"]
             if len(variables) != 0:
@@ -1271,7 +1271,7 @@ class SymmetryAnalyzer(object):
         elements = system.get_chemical_symbols()
         numbers = system.get_atomic_numbers()
         positions = system.get_scaled_positions()
-        wyckoff_infos = WYCKOFF_POSITIONS[space_group]
+        wyckoff_infos = WYCKOFF_SETS[space_group]
 
         # Include the representative coordinate in the set
 

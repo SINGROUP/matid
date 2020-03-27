@@ -13,6 +13,7 @@ import ase.spacegroup
 import ase.build
 
 from matid import SymmetryAnalyzer
+from matid.symmetry.wyckoffset import WyckoffSet
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
 from matid.utils.segfault_protect import segfault_protect
 
@@ -392,113 +393,173 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
 class WyckoffTests(unittest.TestCase):
     """Tests for the Wyckoff information.
     """
-    def test_no_free(self):
-        """Test that no Wyckoff parameter is returned when the position is not
-        free.
+    def test_non_default_129(self):
+        """Tests that systems which deviate from the default settings (spglib
+        does not use the default settings, but instead will use the setting
+        with lowest Hall number) are handled correctly.
         """
-        # Create structure
+        # Create structure that has space group 129: the origin setting differ
+        # from default settings.
+        sg_129 = Atoms(
+            symbols=["F", "F", "Nd", "Nd", "S", "S"],
+            scaled_positions=[
+                [0.7499993406, 0.2499997802, 0.0000000000],
+                [0.2499997802, 0.7499993406, 0.0000000000],
+                [0.2499997802, 0.2499997802, 0.2301982694],
+                [0.7499993406, 0.7499993406, 0.7698006940],
+                [0.7499993406, 0.7499993406, 0.3524397980],
+                [0.2499997802, 0.2499997802, 0.6475606156],
+            ],
+            cell= [
+                [3.919363, 0.000000, 0.000000],
+                [0.000000, 3.919363, 0.000000],
+                [0.000000, 0.000000, 6.895447],
+            ],
+            pbc=True
+        )
+
+        # Find the Wyckoff groups
+        analyzer = SymmetryAnalyzer(sg_129)
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+
+        # Check that groups are correct
+        expected_sets = [
+            WyckoffSet("a", 9, "F", space_group=129, multiplicity=2),
+            WyckoffSet("c", 16, "S", z=0.352439798, space_group=124, multiplicity=2),
+            WyckoffSet("c", 60, "Nd", z=0.7698017306, space_group=129, multiplicity=2),
+        ]
+        for w1, w2 in zip(expected_sets, wyckoff_sets):
+            self.assertEqual(w1, w2)
+
+    def test_default_225(self):
+        """Tests that systems which deviate from the default settings (spglib
+        does not use the default settings, but instead will use the setting
+        with lowest Hall number) are handled correctly.
+        """
+        # Create structure that has space group 129: the origin setting differ
+        # from default settings.
         a = 2.87
-        fcc = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # view(fcc)
+        system = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # view(fcc)
 
         # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(fcc)
+        analyzer = SymmetryAnalyzer(system)
         wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
-        self.assertEqual(len(wyckoff_sets), 1)
-        wset = wyckoff_sets[0]
-        self.assertEqual(wset.atomic_number, 13)
-        self.assertEqual(wset.element, "Al")
-        self.assertEqual(wset.wyckoff_letter, "a")
-        self.assertEqual(wset.indices, [0, 1, 2, 3])
-        self.assertEqual(wset.x, None)
-        self.assertEqual(wset.y, None)
-        self.assertEqual(wset.z, None)
+        # Check that groups are correct
+        expected_sets = [
+            WyckoffSet("a", 13, "Al", space_group=225, multiplicity=4),
+        ]
+        for w1, w2 in zip(expected_sets, wyckoff_sets):
+            self.assertEqual(w1, w2)
 
-    def test_one_free(self):
-        """Test finding the value of the Wyckoff free parameter when one
-        direction is free.
-        """
-        # Create structure
-        free_variables = {
-            "x": 0.13
-        }
-        a = 12
-        fcc = ase.spacegroup.crystal('Al', [(0, free_variables["x"], 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # view(fcc)
+    # def test_no_free(self):
+        # """Test that no Wyckoff parameter is returned when the position is not
+        # free.
+        # """
+        # # Create structure
+        # a = 2.87
+        # fcc = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # view(fcc)
 
-        # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(fcc)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
-        self.assertEqual(len(wyckoff_sets), 1)
-        wset = wyckoff_sets[0]
-        self.assertEqual(wset.atomic_number, 13)
-        self.assertEqual(wset.element, "Al")
-        self.assertEqual(wset.wyckoff_letter, "e")
-        self.assertEqual(wset.indices, list(range(len(fcc))))
-        for var, value in free_variables.items():
-            calculated_value = getattr(wset, var)
-            self.assertTrue(calculated_value - value <= 1e-2)
+        # # Check that the information matches
+        # self.assertEqual(len(wyckoff_sets), 1)
+        # wset = wyckoff_sets[0]
+        # self.assertEqual(wset.atomic_number, 13)
+        # self.assertEqual(wset.element, "Al")
+        # self.assertEqual(wset.wyckoff_letter, "a")
+        # self.assertEqual(wset.indices, [0, 1, 2, 3])
+        # self.assertEqual(wset.x, None)
+        # self.assertEqual(wset.y, None)
+        # self.assertEqual(wset.z, None)
 
-    def test_two_free(self):
-        """Test finding the value of the Wyckoff free parameter when two
-        directions are free.
-        """
-        # Create structure
-        free_variables = {
-            "y": 0.13,
-            "z": 0.077,
-        }
-        a = 40
-        fcc = ase.spacegroup.crystal('Al', [(0, free_variables["y"], free_variables["z"])], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # view(fcc)
+    # def test_one_free(self):
+        # """Test finding the value of the Wyckoff free parameter when one
+        # direction is free.
+        # """
+        # # Create structure
+        # free_variables = {
+            # "x": 0.13
+        # }
+        # a = 12
+        # fcc = ase.spacegroup.crystal('Al', [(0, free_variables["x"], 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # view(fcc)
 
-        # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(fcc)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
-        self.assertEqual(len(wyckoff_sets), 1)
-        wset = wyckoff_sets[0]
-        self.assertEqual(wset.atomic_number, 13)
-        self.assertEqual(wset.element, "Al")
-        self.assertEqual(wset.wyckoff_letter, "j")
-        self.assertEqual(wset.indices, list(range(len(fcc))))
-        for var, value in free_variables.items():
-            calculated_value = getattr(wset, var)
-            self.assertTrue(calculated_value - value <= 1e-2)
+        # # Check that the information matches
+        # self.assertEqual(len(wyckoff_sets), 1)
+        # wset = wyckoff_sets[0]
+        # self.assertEqual(wset.atomic_number, 13)
+        # self.assertEqual(wset.element, "Al")
+        # self.assertEqual(wset.wyckoff_letter, "e")
+        # self.assertEqual(wset.indices, list(range(len(fcc))))
+        # for var, value in free_variables.items():
+            # calculated_value = getattr(wset, var)
+            # self.assertTrue(calculated_value - value <= 1e-2)
 
-    def test_three_free(self):
-        """Test finding the value of the Wyckoff free parameter when three
-        directions are free.
-        """
-        # Create structure
-        free_variables = {
-            "x": 0.36,
-            "y": 0.13,
-            "z": 0.077,
-        }
-        a = 100
-        fcc = ase.spacegroup.crystal('Al', [(free_variables["x"], free_variables["y"], free_variables["z"])], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # view(fcc)
+    # def test_two_free(self):
+        # """Test finding the value of the Wyckoff free parameter when two
+        # directions are free.
+        # """
+        # # Create structure
+        # free_variables = {
+            # "y": 0.13,
+            # "z": 0.077,
+        # }
+        # a = 40
+        # fcc = ase.spacegroup.crystal('Al', [(0, free_variables["y"], free_variables["z"])], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # view(fcc)
 
-        # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(fcc)
-        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(fcc)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
-        self.assertEqual(len(wyckoff_sets), 1)
-        wset = wyckoff_sets[0]
-        self.assertEqual(wset.atomic_number, 13)
-        self.assertEqual(wset.element, "Al")
-        self.assertEqual(wset.wyckoff_letter, "l")
-        self.assertEqual(wset.indices, list(range(len(fcc))))
-        for var, value in free_variables.items():
-            calculated_value = getattr(wset, var)
-            self.assertTrue(calculated_value - value <= 1e-2)
+        # # Check that the information matches
+        # self.assertEqual(len(wyckoff_sets), 1)
+        # wset = wyckoff_sets[0]
+        # self.assertEqual(wset.atomic_number, 13)
+        # self.assertEqual(wset.element, "Al")
+        # self.assertEqual(wset.wyckoff_letter, "j")
+        # self.assertEqual(wset.indices, list(range(len(fcc))))
+        # for var, value in free_variables.items():
+            # calculated_value = getattr(wset, var)
+            # self.assertTrue(calculated_value - value <= 1e-2)
+
+    # def test_three_free(self):
+        # """Test finding the value of the Wyckoff free parameter when three
+        # directions are free.
+        # """
+        # # Create structure
+        # free_variables = {
+            # "x": 0.36,
+            # "y": 0.13,
+            # "z": 0.077,
+        # }
+        # a = 100
+        # fcc = ase.spacegroup.crystal('Al', [(free_variables["x"], free_variables["y"], free_variables["z"])], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # view(fcc)
+
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(fcc)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+
+        # # Check that the information matches
+        # self.assertEqual(len(wyckoff_sets), 1)
+        # wset = wyckoff_sets[0]
+        # self.assertEqual(wset.atomic_number, 13)
+        # self.assertEqual(wset.element, "Al")
+        # self.assertEqual(wset.wyckoff_letter, "l")
+        # self.assertEqual(wset.indices, list(range(len(fcc))))
+        # for var, value in free_variables.items():
+            # calculated_value = getattr(wset, var)
+            # self.assertTrue(calculated_value - value <= 1e-2)
 
 
 class GroundStateTests(unittest.TestCase):
@@ -660,11 +721,11 @@ class GroundStateTests(unittest.TestCase):
 
 if __name__ == '__main__':
     suites = []
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(TestSegfaultProtect))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(TestSegfaultProtect))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser3DTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(SymmetryAnalyser2DTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(WyckoffTests))
-    suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
+    # suites.append(unittest.TestLoader().loadTestsFromTestCase(GroundStateTests))
 
     alltests = unittest.TestSuite(suites)
     result = unittest.TextTestRunner(verbosity=0).run(alltests)

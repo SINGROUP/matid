@@ -36,3 +36,21 @@ class WyckoffSet():
         self.x = x
         self.y = y
         self.z = z
+
+    def __repr__(self): 
+        return "Wyckoff letter: {}, element: {}, multiplicity: {}".format(self.wyckoff_letter, self.element, self.multiplicity)
+  
+    def __str__(self): 
+        return "Wyckoff letter: {}, element: {}, multiplicity: {}".format(self.wyckoff_letter, self.element, self.multiplicity)
+
+    def __eq__(self, other):
+        if self.wyckoff_letter != other.wyckoff_letter: return False
+        if self.atomic_number != other.atomic_number: return False
+        if self.element != other.element: return False
+        if self.space_group != other.space_group: return False
+        if self.multiplicity != other.multiplicity: return False
+        if self.x != other.x: return False
+        if self.y != other.y: return False
+        if self.z != other.z: return False
+
+        return True

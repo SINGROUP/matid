@@ -1,7 +1,7 @@
 """
 For each space group fetches information about the Wyckoff positions that have
 free parameters, i.e. can be moved freely in some direction. Returns the free
-parametesr and the algebraic expressions for the locations of the atoms based
+parameters and the algebraic expressions for the locations of the atoms based
 on the free variables.
 """
 import re
