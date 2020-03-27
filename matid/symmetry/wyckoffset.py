@@ -25,6 +25,11 @@ class WyckoffSet():
             x (float): The free parameter for the a-vector.
             y (float): The free parameter for the b-vector.
             z (float): The free parameter for the c-vector.
+            space_group (int): The space group number for this set.
+            representative (str): Algebraic expression that represents this set: all
+                other positions are generated from symmetry.
+            multiplicity (int): The multiplicity of the set: how many atoms are
+                in this set.
         """
         self.wyckoff_letter = wyckoff_letter
         self.atomic_number = atomic_number
@@ -38,10 +43,15 @@ class WyckoffSet():
         self.z = z
 
     def __repr__(self): 
-        return "Wyckoff letter: {}, element: {}, multiplicity: {}".format(self.wyckoff_letter, self.element, self.multiplicity)
+        return "Wyckoff letter: {}, element: {}, multiplicity: {}, space group: {}".format(
+            self.wyckoff_letter,
+            self.element,
+            self.multiplicity,
+            self.space_group
+        )
   
     def __str__(self): 
-        return "Wyckoff letter: {}, element: {}, multiplicity: {}".format(self.wyckoff_letter, self.element, self.multiplicity)
+        return self.__repr__()
 
     def __eq__(self, other):
         if self.wyckoff_letter != other.wyckoff_letter: return False

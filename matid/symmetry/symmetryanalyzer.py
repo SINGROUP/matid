@@ -1288,6 +1288,7 @@ class SymmetryAnalyzer(object):
                 wyckoff_letter=str(wyckoff_letters[index]),
                 element=str(elements[index]),
                 atomic_number=int(numbers[index]),
+                space_group=space_group,
                 representative=wyckoff_infos[wyckoff_letters[index]]["expressions"][0],
             )
             set_data.indices = []
