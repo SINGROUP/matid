@@ -1246,9 +1246,13 @@ class SymmetryAnalyzer(object):
         """
         # A dictionary of the supported operators for parsing a mathematical
         # expression.
+        import re
+        import parser
+        reg = re.compile("(?:(?P<x>[+-]?(?:\d(?:\/\d+)?)?)x)?(?:(?P<y>[+-]?(?:\d(?:\/\d+)?)?)y)?(?:(?P<z>[+-]?(?:\d(?:\/\d+)?)?)z)?(?P<c>[+-]?\d\/?\d*)?")
+
         operators = {
             ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul,
-            ast.Div: op.truediv, ast.USub: op.neg
+            ast.Div: op.truediv, ast.USub: op.neg, ast.UAdd: op.add
         }
 
         def eval_expr(expr):
@@ -1266,6 +1270,42 @@ class SymmetryAnalyzer(object):
                 return operators[type(node.op)](eval_(node.operand))
             else:
                 raise TypeError(node)
+
+        def convert(var):
+            val = None
+            if var == "-":
+                val = -1
+            elif var == "":
+                val = 1
+            elif var is not None:
+                code = parser.expr(var).compile()
+                val = eval(code)
+            return val
+
+        def matrixfy(expression, variables):
+            # Convert into matrix form
+            A = np.eye(3)
+            T = np.zeros((1, 3))
+            for i in range(3):
+                match = reg.match(expression[i])
+                groups = match.groupdict()
+                for j, var in enumerate(["x", "y", "z"]):
+                    if var in variables:
+                        # print("Attempting to fetch multiplier for {} in expression {}".format(var, expression[i]))
+                        multiplier = convert(groups[var])
+                        # print("Found: {}".format(multiplier))
+                        if multiplier is not None:
+                            A[i,j] = multiplier
+                        constant = convert(groups["c"])
+                        if constant is not None:
+                            T[0, i] = constant
+            # print(expression)
+            # print(variables)
+            # print(A)
+            # print(T)
+            A = A.T
+            A_inv = np.linalg.inv(A)
+            return A_inv, A, T
 
         cell = system.get_cell()
         elements = system.get_chemical_symbols()
@@ -1303,121 +1343,211 @@ class SymmetryAnalyzer(object):
 
         # For each set, solve the free variables if any present
         if return_parameters:
+            translations = wyckoff_infos["translations"]
+            if translations is None:
+                translations = []
             for i_set, wset in sets.items():
                 indices = wset.indices[:]
                 wyckoff_letter = wset.wyckoff_letter
                 wyckoff_info = wyckoff_infos[wyckoff_letter]
                 coordinate_expressions = wyckoff_info["expressions"]
                 variables_present = wyckoff_info["variables"]
+                all_pos = positions[indices]
+                print("Wyckoff letter: {}".format(wyckoff_letter))
 
                 # Resolve the needed variables
                 if variables_present:
                     variables_resolved = False
                     variables_values = []
                     position_for_variable = []
+                    n_expr = len(coordinate_expressions)
+                    n_trans = len(translations)
 
+                    #=========================================================
+                    A_invs = np.zeros((n_expr, 3, 3))
+                    As = np.zeros((n_expr, 3,3))
+                    Ts = np.zeros((n_expr, 3))
+                    for i, e in enumerate(coordinate_expressions):
+                        A_inv, A, T = matrixfy(e, variables_present)
+                        A_invs[i, :, :] = A_inv
+                        As[i, :, :] = A
+                        Ts[i, :] = T
+
+                    # Calculate the variables (x,y,z) based on the first
+                    # Wyckoff position. The variables are calculated for each
+                    # atom until the found variables match all atoms.
+                    for atom_index in indices:
+
+                        # Calculate the Wyckoff variables base on the atom at
+                        # current index. The variables that are not present are
+                        # forced to be zero.
+                        X_0 = positions[atom_index]
+                        X = np.dot(X_0 - Ts[0], A_invs[0])
+                        for j, var in enumerate(["x", "y", "z"]):
+                            if var not in variables_present:
+                                X[j] = 0
+
+                        # Calculate the positions of all other atoms with the
+                        # currently tested Wyckoff variables
+                        test_positions = np.zeros(((n_trans+1)*n_expr, 3))
+                        first_test_pos = np.dot(X, As) + Ts
+                        if abs(X[0]-0.13) < 0.1:
+                            print("Testing: {}".format(X))
+                            print(X)
+                            print(As)
+                            print(Ts)
+                            # print(first_test_pos)
+                        test_positions[0:n_expr, :] = first_test_pos
+                        i_trans = 1
+                        for trans in translations:
+                            test_positions[i_trans*n_expr:(i_trans+1)*n_expr, :] = first_test_pos + trans
+                            i_trans += 1
+                        test_positions = matid.geometry.get_wrapped_positions(test_positions)
+
+                        # Test if each test positions can be matched to an atom
+                        # in the actual structure. If yes, the variables are
+                        # resolved. Otherwise we continue on looping.
+                        found = True
+                        n_matches = 0
+                        # print("Testing: {}".format(X))
+                        for test_pos in test_positions:
+                            # print("Trying to find: {}".format(test_pos))
+                            if self._search_periodic_positions(
+                                    test_pos,
+                                    all_pos,
+                                    cell,
+                                    precision) is None:
+                                found = False
+                                break
+                            n_matches += 1
+                        # print("Matched {}/{}".format(n_matches, len(test_positions)))
+                        if found:
+                            variables_resolved = True
+                            for j, var in enumerate(["x", "y", "z"]):
+                                if var in variables_present:
+                                    setattr(wset, var, X[j])
+                            break
+
+                    # If the variables cannot be resolved, raise an error.
+                    if not variables_resolved:
+                        raise ValueError(
+                            "Could not resolve the free Wyckoff parameters for "
+                            "Wyckoff letter '{}' in space group {}. Problem in "
+                            "determining variables for element '{}' at indices "
+                            "'{}'."
+                            .format(wset.wyckoff_letter, wset.space_group, wset.element, wset.indices)
+                        )
+
+                    #=========================================================
                     # For each atom, evaluate the values of the free parameters.
                     # Then check if all other atoms can be consistently identified
                     # according to their symmetry locations.
-                    for atom_index in indices:
-                        pos = positions[atom_index]
-                        evaluated_pos = np.zeros(3)
-                        values = {}
-                        for i_coord, expr in enumerate(coordinate_expressions[0]):
-                            for variable in variables_present:
-                                if variable == "x":
-                                    value = pos[0]
-                                elif variable == "y":
-                                    value = pos[1]
-                                elif variable == "z":
-                                    value = pos[2]
-                                values[variable] = value
-                                expr = expr.replace(variable, str(value))
-                            evaluated_pos[i_coord] = eval_expr(expr)
+                    # for atom_index in indices:
 
-                        # See if we have found the position that uniquely determines
-                        # the free variables.
-                        evaluated_pos = matid.geometry.get_wrapped_positions(evaluated_pos)
+                        # pos = positions[atom_index]
+                        # evaluated_pos = np.zeros(3)
+                        # values = {}
+                        # for i_coord, expr in enumerate(coordinate_expressions[0]):
+                            # for variable in variables_present:
+                                # if variable == "x":
+                                    # value = pos[0]
+                                # elif variable == "y":
+                                    # value = pos[1]
+                                # elif variable == "z":
+                                    # value = pos[2]
+                                # values[variable] = value
+                                # expr = expr.replace(variable, str(value))
+                            # evaluated_pos[i_coord] = eval_expr(expr)
 
-                        if self._search_periodic_positions(
-                                evaluated_pos,
-                                pos,
-                                cell,
-                                precision) is not None:
-                            # Test the found variables against all the other
-                            # coordinates.
-                            variables_ok = True
-                            for expression in coordinate_expressions[1:]:
-                                eval_pos = np.zeros(3)
-                                for i_coord, expr in enumerate(expression):
-                                    for variable in variables_present:
-                                        expr = expr.replace(variable, str(values[variable]))
-                                    eval_pos[i_coord] = eval_expr(expr)
-                                eval_pos = matid.geometry.get_wrapped_positions(eval_pos)
+                        # # See if we have found the position that uniquely determines
+                        # # the free variables.
+                        # evaluated_pos = matid.geometry.get_wrapped_positions(evaluated_pos)
 
-                                wyckoff_coord_matched = False
-                                for atom_index in indices:
-                                    pos = positions[atom_index]
-                                    if self._search_periodic_positions(
-                                            evaluated_pos,
-                                            pos,
-                                            cell,
-                                            precision) is not None:
-                                        wyckoff_coord_matched = True
-                                        break
-                                if not wyckoff_coord_matched:
-                                    variables_ok = False
-                            if variables_ok:
-                                variables_values.append(values)
-                                position_for_variable.append(evaluated_pos)
+                        # # print("======================")
+                        # # print(atom_index)
+                        # # print(values)
+                        # # print(pos)
+                        # # print(evaluated_pos)
 
-                    n_variable_sets = len(variables_values)
-                    variables_resolved = False
-                    wyckoff_exception = ValueError(
-                        "Could not resolve the free Wyckoff parameters for a set "
-                        "of equivalent atoms. Could not determine the variables for"
-                        " element '{}' and the following indices '{}'"
-                        .format(wset.element, wset.indices)
-                    )
-                    if n_variable_sets == 0:
-                        raise wyckoff_exception
-                    if n_variable_sets == 1:
-                        final_variables = variables_values[0]
-                        for key, value in final_variables.items():
-                            setattr(wset, key, value)
-                        variables_resolved = True
-                    elif n_variable_sets > 1:
+                        # if self._search_periodic_positions(
+                                # evaluated_pos,
+                                # pos,
+                                # cell,
+                                # precision) is not None:
+                            # # Test the found variables against all the other
+                            # # coordinates.
+                            # variables_ok = True
+                            # for expression in coordinate_expressions[1:]:
+                                # eval_pos = np.zeros(3)
+                                # for i_coord, expr in enumerate(expression):
+                                    # for variable in variables_present:
+                                        # expr = expr.replace(variable, str(values[variable]))
+                                    # eval_pos[i_coord] = eval_expr(expr)
+                                # eval_pos = matid.geometry.get_wrapped_positions(eval_pos)
 
-                        # If multiple options are present, we choose the one that
-                        # has the smallest values when ordered by x, then y, and
-                        # finally z.
-                        n_variables = len(variables_values[0])
-                        test_variables = np.zeros((n_variable_sets, n_variables))
-                        for i_variable_set, variable_set in enumerate(variables_values):
-                            inversion_variables = []
-                            x_val = variable_set.get("x")
-                            y_val = variable_set.get("y")
-                            z_val = variable_set.get("z")
-                            if x_val is not None:
-                                inversion_variables.append(variable_set["x"])
-                            if y_val is not None:
-                                inversion_variables.append(variable_set["y"])
-                            if z_val is not None:
-                                inversion_variables.append(variable_set["z"])
-                            test_variables[i_variable_set, :] = np.array(inversion_variables)
-                        variable_columns = []
-                        for i_var in range(n_variables):
-                            variable_columns.append(test_variables[:, i_var])
-                        sorted_indices = np.lexsort(variable_columns)
-                        min_index = sorted_indices[0]
+                                # wyckoff_coord_matched = False
+                                # for atom_index in indices:
+                                    # pos = positions[atom_index]
+                                    # if self._search_periodic_positions(
+                                            # evaluated_pos,
+                                            # pos,
+                                            # cell,
+                                            # precision) is not None:
+                                        # wyckoff_coord_matched = True
+                                        # break
+                                # if not wyckoff_coord_matched:
+                                    # variables_ok = False
+                            # if variables_ok:
+                                # variables_values.append(values)
+                                # position_for_variable.append(evaluated_pos)
 
-                        final_variables = variables_values[min_index]
-                        for key, value in final_variables.items():
-                            setattr(wset, key, value)
-                        variables_resolved = True
+                    # n_variable_sets = len(variables_values)
+                    # variables_resolved = False
+                    # wyckoff_exception = ValueError(
+                        # "Could not resolve the free Wyckoff parameters for a set "
+                        # "of equivalent atoms. Could not determine the variables for"
+                        # " element '{}' and the following indices '{}'"
+                        # .format(wset.element, wset.indices)
+                    # )
+                    # if n_variable_sets == 0:
+                        # raise wyckoff_exception
+                    # if n_variable_sets == 1:
+                        # final_variables = variables_values[0]
+                        # for key, value in final_variables.items():
+                            # setattr(wset, key, value)
+                        # variables_resolved = True
+                    # elif n_variable_sets > 1:
 
-                    if not variables_resolved:
-                        raise wyckoff_exception
+                        # # If multiple options are present, we choose the one that
+                        # # has the smallest values when ordered by x, then y, and
+                        # # finally z.
+                        # n_variables = len(variables_values[0])
+                        # test_variables = np.zeros((n_variable_sets, n_variables))
+                        # for i_variable_set, variable_set in enumerate(variables_values):
+                            # inversion_variables = []
+                            # x_val = variable_set.get("x")
+                            # y_val = variable_set.get("y")
+                            # z_val = variable_set.get("z")
+                            # if x_val is not None:
+                                # inversion_variables.append(variable_set["x"])
+                            # if y_val is not None:
+                                # inversion_variables.append(variable_set["y"])
+                            # if z_val is not None:
+                                # inversion_variables.append(variable_set["z"])
+                            # test_variables[i_variable_set, :] = np.array(inversion_variables)
+                        # variable_columns = []
+                        # for i_var in range(n_variables):
+                            # variable_columns.append(test_variables[:, i_var])
+                        # sorted_indices = np.lexsort(variable_columns)
+                        # min_index = sorted_indices[0]
+
+                        # final_variables = variables_values[min_index]
+                        # for key, value in final_variables.items():
+                            # setattr(wset, key, value)
+                        # variables_resolved = True
+
+                    # if not variables_resolved:
+                        # raise wyckoff_exception
 
         # Sort the list so that sets with Wyckoff letter earlier in the
         # alphabet are first, and sets with the same Wyckoff letter are

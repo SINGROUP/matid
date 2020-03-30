@@ -393,65 +393,113 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
 class WyckoffTests(unittest.TestCase):
     """Tests for the Wyckoff information.
     """
-    def test_non_default_129(self):
-        """Tests that systems which deviate from the default settings (spglib
-        does not use the default settings, but instead will use the setting
-        with lowest Hall number) are handled correctly.
-        """
-        # Create structure that has space group 129: the origin setting differ
-        # from default settings.
-        sg_129 = Atoms(
-            symbols=["F", "F", "Nd", "Nd", "S", "S"],
-            scaled_positions=[
-                [0.7499993406, 0.2499997802, 0.0000000000],
-                [0.2499997802, 0.7499993406, 0.0000000000],
-                [0.2499997802, 0.2499997802, 0.2301982694],
-                [0.7499993406, 0.7499993406, 0.7698006940],
-                [0.7499993406, 0.7499993406, 0.3524397980],
-                [0.2499997802, 0.2499997802, 0.6475606156],
-            ],
-            cell= [
-                [3.919363, 0.000000, 0.000000],
-                [0.000000, 3.919363, 0.000000],
-                [0.000000, 0.000000, 6.895447],
-            ],
-            pbc=True
-        )
+    # def test_non_default_68(self):
+        # """Tests that systems which deviate from the default settings (spglib
+        # does not use the default settings, but instead will use the setting
+        # with lowest Hall number) are handled correctly.
+        # """
+        # sg_68 = Atoms(
+            # symbols=["Au", "Au", "Sn", "Sn", "Sn", "Sn", "Sn", "Sn", "Sn", "Sn"],
+            # scaled_positions=[
+                # [0.9852540807, 0.0000000000, 0.9926270404],
+                # [0.9852540807, 0.5000004882, 0.4926265201],
+                # [0.7215549731, 0.3327377765, 0.0235395469],
+                # [0.7215549731, 0.8327367459, 0.1980144280],
+                # [0.2456177163, 0.6668151491, 0.2855491427],
+                # [0.2456177163, 0.1668146609, 0.4600695715],
+                # [0.7215549731, 0.1672627118, 0.5235405450],
+                # [0.7215549731, 0.6672632000, 0.6980154261],
+                # [0.2456177163, 0.8331847967, 0.7855486225],
+                # [0.2456177163, 0.3331858273, 0.9600690513],
+            # ],
+            # cell= [
+                # [0.000000, -3.293253, 5.939270],
+                # [6.584074, 0.000000, 0.000000],
+                # [0.000000, 6.586507, 0.000000],
+            # ],
+            # pbc=True
+        # )
 
-        # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(sg_129)
-        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(sg_68)
+        # spg = analyzer.get_space_group_number()
+        # self.assertEqual(spg, 68)
+        # norm_sys = analyzer.get_conventional_system()
+        # # from ase.visualize import view
+        # # view(norm_sys)
+        
+        # # wyckoff_letters = analyzer.get_wyckoff_letters_conventional()
+        # # print(wyckoff_letters)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that groups are correct
-        expected_sets = [
-            WyckoffSet("a", 9, "F", space_group=129, multiplicity=2),
-            WyckoffSet("c", 16, "S", z=0.352439798, space_group=124, multiplicity=2),
-            WyckoffSet("c", 60, "Nd", z=0.7698017306, space_group=129, multiplicity=2),
-        ]
-        for w1, w2 in zip(expected_sets, wyckoff_sets):
-            self.assertEqual(w1, w2)
+        # # Check that groups are correct
+        # expected_sets = [
+            # WyckoffSet("a", 79, "Au", space_group=68, multiplicity=4),
+            # WyckoffSet("i", 50, "Sn", x=0.16276206030000004, y=0.11815044619999993, z=-0.4172622234999999, space_group=68, multiplicity=16),
+        # ]
 
-    def test_default_225(self):
-        """Tests that systems which deviate from the default settings (spglib
-        does not use the default settings, but instead will use the setting
-        with lowest Hall number) are handled correctly.
-        """
-        # Create structure that has space group 129: the origin setting differ
-        # from default settings.
-        a = 2.87
-        system = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # # view(fcc)
+        # for w1, w2 in zip(expected_sets, wyckoff_sets):
+            # self.assertEqual(w1, w2)
 
-        # Find the Wyckoff groups
-        analyzer = SymmetryAnalyzer(system)
-        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+    # def test_non_default_129(self):
+        # """Tests that systems which deviate from the default settings (spglib
+        # does not use the default settings, but instead will use the setting
+        # with lowest Hall number) are handled correctly.
+        # """
+        # sg_129 = Atoms(
+            # symbols=["F", "F", "Nd", "Nd", "S", "S"],
+            # scaled_positions=[
+                # [0.7499993406, 0.2499997802, 0.0000000000],
+                # [0.2499997802, 0.7499993406, 0.0000000000],
+                # [0.2499997802, 0.2499997802, 0.2301982694],
+                # [0.7499993406, 0.7499993406, 0.7698006940],
+                # [0.7499993406, 0.7499993406, 0.3524397980],
+                # [0.2499997802, 0.2499997802, 0.6475606156],
+            # ],
+            # cell= [
+                # [3.919363, 0.000000, 0.000000],
+                # [0.000000, 3.919363, 0.000000],
+                # [0.000000, 0.000000, 6.895447],
+            # ],
+            # pbc=True
+        # )
 
-        # Check that groups are correct
-        expected_sets = [
-            WyckoffSet("a", 13, "Al", space_group=225, multiplicity=4),
-        ]
-        for w1, w2 in zip(expected_sets, wyckoff_sets):
-            self.assertEqual(w1, w2)
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(sg_129)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # spg = analyzer.get_space_group_number()
+        # self.assertEqual(spg, 129)
+
+        # # Check that groups are correct
+        # expected_sets = [
+            # WyckoffSet("a", 9, "F", space_group=129, multiplicity=2),
+            # WyckoffSet("c", 16, "S", z=0.352439798, space_group=129, multiplicity=2),
+            # WyckoffSet("c", 60, "Nd", z=0.7698017306, space_group=129, multiplicity=2),
+        # ]
+        # for w1, w2 in zip(expected_sets, wyckoff_sets):
+            # self.assertEqual(w1, w2)
+
+    # def test_default_225(self):
+        # """Tests that systems which deviate from the default settings (spglib
+        # does not use the default settings, but instead will use the setting
+        # with lowest Hall number) are handled correctly.
+        # """
+        # # Create structure that has space group 129: the origin setting differ
+        # # from default settings.
+        # a = 2.87
+        # system = ase.spacegroup.crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # # # view(fcc)
+
+        # # Find the Wyckoff groups
+        # analyzer = SymmetryAnalyzer(system)
+        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+
+        # # Check that groups are correct
+        # expected_sets = [
+            # WyckoffSet("a", 13, "Al", space_group=225, multiplicity=4),
+        # ]
+        # for w1, w2 in zip(expected_sets, wyckoff_sets):
+            # self.assertEqual(w1, w2)
 
     # def test_no_free(self):
         # """Test that no Wyckoff parameter is returned when the position is not
@@ -477,32 +525,35 @@ class WyckoffTests(unittest.TestCase):
         # self.assertEqual(wset.y, None)
         # self.assertEqual(wset.z, None)
 
-    # def test_one_free(self):
-        # """Test finding the value of the Wyckoff free parameter when one
-        # direction is free.
-        # """
-        # # Create structure
-        # free_variables = {
-            # "x": 0.13
-        # }
-        # a = 12
-        # fcc = ase.spacegroup.crystal('Al', [(0, free_variables["x"], 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
-        # # view(fcc)
+    def test_one_free(self):
+        """Test finding the value of the Wyckoff free parameter when one
+        direction is free.
+        """
+        # Create structure
+        free_variables = {
+            "x": 0.13
+        }
+        a = 12
+        fcc = ase.spacegroup.crystal('Al', [(0, free_variables["x"], 0)], spacegroup=225, cellpar=[a, a, a, 90, 90, 90])
+        # view(fcc)
 
-        # # Find the Wyckoff groups
-        # analyzer = SymmetryAnalyzer(fcc)
-        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # Find the Wyckoff groups
+        analyzer = SymmetryAnalyzer(fcc)
+        norm_sys = analyzer.get_conventional_system()
+        from ase.visualize import view
+        view(norm_sys)
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # # Check that the information matches
-        # self.assertEqual(len(wyckoff_sets), 1)
-        # wset = wyckoff_sets[0]
-        # self.assertEqual(wset.atomic_number, 13)
-        # self.assertEqual(wset.element, "Al")
-        # self.assertEqual(wset.wyckoff_letter, "e")
-        # self.assertEqual(wset.indices, list(range(len(fcc))))
-        # for var, value in free_variables.items():
-            # calculated_value = getattr(wset, var)
-            # self.assertTrue(calculated_value - value <= 1e-2)
+        # Check that the information matches
+        self.assertEqual(len(wyckoff_sets), 1)
+        wset = wyckoff_sets[0]
+        self.assertEqual(wset.atomic_number, 13)
+        self.assertEqual(wset.element, "Al")
+        self.assertEqual(wset.wyckoff_letter, "e")
+        self.assertEqual(wset.indices, list(range(len(fcc))))
+        for var, value in free_variables.items():
+            calculated_value = getattr(wset, var)
+            self.assertTrue(calculated_value - value <= 1e-2)
 
     # def test_two_free(self):
         # """Test finding the value of the Wyckoff free parameter when two

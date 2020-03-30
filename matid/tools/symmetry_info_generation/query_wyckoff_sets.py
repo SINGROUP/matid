@@ -1,18 +1,17 @@
 """
-For each space group determines which Hall number to use in spglib to get the
-structure in the default settings.
+For each space group determines the settings used by spglib and queries the
+Wyckoff positions corresponding to them from the Bilbao Crystallographic
+Server.
 
 By default spglib will use the lowest Hall number as the setting (origin,
-cetring, etc.). In MatID we would however wish to get the default setting
-instead. To do this, spglib supports the user to provide an explicit Hall
-number when querying a symmetry dataset. This Hall number is matched to the one
-corresponding to the default setting by using Bilbao Crystallographic Server,
-which contains the mappings. Since the default settings don't uniquely specify
-the axes in some cases, the first Hall number that otherwise matches is used.
-
-This mapping achieves to goals: the MatID structures will obey the default
-settings, but will also provide a uniquely determined settings along with the
-corresponding Hall number.
+cetring, etc.) because this choice is more unique than the "default" setting.
+Because of this choice the corresponding Wyckoff sets differ from the default
+settings that are provided for each space group. Luckily, the Bilbao
+Crystallographic Server also supports querying the Wyckoff sets in the
+ITA-settings, which contains also the settings for each Hall number. This
+script thus determines the settings used by spglib (by looking at Seto's
+webpage where spglib also gets them.) and then maps the settings to a
+correponding ITA setting in Bilbao to fetch the Wyckoff positions.
 """
 import re
 import numpy as np
