@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class WyckoffSet():
     """Represents a group of atoms in a certain Wyckoff position, for a certain
     space group.
@@ -43,12 +46,20 @@ class WyckoffSet():
         self.z = z
 
     def __repr__(self): 
-        return "Wyckoff letter: {}, element: {}, multiplicity: {}, space group: {}".format(
+        msg = []
+        msg.append("Wyckoff letter: {}, element: {}, multiplicity: {}, space group: {}".format(
             self.wyckoff_letter,
             self.element,
             self.multiplicity,
             self.space_group
-        )
+        ))
+        if self.x is not None:
+            msg.append(", x: {}".format(self.x))
+        if self.y is not None:
+            msg.append(", y: {}".format(self.y))
+        if self.z is not None:
+            msg.append(", z: {}".format(self.z))
+        return "".join(msg)
   
     def __str__(self): 
         return self.__repr__()
@@ -59,8 +70,17 @@ class WyckoffSet():
         if self.element != other.element: return False
         if self.space_group != other.space_group: return False
         if self.multiplicity != other.multiplicity: return False
-        if self.x != other.x: return False
-        if self.y != other.y: return False
-        if self.z != other.z: return False
+        if self.x is not None and other.x is not None:
+            if not np.isclose(self.x, other.x): return False
+        else:
+            if self.x != other.x: return False
+        if self.y is not None and other.y is not None:
+            if not np.isclose(self.y, other.y): return False
+        else:
+            if self.y != other.y: return False
+        if self.z is not None and other.z is not None:
+            if not np.isclose(self.z, other.z): return False
+        else:
+            if self.z != other.z: return False
 
         return True

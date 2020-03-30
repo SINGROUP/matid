@@ -1284,27 +1284,23 @@ class SymmetryAnalyzer(object):
 
         def matrixfy(expression, variables):
             # Convert into matrix form
-            A = np.eye(3)
+            A = np.zeros((3, 3))
             T = np.zeros((1, 3))
             for i in range(3):
                 match = reg.match(expression[i])
                 groups = match.groupdict()
                 for j, var in enumerate(["x", "y", "z"]):
-                    if var in variables:
-                        # print("Attempting to fetch multiplier for {} in expression {}".format(var, expression[i]))
-                        multiplier = convert(groups[var])
-                        # print("Found: {}".format(multiplier))
-                        if multiplier is not None:
-                            A[i,j] = multiplier
-                        constant = convert(groups["c"])
-                        if constant is not None:
-                            T[0, i] = constant
-            # print(expression)
-            # print(variables)
-            # print(A)
-            # print(T)
+                    multiplier = convert(groups[var])
+                    if multiplier is not None:
+                        A[i,j] = multiplier
+                    constant = convert(groups["c"])
+                    if constant is not None:
+                        T[0, i] = constant
             A = A.T
-            A_inv = np.linalg.inv(A)
+
+            # As the set of linear equtions may no be linearly independent, we
+            # use the pseudo-inverse.
+            A_inv = np.linalg.pinv(A)
             return A_inv, A, T
 
         cell = system.get_cell()
@@ -1312,8 +1308,6 @@ class SymmetryAnalyzer(object):
         numbers = system.get_atomic_numbers()
         positions = system.get_scaled_positions()
         wyckoff_infos = WYCKOFF_SETS[space_group]
-
-        # Include the representative coordinate in the set
 
         # Form the Wyckoff sets
         sets = {}
@@ -1353,13 +1347,9 @@ class SymmetryAnalyzer(object):
                 coordinate_expressions = wyckoff_info["expressions"]
                 variables_present = wyckoff_info["variables"]
                 all_pos = positions[indices]
-                print("Wyckoff letter: {}".format(wyckoff_letter))
 
                 # Resolve the needed variables
                 if variables_present:
-                    variables_resolved = False
-                    variables_values = []
-                    position_for_variable = []
                     n_expr = len(coordinate_expressions)
                     n_trans = len(translations)
 
@@ -1376,6 +1366,7 @@ class SymmetryAnalyzer(object):
                     # Calculate the variables (x,y,z) based on the first
                     # Wyckoff position. The variables are calculated for each
                     # atom until the found variables match all atoms.
+                    variable_candidates = []
                     for atom_index in indices:
 
                         # Calculate the Wyckoff variables base on the atom at
@@ -1383,20 +1374,11 @@ class SymmetryAnalyzer(object):
                         # forced to be zero.
                         X_0 = positions[atom_index]
                         X = np.dot(X_0 - Ts[0], A_invs[0])
-                        for j, var in enumerate(["x", "y", "z"]):
-                            if var not in variables_present:
-                                X[j] = 0
 
                         # Calculate the positions of all other atoms with the
                         # currently tested Wyckoff variables
                         test_positions = np.zeros(((n_trans+1)*n_expr, 3))
                         first_test_pos = np.dot(X, As) + Ts
-                        if abs(X[0]-0.13) < 0.1:
-                            print("Testing: {}".format(X))
-                            print(X)
-                            print(As)
-                            print(Ts)
-                            # print(first_test_pos)
                         test_positions[0:n_expr, :] = first_test_pos
                         i_trans = 1
                         for trans in translations:
@@ -1405,13 +1387,11 @@ class SymmetryAnalyzer(object):
                         test_positions = matid.geometry.get_wrapped_positions(test_positions)
 
                         # Test if each test positions can be matched to an atom
-                        # in the actual structure. If yes, the variables are
-                        # resolved. Otherwise we continue on looping.
+                        # in the actual structure. If yes, save this set of
+                        # variables and continue looping because there may be
+                        # other alternatives.
                         found = True
-                        n_matches = 0
-                        # print("Testing: {}".format(X))
                         for test_pos in test_positions:
-                            # print("Trying to find: {}".format(test_pos))
                             if self._search_periodic_positions(
                                     test_pos,
                                     all_pos,
@@ -1419,17 +1399,18 @@ class SymmetryAnalyzer(object):
                                     precision) is None:
                                 found = False
                                 break
-                            n_matches += 1
-                        # print("Matched {}/{}".format(n_matches, len(test_positions)))
                         if found:
-                            variables_resolved = True
-                            for j, var in enumerate(["x", "y", "z"]):
-                                if var in variables_present:
-                                    setattr(wset, var, X[j])
-                            break
+                            variable_candidates.append(X)
 
-                    # If the variables cannot be resolved, raise an error.
-                    if not variables_resolved:
+                    # Wrap all Wyckoff variables to be between [0, 1].
+                    variable_candidates = np.array(variable_candidates)
+                    variable_candidates = matid.geometry.get_wrapped_positions(variable_candidates)
+
+                    # If multiple options are present, we choose the one that
+                    # has the smallest values when ordered by x, then y, and
+                    # finally z.
+                    n_variable_sets = len(variable_candidates)
+                    if n_variable_sets == 0:
                         raise ValueError(
                             "Could not resolve the free Wyckoff parameters for "
                             "Wyckoff letter '{}' in space group {}. Problem in "
@@ -1437,6 +1418,17 @@ class SymmetryAnalyzer(object):
                             "'{}'."
                             .format(wset.wyckoff_letter, wset.space_group, wset.element, wset.indices)
                         )
+                    if n_variable_sets == 1:
+                        final_variables = variable_candidates[0]
+                    elif n_variable_sets > 1:
+                        sorted_indices = np.lexsort(np.flip(variable_candidates.T, axis=0))
+                        min_index = sorted_indices[0]
+                        final_variables = variable_candidates[min_index]
+
+                    # Save the found variables inside the WyckoffSet
+                    for j, var in enumerate(["x", "y", "z"]):
+                        if var in variables_present:
+                            setattr(wset, var, final_variables[j])
 
                     #=========================================================
                     # For each atom, evaluate the values of the free parameters.
