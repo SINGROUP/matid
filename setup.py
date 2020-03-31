@@ -7,7 +7,7 @@ if sys.version_info[:2] < (3, 0):
 
 if __name__ == "__main__":
     setup(name="matid",
-        version="0.5.6",
+        version="0.5.7",
         url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
@@ -18,7 +18,6 @@ if __name__ == "__main__":
             "systems based on their structure."
         ),
         author='Lauri Himanen',
-        author_email='lauri.himanen@aalto.fi',
         license="Apache License 2.0",
         classifiers=[
             "Development Status :: 5 - Production/Stable",

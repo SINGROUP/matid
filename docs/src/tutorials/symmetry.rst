@@ -27,17 +27,17 @@ Which will output the following:
 
 .. code-block:: none
 
-   Space group number: 225
-   Space group international short symbol: Fm-3m
-   Is chiral: False
-   Hall number: 523
-   Hall symbol: -F 4 2 3
-   Crystal system: cubic
-   Bravais lattice: cF
-   Point group: m-3m
-   Wyckoff letters original: ['a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b']
-   Wyckoff letters primitive: ['a' 'b']
-   Wyckoff letters conventional: ['a' 'b' 'a' 'b' 'a' 'b' 'a' 'b']
+    Space group number: 225
+    Space group international short symbol: Fm-3m
+    Is chiral: False
+    Hall number: 523
+    Hall symbol: -F 4 2 3
+    Crystal system: cubic
+    Bravais lattice: cF
+    Point group: m-3m
+    Wyckoff letters original: ['a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b' 'a' 'b']
+    Wyckoff letters primitive: ['a' 'b']
+    Wyckoff letters conventional: ['a' 'b' 'a' 'b' 'a' 'b' 'a' 'b']
 
 MatID also utilises offline information from the `Bilbao crystallographic
 server <http://www.cryst.ehu.es/>`_ to analyze the detailed Wyckoff set
@@ -52,32 +52,32 @@ Which will output the following information:
 
 .. code-block:: none
 
-   Set 0
-      Letter: c
-      Element: Si
-      Indices: [40, 41, 42, 43, 44, 45]
-      Multiplicity: 6
-      Repr.: ['1/4', '0', '1/2']
-      x: None
-      y: None
-      z: None
-   Set 1
-      Letter: i
-      Element: Si
-      Indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-      Multiplicity: 16
-      Repr.: ['x', 'x', 'x']
-      x: 0.18369999999999995
-      y: None
-      z: None
-   Set 2
-      Letter: k
-      Element: Si
-      Indices: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
-      Multiplicity: 24
-      Repr.: ['0', 'y', 'z']
-      x: None
-      y: 0.30769999999999975
-      z: 0.11719999999999986
+    Set 0
+        Letter: c
+        Element: Si
+        Indices: [40, 41, 42, 43, 44, 45]
+        Multiplicity: 6
+        Repr.: ['1/4', '0', '1/2']
+        x: None
+        y: None
+        z: None
+    Set 1
+        Letter: i
+        Element: Si
+        Indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+        Multiplicity: 16
+        Repr.: ['x', 'x', 'x']
+        x: 0.6836999931629999
+        y: None
+        z: None
+    Set 2
+        Letter: k
+        Element: Si
+        Indices: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
+        Multiplicity: 24
+        Repr.: ['0', 'y', 'z']
+        x: None
+        y: 0.6923000000000001
+        z: 0.8827999999999999
 
 You can find the full example in "examples/symmetry.py".
