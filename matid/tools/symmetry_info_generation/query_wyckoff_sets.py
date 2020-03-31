@@ -12,14 +12,54 @@ ITA-settings, which contains also the settings for each Hall number. This
 script thus determines the settings used by spglib (by looking at Seto's
 webpage where spglib also gets them.) and then maps the settings to a
 correponding ITA setting in Bilbao to fetch the Wyckoff positions.
+
+The mathematical expression for the Wyckoff positions is stored along with the
+necessary matrices for solving the variables from a particular system.
 """
 import re
+import parser
 import numpy as np
 import pickle
 from fractions import Fraction
 import urllib.request
 from bs4 import BeautifulSoup
 import requests
+
+
+def convert(var):
+    val = None
+    if var == "-":
+        val = -1
+    elif var == "+":
+        val = 1
+    elif var == "":
+        val = 1
+    elif var is not None:
+        code = parser.expr(var).compile()
+        val = eval(code)
+    return val
+
+
+def matrixfy(expression, variables):
+    # Convert into matrix form
+    A = np.zeros((3, 3))
+    T = np.zeros((3))
+    for i in range(3):
+        match = reg.match(expression[i])
+        groups = match.groupdict()
+        for j, var in enumerate(["x", "y", "z"]):
+            multiplier = convert(groups[var])
+            if multiplier is not None:
+                A[i,j] = multiplier
+            constant = convert(groups["c"])
+            if constant is not None:
+                T[i] = constant
+    A = A.T
+
+    # As the set of linear equations may no be linearly independent, we
+    # use the pseudo-inverse.
+    A_inv = np.linalg.pinv(A)
+    return A, A_inv, T
 
 
 def extract_url(url, values=None):
@@ -88,7 +128,7 @@ def extract_wyckoff_sets(soup, settings):
     n_trans = max(translation_text.count("+"), 1)
 
     # Get the fixed translations
-    n_matches = 0
+    n_matches = 1
     translation_matches = re.finditer(regex_translation, translation_text)
     translations = []
     for translation_match in translation_matches:
@@ -98,12 +138,7 @@ def extract_wyckoff_sets(soup, settings):
         if translation_match.groups() != ("0", "0", "0"):
             translations.append(translation)
             n_matches += 1
-    if n_matches == 0:
-        translations = None
-        n_matches = 1
-    else:
-        translations = np.array(translations)
-        n_matches += 1
+    translations = np.array(translations)
     if n_matches != n_trans:
         raise ValueError("Not all the translations were parsed.")
 
@@ -123,6 +158,9 @@ def extract_wyckoff_sets(soup, settings):
         results = re.finditer(regex_expression, coordinate)
 
         expressions = []
+        matrices = []
+        pinv_matrices = []
+        constants = []
         n_results = 0
         for result in results:
             components = [x.strip() for x in result.groups()]
@@ -133,7 +171,11 @@ def extract_wyckoff_sets(soup, settings):
                     number = groups[0]
                     variable = groups[1]
                     components[i_coord] = "{}*{}".format(number, variable)
+            m, m_inv, c = matrixfy(components, variables)
             expressions.append(components)
+            matrices.append(m)
+            pinv_matrices.append(m_inv)
+            constants.append(c)
             n_results += 1
         if multiplicity != n_trans*n_results:
             print(multiplicity)
@@ -143,7 +185,10 @@ def extract_wyckoff_sets(soup, settings):
 
         data[letter] = {
             "variables": variables,
-            "expressions": expressions
+            "expressions": expressions,
+            "matrices": np.array(matrices),
+            "pinv_matrices": np.array(pinv_matrices),
+            "constants": np.array(constants),
         }
         data["translations"] = translations
 
@@ -155,6 +200,7 @@ if __name__ == "__main__":
     regex_expression = re.compile("\(([xyz\d\/\+\- ]+).?,([xyz\d\/\+\- ]+).?,([xyz\d\/\+\- ]+).?\)")
     regex_translation = re.compile("\(([\d\/]+),([\d\/]+),([\d\/]+)\)")
     regex_bilbao = re.compile("(?P<hm>[^\^\:[\s](?:\s[^\^\:[\s]+)*)(?:\s+\[origin (?P<origin>\d+)\])?(?:\s+\:(?P<centring>\S))?")
+    reg = re.compile("(?:(?P<x>[+-]?(?:\d(?:\/\d+)?)?)x)?(?:(?P<y>[+-]?(?:\d(?:\/\d+)?)?)y)?(?:(?P<z>[+-]?(?:\d(?:\/\d+)?)?)z)?(?P<c>[+-]?\d\/?\d*)?")
 
     # Fetch the setting used by spglib (for each space group the first Hall
     # number setting is used)

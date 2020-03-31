@@ -429,7 +429,7 @@ class WyckoffTests(unittest.TestCase):
         # Check that groups are correct
         expected_sets = [
             WyckoffSet("a", 79, "Au", space_group=68, multiplicity=4),
-            WyckoffSet("i", 50, "Sn", x=0.16276206029999996, y=0.38184955379999996, z=0.9172622234999999, space_group=68, multiplicity=16),
+            WyckoffSet("i", 50, "Sn", x=0.16276206029999996, y=0.11815044619999993, z=0.5827377765000001, space_group=68, multiplicity=16),
         ]
         for w1, w2 in zip(expected_sets, wyckoff_sets):
             self.assertEqual(w1, w2)
@@ -551,9 +551,11 @@ class WyckoffTests(unittest.TestCase):
         analyzer = SymmetryAnalyzer(fcc)
         wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
+        # Check that the information matches. The Wyckoff letters may not match
+        # the ones that are used in creating the structure, but they are
+        # nonetheless consistently determined.
         expected_sets = [
-            WyckoffSet("j", 13, "Al", space_group=225, multiplicity=96, y=var["y"], z=var["z"]),
+            WyckoffSet("j", 13, "Al", space_group=225, multiplicity=96, y=0.077, z=0.87),
         ]
         for w1, w2 in zip(expected_sets, wyckoff_sets):
             self.assertEqual(w1, w2)
@@ -571,9 +573,11 @@ class WyckoffTests(unittest.TestCase):
         analyzer = SymmetryAnalyzer(fcc)
         wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # Check that the information matches
+        # Check that the information matches. The Wyckoff letters may not match
+        # the ones that are used in creating the structure, but they are
+        # nonetheless consistently determined.
         expected_sets = [
-            WyckoffSet("l", 13, "Al", space_group=225, multiplicity=192, x=var["x"], y=var["y"], z=var["z"]),
+            WyckoffSet("l", 13, "Al", space_group=225, multiplicity=192, x=0.577, y=0.13, z=0.86),
         ]
         for w1, w2 in zip(expected_sets, wyckoff_sets):
             self.assertEqual(w1, w2)

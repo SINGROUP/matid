@@ -5,6 +5,26 @@ containing the symmetry information.
 import os
 import pickle
 import pprint
+import numpy as np
+
+
+def print_dict(d, level):
+    out = []
+    out.append("{\n")
+    for key in sorted(d.keys()):
+        value = d[key]
+        if isinstance(value, np.ndarray):
+            value = "array(" + np.array2string(value, threshold=np.inf, max_line_width=np.inf, separator=',', sign=" ", prefix="", suffix="").replace("\n", "") + ")"
+        elif isinstance(value, dict):
+            value = print_dict(value, level+1)
+        else:
+            value = repr(value)
+        if isinstance(key, str):
+            key = "\""+key+"\""
+        out.append("    " * level + "{}: {},\n".format(key, value))
+    out.append("    " * (level-1) + "}")
+    return "".join(out)
+
 
 _directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,4 +61,5 @@ with open("symmetry_data.py", "w") as fout:
     # header_improp = "IMPROPER_RIGID_TRANSFORMATIONS = "
     # fout.write(header_improp + pprint.pformat(IMPROPER_RIGID_TRANSFORMATIONS, indent=4))
     header_wyckoff_sets = "WYCKOFF_SETS = "
-    fout.write(header_wyckoff_sets + pprint.pformat(wyckoff_sets, indent=4))
+    fout.write(header_wyckoff_sets + print_dict(wyckoff_sets, 1))
+

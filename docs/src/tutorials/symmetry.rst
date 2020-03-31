@@ -1,5 +1,5 @@
 Symmetry analysis
-===================
+=================
 
 MatID has extensive symmetry analysis tools for 3D periodic systems. The
 symmetry detection is powered by `spglib <https://atztogo.github.io/spglib/>`_,
