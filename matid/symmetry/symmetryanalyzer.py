@@ -4,7 +4,7 @@ import spglib
 
 import numpy as np
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from operator import attrgetter
 
 from matid.utils.segfault_protect import segfault_protect
@@ -1263,7 +1263,7 @@ class SymmetryAnalyzer(object):
         wyckoff_infos = WYCKOFF_SETS[space_group]
 
         # Form the Wyckoff sets
-        sets = {}
+        sets = OrderedDict()
         unique_sets, unique_indices = np.unique(
             equivalent_atoms,
             return_index=True
