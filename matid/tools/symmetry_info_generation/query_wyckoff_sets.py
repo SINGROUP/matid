@@ -47,6 +47,8 @@ def matrixfy(expression, variables):
     for i in range(3):
         match = reg.match(expression[i])
         groups = match.groupdict()
+        if expression[i] != "0" and len(match.groups()) == 0:
+            raise ValueError("Could not find the variable information in nonzero Wyckoff position expression.")
         for j, var in enumerate(["x", "y", "z"]):
             multiplier = convert(groups[var])
             if multiplier is not None:
@@ -54,12 +56,8 @@ def matrixfy(expression, variables):
             constant = convert(groups["c"])
             if constant is not None:
                 T[i] = constant
-    A = A.T
-
-    # As the set of linear equations may no be linearly independent, we
-    # use the pseudo-inverse.
-    A_inv = np.linalg.pinv(A)
-    return A, A_inv, T
+    A = A.T  # Transposed for doing calculations with row vectors
+    return A, T
 
 
 def extract_url(url, values=None):
@@ -156,27 +154,36 @@ def extract_wyckoff_sets(soup, settings):
         if "z" in coordinate:
             variables.add("z")
         results = re.finditer(regex_expression, coordinate)
+        variable_map = {}
+        for ivar, variable in enumerate(["x", "y", "z"]):
+            if variable in variables:
+                variable_map[ivar] = variable
 
         expressions = []
         matrices = []
-        pinv_matrices = []
         constants = []
         n_results = 0
         for result in results:
             components = [x.strip() for x in result.groups()]
-            for i_coord, coord in enumerate(components):
-                match = regex_multiplication.match(coord)
-                if match:
-                    groups = match.groups()
-                    number = groups[0]
-                    variable = groups[1]
-                    components[i_coord] = "{}*{}".format(number, variable)
-            m, m_inv, c = matrixfy(components, variables)
+            m, c = matrixfy(components, variables)
             expressions.append(components)
             matrices.append(m)
-            pinv_matrices.append(m_inv)
             constants.append(c)
             n_results += 1
+
+        # Check that the first representative position can be used to
+        # determine the variables
+        m_repr = matrices[0]
+        n_solved = 0
+        for idx, var in variable_map.items():
+            for icomp in range(3):
+                if m_repr[idx][icomp] == 1:
+                    n_solved += 1
+                    break
+        if n_solved != len(variables):
+            print(n_solved)
+            raise ValueError("The representative position for letter {} cannot be used to determine variables.".format(letter))
+
         if multiplicity != n_trans*n_results:
             print(multiplicity)
             print(n_trans)
@@ -187,7 +194,6 @@ def extract_wyckoff_sets(soup, settings):
             "variables": variables,
             "expressions": expressions,
             "matrices": np.array(matrices),
-            "pinv_matrices": np.array(pinv_matrices),
             "constants": np.array(constants),
         }
         data["translations"] = translations
