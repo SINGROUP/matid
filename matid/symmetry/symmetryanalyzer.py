@@ -1232,17 +1232,11 @@ class SymmetryAnalyzer(object):
             \mathbf{R} = \mathbf{W}\mathbf{M} + \mathbf{C}
 
         where :math:`\mathbf{W}` is a row vector containing the Wyckoff variables,
-        :math:`\mathbf{M}` is a matrix defining the multipliers for each Wyckoff
+        :math:`\mathbf{M}` is a matrix defining the multipliers for each Wyckoff
         variable and :math:`\mathbf{C}` is a vector containing the constant
-        offsets.  From this expression the Wyckoff variables :math:`\mathbf{W}`
-        may be solved as:
-
-        .. math::
-            \mathbf{W} = \mathbf{R-C}\mathbf{M}^{+}
-
-        where :math:`\mathbf{M}^{+}` is the pseudo-inverse of matrix
-        :math:`\mathbf{M}` (the set of linear equations is not always linearly
-        independent, so regular inverse does not work).
+        offsets. The Wyckoff variables :math:`\mathbf{W}` can be simply
+        determined from the first representative position of each set. The
+        representative position alone uniquely defines all necessary variables.
 
         Args:
             system (System): The atomic system in which the atomic positions
@@ -1307,23 +1301,32 @@ class SymmetryAnalyzer(object):
                 # Get the precalculated matrices and vectors that are needed
                 # for solving the system of linear equations. 
                 Ms = wyckoff_info["matrices"]
-                M_pinvs = wyckoff_info["pinv_matrices"]
                 Cs = wyckoff_info["constants"]
 
                 # Resolve the needed variables
                 if variables_present:
+                    variable_map = {}
+                    for ivar, variable in enumerate(["x", "y", "z"]):
+                        if variable in variables_present:
+                            variable_map[ivar] = variable
                     n_expr = Cs.shape[0]
                     n_trans = len(translations)
                     W_final = None
 
                     # Sort the positions to find a consistent set of variables
-                    # each time. The positions are ordered by x, then y, and
-                    # finally z. Another option would have been to find all
-                    # possible  Wyckoff variable alternatives and instead sort
-                    # them to select one. That however is much more
-                    # time-consuming for larger, highly symmemric structures
-                    # with many variable alternatives.
-                    sorted_indices = np.lexsort(np.flip(all_pos.T, axis=0))
+                    # each time. The positions are ordered by the present
+                    # variables: first x, then y, and finally z. Another option
+                    # would have been to find all possible  Wyckoff variable
+                    # alternatives and instead sort them to select one. That
+                    # however is much more time-consuming for larger, highly
+                    # symmetric structures with many variable alternatives.
+                    # Notice that lexsort orders by last column first, thus the
+                    # reversing. The values used for sorting are rounded to
+                    # machine precision to avoid seeming inconsistencies in
+                    # sorting.
+                    sort_columns = np.array([all_pos[:, ivar] for ivar in reversed(list(variable_map.keys()))])
+                    np.around(sort_columns, decimals=9, out=sort_columns)
+                    sorted_indices = np.lexsort(sort_columns)
                     sorted_pos = all_pos[sorted_indices]
 
                     # Calculate the variables (x, y, z) based on the first
@@ -1334,11 +1337,25 @@ class SymmetryAnalyzer(object):
                     variable_candidates = []
                     for atom_index in indices:
 
-                        # Calculate the Wyckoff variables based on the atom at
-                        # current index and the first (and often the simplest)
-                        # Wyckoff position expression.
+                        # The first representative Wyckoff position is used for
+                        # solving the variables. The representative position
+                        # only contains the variables with multiplier 0 or 1,
+                        # so they can be directly calculated. Only the first
+                        # occurrence of the variable is used.
                         R = positions[atom_index]
-                        W = np.dot(R - Cs[0], M_pinvs[0])
+                        W = np.zeros(3)
+                        M = Ms[0]
+                        C = Cs[0]
+                        for idx, var in variable_map.items():
+                            for icomp in range(3):
+                                if M[idx][icomp] == 1:
+                                    W[idx] = R[idx]-C[idx]
+                                    break
+
+                        # Check that found variables make sense. Otherwise
+                        # continue with next position.
+                        if not np.allclose(matid.geometry.get_wrapped_positions(np.dot(W, M) + C), R):
+                            continue
 
                         # Calculate the positions of all other atoms with the
                         # currently tested Wyckoff variables
@@ -1379,9 +1396,8 @@ class SymmetryAnalyzer(object):
                         # Wrap Wyckoff variables to be between [0, 1] and save
                         # to the WyckoffSet
                         W_final = matid.geometry.get_wrapped_positions(W_final)
-                        for j, var in enumerate(["x", "y", "z"]):
-                            if var in variables_present:
-                                setattr(wset, var, W_final[j])
+                        for ivar, var in variable_map.items():
+                            setattr(wset, var, W_final[ivar])
 
         # Sort the list so that sets with Wyckoff letter earlier in the
         # alphabet are first, and sets with the same Wyckoff letter are
