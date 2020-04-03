@@ -7,7 +7,7 @@ if sys.version_info[:2] < (3, 0):
 
 if __name__ == "__main__":
     setup(name="matid",
-        version="0.5.8",
+        version="0.5.9",
         url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
