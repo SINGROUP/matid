@@ -15,7 +15,6 @@ from ase import Atom, Atoms
 import ase.geometry
 
 from matid.data.element_data import get_covalent_radii
-# from matid.exceptions import SystaxError
 from matid.core.linkedunits import Substitution
 import matid.geometry
 

@@ -917,7 +917,8 @@ class SymmetryAnalyzer(object):
             target_pos,
             positions,
             cell,
-            accuracy):
+            accuracy,
+            wrap=True):
         """Searches a list of positions for a match for the target position taking
         into account the periodicity of the system.
 
@@ -928,6 +929,9 @@ class SymmetryAnalyzer(object):
                 cartesian coordinates.
             accuracy (float): The minimum cartesian distance (angstroms) that is
                 required for the atoms to be considered identical.
+            wrap (bool): Whether the positions are wrapped to be within [0, 1].
+                Only set to False if you know that the positions are already
+                wrapped.
 
         Returns:
             If a match is found, returns the index of the match in 'positions'. If
@@ -935,6 +939,11 @@ class SymmetryAnalyzer(object):
         """
         if len(positions.shape) == 1:
             positions = positions[np.newaxis, :]
+
+        # Wrap the positions to be within [0, 1]
+        if wrap:
+            np.remainder(positions, 1, out=positions)
+            np.remainder(target_pos, 1, out=target_pos)
 
         # Calculate the distances without taking into account periodicity.
         # Here we calculate all the distances although in reality we could loop
@@ -1330,18 +1339,14 @@ class SymmetryAnalyzer(object):
                     sorted_pos = all_pos[sorted_indices]
 
                     # Calculate the variables (x, y, z) based on the first
-                    # Wyckoff position. The variables are calculated for each
-                    # atom, and they are stored in the list of valid values if
-                    # the other generated positions can be matched with the
-                    # rest of the atoms.
-                    variable_candidates = []
+                    # representative Wyckoff position. The variables are
+                    # calculated in a loop for each atom until a valid set is
+                    # found.
                     for atom_index in indices:
 
                         # The first representative Wyckoff position is used for
-                        # solving the variables. The representative position
-                        # only contains the variables with multiplier 0 or 1,
-                        # so they can be directly calculated. Only the first
-                        # occurrence of the variable is used.
+                        # solving the variables. Only the first occurrence of
+                        # the variable with multiplier 1 is used.
                         R = positions[atom_index]
                         W = np.zeros(3)
                         M = Ms[0]
@@ -1354,11 +1359,15 @@ class SymmetryAnalyzer(object):
 
                         # Check that found variables make sense. Otherwise
                         # continue with next position.
-                        if not np.allclose(matid.geometry.get_wrapped_positions(np.dot(W, M) + C), R):
+                        if self._search_periodic_positions(
+                                np.dot(W, M) + C,
+                                R,
+                                cell,
+                                1e-3) is None:
                             continue
 
                         # Calculate the positions of all other atoms with the
-                        # currently tested Wyckoff variables
+                        # currently tested Wyckoff variables.
                         test_positions = np.zeros(((n_trans+1)*n_expr, 3))
                         first_test_pos = np.dot(W, Ms) + Cs
                         test_positions[0:n_expr, :] = first_test_pos
@@ -1366,7 +1375,6 @@ class SymmetryAnalyzer(object):
                         for trans in translations:
                             test_positions[i_trans*n_expr:(i_trans+1)*n_expr, :] = first_test_pos + trans
                             i_trans += 1
-                        test_positions = matid.geometry.get_wrapped_positions(test_positions)
 
                         # Test if each test positions can be matched to an atom
                         # in the actual structure. If yes, save this set of
