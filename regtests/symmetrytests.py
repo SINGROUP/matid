@@ -393,60 +393,59 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
 class WyckoffTests(unittest.TestCase):
     """Tests for the Wyckoff information.
     """
-    # Skipped until std_equivalent_atoms is available in spglib
-    # def test__default_87(self):
-        # """System where the equivalent_atoms reported by spglib do not match
-        # the Wyckoff sets in the standardized conventional cell. Must use
-        # std_equivalent_atoms instead.
-        # """
-        # spg_87 = Atoms(
-            # symbols=[28, 28, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 38, 38, 38, 38, 52, 52],
-            # scaled_positions=[
-                # [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],                                                                                    
-                # [5.00000783e-01, 5.00000105e-01, 5.00000504e-01],
-                # [2.57675031e-01, 2.57675031e-01, 0.00000000e+00],
-                # [7.42324606e-01, 7.42324606e-01, 0.00000000e+00],
-                # [7.42441461e-01, 2.57559427e-01, 4.18791129e-02],
-                # [4.57816602e-01, 5.42184286e-01, 2.42498450e-01],
-                # [4.13846169e-02, 9.58616271e-01, 2.57474206e-01],
-                # [7.57373910e-01, 2.42626978e-01, 4.58800327e-01],
-                # [2.42314486e-01, 2.42313809e-01, 5.00000504e-01],
-                # [7.57685827e-01, 7.57685150e-01, 5.00000504e-01],
-                # [2.42627655e-01, 7.57373233e-01, 5.41200681e-01],
-                # [9.58616953e-01, 4.13839350e-02, 7.42525529e-01],
-                # [5.42183696e-01, 4.57817192e-01, 7.57501282e-01],
-                # [2.57560109e-01, 7.42440779e-01, 9.58120623e-01],
-                # [9.99745256e-01, 5.00077432e-01, 2.50229920e-01],
-                # [4.99921738e-01, 2.53959000e-04, 2.50230128e-01],
-                # [5.00078114e-01, 9.99744574e-01, 7.49769816e-01],
-                # [2.54636000e-04, 4.99921061e-01, 7.49770880e-01],
-                # [5.00000444e-01, 5.00000444e-01, 0.00000000e+00],
-                # [3.38500000e-07, 9.99999661e-01, 5.00000504e-01],
-            # ],
-            # cell=[
-                # [-3.93057, -3.994236, -0.010812],
-                # [3.93057, -3.994236, 0.010812],
-                # [-0.030735, 0.0, 7.861732]
-            # ],
-            # pbc=True
-        # )
+    def test_default_87(self):
+        """System where the equivalent_atoms reported by spglib do not match
+        the Wyckoff sets in the standardized conventional cell. Must use
+        crystallographic_orbits instead.
+        """
+        spg_87 = Atoms(
+            symbols=[28, 28, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 38, 38, 38, 38, 52, 52],
+            scaled_positions=[
+                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],                                                                                    
+                [5.00000783e-01, 5.00000105e-01, 5.00000504e-01],
+                [2.57675031e-01, 2.57675031e-01, 0.00000000e+00],
+                [7.42324606e-01, 7.42324606e-01, 0.00000000e+00],
+                [7.42441461e-01, 2.57559427e-01, 4.18791129e-02],
+                [4.57816602e-01, 5.42184286e-01, 2.42498450e-01],
+                [4.13846169e-02, 9.58616271e-01, 2.57474206e-01],
+                [7.57373910e-01, 2.42626978e-01, 4.58800327e-01],
+                [2.42314486e-01, 2.42313809e-01, 5.00000504e-01],
+                [7.57685827e-01, 7.57685150e-01, 5.00000504e-01],
+                [2.42627655e-01, 7.57373233e-01, 5.41200681e-01],
+                [9.58616953e-01, 4.13839350e-02, 7.42525529e-01],
+                [5.42183696e-01, 4.57817192e-01, 7.57501282e-01],
+                [2.57560109e-01, 7.42440779e-01, 9.58120623e-01],
+                [9.99745256e-01, 5.00077432e-01, 2.50229920e-01],
+                [4.99921738e-01, 2.53959000e-04, 2.50230128e-01],
+                [5.00078114e-01, 9.99744574e-01, 7.49769816e-01],
+                [2.54636000e-04, 4.99921061e-01, 7.49770880e-01],
+                [5.00000444e-01, 5.00000444e-01, 0.00000000e+00],
+                [3.38500000e-07, 9.99999661e-01, 5.00000504e-01],
+            ],
+            cell=[
+                [-3.93057, -3.994236, -0.010812],
+                [3.93057, -3.994236, 0.010812],
+                [-0.030735, 0.0, 7.861732]
+            ],
+            pbc=True
+        )
 
-        # # Find the Wyckoff groups
-        # analyzer = SymmetryAnalyzer(spg_87)
-        # spg = analyzer.get_space_group_number()
-        # self.assertEqual(spg, 87)
-        # wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
+        # Find the Wyckoff groups
+        analyzer = SymmetryAnalyzer(spg_87)
+        spg = analyzer.get_space_group_number()
+        self.assertEqual(spg, 87)
+        wyckoff_sets = analyzer.get_wyckoff_sets_conventional()
 
-        # # Check that groups are correct
-        # expected_sets = [
-            # WyckoffSet("a", 28, "Ni", multiplicity=2, space_group=87),
-            # WyckoffSet("b", 52, "Te", multiplicity=2, space_group=87),
-            # WyckoffSet("d", 38, "Sr", multiplicity=4, space_group=87),
-            # WyckoffSet("e", 8, "O", multiplicity=4, space_group=87, z=0.7423193187499998),
-            # WyckoffSet("h", 8, "O", multiplicity=8, space_group=87, x=0.78407358945, y=0.70099429955),
-        # ]
-        # for w1, w2 in zip(expected_sets, wyckoff_sets):
-            # self.assertEqual(w1, w2)
+        # Check that groups are correct
+        expected_sets = [
+            WyckoffSet("a", 28, "Ni", multiplicity=2, space_group=87),
+            WyckoffSet("b", 52, "Te", multiplicity=2, space_group=87),
+            WyckoffSet("d", 38, "Sr", multiplicity=4, space_group=87),
+            WyckoffSet("e", 8, "O", multiplicity=4, space_group=87, z=0.7423193187499998),
+            WyckoffSet("h", 8, "O", multiplicity=8, space_group=87, x=0.78407358945, y=0.70099429955),
+        ]
+        for w1, w2 in zip(expected_sets, wyckoff_sets):
+            self.assertEqual(w1, w2)
 
     def test_non_default_160(self):
         """Tests a very long system where the position detection may fail if

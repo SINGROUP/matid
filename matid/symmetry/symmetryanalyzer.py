@@ -605,7 +605,12 @@ class SymmetryAnalyzer(object):
                 set.
         """
         dataset = self.get_symmetry_dataset()
-        value = dataset["equivalent_atoms"]
+
+        # Must use crystallographic_orbits instead of equivalent atoms. The
+        # equivalent atoms reported by spglib are based on the symmetry of the
+        # original cell. Equivalence in crystallographic_orbits is instead
+        # based on the primitive cell/conventional cell which is what we want.
+        value = dataset["crystallographic_orbits"]
 
         return value
 

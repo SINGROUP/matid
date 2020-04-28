@@ -39,7 +39,7 @@ if __name__ == "__main__":
             "numpy",
             "scipy",
             "ase",
-            "spglib>=1.10.1",
+            "spglib>=1.15.0",
             "sklearn",
             "networkx>=2.4",
             "chronic"
