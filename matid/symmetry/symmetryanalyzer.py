@@ -518,7 +518,7 @@ class SymmetryAnalyzer(object):
                 set.
         """
         if self._spglib_equivalent_atoms_conventional is None:
-            self._get_spglib_wyckoff_letters_and_equivalent_atoms()
+            self._get_spglib_equivalent_atoms_conventional()
         return self._spglib_equivalent_atoms_conventional
 
     def get_wyckoff_letters_primitive(self):

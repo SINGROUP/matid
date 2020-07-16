@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,16 +31,11 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -83,6 +84,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -118,6 +120,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -156,7 +159,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="modules.html">matid</a> &raquo;</li>
         
@@ -194,15 +197,15 @@
 </div>
 <div class="section" id="module-matid.data.element_data">
 <span id="matid-data-element-data-module"></span><h2>matid.data.element_data module<a class="headerlink" href="#module-matid.data.element_data" title="Permalink to this headline">¶</a></h2>
-<dl class="data">
+<dl class="py data">
 <dt id="matid.data.element_data.NUMBER_TO_SYMBOL_MAP">
 <code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">NUMBER_TO_SYMBOL_MAP</code><em class="property"> = [None, 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#matid.data.element_data.NUMBER_TO_SYMBOL_MAP" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of atomic names in order.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="matid.data.element_data.get_covalent_radii">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_covalent_radii</code><span class="sig-paren">(</span><em class="sig-param">species</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_covalent_radii" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_covalent_radii</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">species</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_covalent_radii" title="Permalink to this definition">¶</a></dt>
 <dd><p>Give a list of species, returns the covalent radii.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -218,9 +221,9 @@ atomic numbers.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="matid.data.element_data.get_numbers">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_numbers</code><span class="sig-paren">(</span><em class="sig-param">symbols</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_numbers" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_numbers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">symbols</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_numbers" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given element symbol(s), return the atomic number(s) (number of protons).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -241,9 +244,9 @@ atomic numbers.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="matid.data.element_data.get_symbols">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_symbols</code><span class="sig-paren">(</span><em class="sig-param">numbers</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_symbols" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_symbols</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">numbers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_symbols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given atomic number(s), returns the symbol(s).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -264,9 +267,9 @@ atomic numbers.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="matid.data.element_data.listify">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">listify</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.listify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">listify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.listify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a value, force it into a list.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -307,7 +310,14 @@ atomic numbers.</p>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -318,7 +328,6 @@ atomic numbers.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

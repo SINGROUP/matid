@@ -1,8 +1,7 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
@@ -12,12 +11,19 @@
   
 
   
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
+
+  
   
   
   
 
   
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -25,16 +31,11 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -83,6 +84,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -118,6 +120,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -156,7 +159,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="modules.html">matid</a> &raquo;</li>
         
@@ -188,16 +191,16 @@
 </div>
 <div class="section" id="module-matid.classification.classifier">
 <span id="matid-classification-classifier-module"></span><h2>matid.classification.classifier module<a class="headerlink" href="#module-matid.classification.classifier" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="matid.classification.classifier.Classifier">
-<em class="property">class </em><code class="sig-prename descclassname">matid.classification.classifier.</code><code class="sig-name descname">Classifier</code><span class="sig-paren">(</span><em class="sig-param">seed_position='cm', max_cell_size=[12], pos_tol=None, pos_tol_mode='relative', pos_tol_scaling=0.0, angle_tol=20, cluster_threshold=3.5, crystallinity_threshold=0.25, delaunay_threshold=1.5, bond_threshold=0.75, delaunay_threshold_mode='relative', chem_similarity_threshold=0.4, cell_size_tol=0.25, max_n_atoms=1000, max_2d_cell_height=5, max_2d_single_cell_size=5, symmetry_tol=0.4, min_coverage=0.5</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">matid.classification.classifier.</code><code class="sig-name descname">Classifier</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seed_position</span><span class="o">=</span><span class="default_value">'cm'</span></em>, <em class="sig-param"><span class="n">max_cell_size</span><span class="o">=</span><span class="default_value">[12]</span></em>, <em class="sig-param"><span class="n">pos_tol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pos_tol_mode</span><span class="o">=</span><span class="default_value">'relative'</span></em>, <em class="sig-param"><span class="n">pos_tol_scaling</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">angle_tol</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">cluster_threshold</span><span class="o">=</span><span class="default_value">3.5</span></em>, <em class="sig-param"><span class="n">crystallinity_threshold</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">delaunay_threshold</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">bond_threshold</span><span class="o">=</span><span class="default_value">0.75</span></em>, <em class="sig-param"><span class="n">delaunay_threshold_mode</span><span class="o">=</span><span class="default_value">'relative'</span></em>, <em class="sig-param"><span class="n">chem_similarity_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="n">cell_size_tol</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">max_n_atoms</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">max_2d_cell_height</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">max_2d_single_cell_size</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">symmetry_tol</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="n">min_coverage</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A class that is used to analyze the contents of an atomistic system and
 separate the consituent atoms into different components along with other
 meaningful information.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="matid.classification.classifier.Classifier.classify">
-<code class="sig-name descname">classify</code><span class="sig-paren">(</span><em class="sig-param">input_system</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.classify" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">classify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.classify" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function that analyzes the system and breaks it into different
 components.</p>
 <dl class="field-list simple">
@@ -217,9 +220,9 @@ class that represents a classification.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="matid.classification.classifier.Classifier.cross_validate_region">
-<code class="sig-name descname">cross_validate_region</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">seed_indices</em>, <em class="sig-param">disp_tensor_pbc</em>, <em class="sig-param">disp_factors</em>, <em class="sig-param">disp_tensor</em>, <em class="sig-param">dist_matrix_radii_pbc</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.cross_validate_region" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">cross_validate_region</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">seed_indices</span></em>, <em class="sig-param"><span class="n">disp_tensor_pbc</span></em>, <em class="sig-param"><span class="n">disp_factors</span></em>, <em class="sig-param"><span class="n">disp_tensor</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_pbc</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.cross_validate_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a system tries multiple combinations of different search
 parameters to find a prototype cell and a corresponding region that
 best explains the underlying structure.</p>
@@ -232,14 +235,14 @@ Returns:</p>
 </div>
 <div class="section" id="module-matid.classification.periodicfinder">
 <span id="matid-classification-periodicfinder-module"></span><h2>matid.classification.periodicfinder module<a class="headerlink" href="#module-matid.classification.periodicfinder" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="matid.classification.periodicfinder.PeriodicFinder">
-<em class="property">class </em><code class="sig-prename descclassname">matid.classification.periodicfinder.</code><code class="sig-name descname">PeriodicFinder</code><span class="sig-paren">(</span><em class="sig-param">angle_tol=20</em>, <em class="sig-param">pos_tol_scaling=0.0</em>, <em class="sig-param">cell_size_tol=0.25</em>, <em class="sig-param">max_2d_cell_height=5</em>, <em class="sig-param">max_2d_single_cell_size=5</em>, <em class="sig-param">chem_similarity_threshold=0.4</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">matid.classification.periodicfinder.</code><code class="sig-name descname">PeriodicFinder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angle_tol</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">pos_tol_scaling</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">cell_size_tol</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">max_2d_cell_height</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">max_2d_single_cell_size</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">chem_similarity_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Used to find translationally periodic structures within atomic systems.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_region">
-<code class="sig-name descname">get_region</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">seed_index</em>, <em class="sig-param">max_cell_size</em>, <em class="sig-param">pos_tol</em>, <em class="sig-param">delaunay_threshold=None</em>, <em class="sig-param">bond_threshold=None</em>, <em class="sig-param">disp_tensor_mic=None</em>, <em class="sig-param">disp_factors=None</em>, <em class="sig-param">disp_tensor_finite=None</em>, <em class="sig-param">dist_matrix_radii_mic=None</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_region" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_region</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">seed_index</span></em>, <em class="sig-param"><span class="n">max_cell_size</span></em>, <em class="sig-param"><span class="n">pos_tol</span></em>, <em class="sig-param"><span class="n">delaunay_threshold</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bond_threshold</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_tensor_mic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_factors</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_tensor_finite</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_mic</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_region" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tries to find the periodic regions, like surfaces, in an atomic
 system.</p>
 <dl class="field-list simple">
@@ -267,9 +270,9 @@ as absolute value in angstroms.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance">
-<code class="sig-name descname">get_scaled_position_tolerance</code><span class="sig-paren">(</span><em class="sig-param">displacements</em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_scaled_position_tolerance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">displacements</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_scaled_position_tolerance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to calculate the position tolerance that is scaled by the
 search distance.</p>
 </dd></dl>
@@ -305,7 +308,14 @@ search distance.</p>
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -316,7 +326,6 @@ search distance.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

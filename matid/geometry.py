@@ -339,20 +339,20 @@ def get_center_of_mass(system):
         i_pbc = pbc[i_comp]
         i_pos = relative_positions[:, i_comp]
         if i_pbc:
-            theta = i_pos * 2*np.pi
-            xi = np.cos(theta)*masses
-            zeta = np.sin(theta)*masses
+            theta = i_pos * 2 * np.pi
+            xi = np.cos(theta) * masses
+            zeta = np.sin(theta) * masses
 
             xi_mean = np.mean(xi)
             zeta_mean = np.mean(zeta)
 
             mean_theta = np.arctan2(-zeta_mean, -xi_mean) + np.pi
-            com_rel = mean_theta/(2*np.pi)
+            com_rel = mean_theta / (2 * np.pi)
             rel_com[i_comp] = com_rel
         else:
-            rel_com[i_comp] = np.sum(i_pos*masses)/total_mass
+            rel_com[i_comp] = np.sum(i_pos * masses) / total_mass
 
-    com_cart = to_cartesian(rel_com, cell)
+    com_cart = to_cartesian(cell, rel_com)
 
     return com_cart
 
@@ -797,7 +797,7 @@ def get_mic_vector(w, v, cell):
     """
     # Get the original shift
     dvw = w-v
-    cart_vec = to_cartesian(dvw, cell)
+    cart_vec = to_cartesian(cell, dvw)
 
     orig_shift = np.array([0, 0, 0])
     for i in range(0, 3):
@@ -805,8 +805,6 @@ def get_mic_vector(w, v, cell):
             k = np.floor(dvw[i] + 0.5)
             dvw[i] -= k
             orig_shift[i] = -k
-
-    # cart_vec = to_cartesian(dvw, cell)
 
     # Figure out in which block of 2x2x2 cells we are testing
     init_val = np.array([0, 0, 0])
@@ -1118,9 +1116,16 @@ def to_scaled(cell, positions, wrap=False, pbc=False):
     Returns:
         numpy.ndarray: The scaled positions
     """
-    # Force 1D to 2D
-    if len(positions.shape) == 1:
+    # Force 1D to 2D and check shape
+    shape = positions.shape
+    if len(shape) == 1:
         positions = positions[None, :]
+        shape = positions.shape
+    if len(shape) != 2 or shape[1] != 3:
+        raise ValueError(
+            "The given positions are not compatible. Please provide positions "
+            "as rows of a two-dimensional array."
+        )
     pbc = expand_pbc(pbc)
     fractional = np.linalg.solve(
         cell.T,
@@ -1135,18 +1140,30 @@ def to_scaled(cell, positions, wrap=False, pbc=False):
 
 
 def to_cartesian(cell, scaled_positions, wrap=False, pbc=False):
-    """Used to transofrm a set of relative positions to the cartesian basis
+    """Used to transform a set of relative positions to the cartesian basis
     defined by the cell of this system.
 
     Args:
-        system (ASE.Atoms): Reference system.
-        positions (numpy.ndarray): The positions to scale
+        cell (numpy.ndarray): 3x3 array with lattice vectors as rows.
+        positions (numpy.ndarray): The positions to scale. These postiions
+            should have a shape of [n, 3], where n is the number of positions.
         wrap (numpy.ndarray): Whether the positions should be wrapped
             inside the cell.
 
     Returns:
         numpy.ndarray: The cartesian positions
     """
+    # Force 1D to 2D and check shape
+    shape = scaled_positions.shape
+    if len(shape) == 1:
+        scaled_positions = scaled_positions[None, :]
+        shape = scaled_positions.shape
+    if len(shape) != 2 or shape[1] != 3:
+        raise ValueError(
+            "The given positions are not compatible. Please provide positions "
+            "as rows of a two-dimensional array."
+        )
+
     pbc = expand_pbc(pbc)
     if wrap:
         for i, periodic in enumerate(pbc):

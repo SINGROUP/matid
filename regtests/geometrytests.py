@@ -1,12 +1,11 @@
 """
 Set of regression tests for the geometry tools.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
 import unittest
 
 import numpy as np
 
-# from ase import Atoms
+from ase import Atoms
 from ase.build import bcc100, molecule
 from ase.visualize import view
 import ase.build
@@ -125,7 +124,6 @@ class GeometryTests(unittest.TestCase):
         system.set_pbc([True, True, True])
         system.translate([0, 0, 10])
         system.wrap()
-        # view(system)
 
         # Test periodic COM
         cm = matid.geometry.get_center_of_mass(system)
@@ -135,6 +133,36 @@ class GeometryTests(unittest.TestCase):
         system.set_pbc(False)
         cm = matid.geometry.get_center_of_mass(system)
         self.assertTrue(np.allclose(cm, [3.58770672, 3.58770672, 10.00200455], atol=0.1))
+
+        # Test positions with non-orthorhombic cell that has negative elements
+        # in lattice vectors.
+        system = Atoms(
+            symbols=['N', 'N', 'N', 'N', 'C', 'C', 'N', 'C', 'H', 'C', 'C', 'N', 'C', 'H'],
+            positions=[
+                [5.99520154, 4.36260352, 9.34466641],
+                [3.93237808, 3.20844954, 9.59369566],
+                [-0.44330457, 4.00755999, 9.58355994],
+                [1.61974674, 2.84737344, 9.36529391],
+                [2.67745295, 3.5184896, 9.09252221],
+                [4.71467838, 4.12389331, 9.05494284],
+                [2.65906057, 4.65710632, 8.18163931],
+                [3.88950688, 5.03564733, 8.17378237],
+                [4.26274113, 5.88360129, 7.59608619],
+                [0.33924086, 3.07840333, 9.06923781],
+                [-0.48556248, 2.14395639, 8.21180484],
+                [7.03506045, 2.52272554, 8.20901382],
+                [7.05303326, 3.68462936, 9.08992327],
+                [-0.11207002, 1.28102047, 7.65690464],
+            ],
+            cell=[
+                [8.751006887253668, 0.0, 0.0],
+                [-4.372606804779377, 11.962358903815558, 0.0],
+                [0.00037467328230266297, -0.000720566930414705, 16.891557236170406]
+            ],
+            pbc=True
+        )
+        cm = matid.geometry.get_center_of_mass(system)
+        self.assertTrue(np.allclose(cm, [6.2609094, 3.59987973, 8.90948045], atol=0.1))
 
     def test_matches_non_orthogonal(self):
         """Test that the correct factor is returned when finding matches that
