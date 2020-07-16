@@ -8,6 +8,7 @@ import chronic
 
 # from ase.visualize import view
 from ase.data import covalent_radii
+from ase.data.vdw_alvarez import vdw_radii
 
 from matid.classifications import \
     Surface, \
@@ -41,6 +42,7 @@ class Classifier():
             pos_tol_scaling=constants.POS_TOL_SCALING,
             angle_tol=constants.ANGLE_TOL,
             cluster_threshold=constants.CLUSTER_THRESHOLD,
+            radii="covalent",
             crystallinity_threshold=constants.CRYSTALLINITY_THRESHOLD,
             delaunay_threshold=constants.DELAUNAY_THRESHOLD,
             bond_threshold=constants.BOND_THRESHOLD,
@@ -74,6 +76,14 @@ class Classifier():
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
                 perfomed. Given in angstroms.
+            radii(str|np.ndarray): The radii to use for atoms. Use either a preset
+                or a custom list or atomic radii where the atomic number is used as an
+                index. The available presets are:
+
+                    - covalent: Covalent radii
+                    - vdw: van Der Waals radii
+                    - vdw_covalent: van Der Waals radii or covalent if not defined.
+
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
                 crystals.
@@ -121,6 +131,7 @@ class Classifier():
         self.angle_tol = angle_tol
         self.crystallinity_threshold = crystallinity_threshold
         self.cluster_threshold = cluster_threshold
+        self.radii = radii
         self.delaunay_threshold = delaunay_threshold
         self.abs_delaunay_threshold = None
         self.delaunay_threshold_mode = delaunay_threshold_mode
@@ -207,10 +218,18 @@ class Classifier():
 
         # Calculate the distance matrix where the periodicity and the covalent
         # radii have been taken into account
+        if self.radii == "covalent":
+            radii = covalent_radii
+        elif self.radii == "vdw":
+            radii = vdw_radii
+        elif radii == "vdw_covalent":
+            radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
+        else:
+            radii = self.radii
         dist_matrix_radii_pbc = np.array(dist_matrix_pbc)
         num = system.get_atomic_numbers()
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
+        system_radii = radii[num]
+        radii_matrix = system_radii[:, None] + system_radii[None, :]
         dist_matrix_radii_pbc -= radii_matrix
 
         # If pos_tol_mode or delaunay_threshold_mode is relative, get the

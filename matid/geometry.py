@@ -11,6 +11,7 @@ import numpy as np
 from numpy.random import RandomState
 
 from ase.data import covalent_radii
+from ase.data.vdw_alvarez import vdw_radii
 from ase import Atom, Atoms
 import ase.geometry
 
@@ -50,7 +51,8 @@ def get_dimensionality(
         system,
         cluster_threshold,
         dist_matrix_radii_mic_1x=None,
-        return_clusters=False
+        return_clusters=False,
+        radii="covalent",
     ):
     """Used to calculate the dimensionality of a system with a modified
     Topology Scaling Algorithm (TSA) (Michael Ashton, Joshua Paul, Susan B.
@@ -65,6 +67,13 @@ def get_dimensionality(
             that takes in to account the periodicity and has the covalent radii of
             the atoms already subtracted.
         return_clusters(boolean): Whether the clusters are returned
+        radii(str|np.ndarray): The radii to use for atoms. Use either a preset
+            or a custom list or atomic radii where the atomic number is used as an
+            index. The available presets are:
+
+                - covalent: Covalent radii
+                - vdw: van Der Waals radii
+                - vdw_covalent: van Der Waals radii or covalent if not defined.
 
     Returns:
         int|none: The dimensionality of the system. If the dimensionality can't be
@@ -81,8 +90,14 @@ def get_dimensionality(
     # When calculating the displacement tensor we can ignore neighbouring
     # copies that are farther away than the clustering cutoff. The maximum mic
     # distance to allow is cluster_threshold + 2*max_radii
-    radii = covalent_radii[num_1x]
-    max_radii = radii.max()
+    if radii == "covalent":
+        radii = covalent_radii
+    elif radii == "vdw":
+        radii = vdw_radii
+    elif radii == "vdw_covalent":
+        radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
+    system_radii = radii[num_1x]
+    max_radii = system_radii.max()
     max_distance = cluster_threshold + 2*max_radii
 
     # 1x1x1 system
@@ -97,7 +112,7 @@ def get_dimensionality(
             max_distance=max_distance,
             return_distances=True
         )
-        radii_1x = covalent_radii[num_1x]
+        radii_1x = radii[num_1x]
         radii_matrix_1x = radii_1x[:, None] + radii_1x[None, :]
         dist_matrix_radii_mic_1x = dist_matrix_mic_1x - radii_matrix_1x
 
@@ -130,7 +145,7 @@ def get_dimensionality(
                 max_distance=max_distance,
                 return_distances=True
             )
-            radii_2x = covalent_radii[num_2x]
+            radii_2x = radii[num_2x]
             radii_matrix_2x = radii_2x[:, None] + radii_2x[None, :]
             dist_matrix_radii_mic_2x = dist_matrix_mic_2x - radii_matrix_2x
 
@@ -352,7 +367,7 @@ def get_center_of_mass(system):
         else:
             rel_com[i_comp] = np.sum(i_pos * masses) / total_mass
 
-    com_cart = to_cartesian(cell, rel_com)
+    com_cart = to_cartesian(cell, rel_com)[0, :]
 
     return com_cart
 

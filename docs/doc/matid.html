@@ -670,7 +670,7 @@ initialized with an atomic structure.</p>
 
 <dl class="py function">
 <dt id="matid.geometry.get_dimensionality">
-<code class="sig-prename descclassname">matid.geometry.</code><code class="sig-name descname">get_dimensionality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">cluster_threshold</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_mic_1x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_clusters</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_dimensionality" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">matid.geometry.</code><code class="sig-name descname">get_dimensionality</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">cluster_threshold</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_mic_1x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">return_clusters</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">radii</span><span class="o">=</span><span class="default_value">'covalent'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.get_dimensionality" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to calculate the dimensionality of a system with a modified
 Topology Scaling Algorithm (TSA) (Michael Ashton, Joshua Paul, Susan B.
 Sinnott, and Richard G. Hennig Phys. Rev. Lett. 118, 106101).</p>
@@ -685,6 +685,17 @@ that is used to identify clusters within the unit cell.</p></li>
 that takes in to account the periodicity and has the covalent radii of
 the atoms already subtracted.</p></li>
 <li><p><strong>return_clusters</strong> (<em>boolean</em>) – Whether the clusters are returned</p></li>
+<li><p><strong>radii</strong> (<em>str|np.ndarray</em>) – <p>The radii to use for atoms. Use either a preset
+or a custom list or atomic radii where the atomic number is used as an
+index. The available presets are:</p>
+<blockquote>
+<div><ul>
+<li><p>covalent: Covalent radii</p></li>
+<li><p>vdw: van Der Waals radii</p></li>
+<li><p>vdw_covalent: van Der Waals radii or covalent if not defined.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1050,13 +1061,14 @@ the global numpy.random.seed()-function.</p>
 <dl class="py function">
 <dt id="matid.geometry.to_cartesian">
 <code class="sig-prename descclassname">matid.geometry.</code><code class="sig-name descname">to_cartesian</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">scaled_positions</span></em>, <em class="sig-param"><span class="n">wrap</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">pbc</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.to_cartesian" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to transofrm a set of relative positions to the cartesian basis
+<dd><p>Used to transform a set of relative positions to the cartesian basis
 defined by the cell of this system.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<em>ASE.Atoms</em>) – Reference system.</p></li>
-<li><p><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale</p></li>
+<li><p><strong>cell</strong> (<em>numpy.ndarray</em>) – 3x3 array with lattice vectors as rows.</p></li>
+<li><p><strong>positions</strong> (<em>numpy.ndarray</em>) – The positions to scale. These postiions
+should have a shape of [n, 3], where n is the number of positions.</p></li>
 <li><p><strong>wrap</strong> (<em>numpy.ndarray</em>) – Whether the positions should be wrapped
 inside the cell.</p></li>
 </ul>

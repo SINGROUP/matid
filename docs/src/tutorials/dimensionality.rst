@@ -28,16 +28,16 @@ use the following metric:
 
 .. math::
 
-   d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i^{\text{cov}} - r_j^{\text{cov}}
+   d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i - r_j
 
 where :math:`\vec{r}_i` and :math:`\vec{r}_i` are the cartesian positions of
-atom :math:`i` and :math:`j`, respectively, and :math:`r_i^{\text{cov}}` and
-:math:`r_j^{\text{cov}}` their covalent radii [3]_ . It is important to
-notice that in this metric the distances always follow the minimum image
-convention (MIC), i.e.  the distance is calculated between two closest periodic
-neighbours. By using the distance to the closest periodic neighbour we obtain
-the correct clusters regardless of what shape of cell is used in the original
-simulation.
+atom :math:`i` and :math:`j`, respectively, and :math:`r_i` and :math:`r_j` are
+their radii. The radii definition can be changed and defaults to covalent radii
+[3]_ . It is important to notice that in this metric the distances always
+follow the minimum image convention (MIC), i.e.  the distance is calculated
+between two closest periodic neighbours. By using the distance to the closest
+periodic neighbour we obtain the correct clusters regardless of what shape of
+cell is used in the original simulation.
 
 The clustering uses two parameters: the minimum cluster size
 :math:`n_\mathrm{min}` and the neighbourhood radius :math:`\epsilon`. We set

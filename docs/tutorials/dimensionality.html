@@ -193,15 +193,15 @@ for the number of clusters and it can find arbitrarily shaped clusters. The
 clustering requires that we define a metric for the distance between atoms. We
 use the following metric:</p>
 <div class="math notranslate nohighlight">
-\[d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i^{\text{cov}} - r_j^{\text{cov}}\]</div>
+\[d_{ij} = \lvert \vec{r}_i - \vec{r}_j \rvert^{\text{MIC}} - r_i - r_j\]</div>
 <p>where <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> and <span class="math notranslate nohighlight">\(\vec{r}_i\)</span> are the cartesian positions of
-atom <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>, respectively, and <span class="math notranslate nohighlight">\(r_i^{\text{cov}}\)</span> and
-<span class="math notranslate nohighlight">\(r_j^{\text{cov}}\)</span> their covalent radii <a class="footnote-reference brackets" href="#id6" id="id3">3</a> . It is important to
-notice that in this metric the distances always follow the minimum image
-convention (MIC), i.e.  the distance is calculated between two closest periodic
-neighbours. By using the distance to the closest periodic neighbour we obtain
-the correct clusters regardless of what shape of cell is used in the original
-simulation.</p>
+atom <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span>, respectively, and <span class="math notranslate nohighlight">\(r_i\)</span> and <span class="math notranslate nohighlight">\(r_j\)</span> are
+their radii. The radii definition can be changed and defaults to covalent radii
+<a class="footnote-reference brackets" href="#id6" id="id3">3</a> . It is important to notice that in this metric the distances always
+follow the minimum image convention (MIC), i.e.  the distance is calculated
+between two closest periodic neighbours. By using the distance to the closest
+periodic neighbour we obtain the correct clusters regardless of what shape of
+cell is used in the original simulation.</p>
 <p>The clustering uses two parameters: the minimum cluster size
 <span class="math notranslate nohighlight">\(n_\mathrm{min}\)</span> and the neighbourhood radius <span class="math notranslate nohighlight">\(\epsilon\)</span>. We set
 <span class="math notranslate nohighlight">\(n_\mathrm{min}\)</span> to 1 to allow clusters consisting of even single atoms

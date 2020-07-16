@@ -47,10 +47,6 @@ class ExceptionTests(unittest.TestCase):
 class DimensionalityTests(unittest.TestCase):
     """Unit tests for finding the dimensionality of different systems.
     """
-    # Read the defaults
-    classifier = Classifier()
-    cluster_threshold = classifier.cluster_threshold
-
     # 0D system
     sys0d = molecule("H2O")
     sys0d.set_pbc([False, False, False])
@@ -85,113 +81,143 @@ class DimensionalityTests(unittest.TestCase):
         pbc=True,
         latticeconstant=5.430710)
 
-    def test_0d_n_pbc0(self):
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys0d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 0)
+    def test(self):
+        # Test with two radii settings
+        for radii, cluster_threshold in [
+                ("covalent", 2.7),
+                ("vdw_covalent", 0.1),
+            ]:
 
-    def test_0d_n_pbc3(self):
-        DimensionalityTests.sys1d.set_pbc([True, True, True])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys0d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 0)
+            # 0d_n_pbc0
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys0d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 0)
 
-    def test_1d_n_pbc3(self):
-        DimensionalityTests.sys1d.set_pbc([True, True, True])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys1d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 1)
+            # 0d_n_pbc3
+            DimensionalityTests.sys1d.set_pbc([True, True, True])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys0d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 0)
 
-    def test_1d_n_pbc2(self):
-        DimensionalityTests.sys1d.set_pbc([False, True, True])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys1d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 1)
+            # 1d_n_pbc3
+            DimensionalityTests.sys1d.set_pbc([True, True, True])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys1d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 1)
 
-    def test_1d_n_pbc1(self):
-        DimensionalityTests.sys1d.set_pbc([False, False, True])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys1d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 1)
+            # 1d_n_pbc2
+            DimensionalityTests.sys1d.set_pbc([False, True, True])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys1d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 1)
 
-    def test_2d_n_pbc3(self):
-        DimensionalityTests.sys2d.set_pbc([True, True, True])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys2d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
+            # 1d_n_pbc1
+            DimensionalityTests.sys1d.set_pbc([False, False, True])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys1d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 1)
 
-    def test_2d_n_pbc2(self):
-        DimensionalityTests.sys2d.set_pbc([True, True, False])
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys2d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
+            # 2d_n_pbc3
+            DimensionalityTests.sys2d.set_pbc([True, True, True])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys2d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 2)
 
-    def test_3d_n_pbc3(self):
-        dimensionality = matid.geometry.get_dimensionality(
-            DimensionalityTests.sys3d,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 3)
+            # 2d_n_pbc2
+            DimensionalityTests.sys2d.set_pbc([True, True, False])
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys2d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 2)
 
-    def test_non_orthogonal_crystal(self):
-        """Test a system that has a non-orthogonal cell.
-        """
-        system = ase.io.read("./structures/ROJiORHNwL4q0WTvNUy0mW5s2Buuq+PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.xyz")
-        dimensionality = matid.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold
-        )
-        self.assertEqual(dimensionality, 3)
+            # 3d_n_pbc3
+            dimensionality = matid.geometry.get_dimensionality(
+                DimensionalityTests.sys3d,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 3)
 
-    def test_surface_split(self):
-        """Test a surface that has been split by the cell boundary
-        """
-        system = bcc100('Fe', size=(5, 1, 3), vacuum=8)
-        system.translate([0, 0, 9])
-        system.set_pbc(True)
-        system.wrap(pbc=True)
-        dimensionality = matid.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
+            # Test a system that has a non-orthogonal cell.
+            system = ase.io.read("./structures/ROJiORHNwL4q0WTvNUy0mW5s2Buuq+PSX9X4dQR2r1cjQ9kBtuC-wI6MO8B.xyz")
+            dimensionality = matid.geometry.get_dimensionality(
+                system,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 3)
 
-    def test_surface_wavy(self):
-        """Test a surface with a high amplitude wave. This would break a
-        regular linear vacuum gap search.
-        """
-        system = bcc100('Fe', size=(15, 3, 3), vacuum=8)
-        pos = system.get_positions()
-        x_len = np.linalg.norm(system.get_cell()[0, :])
-        x = pos[:, 0]
-        z = pos[:, 2]
-        z_new = z + 3*np.sin(4*(x/x_len)*np.pi)
-        pos_new = np.array(pos)
-        pos_new[:, 2] = z_new
-        system.set_positions(pos_new)
-        system.set_pbc(True)
-        # view(system)
-        dimensionality = matid.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 2)
+            # Test a surface that has been split by the cell boundary
+            system = bcc100('Fe', size=(5, 1, 3), vacuum=8)
+            system.translate([0, 0, 9])
+            system.set_pbc(True)
+            system.wrap(pbc=True)
+            dimensionality = matid.geometry.get_dimensionality(
+                system,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 2)
 
-    def test_graphite(self):
-        system = ase.lattice.hexagonal.Graphite(
-            size=(1, 1, 1),
-            symbol='C',
-            pbc=True,
-            latticeconstant=(2.461, 6.708))
-        # view(system)
-        dimensionality = matid.geometry.get_dimensionality(
-            system,
-            DimensionalityTests.cluster_threshold)
-        self.assertEqual(dimensionality, 3)
+            # Test a surface with a high amplitude wave. This would break a
+            # regular linear vacuum gap search.
+            system = bcc100('Fe', size=(15, 3, 3), vacuum=8)
+            pos = system.get_positions()
+            x_len = np.linalg.norm(system.get_cell()[0, :])
+            x = pos[:, 0]
+            z = pos[:, 2]
+            z_new = z + 3*np.sin(4*(x/x_len)*np.pi)
+            pos_new = np.array(pos)
+            pos_new[:, 2] = z_new
+            system.set_positions(pos_new)
+            system.set_pbc(True)
+            dimensionality = matid.geometry.get_dimensionality(
+                system,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 2)
+
+            # Graphite
+            system = ase.lattice.hexagonal.Graphite(
+                size=(1, 1, 1),
+                symbol='C',
+                pbc=True,
+                latticeconstant=(2.461, 6.708))
+            dimensionality = matid.geometry.get_dimensionality(
+                system,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 3)
+
+            # Molecule with quite little vacuum between cells
+            system = Atoms(
+                symbols=['C', 'O'],
+                positions=[
+                    [1.13250529, 0., 0.],
+                    [0., 0., 0.],
+                ],
+                cell=[
+                    [5.29177211, 0., 0.],
+                    [0., 5.29177211, 0.],
+                    [0., 0., 5.29177211],
+                ],
+                pbc=True
+            )
+            dimensionality = matid.geometry.get_dimensionality(
+                system,
+                radii=radii,
+                cluster_threshold=cluster_threshold)
+            self.assertEqual(dimensionality, 0)
 
 
 class PeriodicFinderTests(unittest.TestCase):
