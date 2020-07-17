@@ -80,9 +80,9 @@ class Classifier():
                 or a custom list or atomic radii where the atomic number is used as an
                 index. The available presets are:
 
-                    - covalent: Covalent radii
-                    - vdw: van Der Waals radii
-                    - vdw_covalent: van Der Waals radii or covalent if not defined.
+                    - covalent: Covalent radii from DOI:10.1039/B801115J
+                    - vdw: van Der Waals radii from DOI:10.1039/C3DT50599E
+                    - vdw_covalent: preferably van Der Waals radii, covalent if vdw not defined.
 
             crystallinity_threshold(float): The threshold of number of symmetry
                 operations per atoms in primitive cell that is required for
@@ -218,12 +218,13 @@ class Classifier():
 
         # Calculate the distance matrix where the periodicity and the covalent
         # radii have been taken into account
-        if self.radii == "covalent":
-            radii = covalent_radii
-        elif self.radii == "vdw":
-            radii = vdw_radii
-        elif radii == "vdw_covalent":
-            radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
+        if isinstance(self.radii, str):
+            if self.radii == "covalent":
+                radii = covalent_radii
+            elif self.radii == "vdw":
+                radii = vdw_radii
+            elif self.radii == "vdw_covalent":
+                radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
         else:
             radii = self.radii
         dist_matrix_radii_pbc = np.array(dist_matrix_pbc)

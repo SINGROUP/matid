@@ -71,9 +71,10 @@ def get_dimensionality(
             or a custom list or atomic radii where the atomic number is used as an
             index. The available presets are:
 
-                - covalent: Covalent radii
-                - vdw: van Der Waals radii
-                - vdw_covalent: van Der Waals radii or covalent if not defined.
+                - covalent: Covalent radii from DOI:10.1039/B801115J
+                - vdw: van Der Waals radii from DOI:10.1039/C3DT50599E
+                - vdw_covalent: preferably van Der Waals radii, covalent if vdw
+                  not defined.
 
     Returns:
         int|none: The dimensionality of the system. If the dimensionality can't be
@@ -90,12 +91,13 @@ def get_dimensionality(
     # When calculating the displacement tensor we can ignore neighbouring
     # copies that are farther away than the clustering cutoff. The maximum mic
     # distance to allow is cluster_threshold + 2*max_radii
-    if radii == "covalent":
-        radii = covalent_radii
-    elif radii == "vdw":
-        radii = vdw_radii
-    elif radii == "vdw_covalent":
-        radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
+    if isinstance(radii, str):
+        if radii == "covalent":
+            radii = covalent_radii
+        elif radii == "vdw":
+            radii = vdw_radii
+        elif radii == "vdw_covalent":
+            radii = np.array([vdw_radii[i] if vdw_radii[i] != np.nan else covalent_radii[i] for i in range(len(vdw_radii))])
     system_radii = radii[num_1x]
     max_radii = system_radii.max()
     max_distance = cluster_threshold + 2*max_radii

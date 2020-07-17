@@ -15,6 +15,7 @@ from ase.build import nanotube
 import ase.lattice.hexagonal
 from ase.lattice.compounds import Zincblende
 from ase.lattice.cubic import SimpleCubicFactory
+from ase.data import covalent_radii
 import ase.io
 
 from matid import Classifier, SymmetryAnalyzer, PeriodicFinder
@@ -42,6 +43,46 @@ class ExceptionTests(unittest.TestCase):
         classifier = Classifier()
         with self.assertRaises(ValueError):
             classifier.classify(system)
+
+
+class RadiiTests(unittest.TestCase):
+    """Tests that all available radii options are supported correctly.
+    """
+    # 2D system
+    sys2d = Atoms(
+        symbols=[6, 6],
+        cell=np.array((
+            [2.4595121467478055, 0.0, 0.0],
+            [-1.2297560733739028, 2.13, 0.0],
+            [0.0, 0.0, 10.0]
+        )),
+        scaled_positions=np.array((
+            [0.3333333333333333, 0.6666666666666666, 0.5],
+            [0.6666666666666667, 0.33333333333333337, 0.5]
+        )),
+        pbc=True
+    )
+    sys2d = sys2d.repeat((3, 3, 1))
+
+    def test_covalent(self):
+        classifier = Classifier(radii="covalent", cluster_threshold=1.5)
+        clas = classifier.classify(RadiiTests.sys2d)
+        self.assertIsInstance(clas, Class2D)
+
+    def test_vdw(self):
+        classifier = Classifier(radii="vdw", cluster_threshold=0.5)
+        clas = classifier.classify(RadiiTests.sys2d)
+        self.assertIsInstance(clas, Class2D)
+
+    def test_vdw_covalent(self):
+        classifier = Classifier(radii="vdw_covalent", cluster_threshold=0.5)
+        clas = classifier.classify(RadiiTests.sys2d)
+        self.assertIsInstance(clas, Class2D)
+
+    def test_custom(self):
+        classifier = Classifier(radii=0.5*covalent_radii, cluster_threshold=3)
+        clas = classifier.classify(RadiiTests.sys2d)
+        self.assertIsInstance(clas, Class2D)
 
 
 class DimensionalityTests(unittest.TestCase):
@@ -82,7 +123,7 @@ class DimensionalityTests(unittest.TestCase):
         latticeconstant=5.430710)
 
     def test(self):
-        # Test with two radii settings
+        # Test with two radii setting alternatives
         for radii, cluster_threshold in [
                 ("covalent", 2.7),
                 ("vdw_covalent", 0.1),
@@ -2330,6 +2371,7 @@ class SearchGraphTests(unittest.TestCase):
 if __name__ == '__main__':
     suites = []
     suites.append(unittest.TestLoader().loadTestsFromTestCase(ExceptionTests))
+    suites.append(unittest.TestLoader().loadTestsFromTestCase(RadiiTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(DimensionalityTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(PeriodicFinderTests))
     suites.append(unittest.TestLoader().loadTestsFromTestCase(SearchGraphTests))
