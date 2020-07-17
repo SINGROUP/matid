@@ -57,7 +57,7 @@ class Classifier():
             ):
         """
         Args:
-            seed_position(str or np.ndarray): The seed position. Either provide
+            seed_position(str | np.ndarray): The seed position. Either provide
                 a 3D vector from which the closest atom will be used as a seed, or
                 then provide a valid option as a string. Valid options are:
                     - 'cm': One seed nearest to center of mass
@@ -76,7 +76,7 @@ class Classifier():
             cluster_threshold(float): A parameter that controls which atoms are
                 considered to be energetically connected when clustering is
                 perfomed. Given in angstroms.
-            radii(str|np.ndarray): The radii to use for atoms. Use either a preset
+            radii(str | np.ndarray): The radii to use for atoms. Use either a preset
                 or a custom list or atomic radii where the atomic number is used as an
                 index. The available presets are:
 

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.classification package &mdash; MatID 0.6.0 documentation</title>
+  <title>matid.classification package &mdash; MatID 0.6.1 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.0
+                0.6.1
               </div>
             
           
@@ -198,6 +198,89 @@
 <p>A class that is used to analyze the contents of an atomistic system and
 separate the consituent atoms into different components along with other
 meaningful information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seed_position</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>np.ndarray</em>) – <p>The seed position. Either provide
+a 3D vector from which the closest atom will be used as a seed, or
+then provide a valid option as a string. Valid options are:</p>
+<blockquote>
+<div><ul>
+<li><p>’cm’: One seed nearest to center of mass</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>max_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The maximum size of cell basis vectors.</p></li>
+<li><p><strong>pos_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The position tolerance for finding translationally
+repeated units. The units depend on ‘pos_tol_mode’.</p></li>
+<li><p><strong>pos_tol_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – <p>The mode for calculating the position tolerance.
+One of the following:</p>
+<blockquote>
+<div><ul>
+<li><p>”relative”: Tolerance relative to the average nearest
+neighbour distance.</p></li>
+<li><p>”absolute”: Absolute tolerance in angstroms.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>pos_tol_scaling</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The distance dependent scaling factor for
+the positions tolerance.</p></li>
+<li><p><strong>angle_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The angle below which vectors in the cell basis are
+considered to be parallel.</p></li>
+<li><p><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – A parameter that controls which atoms are
+considered to be energetically connected when clustering is
+perfomed. Given in angstroms.</p></li>
+<li><p><strong>radii</strong> (<em>str|np.ndarray</em>) – <p>The radii to use for atoms. Use either a preset
+or a custom list or atomic radii where the atomic number is used as an
+index. The available presets are:</p>
+<blockquote>
+<div><ul>
+<li><p>covalent: Covalent radii from DOI:10.1039/B801115J</p></li>
+<li><p>vdw: van Der Waals radii from DOI:10.1039/C3DT50599E</p></li>
+<li><p>vdw_covalent: preferably van Der Waals radii, covalent if vdw not defined.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>crystallinity_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The threshold of number of symmetry
+operations per atoms in primitive cell that is required for
+crystals.</p></li>
+<li><p><strong>max_n_atoms</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The maximum number of atoms in the system. If the
+system has more atoms than this, a ValueError is raised. If
+undefined, there is no maximum.</p></li>
+<li><p><strong>bond_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The clustering threshold when determining
+the connectivity of atoms in a surface or 2D-material.</p></li>
+<li><p><strong>delaunay_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The maximum length of an edge in the
+Delaunay triangulation.</p></li>
+<li><p><strong>delaunay_threshold_mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – <p>The mode for calculating the maximum
+length of an edge in the Delaunay triangulation.
+One of the following:</p>
+<blockquote>
+<div><ul>
+<li><p>”relative”: Tolerance relative to the average nearest
+neighbour distance.</p></li>
+<li><p>”absolute”: Absolute tolerance in angstroms.</p></li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>pos_tol_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The factor for multiplying the position
+tolerance when searching neighbouring cell seed atoms.</p></li>
+<li><p><strong>cell_size_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for cell sizes to be considered
+equal. Given relative to the smallest cell size.</p></li>
+<li><p><strong>max_2d_cell_height</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The maximum allowed thickness in for a 2D
+material. Given in angstroms.</p></li>
+<li><p><strong>max_2d_single_cell_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The maximum allowed cell size for
+2D materials with only one unit cell found in the simulation
+cell. Given in angstroms.</p></li>
+<li><p><strong>symmetry_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for finding symmetry positions
+when determining the conventional cell for bulk structures. Given
+in angstroms.</p></li>
+<li><p><strong>min_coverage</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The minimum fraction that a found periodic
+region has to cover in the structure for the entire structure to be
+classified based on that found region (as surface or 2D
+material).</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="matid.classification.classifier.Classifier.classify">
 <code class="sig-name descname">classify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.classifier.Classifier.classify" title="Permalink to this definition">¶</a></dt>
@@ -240,6 +323,18 @@ Returns:</p>
 <em class="property">class </em><code class="sig-prename descclassname">matid.classification.periodicfinder.</code><code class="sig-name descname">PeriodicFinder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">angle_tol</span><span class="o">=</span><span class="default_value">20</span></em>, <em class="sig-param"><span class="n">pos_tol_scaling</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">cell_size_tol</span><span class="o">=</span><span class="default_value">0.25</span></em>, <em class="sig-param"><span class="n">max_2d_cell_height</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">max_2d_single_cell_size</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">chem_similarity_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Used to find translationally periodic structures within atomic systems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>angle_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The angle below which vectors in the cell basis are
+considered to be parallel.</p></li>
+<li><p><strong>pos_tol_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The factor for multiplying the position
+tolerance when searching neighbouring cell seed atoms.</p></li>
+<li><p><strong>cell_size_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for cell sizes to be considered
+equal. Given relative to the smallest cell size.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="matid.classification.periodicfinder.PeriodicFinder.get_region">
 <code class="sig-name descname">get_region</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">seed_index</span></em>, <em class="sig-param"><span class="n">max_cell_size</span></em>, <em class="sig-param"><span class="n">pos_tol</span></em>, <em class="sig-param"><span class="n">delaunay_threshold</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">bond_threshold</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_tensor_mic</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_factors</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">disp_tensor_finite</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_mic</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classification.periodicfinder.PeriodicFinder.get_region" title="Permalink to this definition">¶</a></dt>

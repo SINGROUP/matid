@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.symmetry package &mdash; MatID 0.6.0 documentation</title>
+  <title>matid.symmetry package &mdash; MatID 0.6.1 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.0
+                0.6.1
               </div>
             
           
@@ -196,6 +196,16 @@
 <em class="property">class </em><code class="sig-prename descclassname">matid.symmetry.symmetryanalyzer.</code><code class="sig-name descname">SymmetryAnalyzer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">symmetry_tol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">min_2d_thickness</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A base class for getting symmetry related properties of unit cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>system</strong> (<em>ASE.Atoms</em>) – The system to inspect.</p></li>
+<li><p><strong>symmetry_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for the symmetry detection.</p></li>
+<li><p><strong>min_2d_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The minimum thickness in angstroms for the
+conventional cell that is returned for 2D systems.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_bravais_lattice">
 <code class="sig-name descname">get_bravais_lattice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_bravais_lattice" title="Permalink to this definition">¶</a></dt>
@@ -601,6 +611,25 @@ conventional system.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a group of atoms in a certain Wyckoff position, for a certain
 space group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wyckoff_letter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The letter for the Wyckoff position.</p></li>
+<li><p><strong>atomic_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Atomic number stored in this Wyckoff position.</p></li>
+<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The chemical symbol of the element.</p></li>
+<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – Indices corresponding to atoms in this Wyckoff
+group in a structure.</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the a-vector.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the b-vector.</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the c-vector.</p></li>
+<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The space group number for this set.</p></li>
+<li><p><strong>representative</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Algebraic expression that represents this set: all
+other positions are generated from symmetry.</p></li>
+<li><p><strong>multiplicity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The multiplicity of the set: how many atoms are
+in this set.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid package &mdash; MatID 0.6.0 documentation</title>
+  <title>matid package &mdash; MatID 0.6.1 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.0
+                0.6.1
               </div>
             
           
@@ -377,6 +377,8 @@ a atomic system.</p>
 <p>Handles list of intervals.</p>
 <p>This class allows sorting and adding up of intervals and taking into
 account if they overlap.</p>
+<p>Args:
+intervals: List of intervals that are added.</p>
 <dl class="py method">
 <dt id="matid.geometry.Intervals.add_interval">
 <code class="sig-name descname">add_interval</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals.add_interval" title="Permalink to this definition">¶</a></dt>
@@ -690,9 +692,10 @@ or a custom list or atomic radii where the atomic number is used as an
 index. The available presets are:</p>
 <blockquote>
 <div><ul>
-<li><p>covalent: Covalent radii</p></li>
-<li><p>vdw: van Der Waals radii</p></li>
-<li><p>vdw_covalent: van Der Waals radii or covalent if not defined.</p></li>
+<li><p>covalent: Covalent radii from DOI:10.1039/B801115J</p></li>
+<li><p>vdw: van Der Waals radii from DOI:10.1039/C3DT50599E</p></li>
+<li><p>vdw_covalent: preferably van Der Waals radii, covalent if vdw
+not defined.</p></li>
 </ul>
 </div></blockquote>
 </p></li>
