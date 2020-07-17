@@ -201,7 +201,7 @@ meaningful information.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seed_position</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>np.ndarray</em>) – <p>The seed position. Either provide
+<li><p><strong>seed_position</strong> (<em>str | np.ndarray</em>) – <p>The seed position. Either provide
 a 3D vector from which the closest atom will be used as a seed, or
 then provide a valid option as a string. Valid options are:</p>
 <blockquote>
@@ -230,7 +230,7 @@ considered to be parallel.</p></li>
 <li><p><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – A parameter that controls which atoms are
 considered to be energetically connected when clustering is
 perfomed. Given in angstroms.</p></li>
-<li><p><strong>radii</strong> (<em>str|np.ndarray</em>) – <p>The radii to use for atoms. Use either a preset
+<li><p><strong>radii</strong> (<em>str | np.ndarray</em>) – <p>The radii to use for atoms. Use either a preset
 or a custom list or atomic radii where the atomic number is used as an
 index. The available presets are:</p>
 <blockquote>
