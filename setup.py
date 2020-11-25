@@ -40,7 +40,7 @@ if __name__ == "__main__":
             "scipy",
             "ase",
             "spglib>=1.15.0",
-            "sklearn",
+            "scikit-learn",
             "networkx>=2.4",
             "chronic"
         ],
