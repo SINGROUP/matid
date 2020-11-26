@@ -1,4 +1,4 @@
 # Include the license file
-include LICENSE.txt
+include LICENSE
 # Include the separate requirements file
 include requirements.txt
