@@ -17,9 +17,6 @@ branches:
 jobs:
   include:
     - stage: test
-      python: 3.5
-      os: linux
-    - stage: test
       python: 3.6
       os: linux
     - stage: test
