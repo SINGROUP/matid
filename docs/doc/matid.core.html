@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.core package &mdash; MatID 0.6.1 documentation</title>
+  <title>matid.core package &mdash; MatID 0.6.2 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.1
+                0.6.2
               </div>
             
           
@@ -194,7 +194,7 @@
 <dl class="py class">
 <dt id="matid.core.lattice.Lattice">
 <em class="property">class </em><code class="sig-prename descclassname">matid.core.lattice.</code><code class="sig-name descname">Lattice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">matrix</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.lattice.Lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A lattice object.  Essentially a matrix with conversion matrices. In
 general, it is assumed that length units are in Angstroms and angles are in
 degrees unless otherwise stated.</p>
@@ -326,14 +326,14 @@ The property is lazily generated for efficiency.</p>
 <dl class="py class">
 <dt id="matid.core.linkedunits.LinkedUnit">
 <em class="property">class </em><code class="sig-prename descclassname">matid.core.linkedunits.</code><code class="sig-name descname">LinkedUnit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">seed_index</span></em>, <em class="sig-param"><span class="n">seed_coordinate</span></em>, <em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">basis_indices</span></em>, <em class="sig-param"><span class="n">substitutions</span></em>, <em class="sig-param"><span class="n">vacancies</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a cell that is connected to others in 3D space to form a
 structure, e.g. a surface.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>index</strong> (<em>tuple of three ints</em>) – </p></li>
-<li><p><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>seed_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – </p></li>
 <li><p><strong>seed_coordinate</strong><strong>(</strong><strong>)</strong> – </p></li>
 <li><p><strong>cell</strong> (<em>np.ndarray</em>) – Cell for this unit. Can change from unit to unit.</p></li>
 <li><p><strong>basis_indices</strong> (<em>sequence of ints and Nones</em>) – A sequence where there
@@ -350,7 +350,7 @@ here.</p></li>
 <dl class="py class">
 <dt id="matid.core.linkedunits.LinkedUnitCollection">
 <em class="property">class </em><code class="sig-prename descclassname">matid.core.linkedunits.</code><code class="sig-name descname">LinkedUnitCollection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em>, <em class="sig-param"><span class="n">cell</span></em>, <em class="sig-param"><span class="n">is_2d</span></em>, <em class="sig-param"><span class="n">dist_matrix_radii_pbc</span></em>, <em class="sig-param"><span class="n">disp_tensor_finite</span></em>, <em class="sig-param"><span class="n">delaunay_threshold</span><span class="o">=</span><span class="default_value">1.5</span></em>, <em class="sig-param"><span class="n">chem_similarity_threshold</span><span class="o">=</span><span class="default_value">0.4</span></em>, <em class="sig-param"><span class="n">bond_threshold</span><span class="o">=</span><span class="default_value">0.75</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.LinkedUnitCollection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
 <p>Represents a collection of similar cells that are connected in 3D space
 to form a structure, e.g. a surface.</p>
 <p>Essentially this is a special flavor of a regular dictionary: the keys can
@@ -363,7 +363,7 @@ LinkedUniCollection is gathered.</p></li>
 <li><p><strong>cell</strong> (<em>ase.Atoms</em>) – The prototype cell that is used in finding this
 region.</p></li>
 <li><p><strong>is_2d</strong> (<em>boolean</em>) – Whether this system represents a 2D-material or not.</p></li>
-<li><p><strong>delaunay_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The maximum allowed size of a tetrahedra
+<li><p><strong>delaunay_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The maximum allowed size of a tetrahedra
 edge in the Delaunay triangulation of the region..</p></li>
 </ul>
 </dd>
@@ -540,12 +540,12 @@ unit cell are not included.</p>
 <dl class="py class">
 <dt id="matid.core.linkedunits.Substitution">
 <em class="property">class </em><code class="sig-prename descclassname">matid.core.linkedunits.</code><code class="sig-name descname">Substitution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">position</span></em>, <em class="sig-param"><span class="n">original_element</span></em>, <em class="sig-param"><span class="n">substitutional_element</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.core.linkedunits.Substitution" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a substitutional point defect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Index of the subtitutional defect in the original
+<li><p><strong>index</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Index of the subtitutional defect in the original
 system.</p></li>
 <li><p><strong>original</strong> (<em>ase.Atom</em>) – The original atom that was substituted</p></li>
 <li><p><strong>substitution</strong> (<em>ase.Atom</em>) – The substitutional atom</p></li>
@@ -678,7 +678,7 @@ inside the cell.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</p></li>
-<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True if given translation is relative to cell
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True if given translation is relative to cell
 vectors.</p></li>
 </ul>
 </dd>

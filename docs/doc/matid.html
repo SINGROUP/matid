@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid package &mdash; MatID 0.6.1 documentation</title>
+  <title>matid package &mdash; MatID 0.6.2 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.1
+                0.6.2
               </div>
             
           
@@ -321,7 +321,7 @@ identified.</p>
 <dl class="py class">
 <dt id="matid.classifications.Classification">
 <em class="property">class </em><code class="sig-prename descclassname">matid.classifications.</code><code class="sig-name descname">Classification</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">atoms</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.classifications.Classification" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -362,7 +362,7 @@ identified.</p>
 <dl class="py exception">
 <dt id="matid.exceptions.SystaxError">
 <em class="property">exception </em><code class="sig-prename descclassname">matid.exceptions.</code><code class="sig-name descname">SystaxError</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">message</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.exceptions.SystaxError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 </dd></dl>
 
 </div>
@@ -373,7 +373,7 @@ a atomic system.</p>
 <dl class="py class">
 <dt id="matid.geometry.Intervals">
 <em class="property">class </em><code class="sig-prename descclassname">matid.geometry.</code><code class="sig-name descname">Intervals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">intervals</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.geometry.Intervals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Handles list of intervals.</p>
 <p>This class allows sorting and adding up of intervals and taking into
 account if they overlap.</p>
@@ -385,7 +385,10 @@ intervals: List of intervals that are added.</p>
 <dd><p>Add one interval.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>b</strong> (<em>a</em><em>,</em>) – Start and end of interval. The order does not matter.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – Start and end of interval. The order does not matter.</p></li>
+<li><p><strong>b</strong> – Start and end of interval. The order does not matter.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -628,8 +631,8 @@ system.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dist_matrix</strong> (<em>np.ndarray</em>) – The 2D distance matrix from which the clusters
 are calculated.</p></li>
-<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The epsilon threshold value for the clustering</p></li>
-<li><p><strong>min_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The minimum allowed cluster size.</p></li>
+<li><p><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The epsilon threshold value for the clustering</p></li>
+<li><p><strong>min_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The minimum allowed cluster size.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -637,7 +640,7 @@ are calculated.</p></li>
 the elements belonging to the cluster.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)">list</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -681,7 +684,7 @@ Sinnott, and Richard G. Hennig Phys. Rev. Lett. 118, 106101).</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the dimensionality is
 evaluated.</p></li>
-<li><p><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The epsilon value for the DBSCAN algorithm
+<li><p><strong>cluster_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The epsilon value for the DBSCAN algorithm
 that is used to identify clusters within the unit cell.</p></li>
 <li><p><strong>dist_matrix_radii_pbc</strong> (<em>np.ndarray</em>) – A precalculated distance matrix
 that takes in to account the periodicity and has the covalent radii of
@@ -777,7 +780,7 @@ the matrix using periodic distances</p>
 enabled.</p></li>
 <li><p><strong>pbc</strong><strong>(</strong><strong>)</strong> – The periodic boundary conditions of the system. Needed if
 minimum image convention enabled.</p></li>
-<li><p><strong>mic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to apply minimum image convention fo the distances,
+<li><p><strong>mic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Whether to apply minimum image convention fo the distances,
 i.e. the distance to the closest periodic image is returned.</p></li>
 <li><p><strong>use_self_distance</strong> (<em>boolean</em>) – Determines how the distance from atom to
 itself is determined. If True, zero is returned, if false, the
@@ -802,7 +805,7 @@ size.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<em>ase.Atoms</em>) – The original system.</p></li>
-<li><p><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The target size for the extended system in
+<li><p><strong>target_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The target size for the extended system in
 angstroms.</p></li>
 </ul>
 </dd>
@@ -932,7 +935,7 @@ systems.</p></li>
 <dd class="field-even"><p>Index of the nearest atom in the given system.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -965,7 +968,7 @@ Also takes periodic boundaries into account.</p>
 <li><p><strong>system</strong> (<em>ASE.Atoms</em>) – System from which the positions are searched.</p></li>
 <li><p><strong>basis</strong> (<em>np.ndarray</em>) – New basis vectors.</p></li>
 <li><p><strong>origin</strong> (<em>np.ndarray</em>) – New origin of the basis in cartesian coordinates.</p></li>
-<li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for the end points of the cell.</p></li>
+<li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The tolerance for the end points of the cell.</p></li>
 <li><p><strong>mask</strong> (<em>sequence of bool</em>) – Mask for selecting the basis’s to consider.</p></li>
 <li><p><strong>pbc</strong> (<em>sequence of bool</em>) – The periodicity of the system.</p></li>
 </ul>
@@ -1001,7 +1004,7 @@ radii for the atoms.</p>
 <dd class="field-even"><p>The ratio of occupied volume to the cell volume.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1021,7 +1024,7 @@ tetrahedron that together represent the atomic structure.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<em>ase.Atoms</em>) – The system from which the thickness is evaluated.</p></li>
-<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The index of the unit cell basis in which direction the
+<li><p><strong>axis</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The index of the unit cell basis in which direction the
 thickness is evaluated.</p></li>
 </ul>
 </dd>
@@ -1030,7 +1033,7 @@ thickness is evaluated.</p></li>
 topmost atom to the center of lowermost atom.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)">float</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1054,7 +1057,7 @@ the global numpy.random.seed()-function.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<em>ASE.Atoms</em>) – The system for which the displacement are performed.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The magnitude of the displacements.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The magnitude of the displacements.</p></li>
 <li><p><strong>rng</strong> (<em>np.random.RandomState</em>) – Random number generator.</p></li>
 </ul>
 </dd>
@@ -1116,7 +1119,7 @@ inside the cell.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>translation</strong> (<em>1x3 numpy.array</em>) – The translation to apply.</p></li>
-<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – True if given translation is relative to cell
+<li><p><strong>relative</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – True if given translation is relative to cell
 vectors.</p></li>
 </ul>
 </dd>

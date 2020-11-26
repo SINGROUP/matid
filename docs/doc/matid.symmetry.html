@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>matid.symmetry package &mdash; MatID 0.6.1 documentation</title>
+  <title>matid.symmetry package &mdash; MatID 0.6.2 documentation</title>
   
 
   
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.6.1
+                0.6.2
               </div>
             
           
@@ -194,14 +194,14 @@
 <dl class="py class">
 <dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer">
 <em class="property">class </em><code class="sig-prename descclassname">matid.symmetry.symmetryanalyzer.</code><code class="sig-name descname">SymmetryAnalyzer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">symmetry_tol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">min_2d_thickness</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A base class for getting symmetry related properties of unit cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>system</strong> (<em>ASE.Atoms</em>) – The system to inspect.</p></li>
-<li><p><strong>symmetry_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The tolerance for the symmetry detection.</p></li>
-<li><p><strong>min_2d_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The minimum thickness in angstroms for the
+<li><p><strong>symmetry_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The tolerance for the symmetry detection.</p></li>
+<li><p><strong>min_2d_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The minimum thickness in angstroms for the
 conventional cell that is returned for 2D systems.</p></li>
 </ul>
 </dd>
@@ -236,15 +236,15 @@ letter indicates the centring type.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>crystal_system</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The crystal system</p></li>
-<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The space group number.</p></li>
+<li><p><strong>crystal_system</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The crystal system</p></li>
+<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The space group number.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The Bravais lattice in the Pearson notation.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -258,7 +258,7 @@ letter indicates the centring type.</p>
 settings.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -295,7 +295,7 @@ seven different crystal systems:</p>
 <dd class="field-odd"><p>The name of the crystal system.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -363,7 +363,7 @@ changes in the wyckoff letters will not afect the equivalence:</p>
 <dd class="field-odd"><p>The Hall number.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -376,7 +376,7 @@ changes in the wyckoff letters will not afect the equivalence:</p>
 <dd class="field-odd"><p>The Hall symbol.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -390,7 +390,7 @@ changes in the wyckoff letters will not afect the equivalence:</p>
 <dd class="field-odd"><p>Indicates the presence of Wyckoff positions with free variables.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -406,7 +406,7 @@ i.e. their determinant is +1.</p>
 <dd class="field-odd"><p>is the object chiral.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -421,7 +421,7 @@ notation.</p>
 <dd class="field-odd"><p>point group symbol</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -469,7 +469,7 @@ translation with the same index.</p>
 <dd class="field-odd"><p>The international space group short symbol.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)">str</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -482,7 +482,7 @@ translation with the same index.</p>
 <dd class="field-odd"><p>The space group number.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -574,7 +574,7 @@ information about the atoms and their positions at specific Wyckoff
 positions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>return_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – Whether to return the value of possible
+<dd class="field-odd"><p><strong>return_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Whether to return the value of possible
 free Wyckoff parameters. Set to false if they are not needed,
 as their determination can take some time.</p>
 </dd>
@@ -608,24 +608,24 @@ conventional system.</p>
 <dl class="py class">
 <dt id="matid.symmetry.wyckoffset.WyckoffSet">
 <em class="property">class </em><code class="sig-prename descclassname">matid.symmetry.wyckoffset.</code><code class="sig-name descname">WyckoffSet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wyckoff_letter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">atomic_number</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">element</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">indices</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">space_group</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">representative</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">multiplicity</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.wyckoffset.WyckoffSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents a group of atoms in a certain Wyckoff position, for a certain
 space group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>wyckoff_letter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The letter for the Wyckoff position.</p></li>
-<li><p><strong>atomic_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Atomic number stored in this Wyckoff position.</p></li>
-<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – The chemical symbol of the element.</p></li>
-<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a>) – Indices corresponding to atoms in this Wyckoff
+<li><p><strong>wyckoff_letter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The letter for the Wyckoff position.</p></li>
+<li><p><strong>atomic_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Atomic number stored in this Wyckoff position.</p></li>
+<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The chemical symbol of the element.</p></li>
+<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – Indices corresponding to atoms in this Wyckoff
 group in a structure.</p></li>
-<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the a-vector.</p></li>
-<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the b-vector.</p></li>
-<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – The free parameter for the c-vector.</p></li>
-<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The space group number for this set.</p></li>
-<li><p><strong>representative</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Algebraic expression that represents this set: all
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the a-vector.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the b-vector.</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the c-vector.</p></li>
+<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The space group number for this set.</p></li>
+<li><p><strong>representative</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Algebraic expression that represents this set: all
 other positions are generated from symmetry.</p></li>
-<li><p><strong>multiplicity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – The multiplicity of the set: how many atoms are
+<li><p><strong>multiplicity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The multiplicity of the set: how many atoms are
 in this set.</p></li>
 </ul>
 </dd>
