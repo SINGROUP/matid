@@ -10,11 +10,10 @@ class Cluster():
     """
     Represents a part of a bigger system.
     """
-    def __init__(self, indices, regions, species=None, classification=None):
+    def __init__(self, indices, regions, species=None):
         self.indices = indices
         self.regions = regions
         self.species = species
-        self.classification = classification
 
 
 class StructureClusterer():
@@ -93,13 +92,17 @@ class StructureClusterer():
             b_species = b.species
             b_indices = b.indices
             if len(a_indices) > len(b_indices):
-                final_species = a_species
-                final_indices = a_indices.union(set(filter(lambda x: atomic_numbers[x] in final_species, b_indices)))
+                target = a
+                source = b
             else:
-                final_species = b_species
-                final_indices = b_indices.union(set(filter(lambda x: atomic_numbers[x] in final_species, a_indices)))
+                target = b
+                source = a
+            common = set(filter(lambda x: atomic_numbers[x] in target.species, source.indices))
+            remainder_indices = source.indices - common
+            remainder_species = set(atomic_numbers[list(remainder_indices)])
+            final_indices = target.indices.union(common)
 
-            return Cluster(final_indices, a.regions + b.regions, final_species)
+            return Cluster(final_indices, a.regions + b.regions, target.species), Cluster(remainder_indices, [], remainder_species)
 
         merged_clusters = []
         covered_grains = set()
@@ -120,7 +123,7 @@ class StructureClusterer():
 
                 # Find the biggest overlap and if it is large enough, merge
                 # those two clusters together.
-                has_overlap = False
+                should_merge = False
                 if len(overlaps) > 0:
                     overlaps = sorted(overlaps, key=lambda x: x[1], reverse=True)
                     best_grain = overlaps[0][0]
@@ -131,7 +134,7 @@ class StructureClusterer():
                     # they are joined together. Large overlap indicates that
                     # they are actually part of the same component.
                     if overlap_score > merge_threshold:
-                        has_overlap = True
+                        should_merge = True
                         best_grain_new_index = new_grain_map.get(best_grain)
 
                         # Create new cluster
@@ -140,16 +143,18 @@ class StructureClusterer():
                             new_grain_map[i] = len(merged_clusters)
                             a = i_cluster
                             b = clusters[best_grain]
-                            merged_clusters.append(merge(system, a, b))
+                            merged, remainder = merge(system, a, b)
+                            merged_clusters.append(merged)
                         # Update existing component
                         else:
                             a = i_cluster
                             b = merged_clusters[best_grain_new_index]
-                            merged_clusters[best_grain_new_index] = merge(system, a, b)
+                            merged, remainder = merge(system, a, b)
+                            merged_clusters[best_grain_new_index] = merged
                         covered_grains |= set([i, best_grain])
 
                 # Component without enough overlap is saved as it is.
-                if not has_overlap:
+                if not should_merge:
                   merged_clusters.append(i_cluster)
                   covered_grains.add(i)
 
@@ -207,11 +212,14 @@ class StructureClusterer():
         # Check overlaps of the regions. For large overlaps the grains are
         # merged (the real region was probably cut into pieces by unfortunate
         # selection of the seed atom)
+        # for cluster in clusters:
+            # if len(cluster.indices) > 1:
+                # print(cluster.indices)
         clusters = self.merge_clusters(system, clusters, merge_threshold)
 
         # Any remaining overlaps are resolved by assigning atoms to the
         # "nearest" cluster
-        clusters = self.localize_clusters(system, clusters, merge_radius)
+        # clusters = self.localize_clusters(system, clusters, merge_radius)
 
         return clusters
 
