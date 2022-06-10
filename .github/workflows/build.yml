@@ -31,7 +31,7 @@ jobs:
     - name: Test with unittest
       run: |
         cd regtests
-        runtests.sh
+        ./runtests.sh
 
     - name: Create coverage
       if: ${{ matrix.python-version == '3.8' }}
