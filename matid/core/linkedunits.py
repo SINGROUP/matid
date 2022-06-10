@@ -3,8 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from collections import defaultdict, OrderedDict
 import numpy as np
 
-import chronic
-
 from ase import Atoms
 from ase.data import covalent_radii
 from ase.io import write
@@ -214,28 +212,25 @@ class LinkedUnitCollection(dict):
             to this collection of LinkedUnits.
         """
         if self._basis_indices is None:
-            with chronic.Timer("chemical_environment_translations"):
-                translations, translations_reduced = self.get_chem_env_translations()
+            translations, translations_reduced = self.get_chem_env_translations()
 
             # For each atom in the basis check the chemical environment
-            with chronic.Timer("chemical_environment_basis"):
-                neighbour_map = self.get_basis_atom_neighbourhood()
+            neighbour_map = self.get_basis_atom_neighbourhood()
 
-            with chronic.Timer("chemical_environment_units"):
-                indices = set()
-                for unit in self.values():
+            indices = set()
+            for unit in self.values():
 
-                    # Compare the chemical environment near this atom to the one
-                    # that is present in the prototype cell. If these
-                    # neighbourhoods are too different, then the atom is not
-                    # counted as being a part of the region.
-                    for i_index, index in enumerate(unit.basis_indices):
-                        if index is not None:
-                            real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
-                            ideal_environment = neighbour_map[i_index]
-                            chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
-                            if chem_similarity >= self.chem_similarity_threshold:
-                                indices.add(index)
+                # Compare the chemical environment near this atom to the one
+                # that is present in the prototype cell. If these
+                # neighbourhoods are too different, then the atom is not
+                # counted as being a part of the region.
+                for i_index, index in enumerate(unit.basis_indices):
+                    if index is not None:
+                        real_environment = self.get_chemical_environment(self.system, index, self.disp_tensor_finite, translations, translations_reduced)
+                        ideal_environment = neighbour_map[i_index]
+                        chem_similarity = self.get_chemical_similarity(ideal_environment, real_environment)
+                        if chem_similarity >= self.chem_similarity_threshold:
+                            indices.add(index)
 
             # Ensure that all the basis atoms belong to the same cluster.
             # clusters = self.get_clusters()

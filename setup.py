@@ -40,8 +40,7 @@ if __name__ == "__main__":
             "ase",
             "spglib>=1.15.0",
             "scikit-learn",
-            "networkx>=2.4",
-            "chronic"
+            "networkx>=2.4"
         ],
         python_requires=">=3.6",
     )

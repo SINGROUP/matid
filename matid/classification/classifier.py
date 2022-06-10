@@ -4,8 +4,6 @@ from builtins import (bytes, str, open, super, range,
 
 import numpy as np
 
-import chronic
-
 # from ase.visualize import view
 from ase.data import covalent_radii
 from ase.data.vdw_alvarez import vdw_radii
@@ -200,21 +198,20 @@ class Classifier():
         cell = system.get_cell()
         pbc = system.get_pbc()
 
-        with chronic.Timer("displacement_tensor"):
-            disp_tensor = matid.geometry.get_displacement_tensor(pos, pos)
-            if pbc.any():
-                disp_tensor_pbc, disp_factors = matid.geometry.get_displacement_tensor(
-                    pos,
-                    pos,
-                    cell,
-                    pbc,
-                    mic=True,
-                    return_factors=True
-                )
-            else:
-                disp_tensor_pbc = disp_tensor
-                disp_factors = np.zeros(disp_tensor.shape)
-            dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
+        disp_tensor = matid.geometry.get_displacement_tensor(pos, pos)
+        if pbc.any():
+            disp_tensor_pbc, disp_factors = matid.geometry.get_displacement_tensor(
+                pos,
+                pos,
+                cell,
+                pbc,
+                mic=True,
+                return_factors=True
+            )
+        else:
+            disp_tensor_pbc = disp_tensor
+            disp_factors = np.zeros(disp_tensor.shape)
+        dist_matrix_pbc = np.linalg.norm(disp_tensor_pbc, axis=2)
 
         # Calculate the distance matrix where the periodicity and the covalent
         # radii have been taken into account
@@ -254,14 +251,13 @@ class Classifier():
                 self.abs_delaunay_threshold = self.delaunay_threshold
 
         # Get the system dimensionality
-        with chronic.Timer("TSA"):
-            dimensionality = matid.geometry.get_dimensionality(
-                system,
-                self.cluster_threshold,
-                dist_matrix_radii_pbc
-            )
-            if dimensionality is None:
-                return Unknown(input_system)
+        dimensionality = matid.geometry.get_dimensionality(
+            system,
+            self.cluster_threshold,
+            dist_matrix_radii_pbc
+        )
+        if dimensionality is None:
+            return Unknown(input_system)
 
         # 0D structures
         if dimensionality == 0:
@@ -308,53 +304,49 @@ class Classifier():
                     seed_indices = self.seed_position
 
             # Find the best region by trying out different parameters options
-            with chronic.Timer("cross_validation"):
-                best_region = self.cross_validate_region(
-                    system,
-                    seed_indices,
-                    disp_tensor_pbc,
-                    disp_factors,
-                    disp_tensor,
-                    dist_matrix_radii_pbc
-                )
+            best_region = self.cross_validate_region(
+                system,
+                seed_indices,
+                disp_tensor_pbc,
+                disp_factors,
+                disp_tensor,
+                dist_matrix_radii_pbc
+            )
 
             if best_region is not None:
+                # Check that the region was connected cyclically in two
+                # directions. This ensures that finite systems or systems
+                # with a dislocation at the cell boundary are filtered.
+                region_conn = best_region.get_connected_directions()
+                n_region_conn = np.sum(region_conn)
+                region_is_periodic = n_region_conn == 2
+                # cell_statistically_valid = best_region.get_cell_statistically_valid()
+                # print(cell_statistically_valid)
 
-                with chronic.Timer("region_analysis"):
+                # This might be unnecessary because the connectivity of the
+                # unit cell is already checked.
+                clusters = best_region.get_clusters()
+                basis_indices = set(list(best_region.get_basis_indices()))
+                split = True
+                for cluster in clusters:
+                    if basis_indices.issubset(cluster):
+                        split = False
 
-                    # Check that the region was connected cyclically in two
-                    # directions. This ensures that finite systems or systems
-                    # with a dislocation at the cell boundary are filtered.
-                    region_conn = best_region.get_connected_directions()
-                    n_region_conn = np.sum(region_conn)
-                    region_is_periodic = n_region_conn == 2
-                    # cell_statistically_valid = best_region.get_cell_statistically_valid()
-                    # print(cell_statistically_valid)
+                # Check that the found region covers enough of the entire
+                # system. If not, then the region alone cannot be used to
+                # classify the entire structure. This happens e.g. when one
+                # 2D sheet is found from a 2D heterostructure, or a local
+                # pattern is found inside a structure.
+                n_atoms = len(system)
+                n_basis_atoms = len(basis_indices)
+                coverage = n_basis_atoms/n_atoms
+                covered = coverage >= self.min_coverage
 
-                    # This might be unnecessary because the connectivity of the
-                    # unit cell is already checked.
-                    clusters = best_region.get_clusters()
-                    basis_indices = set(list(best_region.get_basis_indices()))
-                    split = True
-                    for cluster in clusters:
-                        if basis_indices.issubset(cluster):
-                            split = False
-
-                    # Check that the found region covers enough of the entire
-                    # system. If not, then the region alone cannot be used to
-                    # classify the entire structure. This happens e.g. when one
-                    # 2D sheet is found from a 2D heterostructure, or a local
-                    # pattern is found inside a structure.
-                    n_atoms = len(system)
-                    n_basis_atoms = len(basis_indices)
-                    coverage = n_basis_atoms/n_atoms
-                    covered = coverage >= self.min_coverage
-
-                    if not split and covered and region_is_periodic:
-                        if best_region.is_2d:
-                            classification = Material2D(input_system, best_region)
-                        else:
-                            classification = Surface(input_system, best_region)
+                if not split and covered and region_is_periodic:
+                    if best_region.is_2d:
+                        classification = Material2D(input_system, best_region)
+                    else:
+                        classification = Surface(input_system, best_region)
 
         # Bulk structures
         elif dimensionality == 3:
