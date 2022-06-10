@@ -2,12 +2,12 @@ import sys
 from setuptools import setup, find_packages
 
 # Check python version
-if sys.version_info[:2] < (3, 6):
-    raise RuntimeError("Python version >= 3.6 required.")
+if sys.version_info[:2] < (3, 7):
+    raise RuntimeError("Python version >= 3.7 required.")
 
 if __name__ == "__main__":
     setup(name="matid",
-        version="0.6.2",
+        version="0.6.3",
         url="https://singroup.github.io/matid/",
         description=(
             "MatID is a python package for identifying and analyzing atomistic "
@@ -26,7 +26,6 @@ if __name__ == "__main__":
             "License :: OSI Approved :: Apache Software License",
             "Programming Language :: Python",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3 :: Only",
@@ -41,5 +40,5 @@ if __name__ == "__main__":
             "scikit-learn",
             "networkx>=2.4"
         ],
-        python_requires=">=3.6",
+        python_requires=">=3.7",
     )
