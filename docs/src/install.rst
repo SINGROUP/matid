@@ -1,8 +1,8 @@
 Installation
 ============
-The newest versions of the package are compatible with Python >=3.6 (tested on
-3.6 and 3.7). MatID versions <= 0.5.4 also support Python 2.7. The exact
-list of dependencies are given in setup.py and all of them will be
+The newest versions of the package are compatible with Python >=3.7 (tested on
+3.7, 3.8, 3.9 and 3.10). MatID versions <= 0.5.4 also support Python 2.7. The
+exact list of dependencies are given in setup.py and all of them will be
 automatically installed during setup.
 
 The latest stable release is available through pip: (use the -\-user flag if
@@ -12,8 +12,8 @@ root access is not available)
 
     pip install matid
 
-To install the latest development version, clone the source code from
-github and install with pip from local file:
+To install the latest development version, clone the source code from github
+and install with pip from local file:
 
 .. code-block:: sh
 

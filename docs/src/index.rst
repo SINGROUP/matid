@@ -1,8 +1,8 @@
 MatID
 =====
 
-.. image:: https://travis-ci.org/SINGROUP/matid.svg?branch=master
-    :target: https://travis-ci.org/SINGROUP/matid
+.. image:: https://github.com/SINGROUP/matid/actions/workflows/build.yml/badge.svg
+    :target: https://github.com/SINGROUP/matid/actions/workflows/python-package.yml/badge.svg
 
 .. image:: https://coveralls.io/repos/github/SINGROUP/matid/badge.svg?branch=master
     :target: https://coveralls.io/github/SINGROUP/matid?branch=master

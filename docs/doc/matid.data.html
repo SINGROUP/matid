@@ -1,41 +1,23 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>matid.data package &mdash; MatID 0.6.2 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>matid.data package &mdash; MatID 0.6.3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -43,36 +25,17 @@
     <link rel="prev" title="matid.core package" href="matid.core.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html">
-          
-
-          
-            
             <img src="../_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.6.2
+                0.6.3
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -80,18 +43,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
@@ -106,10 +58,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="matid.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.classifications">matid.classifications module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.exceptions">matid.exceptions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.geometry">matid.geometry module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-classifications-module">matid.classifications module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-exceptions-module">matid.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-geometry-module">matid.geometry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -117,228 +69,83 @@
 <li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MatID</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="modules.html">matid</a> &raquo;</li>
-        
           <li><a href="matid.html">matid package</a> &raquo;</li>
-        
       <li>matid.data package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/doc/matid.data.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="matid-data-package">
-<h1>matid.data package<a class="headerlink" href="#matid-data-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-matid.data.alphabet_data">
-<span id="matid-data-alphabet-data-module"></span><h2>matid.data.alphabet_data module<a class="headerlink" href="#module-matid.data.alphabet_data" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-matid.data.constants">
-<span id="matid-data-constants-module"></span><h2>matid.data.constants module<a class="headerlink" href="#module-matid.data.constants" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-matid.data.element_data">
-<span id="matid-data-element-data-module"></span><h2>matid.data.element_data module<a class="headerlink" href="#module-matid.data.element_data" title="Permalink to this headline">¶</a></h2>
-<dl class="py data">
-<dt id="matid.data.element_data.NUMBER_TO_SYMBOL_MAP">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">NUMBER_TO_SYMBOL_MAP</code><em class="property"> = [None, 'H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na', 'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te', 'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#matid.data.element_data.NUMBER_TO_SYMBOL_MAP" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of atomic names in order.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="matid.data.element_data.get_covalent_radii">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_covalent_radii</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">species</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_covalent_radii" title="Permalink to this definition">¶</a></dt>
-<dd><p>Give a list of species, returns the covalent radii.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>species</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – One or multiple atomic species as symbols or
-atomic numbers.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A numpy array of covalent radii.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>(numpy.ndarray)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="matid.data.element_data.get_numbers">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_numbers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">symbols</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_numbers" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given element symbol(s), return the atomic number(s) (number of protons).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>symbols</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em> or </em><em>list of str</em>) – Atomic symbol(s).</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Atomic number(s) (number of protons).</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – If a given atomic symbol is invalid and doesn’t have a</p></li>
-<li><p><strong>corresponding number.</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="matid.data.element_data.get_symbols">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">get_symbols</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">numbers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.get_symbols" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given atomic number(s), returns the symbol(s).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>numbers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em> or </em><em>list of int</em>) – Atomic numbers(s) (number of protons).</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Atomic symbol(s).</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.9)"><strong>ValueError</strong></a> – If a given atomic number is invalid and doesn’t have a</p></li>
-<li><p><strong>corresponding symbol.</strong> – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="matid.data.element_data.listify">
-<code class="sig-prename descclassname">matid.data.element_data.</code><code class="sig-name descname">listify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.data.element_data.listify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a value, force it into a list.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>value</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="module-matid.data.symmetry_data">
-<span id="matid-data-symmetry-data-module"></span><h2>matid.data.symmetry_data module<a class="headerlink" href="#module-matid.data.symmetry_data" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-matid.data">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-matid.data" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+             
+  <section id="matid-data-package">
+<h1>matid.data package<a class="headerlink" href="#matid-data-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-data-alphabet-data-module">
+<h2>matid.data.alphabet_data module<a class="headerlink" href="#matid-data-alphabet-data-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-data-constants-module">
+<h2>matid.data.constants module<a class="headerlink" href="#matid-data-constants-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-data-element-data-module">
+<h2>matid.data.element_data module<a class="headerlink" href="#matid-data-element-data-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-data-symmetry-data-module">
+<h2>matid.data.symmetry_data module<a class="headerlink" href="#matid-data-symmetry-data-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="matid.symmetry.html" class="btn btn-neutral float-right" title="matid.symmetry package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="matid.core.html" class="btn btn-neutral float-left" title="matid.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="matid.core.html" class="btn btn-neutral float-left" title="matid.core package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="matid.symmetry.html" class="btn btn-neutral float-right" title="matid.symmetry package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-
-    </p>
+    <p></p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

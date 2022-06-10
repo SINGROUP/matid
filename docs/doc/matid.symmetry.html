@@ -1,41 +1,23 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>matid.symmetry package &mdash; MatID 0.6.2 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
-
-  
-  
-  
-  
-
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>matid.symmetry package &mdash; MatID 0.6.3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/style.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script src="../_static/language_data.js"></script>
-        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
+    <script src="../_static/js/theme.js"></script>
     <link rel="author" title="About these documents" href="../about.html" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -43,36 +25,17 @@
     <link rel="prev" title="matid.data package" href="matid.data.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="../index.html">
-          
-
-          
-            
             <img src="../_static/logo.png" class="logo" alt="Logo"/>
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.6.2
+                0.6.3
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -80,18 +43,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorials/tutorials.html">Tutorials</a></li>
@@ -106,10 +58,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="matid.html#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.classifications">matid.classifications module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.exceptions">matid.exceptions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid.geometry">matid.geometry module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="matid.html#module-matid">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-classifications-module">matid.classifications module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-exceptions-module">matid.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#matid-geometry-module">matid.geometry module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="matid.html#module-contents">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -117,579 +69,77 @@
 <li class="toctree-l1"><a class="reference internal" href="../about.html">About</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">MatID</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-        
           <li><a href="modules.html">matid</a> &raquo;</li>
-        
           <li><a href="matid.html">matid package</a> &raquo;</li>
-        
       <li>matid.symmetry package</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/doc/matid.symmetry.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="matid-symmetry-package">
-<h1>matid.symmetry package<a class="headerlink" href="#matid-symmetry-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-matid.symmetry.symmetryanalyzer">
-<span id="matid-symmetry-symmetryanalyzer-module"></span><h2>matid.symmetry.symmetryanalyzer module<a class="headerlink" href="#module-matid.symmetry.symmetryanalyzer" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer">
-<em class="property">class </em><code class="sig-prename descclassname">matid.symmetry.symmetryanalyzer.</code><code class="sig-name descname">SymmetryAnalyzer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">symmetry_tol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">min_2d_thickness</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>A base class for getting symmetry related properties of unit cells.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>system</strong> (<em>ASE.Atoms</em>) – The system to inspect.</p></li>
-<li><p><strong>symmetry_tol</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The tolerance for the symmetry detection.</p></li>
-<li><p><strong>min_2d_thickness</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The minimum thickness in angstroms for the
-conventional cell that is returned for 2D systems.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_bravais_lattice">
-<code class="sig-name descname">get_bravais_lattice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_bravais_lattice" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return Bravais lattice in the Pearson notation, where the first
-lowercase letter indicates the crystal system, and the second uppercase
-letter indicates the centring type.</p>
-<p>Crystal system letters:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>a = triclinic</p></li>
-<li><p>m = monoclinic</p></li>
-<li><p>o = orthorhombic</p></li>
-<li><p>t = tetragonal</p></li>
-<li><p>h = hexagonal and trigonal</p></li>
-<li><p>c = cubic</p></li>
-</ul>
-</div></blockquote>
-<p>Lattice type letters:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>P = Primitive</p></li>
-<li><p>S (= A or B or C) = One side/face centred</p></li>
-<li><p>I = Body centered</p></li>
-<li><p>R = Rhombohedral centring</p></li>
-<li><p>F = All faces centred</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>crystal_system</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The crystal system</p></li>
-<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The space group number.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The Bravais lattice in the Pearson notation.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_choice">
-<code class="sig-name descname">get_choice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_choice" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A string specifying the centring, origin and basis vector
-settings.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system">
-<code class="sig-name descname">get_conventional_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_conventional_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to get the conventional representation of this system.</p>
-<p>This description uses a conventional lattice where positions of the
-atoms, and the cell basis vectors are idealized to follow the
-symmetries that were found with the given precision. This means that
-e.g. the volume, density, angles between basis vectors and basis vector
-lengths may have small deviations from the original system.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_crystal_system">
-<code class="sig-name descname">get_crystal_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_crystal_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the crystal system based on the space group number. There are
-seven different crystal systems:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Triclinic</p></li>
-<li><p>Monoclinic</p></li>
-<li><p>Orthorhombic</p></li>
-<li><p>Tetragonal</p></li>
-<li><p>Trigonal</p></li>
-<li><p>Hexagonal</p></li>
-<li><p>Cubic</p></li>
-</ul>
-</div></blockquote>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The name of the crystal system.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_conventional">
-<code class="sig-name descname">get_equivalent_atoms_conventional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_conventional" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of equivalent atoms in the idealized system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>A list that maps each atom into a symmetry equivalent</dt><dd><p>set.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_original">
-<code class="sig-name descname">get_equivalent_atoms_original</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_original" title="Permalink to this definition">¶</a></dt>
-<dd><p>The equivalent atoms are the same as what spglib already outputs, as
-changes in the wyckoff letters will not afect the equivalence:</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>A list that maps each atom into a symmetry equivalent</dt><dd><p>set.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_primitive">
-<code class="sig-name descname">get_equivalent_atoms_primitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_equivalent_atoms_primitive" title="Permalink to this definition">¶</a></dt>
-<dd><p>List of equivalent atoms in the primitive system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><dl class="simple">
-<dt>A list that maps each atom into a symmetry equivalent</dt><dd><p>set.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_hall_number">
-<code class="sig-name descname">get_hall_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_hall_number" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The Hall number.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_hall_symbol">
-<code class="sig-name descname">get_hall_symbol</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_hall_symbol" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The Hall symbol.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_has_free_wyckoff_parameters">
-<code class="sig-name descname">get_has_free_wyckoff_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_has_free_wyckoff_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tells whether this system has Wyckoff positions with free variables.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Indicates the presence of Wyckoff positions with free variables.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_is_chiral">
-<code class="sig-name descname">get_is_chiral</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_is_chiral" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a boolean value that tells if this object is chiral or not
-(achiral). A chiral object has symmetry operations that are all proper,
-i.e. their determinant is +1.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>is the object chiral.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_point_group">
-<code class="sig-name descname">get_point_group</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_point_group" title="Permalink to this definition">¶</a></dt>
-<dd><p>Symbol of the crystallographic point group in the Hermann-Mauguin
-notation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>point group symbol</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_primitive_system">
-<code class="sig-name descname">get_primitive_system</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_primitive_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a primitive description for this system.</p>
-<p>This description uses a primitive lattice where positions of the
-atoms, and the cell basis vectors are idealized to follow the
-symmetries that were found with the given precision. This means that
-e.g. the volume, density, angles between basis vectors and basis vector
-lengths may have small deviations from the original system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The primitive system.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>ASE.Atoms</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_rotations">
-<code class="sig-name descname">get_rotations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_rotations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the rotational parts of the Seitz matrices that are associated
-with this space group. Each rotational matrix is accompanied by a
-translation with the same index.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Rotation matrices.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_space_group_international_short">
-<code class="sig-name descname">get_space_group_international_short</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_space_group_international_short" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The international space group short symbol.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_space_group_number">
-<code class="sig-name descname">get_space_group_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_space_group_number" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The space group number.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_symmetry_dataset">
-<code class="sig-name descname">get_symmetry_dataset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_symmetry_dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the symmetry dataset with spglib for the given system.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_symmetry_operations">
-<code class="sig-name descname">get_symmetry_operations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_symmetry_operations" title="Permalink to this definition">¶</a></dt>
-<dd><p>The symmetry operations of the original structure as rotations and
-translations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Dictionary containing an entry for rotations containing a np.array
-with 3x3 matrices for each symmetry operation and an entry
-“translations” containing np.array of translations for each
-symmetry operation.
-3*1 np.ndarray: The shift of the origin as a vector.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_translations">
-<code class="sig-name descname">get_translations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_translations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the translational parts of the Seitz matrices that are
-associated with this space group. Each translation is accompanied
-by a rotational matrix with the same index.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Translation vectors.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_conventional">
-<code class="sig-name descname">get_wyckoff_letters_conventional</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_conventional" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the Wyckoff letters of the atoms in the conventional system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Wyckoff letters.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_original">
-<code class="sig-name descname">get_wyckoff_letters_original</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_original" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Wyckoff letters for the atoms in the original system.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_primitive">
-<code class="sig-name descname">get_wyckoff_letters_primitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_letters_primitive" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the Wyckoff letters of the atoms in the primitive system.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Wyckoff letters.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_sets_conventional">
-<code class="sig-name descname">get_wyckoff_sets_conventional</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">return_parameters</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.get_wyckoff_sets_conventional" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a list of Wyckoff sets for this system. Wyckoff sets combine
-information about the atoms and their positions at specific Wyckoff
-positions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>return_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – Whether to return the value of possible
-free Wyckoff parameters. Set to false if they are not needed,
-as their determination can take some time.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A list of <a class="reference internal" href="#matid.symmetry.wyckoffset.WyckoffSet" title="matid.symmetry.wyckoffset.WyckoffSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">WyckoffSet</span></code></a> objects for the
-conventional system.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list of WyckoffSets</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.reset">
-<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Used to reset all the cached values.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.set_system">
-<code class="sig-name descname">set_system</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">system</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.symmetryanalyzer.SymmetryAnalyzer.set_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets a new system for analysis.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-matid.symmetry.wyckoffset">
-<span id="matid-symmetry-wyckoffset-module"></span><h2>matid.symmetry.wyckoffset module<a class="headerlink" href="#module-matid.symmetry.wyckoffset" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="matid.symmetry.wyckoffset.WyckoffSet">
-<em class="property">class </em><code class="sig-prename descclassname">matid.symmetry.wyckoffset.</code><code class="sig-name descname">WyckoffSet</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wyckoff_letter</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">atomic_number</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">element</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">indices</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">x</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">y</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">z</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">space_group</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">representative</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">multiplicity</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#matid.symmetry.wyckoffset.WyckoffSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Represents a group of atoms in a certain Wyckoff position, for a certain
-space group.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>wyckoff_letter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The letter for the Wyckoff position.</p></li>
-<li><p><strong>atomic_number</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Atomic number stored in this Wyckoff position.</p></li>
-<li><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The chemical symbol of the element.</p></li>
-<li><p><strong>indices</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – Indices corresponding to atoms in this Wyckoff
-group in a structure.</p></li>
-<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the a-vector.</p></li>
-<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the b-vector.</p></li>
-<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The free parameter for the c-vector.</p></li>
-<li><p><strong>space_group</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The space group number for this set.</p></li>
-<li><p><strong>representative</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Algebraic expression that represents this set: all
-other positions are generated from symmetry.</p></li>
-<li><p><strong>multiplicity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The multiplicity of the set: how many atoms are
-in this set.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</div>
-<div class="section" id="module-matid.symmetry">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-matid.symmetry" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+             
+  <section id="matid-symmetry-package">
+<h1>matid.symmetry package<a class="headerlink" href="#matid-symmetry-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-symmetry-symmetryanalyzer-module">
+<h2>matid.symmetry.symmetryanalyzer module<a class="headerlink" href="#matid-symmetry-symmetryanalyzer-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="matid-symmetry-wyckoffset-module">
+<h2>matid.symmetry.wyckoffset module<a class="headerlink" href="#matid-symmetry-wyckoffset-module" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading"></a></h2>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="matid.utils.html" class="btn btn-neutral float-right" title="matid.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="matid.data.html" class="btn btn-neutral float-left" title="matid.data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="matid.data.html" class="btn btn-neutral float-left" title="matid.data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="matid.utils.html" class="btn btn-neutral float-right" title="matid.utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-
-    </p>
+    <p></p>
   </div>
-    
-    
-    
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
-    
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

@@ -1,6 +1,6 @@
 # MatID
 
-![Build status](https://github.com/SINGROUP/matid/actions/workflows/python-package.yml/badge.svg)
+![Build status](https://github.com/SINGROUP/matid/actions/workflows/build.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/SINGROUP/matid/badge.svg?branch=master)](https://coveralls.io/github/SINGROUP/matid?branch=master)
 
 MatID is a python package for identifying and analyzing atomistic systems based
@@ -11,9 +11,9 @@ For more details and tutorials, visit the homepage at:
 [https://singroup.github.io/matid/](https://singroup.github.io/matid/)
 
 ## Installation
-The newest versions of the package are compatible with Python >= 3.6 (tested on
-3.6 and 3.7). MatID versions <= 0.5.4 also support Python 2.7. The exact
-list of dependencies are given in setup.py and all of them will be
+The newest versions of the package are compatible with Python >= 3.7 (tested on
+3.7, 3.8, 3.9 and 3.10). MatID versions <= 0.5.4 also support Python 2.7. The
+exact list of dependencies are given in setup.py and all of them will be
 automatically installed during setup.
 
 The latest stable release is available through pip: (use the -\\-user flag if
@@ -23,8 +23,8 @@ root access is not available)
     pip install matid
 ```
 
-To install the latest development version, clone the source code from
-github and install with pip from local file:
+To install the latest development version, clone the source code from github
+and install with pip from local file:
 
 ```sh
     git clone https://github.com/SINGROUP/matid.git
