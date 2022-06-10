@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 from numpy import array, float64
 
 SPACE_GROUP_INFO = {   1: {   'bravais_lattice': 'aP',

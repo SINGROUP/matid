@@ -49,7 +49,6 @@ with open(wyckoff_sets_path, "rb") as fin:
     wyckoff_sets = pickle.load(fin)
 
 with open("symmetry_data.py", "w") as fout:
-    header = "from __future__ import absolute_import, division, print_function\n"
     header += "from numpy import array\n\n"
     fout.write(header)
     # header_sgi = "SPACE_GROUP_INFO = "

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 # The variable SYMMETRY_TOL controls the precision used by spglib in order
 # to find symmetries. The atoms are allowed to move 1/2*SYMMETRY_TOL from
 # their symmetry positions in order for spglib to still detect symmetries.

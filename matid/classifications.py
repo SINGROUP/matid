@@ -1,8 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-from builtins import super
-__metaclass__ = type
-
-
 class Classification():
     def __init__(self, atoms):
         self.atoms = atoms

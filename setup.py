@@ -34,7 +34,6 @@ if __name__ == "__main__":
         keywords='atoms structure materials science crystal symmetry',
         packages=find_packages(),
         install_requires=[
-            "future",
             "numpy",
             "scipy",
             "ase",

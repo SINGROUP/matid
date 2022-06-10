@@ -1,8 +1,6 @@
 """This module defines functions for deriving geometry related quantities from
 a atomic system.
 """
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import math
 import itertools
 from collections import defaultdict
