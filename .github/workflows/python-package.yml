@@ -31,3 +31,7 @@ jobs:
     - name: Test with unittest
       run: |
         regtests/runtests.sh
+    - name: Upload Coverage
+      if: ${{ matrix.python-verion == '3.8' }}
+      run: |
+        coveralls
