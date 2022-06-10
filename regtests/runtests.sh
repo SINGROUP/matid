@@ -2,4 +2,4 @@
 cd regtests
 export COVERAGE_FILE="../.coverage"
 coverage run --source="matid" testrunner.py
-coverage lcov
+coverage lcov -o ./coverage/lcov.info
