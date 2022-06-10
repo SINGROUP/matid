@@ -31,7 +31,9 @@ jobs:
     - name: Test with unittest
       run: |
         regtests/runtests.sh
+
     - name: Upload Coverage
       if: ${{ matrix.python-version == '3.8' }}
-      run: |
-        coveralls
+      uses: coverallsapp/github-action@1.1.3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
