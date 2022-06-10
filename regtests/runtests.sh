@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
-cd regtests
-export COVERAGE_FILE="../.coverage"
-coverage run --source="matid" testrunner.py
-coverage lcov -o ../.coverage/lcov.info
+coverage run -data-file=".coverage" --source="matid" testrunner.py
+coverage lcov -data-file=".coverage" -o ../.coverage/lcov.info

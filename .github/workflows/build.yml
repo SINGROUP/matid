@@ -30,7 +30,8 @@ jobs:
         if [ -f devrequirements.txt ]; then pip install -r devrequirements.txt; fi
     - name: Test with unittest
       run: |
-        regtests/runtests.sh
+        cd regtests
+        runtests.sh
 
     - name: Create coverage
       if: ${{ matrix.python-version == '3.8' }}
