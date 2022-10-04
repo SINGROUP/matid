@@ -5,9 +5,7 @@ name: build
 
 on:
   push:
-    branches: [ "master", "clustering" ]
   pull_request:
-    branches: [ "master", "clustering" ]
 
 jobs:
   build:
