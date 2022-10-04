@@ -35,4 +35,8 @@ keywords = ['atoms', 'structure', 'materials', 'science', 'crystal', 'symmetry']
 homepage = "https://singroup.github.io/matid/"
 
 [project.optional-dependencies]
-dev = ['coverage', 'sphinx', 'sphinx_rtd_theme']
+tests = ['coverage']
+docs = ['sphinx', 'sphinx_rtd_theme']
+
+[tool.setuptools.packages.find]
+include = ["matid*"]  # package names should match these glob patterns (["*"] by default)
