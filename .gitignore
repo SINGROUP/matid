@@ -194,7 +194,8 @@ cython_debug/
 # Custom settings
 
 # Coverage report
-regtests/.coverage
+coverage
+tests/.coverage
 
 # .vim configuration
 .vim

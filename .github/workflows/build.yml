@@ -30,7 +30,7 @@ jobs:
         if [ -f devrequirements.txt ]; then pip install -r devrequirements.txt; fi
     - name: Test with unittest
       run: |
-        cd regtests
+        cd tests
         ./runtests.sh
         cd ..
     - name: Upload Coverage
