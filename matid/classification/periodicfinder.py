@@ -135,11 +135,7 @@ class PeriodicFinder():
         # The indices of the periodic dimensions.
         periodic_indices = list(range(dim))
 
-        # view(proto_cell)
-        # print(proto_cell.get_cell())
-
         # Find a region that is spanned by the found unit cell
-
         unit_collection = self._find_periodic_region(
             system,
             dim == 2,
@@ -474,7 +470,6 @@ class PeriodicFinder():
                 best_adjacency_lists_sub,
             )
         elif n_spans == 2:
-
             # The seed group index can get updated by the cell search
             proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
                 seed_index,
@@ -753,6 +748,10 @@ class PeriodicFinder():
                 new_group_index = len(averaged_rel_num) - 1
         seed_group_index = new_group_index
 
+        # If no atoms are found in the proto cell, return without results
+        if not averaged_rel_pos or not averaged_rel_num:
+            return None, None
+
         averaged_rel_pos = np.array(averaged_rel_pos)
 
         proto_cell = Atoms(
@@ -952,6 +951,10 @@ class PeriodicFinder():
             if i_group == seed_group_index:
                 new_group_index = len(averaged_rel_num) - 1
         seed_group_index = new_group_index
+
+        # If no atoms are found in the proto cell, return without results
+        if not averaged_rel_pos or not averaged_rel_num:
+            return None, None, None
 
         # Move the seed positions back to the origin now that the search has
         # been performed
