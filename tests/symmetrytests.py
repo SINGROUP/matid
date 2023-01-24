@@ -87,6 +87,10 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_equiv, [0, 0]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
+        pbc_conv = data.conv_system.get_pbc()
+        pbc_prim = data.prim_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc_conv, [True, True, True]))
+        self.assertTrue(np.array_equal(pbc_prim, [True, True, True]))
 
     def test_fcc(self):
         """Test that a primitive NaCl fcc lattice is characterized correctly.
@@ -131,6 +135,10 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a", "b"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
+        pbc_conv = data.conv_system.get_pbc()
+        pbc_prim = data.prim_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc_conv, [True, True, True]))
+        self.assertTrue(np.array_equal(pbc_prim, [True, True, True]))
 
     def test_bcc(self):
         """Test that a body centered cubic lattice for copper is characterized
@@ -164,6 +172,10 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertTrue(np.array_equal(data.prim_wyckoff, ["a"]))
         self.assertFalse(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
+        pbc_conv = data.conv_system.get_pbc()
+        pbc_prim = data.prim_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc_conv, [True, True, True]))
+        self.assertTrue(np.array_equal(pbc_prim, [True, True, True]))
 
     def test_unsymmetric(self):
         """Test that a random system is handled correctly.
@@ -189,6 +201,10 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         self.assertEqual(data.bravais_lattice, "aP")
         self.assertTrue(data.has_free_wyckoff_parameters)
         self.assertWyckoffGroupsOk(data.conv_system, data.wyckoff_sets_conv)
+        pbc_conv = data.conv_system.get_pbc()
+        pbc_prim = data.prim_system.get_pbc()
+        self.assertTrue(np.array_equal(pbc_conv, [True, True, True]))
+        self.assertTrue(np.array_equal(pbc_prim, [True, True, True]))
 
     def assertWyckoffGroupsOk(self, system, wyckoff_sets):
         """Check that the Wyckoff sets contain all atoms and are ordered

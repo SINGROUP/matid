@@ -319,6 +319,7 @@ class SymmetryAnalyzer(object):
             self._conventional_system = ideal_sys
             self._conventional_wyckoff_letters = ideal_wyckoff
             self._conventional_equivalent_atoms = equivalent_atoms
+            ideal_sys.set_pbc(True)
             return ideal_sys
         # 2D materials get a special treatment
         elif n_pbc == 2:
@@ -856,6 +857,8 @@ class SymmetryAnalyzer(object):
             cell=prim_cell,
         )
         prim_sys.wrap(pbc=True)
+        if all(conv_system.get_pbc()):
+            prim_sys.set_pbc(True)
 
         return prim_sys, prim_wyckoff, prim_equivalent
 
