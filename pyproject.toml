@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'matid'
+version = '0.6.3'
+description = 'MatID is a python package for identifying and analyzing atomistic systems based on their structure.'
+readme = "README.md"
+authors = [{ name = "Lauri Himanen" }]
+license = { file = "LICENSE" }
+requires-python = ">=3.7"
+dependencies = [
+    "numpy",
+    "scipy",
+    "ase",
+    "spglib>=1.15.0",
+    "scikit-learn",
+    "networkx>=2.4",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3 :: Only",
+]
+keywords = ['atoms', 'structure', 'materials', 'science', 'crystal', 'symmetry']
+
+[project.urls]
+homepage = "https://singroup.github.io/matid/"
+
+[project.optional-dependencies]
+tests = ['coverage']
+docs = ['sphinx', 'sphinx_rtd_theme']
+
+[tool.setuptools.packages.find]
+include = ["matid*"]  # package names should match these glob patterns (["*"] by default)
