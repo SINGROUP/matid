@@ -1,11 +1,8 @@
 from collections import defaultdict
-
 import numpy as np
-from ase.data import covalent_radii
-
-import matid.geometry
-from matid.data import constants
-from matid.classifications import Class0D, Class1D, Class2D, Class3D, Surface, Material2D, Atom, Unknown
+import ase.io
+from ase.io import write
+from ase.visualize import view
 from matid.classification.periodicfinder import PeriodicFinder
 
 
@@ -13,70 +10,11 @@ class Cluster():
     """
     Represents a part of a bigger system.
     """
-    def __init__(self, system, indices, regions, dist_matrix_radii_mic, species=None):
-        self.system = system
+    def __init__(self, indices, regions, species=None):
         self.indices = indices
         self.regions = regions
         self.species = species
         self.merged = False
-        self.dist_matrix_radii_pbc = dist_matrix_radii_mic[indices, indices]
-
-    def classify(self, cluster_threshold=constants.CLUSTER_THRESHOLD):
-        """Used to classify this cluster.
-        """
-        # Check that the region was connected cyclically in two
-        # directions. This ensures that finite systems or systems
-        # with a dislocation at the cell boundary are filtered.
-        best_region = self.regions[0]
-        region_conn = best_region.get_connected_directions()
-        n_region_conn = np.sum(region_conn)
-        region_is_periodic = n_region_conn == 2
-
-        # This might be unnecessary because the connectivity of the
-        # unit cell is already checked.
-        clusters = best_region.get_clusters()
-        basis_indices = set(list(best_region.get_basis_indices()))
-        split = True
-        for cluster in clusters:
-            if basis_indices.issubset(cluster):
-                split = False
-
-        # Get the system dimensionality
-        classification = Unknown()
-        dimensionality = matid.geometry.get_dimensionality(
-            self.system,
-            cluster_threshold,
-            self.dist_matrix_radii_pbc
-        )
-
-        # 0D structures
-        if dimensionality == 0:
-            classification = Class0D()
-
-            # Systems with one atom have their own classification.
-            n_atoms = len(self.indices)
-            if n_atoms == 1:
-                classification = Atom()
-
-        # 1D structures
-        elif dimensionality == 1:
-            classification = Class1D()
-
-        # 2D structures
-        elif dimensionality == 2:
-            if not split and region_is_periodic:
-                if best_region.is_2d:
-                    classification = Material2D()
-                else:
-                    classification = Surface()
-            else:
-                classification = Class2D()
-
-        # Bulk structures
-        elif dimensionality == 3:
-            classification = Class3D()
-            
-        return classification
 
 
 class StructureClusterer():
@@ -161,14 +99,19 @@ class StructureClusterer():
             remainder_species = set(atomic_numbers[list(remainder_indices)])
             final_indices = target.indices.union(common)
 
-            return Cluster(system, final_indices, a.regions + b.regions, self.dist_matrix_radii_mic, target.species), Cluster(system, remainder_indices, source.regions, self.dist_matrix_radii_mic, remainder_species)
+            return Cluster(final_indices, a.regions + b.regions, target.species), Cluster(remainder_indices, source.regions, remainder_species)
 
+        covered_grains = set()
+        new_grain_map = {}
+        atomic_numbers = system.get_atomic_numbers()
+        remainders = []
         isolated_clusters = []
         while (True):
             if len(clusters) == 0 or clusters[0].merged:
                 break
             i_cluster = clusters.pop(0)
             i_indices = i_cluster.indices
+            i_region = i_cluster.regions[0]
 
             # Check overlap with all other non-isolated clusters
             isolated = True
@@ -218,12 +161,9 @@ class StructureClusterer():
         Returns:
             A list of Clusters.
         """
-        # Calculate the displacements here once.
-        disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic = self.get_displacements(system)
-        self.dist_matrix_radii_mic = dist_matrix_radii_mic
-
         # Iteratively search for new clusters until whole system is covered
         periodic_finder = PeriodicFinder(angle_tol=angle_tol)
+        covered = False
         indices = set(list(range(len(system))))
         clusters = []
         atomic_numbers = system.get_atomic_numbers()
@@ -234,10 +174,6 @@ class StructureClusterer():
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
-                disp_tensor_mic=disp_tensor_mic,
-                disp_factors=disp_factors,
-                disp_tensor_finite=disp_tensor_finite,
-                dist_matrix_radii_mic=dist_matrix_radii_mic,
             )
             i_indices = [i_seed]
             if i_grain is not None:
@@ -247,7 +183,7 @@ class StructureClusterer():
             i_species = set(atomic_numbers[i_indices])
             i_indices = set(i_indices)
 
-            clusters.append(Cluster(system, i_indices, [i_grain], self.dist_matrix_radii_mic, i_species))
+            clusters.append(Cluster(i_indices, [i_grain], i_species))
 
             # Remove found grain from set of indices
             if len(i_indices) == 0:
@@ -264,42 +200,4 @@ class StructureClusterer():
         clusters = self.localize_clusters(system, clusters, merge_radius)
 
         return clusters
-
-    def get_displacements(self, system):
-        """Return the necessary displacement information.
-
-        Args: 
-            system (ase.Atoms): The system to investigate.
-
-        Returns:
-            A tuple containing all necessary displacement infomration.
-
-        """
-        pos = system.get_positions()
-        cell = system.get_cell()
-        pbc = system.get_pbc()
-        disp_tensor_finite = matid.geometry.get_displacement_tensor(pos, pos)
-        if pbc.any():
-            disp_tensor_mic, disp_factors = matid.geometry.get_displacement_tensor(
-                pos,
-                pos,
-                cell,
-                pbc,
-                mic=True,
-                return_factors=True
-            )
-        else:
-            disp_tensor_mic = disp_tensor_finite
-            disp_factors = np.zeros(disp_tensor_finite.shape)
-        dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
-
-        # Calculate the distance matrix where the periodicity and the covalent
-        # radii have been taken into account
-        dist_matrix_radii_mic = np.array(dist_matrix_mic)
-        num = system.get_atomic_numbers()
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-        dist_matrix_radii_mic -= radii_matrix
-
-        return (disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic)
 
