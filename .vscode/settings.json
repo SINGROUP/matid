@@ -1,0 +1,35 @@
+{
+    "python.defaultInterpreterPath": ".pyenv/bin/python",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "editor.rulers": [
+        90
+    ],
+    "editor.renderWhitespace": "all",
+    "editor.tabSize": 4,
+    "files.trimTrailingWhitespace": true,
+    "python.linting.pylintArgs": [
+        "--rcfile=${workspaceFolder}/.pylintrc"
+    ],
+    "python.linting.pycodestylePath": "pycodestyle",
+    "python.linting.pycodestyleArgs": [
+        "--config=${workspaceFolder}/pycodestyle.ini"
+    ],
+    "python.linting.mypyArgs": [
+        "--ignore-missing-imports",
+        "--follow-imports=silent",
+        "--no-strict-optional"
+    ],
+    "files.watcherExclude": {
+      "${workspaceFolder}/.pyenv/**": true,
+    },
+    "files.exclude": {
+        "\"**/*.pyc\": {\"when\": \"$(basename).py\"}": true,
+        "**/__pycache__": true,
+
+    },
+    "python.testing.pytestPath": ".pyenv/bin/pytest",
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+}

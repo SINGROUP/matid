@@ -1,20 +1,11 @@
 from collections import defaultdict
+
 import numpy as np
-import ase.io
-from ase.io import write
-from ase.visualize import view
+from ase.data import covalent_radii
+
+import matid.geometry
+from matid.clustering.cluster import Cluster
 from matid.classification.periodicfinder import PeriodicFinder
-
-
-class Cluster():
-    """
-    Represents a part of a bigger system.
-    """
-    def __init__(self, indices, regions, species=None):
-        self.indices = indices
-        self.regions = regions
-        self.species = species
-        self.merged = False
 
 
 class StructureClusterer():
@@ -99,7 +90,22 @@ class StructureClusterer():
             remainder_species = set(atomic_numbers[list(remainder_indices)])
             final_indices = target.indices.union(common)
 
-            return Cluster(final_indices, a.regions + b.regions, target.species), Cluster(remainder_indices, source.regions, remainder_species)
+            return (
+                Cluster(
+                    system,
+                    final_indices,
+                    a.regions + b.regions,
+                    self.dist_matrix_radii_mic,
+                    target.species
+                ),
+                Cluster(
+                    system,
+                    remainder_indices,
+                    source.regions,
+                    self.dist_matrix_radii_mic,
+                    remainder_species
+                )
+            )
 
         covered_grains = set()
         new_grain_map = {}
@@ -161,6 +167,10 @@ class StructureClusterer():
         Returns:
             A list of Clusters.
         """
+        # Calculate the displacements here once.
+        disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic = self.get_displacements(system)
+        self.dist_matrix_radii_mic = dist_matrix_radii_mic
+
         # Iteratively search for new clusters until whole system is covered
         periodic_finder = PeriodicFinder(angle_tol=angle_tol)
         covered = False
@@ -174,6 +184,10 @@ class StructureClusterer():
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
+                disp_tensor_mic=disp_tensor_mic,
+                disp_factors=disp_factors,
+                disp_tensor_finite=disp_tensor_finite,
+                dist_matrix_radii_mic=dist_matrix_radii_mic,
             )
             i_indices = [i_seed]
             if i_grain is not None:
@@ -183,7 +197,13 @@ class StructureClusterer():
             i_species = set(atomic_numbers[i_indices])
             i_indices = set(i_indices)
 
-            clusters.append(Cluster(i_indices, [i_grain], i_species))
+            clusters.append(Cluster(
+                system,
+                i_indices,
+                [i_grain],
+                dist_matrix_radii_mic,
+                i_species
+            ))
 
             # Remove found grain from set of indices
             if len(i_indices) == 0:
@@ -201,3 +221,37 @@ class StructureClusterer():
 
         return clusters
 
+    def get_displacements(self, system):
+        """Return the necessary displacement information.
+        Args: 
+            system (ase.Atoms): The system to investigate.
+        Returns:
+            A tuple containing all necessary displacement infomration.
+        """
+        pos = system.get_positions()
+        cell = system.get_cell()
+        pbc = system.get_pbc()
+        disp_tensor_finite = matid.geometry.get_displacement_tensor(pos, pos)
+        if pbc.any():
+            disp_tensor_mic, disp_factors = matid.geometry.get_displacement_tensor(
+                pos,
+                pos,
+                cell,
+                pbc,
+                mic=True,
+                return_factors=True
+            )
+        else:
+            disp_tensor_mic = disp_tensor_finite
+            disp_factors = np.zeros(disp_tensor_finite.shape)
+        dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
+
+        # Calculate the distance matrix where the periodicity and the covalent
+        # radii have been taken into account
+        dist_matrix_radii_mic = np.array(dist_matrix_mic)
+        num = system.get_atomic_numbers()
+        radii = covalent_radii[num]
+        radii_matrix = radii[:, None] + radii[None, :]
+        dist_matrix_radii_mic -= radii_matrix
+
+        return (disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic)
