@@ -74,7 +74,7 @@ class StructureClusterer():
             """
             Merges the given two clusters.
             """
-            # If there are conficting species in the regions that are merged, only
+            # If there are conflicting species in the regions that are merged, only
             # the species from the larger are kept during the merge. This helps
             # getting rid of artifical regions at the interface between two
             # clusters.
@@ -107,17 +107,12 @@ class StructureClusterer():
                 )
             )
 
-        covered_grains = set()
-        new_grain_map = {}
-        atomic_numbers = system.get_atomic_numbers()
-        remainders = []
         isolated_clusters = []
         while (True):
             if len(clusters) == 0 or clusters[0].merged:
                 break
             i_cluster = clusters.pop(0)
             i_indices = i_cluster.indices
-            i_region = i_cluster.regions[0]
 
             # Check overlap with all other non-isolated clusters
             isolated = True
@@ -167,13 +162,12 @@ class StructureClusterer():
         Returns:
             A list of Clusters.
         """
-        # Calculate the displacements here once.
-        disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic = self.get_displacements(system)
-        self.dist_matrix_radii_mic = dist_matrix_radii_mic
+        # Calculate the distances here once.
+        distances = matid.geometry.get_distances(system)
+        self.dist_matrix_radii_mic = distances.dist_matrix_radii_mic
 
         # Iteratively search for new clusters until whole system is covered
         periodic_finder = PeriodicFinder(angle_tol=angle_tol)
-        covered = False
         indices = set(list(range(len(system))))
         clusters = []
         atomic_numbers = system.get_atomic_numbers()
@@ -184,10 +178,7 @@ class StructureClusterer():
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
-                disp_tensor_mic=disp_tensor_mic,
-                disp_factors=disp_factors,
-                disp_tensor_finite=disp_tensor_finite,
-                dist_matrix_radii_mic=dist_matrix_radii_mic,
+                distances=distances
             )
             i_indices = [i_seed]
             if i_grain is not None:
@@ -201,7 +192,7 @@ class StructureClusterer():
                 system,
                 i_indices,
                 [i_grain],
-                dist_matrix_radii_mic,
+                distances.dist_matrix_radii_mic,
                 i_species
             ))
 
@@ -220,38 +211,3 @@ class StructureClusterer():
         clusters = self.localize_clusters(system, clusters, merge_radius)
 
         return clusters
-
-    def get_displacements(self, system):
-        """Return the necessary displacement information.
-        Args: 
-            system (ase.Atoms): The system to investigate.
-        Returns:
-            A tuple containing all necessary displacement infomration.
-        """
-        pos = system.get_positions()
-        cell = system.get_cell()
-        pbc = system.get_pbc()
-        disp_tensor_finite = matid.geometry.get_displacement_tensor(pos, pos)
-        if pbc.any():
-            disp_tensor_mic, disp_factors = matid.geometry.get_displacement_tensor(
-                pos,
-                pos,
-                cell,
-                pbc,
-                mic=True,
-                return_factors=True
-            )
-        else:
-            disp_tensor_mic = disp_tensor_finite
-            disp_factors = np.zeros(disp_tensor_finite.shape)
-        dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
-
-        # Calculate the distance matrix where the periodicity and the covalent
-        # radii have been taken into account
-        dist_matrix_radii_mic = np.array(dist_matrix_mic)
-        num = system.get_atomic_numbers()
-        radii = covalent_radii[num]
-        radii_matrix = radii[:, None] + radii[None, :]
-        dist_matrix_radii_mic -= radii_matrix
-
-        return (disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_radii_mic)

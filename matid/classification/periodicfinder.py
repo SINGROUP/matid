@@ -1,21 +1,15 @@
 import itertools
-
 from collections import deque, defaultdict, OrderedDict
 
 import numpy as np
 from numpy.core.umath_tests import inner1d
-
 import networkx as nx
-
-from sklearn.cluster import DBSCAN
-
 from ase import Atoms
-from ase.visualize import view
-from ase.data import covalent_radii
 
 import matid.geometry
 from matid.data import constants
 from matid.core.linkedunits import LinkedUnitCollection, LinkedUnit
+from matid.core.distances import Distances
 from matid.exceptions import SystaxError
 
 
@@ -49,16 +43,13 @@ class PeriodicFinder():
 
     def get_region(
             self,
-            system,
+            system: Atoms,
             seed_index,
             max_cell_size,
             pos_tol,
             delaunay_threshold=None,
             bond_threshold=None,
-            disp_tensor_mic=None,
-            disp_factors=None,
-            disp_tensor_finite=None,
-            dist_matrix_radii_mic=None,
+            distances: Distances = None,
         ):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
@@ -82,38 +73,13 @@ class PeriodicFinder():
             bond_threshold = constants.BOND_THRESHOLD
 
         # If the distance information is not given, calculate it here.
-        pbc = system.get_pbc()
-        if disp_tensor_mic is None and disp_factors is None and disp_tensor_finite is None and dist_matrix_radii_mic is None:
-            pos = system.get_positions()
-            cell = system.get_cell()
-            pbc = system.get_pbc()
-            disp_tensor_finite = matid.geometry.get_displacement_tensor(pos, pos)
-            if pbc.any():
-                disp_tensor_mic, disp_factors = matid.geometry.get_displacement_tensor(
-                    pos,
-                    pos,
-                    cell,
-                    pbc,
-                    mic=True,
-                    return_factors=True
-                )
-            else:
-                disp_tensor_mic = disp_tensor_finite
-                disp_factors = np.zeros(disp_tensor_finite.shape)
-            dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
+        if distances is None:
+            distances = matid.geometry.get_distances(system)
 
-            # Calculate the distance matrix where the periodicity and the covalent
-            # radii have been taken into account
-            dist_matrix_radii_mic = np.array(dist_matrix_mic)
-            num = system.get_atomic_numbers()
-            radii = covalent_radii[num]
-            radii_matrix = radii[:, None] + radii[None, :]
-            dist_matrix_radii_mic -= radii_matrix
-
-        self.disp_tensor_mic = disp_tensor_mic
-        self.disp_tensor_finite = disp_tensor_finite
-        self.disp_factors = disp_factors
-        self.dist_matrix_radii_mic = dist_matrix_radii_mic
+        self.disp_tensor_mic = distances.disp_tensor_mic
+        self.disp_tensor_finite = distances.disp_tensor_finite
+        self.disp_factors = distances.disp_factors
+        self.dist_matrix_radii_mic = distances.dist_matrix_radii_mic
         self.pos_tol = pos_tol
         self.max_cell_size = max_cell_size
         region = None
@@ -368,16 +334,6 @@ class PeriodicFinder():
                         new_graph.add_edge(node, new_node)
         periodicity_graph_pbc = new_graph
 
-        # import matplotlib.pyplot as plt
-        # plt.subplot(111)
-        # pos = nx.spring_layout(periodicity_graph_pbc)
-        # nx.draw_networkx_nodes(periodicity_graph_pbc, pos)
-        # nx.draw_networkx_edges(periodicity_graph_pbc, pos)
-        # data = periodicity_graph_pbc.nodes(data=True)
-        # labels = {x[0]: x[0] for x in data}
-        # nx.draw_networkx_labels(periodicity_graph_pbc, pos, labels, font_size=16)
-        # plt.show()
-
         # Get all disconnected subgraphs in the periodicity graph that takes
         # periodic boundaries into account
         graphs = [periodicity_graph_pbc.subgraph(c) for c in nx.connected_components(periodicity_graph_pbc)]
@@ -621,10 +577,6 @@ class PeriodicFinder():
             node_index = node[0]
             node_factor = node[1]
 
-            # multiplier: The direction in which the cell basis is searched. +1 or -1.
-            # node_factor: The cell index of the starting node.
-            # i_factor: The factor of the matched atom.
-
             # Handle each basis
             for i_basis in range(3):
                 a_final_neighbour = None
@@ -645,11 +597,6 @@ class PeriodicFinder():
                         multiplier = -1
 
                 if a_final_neighbour is not None:
-                    # Old version
-                    # a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
-                    # a = multiplier*self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
-
-                    # New version
                     a_correction = np.dot((-np.array(node_factor) + np.array(i_factor)), orig_cell)
                     a = self.disp_tensor_finite[a_final_neighbour, node_index, :] + a_correction
                     a *= multiplier
@@ -680,19 +627,7 @@ class PeriodicFinder():
                     1e-8,
                     -1e-8,
                 )
-
-                # Here we ensure that the seed atom is included in the cell
-                # positions. The search might miss the seed atom which is
-                # exactly at the border of the cell
-                # if i_seed not in i_indices:
-                    # i_indices = np.append(i_indices, [i_seed], axis=0)
-                    # i_pos = np.append(i_pos, np.array([[0, 0, 0.5]]), axis=0)
-                    # i_factors = np.append(i_factors, [[0, 0, 0]], axis=0)
-
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
-
-            # if (i_seed == 6):
-            # print(i_indices)
 
             # Add the seed node factor
             final_factors = []
@@ -883,15 +818,6 @@ class PeriodicFinder():
                     1e-8,
                     -1e-8,
                 )
-
-                # Here we ensure that the seed atom is included in the cell
-                # positions. The search might miss the seed atom which is
-                # exactly at the border of the cell
-                # if i_seed not in i_indices:
-                    # i_indices = np.append(i_indices, [i_seed], axis=0)
-                    # i_pos = np.append(i_pos, np.array([[0, 0, 0.5]]), axis=0)
-                    # i_factors = np.append(i_factors, [[0, 0, 0]], axis=0)
-
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
             # Add the seed node factor
@@ -1064,13 +990,6 @@ class PeriodicFinder():
             ortho = 3 - inner1d(n_ij_filtered, n_ij_filtered) - inner1d(n_ki_filtered, n_ki_filtered) - inner1d(n_jk_filtered, n_jk_filtered)
             max_ortho_filter = np.argmin(ortho)
             best_span_indices = valid_indices[max_ortho_filter]
-
-            # OLD VERSION
-            # angle_sum = alpha_ijk[angles_mask] + alpha_jki[angles_mask] + alpha_kij[angles_mask]
-            # angle_set = angle_sum[metric_filter][smallest_cell_filter]
-            # biggest_angle_sum_filter = np.argmax(angle_set)
-            # best_span_indices = valid_indices[biggest_angle_sum_filter]
-
         else:
             best_span_indices = self._find_best_2d_basis(norm_spans, norms, valid_span_metrics)
 

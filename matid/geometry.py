@@ -15,6 +15,7 @@ import ase.geometry
 
 from matid.data.element_data import get_covalent_radii
 from matid.core.linkedunits import Substitution
+from matid.core.distances import Distances
 import matid.geometry
 
 from sklearn.cluster import DBSCAN
@@ -1522,6 +1523,43 @@ def get_crystallinity(symmetry_analyser):
     ratio = n_symmetries/float(n_unique_atoms_prim)
 
     return ratio
+
+
+def get_distances(system: Atoms) -> Distances:
+    """Returns complete distance information.
+
+    Args:
+        system: The system from which distances are calculated from.
+    Returns:
+        A Distances instance.
+    """
+    pos = system.get_positions()
+    cell = system.get_cell()
+    pbc = system.get_pbc()
+    disp_tensor_finite = get_displacement_tensor(pos, pos)
+    if pbc.any():
+        disp_tensor_mic, disp_factors = get_displacement_tensor(
+            pos,
+            pos,
+            cell,
+            pbc,
+            mic=True,
+            return_factors=True
+        )
+    else:
+        disp_tensor_mic = disp_tensor_finite
+        disp_factors = np.zeros(disp_tensor_finite.shape)
+    dist_matrix_mic = np.linalg.norm(disp_tensor_mic, axis=2)
+
+    # Calculate the distance matrix where the periodicity and the covalent
+    # radii have been taken into account
+    dist_matrix_radii_mic = np.array(dist_matrix_mic)
+    num = system.get_atomic_numbers()
+    radii = covalent_radii[num]
+    radii_matrix = radii[:, None] + radii[None, :]
+    dist_matrix_radii_mic -= radii_matrix
+
+    return Distances(disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_mic, dist_matrix_radii_mic)
 
 
 # def get_surface_normal_direction(system):

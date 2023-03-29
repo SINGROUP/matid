@@ -104,37 +104,6 @@ class LinkedUnitCollection(dict):
 
         return recreated_system
 
-    def create_animation(self, ):
-        """Used to create an animation of the search procedure. The unit cells are .
-        """
-        recreated_system = Atoms(
-            cell=self.system.get_cell(),
-            pbc=self.system.get_pbc(),
-        )
-        for iunit, unit in enumerate(self.values()):
-            i_valid_indices = np.array([x for x in unit.basis_indices if x is not None])
-            if len(i_valid_indices) != 0:
-                i_atoms = self.system[i_valid_indices]
-                recreated_system += i_atoms
-                write('/home/lauri/Desktop/crystal/image_{}.png'.format(iunit), recreated_system, rotation='90x,20y,20x', show_unit_cell=2)
-
-        # return recreated_system
-        # for unit_cell in self.values():
-            # rec = self.recreate_valid()
-            # rec.set_cell(self.system.get_cell())
-            # num = len(collection)
-            # str_num = str(num)
-            # str_len = len(str_num)
-            # num = (3-str_len)*"0" + str_num
-            # # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='-90x,45y,45x', show_unit_cell=2)
-            # # write('/home/lauri/Desktop/2d/image_{}.png'.format(num), rec, rotation='', show_unit_cell=2)
-            # # write('/home/lauri/Desktop/curved/image_{}.png'.format(num), rec, rotation='-80x', show_unit_cell=2)
-            # # try:
-            # write('/home/lauri/Desktop/crystal/image_{}.png'.format(num), rec, rotation='90x,20y,20x', show_unit_cell=2)
-            # except Exception:
-                # pass
-            # else:
-                # raise Exception("")
 
     def get_basis_atom_neighbourhood(self):
         """For each atom in the basis calculates the chemical neighbourhood.
@@ -605,34 +574,6 @@ class LinkedUnitCollection(dict):
         # connected_directions[indices] = True
 
         return connected_directions
-
-    # def get_cell_statistically_valid(self):
-        # """Checks that in this region a certain fraction of the cells is
-        # complete, i.e. has all the atoms that were found for the prototype
-        # cell.
-        # """
-        # n_all = 0
-        # index_occurrence_map = defaultdict(lambda: 0)
-        # for cell in self.values():
-            # none_found = False
-            # index_found = False
-            # for i, basis_index in enumerate(cell.basis_indices):
-                # if basis_index is not None:
-                    # index_occurrence_map[i] += 1
-                    # index_found = True
-                # else:
-                    # none_found = True
-            # if none_found:
-                # if index_found:
-                    # n_all += 1
-
-        # for index, value in index_occurrence_map.items():
-            # if value/n_all <= 0.5:
-                # return False
-        # return True
-
-        # full_fraction = n_full / n_all
-        # return full_fraction > 0.5
 
 
 class LinkedUnit():
