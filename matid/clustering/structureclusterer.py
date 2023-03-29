@@ -167,39 +167,56 @@ class StructureClusterer():
         self.dist_matrix_radii_mic = distances.dist_matrix_radii_mic
 
         # Iteratively search for new clusters until whole system is covered
-        periodic_finder = PeriodicFinder(angle_tol=angle_tol)
+        periodic_finder = PeriodicFinder(angle_tol=angle_tol, chem_similarity_threshold=0)
         indices = set(list(range(len(system))))
         clusters = []
         atomic_numbers = system.get_atomic_numbers()
         while len(indices) != 0:
             i_seed = self.rng.choice(list(indices), 1)[0]
-            i_grain = periodic_finder.get_region(
+            i_grain, mask = periodic_finder.get_region(
                 system,
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
-                distances=distances
+                distances=distances,
+                return_mask=True
             )
-            i_indices = [i_seed]
+
+            # All neighbours that the periodic finder has tested are removed
+            # from the search. This significantly helps with the scaling of the
+            # clustering.
+            tested_indices = set(np.arange(len(mask))[mask])
+            indices -= tested_indices
+
+            # If a grain is found, it is added as a single cluster and removed
+            # from the search
+            grain_indices = set()
             if i_grain is not None:
-                for unit in i_grain.values():
-                    i_valid_indices = [x for x in unit.basis_indices if x is not None]
-                    i_indices.extend(i_valid_indices)
-            i_species = set(atomic_numbers[i_indices])
-            i_indices = set(i_indices)
+                i_indices = {i_seed}
+                i_indices.update(i_grain.get_basis_indices())
+                i_species = set(atomic_numbers[list(i_indices)])
+                clusters.append(Cluster(
+                    system,
+                    i_indices,
+                    [i_grain],
+                    distances.dist_matrix_radii_mic,
+                    i_species
+                ))
+                indices -= i_indices
+                grain_indices = i_indices
 
-            clusters.append(Cluster(
-                system,
-                i_indices,
-                [i_grain],
-                distances.dist_matrix_radii_mic,
-                i_species
-            ))
-
-            # Remove found grain from set of indices
-            if len(i_indices) == 0:
-                i_indices = set([i_seed])
-            indices = indices - i_indices
+            # All tested indices that are not a part of a grain are added as
+            # individual clusters.
+            outliers = tested_indices - grain_indices
+            for outlier in outliers:
+                i_species = {atomic_numbers[outlier]}
+                clusters.append(Cluster(
+                    system,
+                    {outlier},
+                    [None],
+                    distances.dist_matrix_radii_mic,
+                    i_species
+                ))
 
         # Check overlaps of the regions. For large overlaps the grains are
         # merged (the real region was probably cut into pieces by unfortunate

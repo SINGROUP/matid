@@ -50,6 +50,7 @@ class PeriodicFinder():
             delaunay_threshold=None,
             bond_threshold=None,
             distances: Distances = None,
+            return_mask: bool = False
         ):
         """Tries to find the periodic regions, like surfaces, in an atomic
         system.
@@ -84,7 +85,7 @@ class PeriodicFinder():
         self.max_cell_size = max_cell_size
         region = None
 
-        possible_spans, neighbour_mask, neighbour_factors = self._find_possible_bases(system, seed_index)
+        possible_spans, neighbour_mask, neighbour_factors, search_mask = self._find_possible_bases(system, seed_index)
         proto_cell, offset, dim = self._find_proto_cell(
             system,
             seed_index,
@@ -95,29 +96,31 @@ class PeriodicFinder():
         )
 
         # 1D is not handled
-        if dim == 1 or proto_cell is None:
-            return None
+        region = None
+        if dim != 1 and proto_cell is not None:
+            # The indices of the periodic dimensions.
+            periodic_indices = list(range(dim))
 
-        # The indices of the periodic dimensions.
-        periodic_indices = list(range(dim))
+            # Find a region that is spanned by the found unit cell
+            unit_collection = self._find_periodic_region(
+                system,
+                dim == 2,
+                delaunay_threshold,
+                bond_threshold,
+                seed_index,
+                proto_cell,
+                offset,
+                periodic_indices,
+            )
 
-        # Find a region that is spanned by the found unit cell
-        unit_collection = self._find_periodic_region(
-            system,
-            dim == 2,
-            delaunay_threshold,
-            bond_threshold,
-            seed_index,
-            proto_cell,
-            offset,
-            periodic_indices,
-        )
+            i_indices = unit_collection.get_basis_indices()
+            if len(i_indices) > 0:
+                region = unit_collection
+                region._pos_tol = pos_tol
 
-        i_indices = unit_collection.get_basis_indices()
-        if len(i_indices) > 0:
-            region = unit_collection
-            region._pos_tol = pos_tol
-            return region
+        if return_mask:
+            return region, search_mask
+        return region
 
     def _find_possible_bases(self, system, seed_index):
         """Finds all the possible vectors that might span a cell.
@@ -146,12 +149,13 @@ class PeriodicFinder():
         distance_mask = (seed_span_lengths < self.max_cell_size)
 
         # Form a combined mask and filter spans with it
-        combined_mask = (distance_mask) & (identical_elem_mask)
+        search_mask = (distance_mask) & (identical_elem_mask)
+        combined_mask = np.array(search_mask)
         combined_mask[seed_index] = False  # Ignore self
         bases = seed_spans[combined_mask]
         neighbour_factors = self.disp_factors[seed_index, distance_mask, :]
 
-        return bases, distance_mask, neighbour_factors
+        return bases, distance_mask, neighbour_factors, search_mask
 
     def _find_proto_cell(
             self,
@@ -396,7 +400,6 @@ class PeriodicFinder():
             "nodes": []
         }
         # Determine the indices, nodes and numbers for each valid subgraph.
-        # index_set = set()
         for i_graph, graph in enumerate(valid_graphs):
             nodes = graph.nodes()
             node_indices = [node[0] for node in nodes]
