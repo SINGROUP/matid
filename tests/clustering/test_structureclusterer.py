@@ -3,7 +3,7 @@ import pytest
 from ase.build import surface, bulk
 
 from matid import StructureClusterer
-from matid.clustering.cluster import Cluster
+from matid.clustering.cluster import Cluster, Classification
 
 
 def rattle(atoms, std=0.05):
@@ -16,25 +16,28 @@ surface_fcc_cu_pristine = surface(bulk("Cu", "fcc", a=3.6, cubic=True), [1, 0, 0
 surface_fcc_cu_noisy = rattle(surface_fcc_cu_pristine)
 
 
-@pytest.mark.parametrize("system, clusters", [
+@pytest.mark.parametrize("system, clusters_expected", [
     pytest.param(
         surface_fcc_cu_pristine,
-        [Cluster(surface_fcc_cu_pristine, range(len(surface_fcc_cu_pristine)))],
+        [Cluster(range(len(surface_fcc_cu_pristine)), dimensionality=2, classification=Classification.Surface)],
         id="surface, pristine"
     ),
     pytest.param(
         surface_fcc_cu_noisy,
-        [Cluster(surface_fcc_cu_noisy, range(len(surface_fcc_cu_noisy)))],
+        [Cluster(range(len(surface_fcc_cu_noisy)), dimensionality=2, classification=Classification.Surface)],
         id="surface, noise=0.1"
     ),
 ])
-def test_clusters(system, clusters):
+def test_clusters(system, clusters_expected):
     results = StructureClusterer().get_clusters(system)
 
     # Check that correct clusters are found
-    assert len(clusters) == len(results)
+    assert len(clusters_expected) == len(results)
     cluster_map = {tuple(sorted(x.indices)): x for x in results}
-    for cluster in clusters:
-        cluster_map[tuple(sorted(cluster.indices))]
+    for cluster_expected in clusters_expected:
+        cluster = cluster_map[tuple(sorted(cluster_expected.indices))]
+        assert cluster.dimensionality() == cluster_expected.dimensionality()
+        assert cluster.classification() == cluster_expected.classification()
+
 
 

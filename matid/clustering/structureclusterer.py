@@ -66,7 +66,7 @@ class StructureClusterer():
                         cluster.indices.remove(i)
         return clusters
 
-    def merge_clusters(self, system, clusters, merge_threshold):
+    def merge_clusters(self, system, clusters, merge_threshold, distances):
         """
         Used to merge higly overlapping clusters.
         """
@@ -92,18 +92,18 @@ class StructureClusterer():
 
             return (
                 Cluster(
-                    system,
                     final_indices,
+                    target.species,
                     a.regions + b.regions,
-                    self.dist_matrix_radii_mic,
-                    target.species
+                    system=system,
+                    distances=distances
                 ),
                 Cluster(
-                    system,
                     remainder_indices,
+                    remainder_species,
                     source.regions,
-                    self.dist_matrix_radii_mic,
-                    remainder_species
+                    system=system,
+                    distances=distances,
                 )
             )
 
@@ -164,7 +164,6 @@ class StructureClusterer():
         """
         # Calculate the distances here once.
         distances = matid.geometry.get_distances(system)
-        self.dist_matrix_radii_mic = distances.dist_matrix_radii_mic
 
         # Iteratively search for new clusters until whole system is covered
         periodic_finder = PeriodicFinder(angle_tol=angle_tol, chem_similarity_threshold=0)
@@ -196,11 +195,11 @@ class StructureClusterer():
                 i_indices.update(i_grain.get_basis_indices())
                 i_species = set(atomic_numbers[list(i_indices)])
                 clusters.append(Cluster(
-                    system,
                     i_indices,
+                    i_species,
                     [i_grain],
-                    distances.dist_matrix_radii_mic,
-                    i_species
+                    system=system,
+                    distances=distances,
                 ))
                 indices -= i_indices
                 grain_indices = i_indices
@@ -209,19 +208,18 @@ class StructureClusterer():
             # individual clusters.
             outliers = tested_indices - grain_indices
             for outlier in outliers:
-                i_species = {atomic_numbers[outlier]}
                 clusters.append(Cluster(
-                    system,
                     {outlier},
+                    {atomic_numbers[outlier]},
                     [None],
-                    distances.dist_matrix_radii_mic,
-                    i_species
+                    system=system,
+                    distances=distances,
                 ))
 
         # Check overlaps of the regions. For large overlaps the grains are
         # merged (the real region was probably cut into pieces by unfortunate
         # selection of the seed atom)
-        clusters = self.merge_clusters(system, clusters, merge_threshold)
+        clusters = self.merge_clusters(system, clusters, merge_threshold, distances)
 
         # Any remaining overlaps are resolved by assigning atoms to the
         # "nearest" cluster

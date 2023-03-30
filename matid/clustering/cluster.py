@@ -1,27 +1,63 @@
+from enum import Enum
+from functools import lru_cache
 import numpy as np
 
 import matid.geometry
 from matid.data import constants
-from matid.classifications import (
-    Class0D, Class1D, Class2D, Class3D, Surface, Material2D, Atom, Unknown
-)
+
+
+class Classification(Enum):
+    Unknown = "Unknown"
+    Class0D = "0D Generic"
+    Class1D = "1D Generic"
+    Class2D = "2D Generic"
+    Class3D = "3D Generic"
+    Atom = "0D Atom"
+    Material2D = "2D Material"
+    Surface = "2D Surface"
 
 
 class Cluster():
     """
     Represents a part of a bigger system.
     """
-    def __init__(self, system=None, indices=None, regions=None, dist_matrix_radii_mic=None, species=None):
-        self.system = system
+    def __init__(self, indices=None, species=None, regions=None, dimensionality=None, classification=None, cell=None, system=None, distances=None):
         self.indices = indices
-        self.regions = regions
         self.species = species
+        self.regions = regions
+        self._dimensionality = dimensionality
+        self._classification = classification
+        self._cell = cell
+        self.system = system
+        self.distances = distances
         self.merged = False
-        self.dist_matrix_radii_pbc = dist_matrix_radii_mic
 
-    def classify(self, cluster_threshold=constants.CLUSTER_THRESHOLD):
+    # @lru_cache(maxsize=1)
+    def cell(self) -> int:
+        """Used to fetch the prototypical cell for this cluster if one exists.
+        """
+        if self._cell:
+            return self._cell
+
+    # @lru_cache(maxsize=1)
+    def dimensionality(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> int:
+        """Used to fetch the dimensionality of the cluster.
+        """
+        if self._dimensionality:
+            return self._dimensionality
+        indices = list(self.indices)
+        return matid.geometry.get_dimensionality(
+            self.system[indices],
+            cluster_threshold,
+            self.distances.dist_matrix_radii_mic[np.ix_(indices, indices)]
+        )
+
+    # @lru_cache(maxsize=1)
+    def classification(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> str:
         """Used to classify this cluster.
         """
+        if self._classification:
+            return self._classification
         # Check that the region was connected cyclically in two
         # directions. This ensures that finite systems or systems
         # with a dislocation at the cell boundary are filtered.
@@ -40,39 +76,34 @@ class Cluster():
                 split = False
 
         # Get the system dimensionality
-        classification = Unknown()
-        indices = list(self.indices)
-        dimensionality = matid.geometry.get_dimensionality(
-            self.system[self.indices],
-            cluster_threshold,
-            self.dist_matrix_radii_pbc[indices, indices]
-        )
+        dimensionality = self.dimensionality(cluster_threshold)
 
         # 0D structures
+        cls = Classification.Unknown
         if dimensionality == 0:
-            classification = Class0D()
+            cls = Classification.Class0D
 
             # Systems with one atom have their own classification.
             n_atoms = len(self.indices)
             if n_atoms == 1:
-                classification = Atom()
+                cls = Classification.Atom
 
         # 1D structures
         elif dimensionality == 1:
-            classification = Class1D()
+            cls = Classification.Class1D
 
         # 2D structures
         elif dimensionality == 2:
             if not split and region_is_periodic:
                 if best_region.is_2d:
-                    classification = Material2D()
+                    cls = Classification.Material2D
                 else:
-                    classification = Surface()
+                    cls = Classification.Surface
             else:
-                classification = Class2D()
+                cls = Classification.Class2D
 
-        # Bulk structures
+        # 3D structures
         elif dimensionality == 3:
-            classification = Class3D()
+            cls = Classification.Class3D
 
-        return classification
+        return cls
