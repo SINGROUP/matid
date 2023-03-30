@@ -1,14 +1,13 @@
 from collections import defaultdict
 
 import numpy as np
-from ase.data import covalent_radii
 
 import matid.geometry
-from matid.clustering.cluster import Cluster
+from matid.clustering import Cluster
 from matid.classification.periodicfinder import PeriodicFinder
 
 
-class StructureClusterer():
+class Clusterer():
     """
     Class for partitioning a more complex system into structurally similar
     clusters.

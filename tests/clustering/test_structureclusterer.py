@@ -1,9 +1,7 @@
 import pytest
 
 from ase.build import surface, bulk
-
-from matid import StructureClusterer
-from matid.clustering.cluster import Cluster, Classification
+from matid.clustering import Clusterer, Cluster, Classification
 
 
 def rattle(atoms, std=0.05):
@@ -29,7 +27,7 @@ surface_fcc_cu_noisy = rattle(surface_fcc_cu_pristine)
     ),
 ])
 def test_clusters(system, clusters_expected):
-    results = StructureClusterer().get_clusters(system)
+    results = Clusterer().get_clusters(system)
 
     # Check that correct clusters are found
     assert len(clusters_expected) == len(results)
