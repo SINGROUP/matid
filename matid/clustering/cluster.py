@@ -32,14 +32,17 @@ class Cluster():
         self.distances = distances
         self.merged = False
 
-    # @lru_cache(maxsize=1)
+    def __len__(self):
+        return len(self.indices)
+
+    @lru_cache(maxsize=1)
     def cell(self) -> int:
         """Used to fetch the prototypical cell for this cluster if one exists.
         """
         if self._cell:
             return self._cell
 
-    # @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)
     def dimensionality(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> int:
         """Used to fetch the dimensionality of the cluster.
         """
@@ -52,28 +55,19 @@ class Cluster():
             self.distances.dist_matrix_radii_mic[np.ix_(indices, indices)]
         )
 
-    # @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)
     def classification(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> str:
         """Used to classify this cluster.
         """
         if self._classification:
             return self._classification
-        # Check that the region was connected cyclically in two
-        # directions. This ensures that finite systems or systems
-        # with a dislocation at the cell boundary are filtered.
-        best_region = self.regions[0]
-        region_conn = best_region.get_connected_directions()
-        n_region_conn = np.sum(region_conn)
-        region_is_periodic = n_region_conn == 2
 
-        # This might be unnecessary because the connectivity of the
-        # unit cell is already checked.
-        clusters = best_region.get_clusters()
-        basis_indices = set(list(best_region.get_basis_indices()))
-        split = True
-        for cluster in clusters:
-            if basis_indices.issubset(cluster):
-                split = False
+        # Check in how many directions the region is connected to itself.
+        n_connected_directions = None
+        if self.regions is not None and self.regions[0] is not None:
+            best_region = self.regions[0]
+            region_conn = best_region.get_connected_directions()
+            n_connected_directions = np.sum(region_conn)
 
         # Get the system dimensionality
         dimensionality = self.dimensionality(cluster_threshold)
@@ -94,7 +88,7 @@ class Cluster():
 
         # 2D structures
         elif dimensionality == 2:
-            if not split and region_is_periodic:
+            if n_connected_directions == 2:
                 if best_region.is_2d:
                     cls = Classification.Material2D
                 else:
