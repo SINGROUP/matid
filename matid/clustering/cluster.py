@@ -42,6 +42,16 @@ class Cluster():
         if self._cell:
             return self._cell
 
+        # When there are multiple regions, return the cell of the region that
+        # contains more atoms. TODO: Ultimately a cluster should only have a
+        # single region and cell, but currently when clusters are merged there
+        # is no mechanism for creating a merged cell or region.
+        if self.regions:
+            sorted_regions = sorted(self.regions, key=lambda x: -1 if x is None else len(x.get_basis_indices()))
+            if sorted_regions[-1] is not None:
+                return sorted_regions[0].cell
+        return None
+
     @lru_cache(maxsize=1)
     def dimensionality(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> int:
         """Used to fetch the dimensionality of the cluster.

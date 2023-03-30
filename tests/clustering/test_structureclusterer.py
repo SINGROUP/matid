@@ -38,6 +38,3 @@ def test_clusters(system, clusters_expected):
         cluster = cluster_map[tuple(sorted(cluster_expected.indices))]
         assert cluster.dimensionality() == cluster_expected.dimensionality()
         assert cluster.classification() == cluster_expected.classification()
-
-
-
