@@ -855,10 +855,9 @@ class SymmetryAnalyzer(object):
             scaled_positions=prim_pos,
             symbols=prim_num,
             cell=prim_cell,
+            pbc=conv_system.get_pbc()
         )
-        prim_sys.wrap(pbc=True)
-        if all(conv_system.get_pbc()):
-            prim_sys.set_pbc(True)
+        prim_sys.wrap()
 
         return prim_sys, prim_wyckoff, prim_equivalent
 
@@ -1314,7 +1313,7 @@ class SymmetryAnalyzer(object):
                 all_pos = positions[indices]
 
                 # Get the precalculated matrices and vectors that are needed
-                # for solving the system of linear equations. 
+                # for solving the system of linear equations.
                 Ms = wyckoff_info["matrices"]
                 Cs = wyckoff_info["constants"]
 
