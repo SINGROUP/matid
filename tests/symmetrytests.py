@@ -395,6 +395,58 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
         pbc = conv_system.get_pbc()
         self.assertTrue(np.array_equal(pbc, [True, True, False]))
 
+    def test_mos2(self):
+        """Tests a non-flat 2D system with vacuum.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(1, 1, 1),
+            vacuum=0
+        )
+        system.set_pbc([True, True, False])
+
+        analyzer = SymmetryAnalyzer(system)
+        conv_system = analyzer.get_conventional_system()
+        prim_system = analyzer.get_primitive_system()
+        self.assertTrue(np.array_equal(conv_system.get_pbc(), [True, True, False]))
+        self.assertTrue(np.array_equal(prim_system.get_pbc(), [True, True, False]))
+
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "Mo":
+                self.assertEqual(wset.wyckoff_letter, "a")
+            if wset.element == "S":
+                self.assertEqual(wset.wyckoff_letter, "i")
+
+    def test_mos2_vacuum(self):
+        """Tests a non-flat 2D system with vacuum.
+        """
+        system = ase.build.mx2(
+            formula="MoS2",
+            kind="2H",
+            a=3.18,
+            thickness=3.19,
+            size=(5, 5, 1),
+            vacuum=8
+        )
+        system.set_pbc([True, True, False])
+
+        analyzer = SymmetryAnalyzer(system)
+        conv_system = analyzer.get_conventional_system()
+        prim_system = analyzer.get_primitive_system()
+        self.assertTrue(np.array_equal(conv_system.get_pbc(), [True, True, False]))
+        self.assertTrue(np.array_equal(prim_system.get_pbc(), [True, True, False]))
+
+        wyckoff_sets_conv = analyzer.get_wyckoff_sets_conventional()
+        for wset in wyckoff_sets_conv:
+            if wset.element == "Mo":
+                self.assertEqual(wset.wyckoff_letter, "a")
+            if wset.element == "S":
+                self.assertEqual(wset.wyckoff_letter, "i")
+
 
 class WyckoffTests(unittest.TestCase):
     """Tests for the Wyckoff information.
@@ -443,7 +495,7 @@ class WyckoffTests(unittest.TestCase):
         spg_87 = Atoms(
             symbols=[28, 28, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 38, 38, 38, 38, 52, 52],
             scaled_positions=[
-                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],                                                                                    
+                [0.00000000e+00, 0.00000000e+00, 0.00000000e+00],
                 [5.00000783e-01, 5.00000105e-01, 5.00000504e-01],
                 [2.57675031e-01, 2.57675031e-01, 0.00000000e+00],
                 [7.42324606e-01, 7.42324606e-01, 0.00000000e+00],

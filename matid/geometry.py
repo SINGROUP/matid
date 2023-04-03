@@ -1562,6 +1562,25 @@ def get_distances(system: Atoms) -> Distances:
     return Distances(disp_tensor_mic, disp_factors, disp_tensor_finite, dist_matrix_mic, dist_matrix_radii_mic)
 
 
+def swap_basis(atoms: Atoms, a: int, b: int):
+    """Used to swap two bases in a system. The geometry remains identical.
+
+    Args:
+        a: First index to swap
+        b: Second index to swap
+    """
+    cell_old = atoms.get_cell()
+    pbc_old = atoms.get_pbc()
+    cell_new = np.array(cell_old)
+    cell_new[a] = cell_old[b]
+    cell_new[b] = cell_old[a]
+    pbc_new = np.array(pbc_old)
+    pbc_new[a] = pbc_old[b]
+    pbc_new[b] = pbc_old[a]
+    atoms.set_cell(cell_new)
+    atoms.set_pbc(pbc_new)
+
+
 # def get_surface_normal_direction(system):
     # """Used to estimate a normal vector for a 2D like structure.
 
