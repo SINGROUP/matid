@@ -399,13 +399,12 @@ class SymmetryAnalyzer(object):
                     break
             if non_periodic_dim != swap_dim:
                 matid.geometry.swap_basis(ideal_sys, non_periodic_dim, swap_dim)
-                matid.geometry.swap_basis(ideal_sys, non_periodic_dim, swap_dim)
 
             # Minimize the cell to only just fit the atoms in the non-periodic
             # direction
             min_conv_cell = matid.geometry.get_minimized_cell(
                 ideal_sys,
-                nonperiodic_axis,
+                swap_dim,
                 self.min_2d_thickness
             )
 
