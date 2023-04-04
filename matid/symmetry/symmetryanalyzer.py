@@ -387,6 +387,20 @@ class SymmetryAnalyzer(object):
             ideal_sys.translate(translation)
             ideal_sys.wrap()
 
+            # For the final system we set the correct pbc
+            ideal_sys.set_pbc(conv_pbc)
+
+            # Swap the cell axes so that the non-periodic one is always the last
+            # basis (=c)
+            swap_dim = 2
+            for i, periodic in enumerate(ideal_sys.get_pbc()):
+                if not periodic:
+                    non_periodic_dim = i
+                    break
+            if non_periodic_dim != swap_dim:
+                matid.geometry.swap_basis(ideal_sys, non_periodic_dim, swap_dim)
+                matid.geometry.swap_basis(ideal_sys, non_periodic_dim, swap_dim)
+
             # Minimize the cell to only just fit the atoms in the non-periodic
             # direction
             min_conv_cell = matid.geometry.get_minimized_cell(
@@ -394,20 +408,6 @@ class SymmetryAnalyzer(object):
                 nonperiodic_axis,
                 self.min_2d_thickness
             )
-
-            # For the final system we set the correct pbc
-            min_conv_cell.set_pbc(conv_pbc)
-
-            # Swap the cell axes so that the non-periodic one is always the last
-            # basis (=c)
-            swap_dim = 2
-            for i, periodic in enumerate(min_conv_cell.get_pbc()):
-                if not periodic:
-                    non_periodic_dim = i
-                    break
-            if non_periodic_dim != swap_dim:
-                matid.geometry.swap_basis(min_conv_cell, non_periodic_dim, swap_dim)
-                matid.geometry.swap_basis(min_conv_cell, non_periodic_dim, swap_dim)
 
             self._conventional_system = min_conv_cell
             self._conventional_wyckoff_letters = ideal_wyckoff
