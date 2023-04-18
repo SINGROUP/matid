@@ -21,10 +21,10 @@ class Cluster():
     """
     Represents a part of a bigger system.
     """
-    def __init__(self, indices=None, species=None, regions=None, dimensionality=None, classification=None, cell=None, system=None, distances=None):
+    def __init__(self, indices=None, species=None, region=None, dimensionality=None, classification=None, cell=None, system=None, distances=None):
         self.indices = indices
         self.species = species
-        self.regions = regions
+        self.region = region
         self._dimensionality = dimensionality
         self._classification = classification
         self._cell = cell
@@ -41,15 +41,8 @@ class Cluster():
         """
         if self._cell:
             return self._cell
-
-        # When there are multiple regions, return the cell of the region that
-        # contains more atoms. TODO: Ultimately a cluster should only have a
-        # single region and cell, but currently when clusters are merged there
-        # is no mechanism for creating a merged cell or region.
-        if self.regions:
-            sorted_regions = sorted(self.regions, key=lambda x: -1 if x is None else len(x.get_basis_indices()))
-            if sorted_regions[-1] is not None:
-                return sorted_regions[0].cell
+        if self.region:
+            return self.region.cell
         return None
 
     @lru_cache(maxsize=1)
@@ -74,9 +67,8 @@ class Cluster():
 
         # Check in how many directions the region is connected to itself.
         n_connected_directions = None
-        if self.regions is not None and self.regions[0] is not None:
-            best_region = self.regions[0]
-            region_conn = best_region.get_connected_directions()
+        if self.region is not None:
+            region_conn = self.region.get_connected_directions()
             n_connected_directions = np.sum(region_conn)
 
         # Get the system dimensionality
@@ -99,7 +91,7 @@ class Cluster():
         # 2D structures
         elif dimensionality == 2:
             if n_connected_directions == 2:
-                if best_region.is_2d:
+                if self.region.is_2d:
                     cls = Classification.Material2D
                 else:
                     cls = Classification.Surface

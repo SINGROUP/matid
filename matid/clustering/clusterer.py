@@ -89,18 +89,24 @@ class Clusterer():
             remainder_species = set(atomic_numbers[list(remainder_indices)])
             final_indices = target.indices.union(common)
 
+            # TODO: The merged cluster simply inherits the largest of the two
+            # regions. There currently is no mechanism for mergin two regions
+            # together.
+            sorted_regions = sorted([a.region, b.region], key=lambda x: -1 if x is None else len(x.get_basis_indices()))
+            largest_region = sorted_regions[-1]
+
             return (
                 Cluster(
                     final_indices,
                     target.species,
-                    a.regions + b.regions,
+                    largest_region,
                     system=system,
                     distances=distances
                 ),
                 Cluster(
                     remainder_indices,
                     remainder_species,
-                    source.regions,
+                    None,
                     system=system,
                     distances=distances,
                 )
@@ -141,7 +147,7 @@ class Clusterer():
 
         return isolated_clusters + clusters
 
-    def get_clusters(self, system, angle_tol=20, max_cell_size=5, pos_tol=0.25, merge_threshold=0.5, merge_radius=5):
+    def get_clusters(self, system, angle_tol=20, max_cell_size=5, pos_tol=0.3, merge_threshold=0.5, merge_radius=5):
         """
         Used to detect and return structurally separate clusters within the
         given system.
@@ -196,7 +202,7 @@ class Clusterer():
                 clusters.append(Cluster(
                     i_indices,
                     i_species,
-                    [i_grain],
+                    i_grain,
                     system=system,
                     distances=distances,
                 ))
@@ -210,7 +216,7 @@ class Clusterer():
                 clusters.append(Cluster(
                     {outlier},
                     {atomic_numbers[outlier]},
-                    [None],
+                    None,
                     system=system,
                     distances=distances,
                 ))
