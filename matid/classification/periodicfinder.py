@@ -63,6 +63,10 @@ class PeriodicFinder():
             max_cell_size(float): The maximum size of cell basis vectors.
             pos_tol(float): The tolerance that is allowed in the search. Given
                 as absolute value in angstroms.
+            bond_threshold(float): Used to control the connectivity threshold
+              for accepting unit cells. Small values allow only regions with
+              cells where atoms are tightly connected, large values will also
+              allows "sparser" cells.
 
         Returns:
             linkedunitcollection or None: A LinkedUnitCollection object representing
@@ -669,7 +673,7 @@ class PeriodicFinder():
             # The atoms corresponding to this group is only added if the number
             # of repetitions does does not differ significantly from the
             # maximum.
-            if len(scaled_pos) >= 0.5*max_occurrence:
+            if len(scaled_pos) >= 0.4*max_occurrence:
                 scaled_pos = np.array(scaled_pos)
 
                 # Find the copy with minimum distance from origin

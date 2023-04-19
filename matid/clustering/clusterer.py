@@ -135,7 +135,16 @@ class Clusterer():
 
         return isolated_clusters + clusters
 
-    def get_clusters(self, system, angle_tol=20, max_cell_size=5, pos_tol=0.3, merge_threshold=0.5, merge_radius=1):
+    def get_clusters(
+            self,
+            system,
+            angle_tol=20,
+            max_cell_size=5,
+            pos_tol=0.55,
+            merge_threshold=0.5,
+            merge_radius=1,
+            bond_threshold=0.75
+        ):
         """
         Used to detect and return structurally separate clusters within the
         given system.
@@ -150,7 +159,12 @@ class Clusterer():
               mean that clusters are never merged, value of 0 means that they
               are merged always when at least one atom is shared.
             merge_radius (float): Radius for finding nearby atoms when deciding
-                which cluster is closest. Given in angstroms.
+                which cluster is closest. The atomic radii are subtracted from
+                distances. Given in angstroms.
+            bond_threshold(float): Used to control the connectivity threshold
+              for accepting clusters. Small values allow only clusters with
+              cells where atoms are tightly connected, large values will also
+              allows "sparser" cells.
 
         Returns:
             A list of Clusters.
@@ -170,6 +184,7 @@ class Clusterer():
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
+                bond_threshold=bond_threshold,
                 distances=distances,
                 return_mask=True
             )

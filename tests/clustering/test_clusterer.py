@@ -57,7 +57,6 @@ surface_rocksalt_pristine = surface(bulk("NaCl", "rocksalt", a=5.64, cubic=True)
 surface_rocksalt_noisy = rattle(surface_rocksalt_pristine)
 surface_fluorite_pristine = surface(bulk("CaF2", "fluorite", a=5.451), [1, 0, 0], vacuum=10)
 surface_fluorite_noisy = rattle(surface_fluorite_pristine)
-
 surface_1 = surface(Atoms(symbols=["O", "C", "C"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
 surface_2 = surface(Atoms(symbols=["O", "N", "N"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
 stacked_shared_species = stack(
@@ -65,7 +64,8 @@ stacked_shared_species = stack(
     surface_2,
     distance=1,
 )
-
+sparse = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[4, 4, 4], pbc=True)
+sparse *= [4, 4, 4]
 
 @pytest.mark.parametrize("system, clusters_expected", [
     pytest.param(
@@ -116,9 +116,15 @@ stacked_shared_species = stack(
         ],
         id="stacked, shared species"
     ),
+    pytest.param(
+        sparse,
+        [],
+        id="valid region, no clusters due to sparse cell"
+    ),
 ])
 def test_clusters(system, clusters_expected):
     results = Clusterer().get_clusters(system)
+    # view(system)
     # for cluster in results:
     #     indices = list(cluster.indices)
     #     if len(indices) > 1:
