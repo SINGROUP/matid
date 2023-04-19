@@ -478,7 +478,6 @@ class PeriodicFinder():
                     return None, None, None
 
         if two_valid_spans:
-
             # If the best 2D vectors consists only of the simulation basis cell
             # vectors, check that these vectors are below a predefined size.
             # Otherwise the cell cannot be accepted because there is not enough
@@ -510,7 +509,6 @@ class PeriodicFinder():
 
                 # Retry to get the dimensionality for the cell in which the
                 # cluster where the seed atom is in has been separated.
-                # view(proto_cell)
                 dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
                 if dimensionality is None:
                     return None, None, None
@@ -650,6 +648,7 @@ class PeriodicFinder():
         averaged_rel_num = []
         new_group_index = None
 
+        scaled_positions = []
         for i_group, nodes in enumerate(group_data_pbc["nodes"]):
             group_num = group_data_pbc["num"][i_group]
             scaled_pos = []
@@ -660,10 +659,17 @@ class PeriodicFinder():
                         pos = cell_positions[pos_index]
                         scaled_pos.append(pos)
                         break
+            scaled_positions.append(scaled_pos)
+        max_occurrence = max(len(x) for x in scaled_positions)
 
-            # The basis location corresponding to this group is only added is
-            # at least one occurrence is found in a cell.
-            if len(scaled_pos) != 0:
+        for i_group, nodes in enumerate(group_data_pbc["nodes"]):
+            group_num = group_data_pbc["num"][i_group]
+            scaled_pos = scaled_positions[i_group]
+
+            # The atoms corresponding to this group is only added if the number
+            # of repetitions does does not differ significantly from the
+            # maximum.
+            if len(scaled_pos) >= 0.5*max_occurrence:
                 scaled_pos = np.array(scaled_pos)
 
                 # Find the copy with minimum distance from origin

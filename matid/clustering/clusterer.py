@@ -25,7 +25,7 @@ class Clusterer():
         """
         self.rng = np.random.default_rng(seed)
 
-    def localize_clusters(self, system, clusters, merge_radius):
+    def localize_clusters(self, system, clusters, merge_radius, distances):
         """
         Used to resolve overlaps between clusters by assigning the overlapping
         atoms to the "nearest" cluster.
@@ -49,10 +49,10 @@ class Clusterer():
 
         # Assign each overlapping atom to the cluster that is "nearest". Notice
         # that we do not update the regions during the process.
-        positions = system.get_positions()
+        # positions = system.get_positions()
         for i, i_clusters in overlap_map.items():
             if len(i_clusters) > 1:
-                surrounding_indices = np.argwhere(np.linalg.norm(positions - positions[i], axis=1) < merge_radius)[:, 0]
+                surrounding_indices = set(np.argwhere(distances.dist_matrix_radii_mic[i, :] < merge_radius)[:, 0])
                 max_near = 0
                 max_cluster = i_clusters[0]
                 for cluster in i_clusters:
@@ -67,16 +67,16 @@ class Clusterer():
 
     def merge_clusters(self, system, clusters, merge_threshold, distances):
         """
-        Used to merge higly overlapping clusters.
+        Used to merge clusters that have the same species and share atoms.
         """
         def merge(system, a, b):
             """
             Merges the given two clusters.
             """
-            # If there are conflicting species in the regions that are merged, only
-            # the species from the larger are kept during the merge. This helps
-            # getting rid of artifical regions at the interface between two
-            # clusters.
+            # If there are conflicting species in the regions that are merged,
+            # only the species from the larger are kept during the merge. This
+            # helps getting rid of artifical regions at the interface between
+            # two clusters.
             atomic_numbers = system.get_atomic_numbers()
             if len(a.indices) > len(b.indices):
                 target = a
@@ -85,8 +85,6 @@ class Clusterer():
                 target = b
                 source = a
             common = set(filter(lambda x: atomic_numbers[x] in target.species, source.indices))
-            remainder_indices = source.indices - common
-            remainder_species = set(atomic_numbers[list(remainder_indices)])
             final_indices = target.indices.union(common)
 
             # TODO: The merged cluster simply inherits the largest of the two
@@ -95,21 +93,12 @@ class Clusterer():
             sorted_regions = sorted([a.region, b.region], key=lambda x: -1 if x is None else len(x.get_basis_indices()))
             largest_region = sorted_regions[-1]
 
-            return (
-                Cluster(
-                    final_indices,
-                    target.species,
-                    largest_region,
-                    system=system,
-                    distances=distances
-                ),
-                Cluster(
-                    remainder_indices,
-                    remainder_species,
-                    None,
-                    system=system,
-                    distances=distances,
-                )
+            return Cluster(
+                final_indices,
+                target.species,
+                largest_region,
+                system=system,
+                distances=distances
             )
 
         isolated_clusters = []
@@ -128,26 +117,25 @@ class Clusterer():
                 best_grain = overlaps[0][0]
                 target_cluster = clusters[best_grain]
 
-                # Find the biggest overlap and if it is large enough, merge these
-                # clusters together. Large overlap indicates that they are actually
-                # part of the same component.
+                # Find the biggest overlap and if it is large enough, merge
+                # these clusters together. Large overlap indicates that they are
+                # actually part of the same component that the larger region
+                # represents a better description.
                 best_overlap_score = max(best_overlap/len(i_indices), best_overlap/len(target_cluster.indices))
 
                 if best_overlap_score > merge_threshold:
-                    merged, remainder = merge(system, i_cluster, target_cluster)
+                    merged = merge(system, i_cluster, target_cluster)
                     merged.merged = True
                     isolated = False
                     clusters.pop(best_grain)
                     clusters.append(merged)
-                    if remainder.indices:
-                        clusters.insert(0, remainder)
             # Component without enough overlap is saved as it is.
             if isolated:
                 isolated_clusters.append(i_cluster)
 
         return isolated_clusters + clusters
 
-    def get_clusters(self, system, angle_tol=20, max_cell_size=5, pos_tol=0.3, merge_threshold=0.5, merge_radius=5):
+    def get_clusters(self, system, angle_tol=20, max_cell_size=5, pos_tol=0.3, merge_threshold=0.5, merge_radius=1):
         """
         Used to detect and return structurally separate clusters within the
         given system.
@@ -194,7 +182,6 @@ class Clusterer():
 
             # If a grain is found, it is added as a single cluster and removed
             # from the search
-            grain_indices = set()
             if i_grain is not None:
                 i_indices = {i_seed}
                 i_indices.update(i_grain.get_basis_indices())
@@ -207,19 +194,6 @@ class Clusterer():
                     distances=distances,
                 ))
                 indices -= i_indices
-                grain_indices = i_indices
-
-            # All tested indices that are not a part of a grain are added as
-            # individual clusters.
-            outliers = tested_indices - grain_indices
-            for outlier in outliers:
-                clusters.append(Cluster(
-                    {outlier},
-                    {atomic_numbers[outlier]},
-                    None,
-                    system=system,
-                    distances=distances,
-                ))
 
         # Check overlaps of the regions. For large overlaps the grains are
         # merged (the real region was probably cut into pieces by unfortunate
@@ -228,6 +202,6 @@ class Clusterer():
 
         # Any remaining overlaps are resolved by assigning atoms to the
         # "nearest" cluster
-        clusters = self.localize_clusters(system, clusters, merge_radius)
+        clusters = self.localize_clusters(system, clusters, merge_radius, distances)
 
         return clusters
