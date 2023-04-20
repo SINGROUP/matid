@@ -49,6 +49,7 @@ class PeriodicFinder():
             pos_tol,
             delaunay_threshold=None,
             bond_threshold=None,
+            overlap_threshold=-0.1,
             distances: Distances = None,
             return_mask: bool = False
         ):
@@ -67,6 +68,9 @@ class PeriodicFinder():
               for accepting unit cells. Small values allow only regions with
               cells where atoms are tightly connected, large values will also
               allows "sparser" cells.
+            overlap_threshold(float): Used to exclude non-physical cells by
+                checking overlap of atoms. Overlap between two atoms is calculated
+                by subtracting atomic radii from the distance between the atoms.
 
         Returns:
             linkedunitcollection or None: A LinkedUnitCollection object representing
@@ -96,7 +100,8 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            bond_threshold
+            bond_threshold,
+            overlap_threshold
         )
 
         # 1D is not handled
@@ -168,7 +173,8 @@ class PeriodicFinder():
             possible_spans,
             neighbour_mask,
             neighbour_factors,
-            bond_threshold
+            bond_threshold,
+            overlap_threshold
         ):
         """Used to find the best candidate for a unit cell basis that could
         generate a periodic region in the structure.
@@ -531,6 +537,13 @@ class PeriodicFinder():
             if thickness > self.max_2d_cell_height:
                 return None, None, None
 
+        # Check that the final proto cell atoms don't overlap
+        if proto_cell is not None:
+            dist_proto_cell = matid.geometry.get_distances(proto_cell).dist_matrix_mic
+            dist_proto_cell = dist_proto_cell[np.triu_indices(dist_proto_cell.shape[0])]
+            if dist_proto_cell.min() < overlap_threshold:
+                return None, None, None
+
         return proto_cell, offset, n_spans
 
     def _find_proto_cell_3d(
@@ -672,8 +685,10 @@ class PeriodicFinder():
 
             # The atoms corresponding to this group is only added if the number
             # of repetitions does does not differ significantly from the
-            # maximum.
-            if len(scaled_pos) >= 0.4*max_occurrence:
+            # maximum. Especially when the seed has been chosen near an
+            # interface (between two surface or surface and vacuum) this check
+            # becomes important.
+            if len(scaled_pos) >= 1/3*max_occurrence:
                 scaled_pos = np.array(scaled_pos)
 
                 # Find the copy with minimum distance from origin

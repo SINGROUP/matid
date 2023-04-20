@@ -139,11 +139,12 @@ class Clusterer():
             self,
             system,
             angle_tol=20,
-            max_cell_size=5,
-            pos_tol=0.55,
+            max_cell_size=6,
+            pos_tol=0.7,
             merge_threshold=0.5,
             merge_radius=1,
-            bond_threshold=0.75
+            bond_threshold=0.75,
+            overlap_threshold=-0.1
         ):
         """
         Used to detect and return structurally separate clusters within the
@@ -185,6 +186,7 @@ class Clusterer():
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
                 bond_threshold=bond_threshold,
+                overlap_threshold=overlap_threshold,
                 distances=distances,
                 return_mask=True
             )

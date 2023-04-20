@@ -353,7 +353,7 @@ class Classifier():
                         tol,
                         self.abs_delaunay_threshold,
                         self.bond_threshold,
-                        distances
+                        distances=distances
                     )
 
                     if region is not None:

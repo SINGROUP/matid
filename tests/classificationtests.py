@@ -1679,7 +1679,7 @@ class SurfaceTests(unittest.TestCase):
         classification = classifier.classify(system)
         self.assertIsInstance(classification, Surface)
 
-        # Has outliers with these settings
+        # Has no outliers with these settings
         outliers = classification.outliers
         self.assertTrue(len(outliers) == 0)
 
@@ -2383,4 +2383,4 @@ if __name__ == '__main__':
     suites.append(unittest.TestLoader().loadTestsFromTestCase(Class3DTests))
 
     alltests = unittest.TestSuite(suites)
-    result = unittest.TextTestRunner(verbosity=0).run(alltests)
+    result = unittest.TextTestRunner(verbosity=3).run(alltests)
