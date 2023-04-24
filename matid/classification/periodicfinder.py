@@ -110,7 +110,8 @@ class PeriodicFinder():
             neighbour_mask,
             neighbour_factors,
             bond_threshold,
-            overlap_threshold
+            overlap_threshold,
+            pos_tol
         )
 
         # 1D is not handled
@@ -183,7 +184,8 @@ class PeriodicFinder():
             neighbour_mask,
             neighbour_factors,
             bond_threshold,
-            overlap_threshold
+            overlap_threshold,
+            pos_tol
         ):
         """Used to find the best candidate for a unit cell basis that could
         generate a periodic region in the structure.
@@ -446,6 +448,7 @@ class PeriodicFinder():
                 seed_group_index,
                 best_adjacency_lists_add,
                 best_adjacency_lists_sub,
+                pos_tol
             )
         elif n_spans == 2:
             # The seed group index can get updated by the cell search
@@ -459,6 +462,7 @@ class PeriodicFinder():
                 seed_group_index,
                 best_adjacency_lists_add,
                 best_adjacency_lists_sub,
+                pos_tol
             )
 
             if proto_cell is None:
@@ -566,6 +570,7 @@ class PeriodicFinder():
             seed_group_index,
             adjacency_add,
             adjacency_sub,
+            pos_tol
         ):
         """Given a cell shape, this function is used to return a fully
         populated prototype unit cell for 3D systems.
@@ -583,6 +588,7 @@ class PeriodicFinder():
             seed_group_index():
             adjacency_add():
             adjacency_sub():
+            pos_tol(): Position tolerance
 
         Returns:
             unit_cell(ase.Atoms): The unit cell
@@ -651,8 +657,7 @@ class PeriodicFinder():
                     system,
                     cell,
                     seed_pos,
-                    1e-8,
-                    -1e-8,
+                    pos_tol
                 )
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
@@ -669,7 +674,6 @@ class PeriodicFinder():
 
         # For each node in a network, find the first relative position. Wrap
         # and average these positions to get a robust final estimate.
-        # averaged_rel_pos = np.zeros((len(group_data_pbc["ind"]), 3))
         averaged_rel_pos = []
         averaged_rel_num = []
         new_group_index = None
@@ -747,6 +751,7 @@ class PeriodicFinder():
             seed_group_index,
             adjacency_add,
             adjacency_sub,
+            pos_tol
         ):
         """Given a cell shape, this function is used to return a fully
         populated prototype unit cell for 2D systems.
@@ -852,8 +857,7 @@ class PeriodicFinder():
                     system,
                     cell,
                     search_coord,
-                    1e-8,
-                    -1e-8,
+                    pos_tol
                 )
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
@@ -1226,7 +1230,6 @@ class PeriodicFinder():
             #     [-1, 0, 0],
             #     [0, -1, 0],
             # ])
-        # print(multipliers)
 
         return multipliers
 

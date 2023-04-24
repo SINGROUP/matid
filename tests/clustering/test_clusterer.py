@@ -92,13 +92,6 @@ def test_finite(system, noise, clusters_expected):
     system.set_pbc(False)
     results = Clusterer().get_clusters(system)
 
-    # view(system)
-    # for cluster in results:
-    #     indices = list(cluster.indices)
-    #     if len(indices) > 1:
-    #         cluster_atoms = system[indices]
-    #         view(cluster_atoms)
-            # view(cluster.cell())
 
     assert_topology(results, clusters_expected)
 
@@ -118,10 +111,19 @@ stacked_shared_species = stack(surface_1, surface_2, distance=1)
         id="stacked, shared species"
     )
 ])
-@pytest.mark.parametrize("noise", [0])
+@pytest.mark.parametrize("noise", [0, 0.08])
 def test_stacked(system, noise, clusters_expected):
     system = rattle(system, noise)
     results = Clusterer().get_clusters(system)
+
+    # view(system)
+    # for cluster in results:
+    #     indices = list(cluster.indices)
+    #     if len(indices) > 1:
+    #         cluster_atoms = system[indices]
+    #         view(cluster_atoms)
+    #         view(cluster.cell())
+
     assert_topology(results, clusters_expected)
 
 

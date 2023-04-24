@@ -140,7 +140,7 @@ class Clusterer():
             system,
             angle_tol=20,
             max_cell_size=6,
-            pos_tol=0.7,
+            pos_tol=0.6,
             merge_threshold=0.5,
             merge_radius=1,
             bond_threshold=0.75,
