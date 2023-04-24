@@ -12,6 +12,15 @@ from matid.core.linkedunits import LinkedUnitCollection, LinkedUnit
 from matid.core.distances import Distances
 from matid.exceptions import SystaxError
 
+# These are the directions in which the recursive search can progress into. Note
+# that also diagonal directions should be included in order for the search to
+# not miss atoms.
+multipliers_3d = np.array(list(itertools.product([0, 1, -1], [0, 1, -1], [0, 1, -1], repeat=1)))
+multipliers_3d = multipliers_3d[1:]
+multipliers_2d = np.zeros((8, 3), dtype=int)
+multipliers_2d_directions = np.array(list(itertools.product([0, 1, -1], [0, 1, -1], repeat=1)))
+multipliers_2d[:, 0:2] = multipliers_2d_directions[1:]
+
 
 class PeriodicFinder():
     """Used to find translationally periodic structures within atomic systems.
@@ -1200,22 +1209,24 @@ class PeriodicFinder():
         # Here we decide the new seed points where the search is extended.
         n_periodic_dim = len(periodic_indices)
         if n_periodic_dim == 3:
-            multipliers = np.array([
-                [1, 0, 0],
-                [0, 1, 0],
-                [0, 0, 1],
-                [-1, 0, 0],
-                [0, -1, 0],
-                [0, 0, -1],
-            ])
-
+            multipliers = multipliers_3d
+            # multipliers = np.array([
+            #     [1, 0, 0],
+            #     [0, 1, 0],
+            #     [0, 0, 1],
+            #     [-1, 0, 0],
+            #     [0, -1, 0],
+            #     [0, 0, -1],
+            # ])
         if n_periodic_dim == 2:
-            multipliers = np.array([
-                [1, 0, 0],
-                [0, 1, 0],
-                [-1, 0, 0],
-                [0, -1, 0],
-            ])
+            multipliers = multipliers_2d
+            # multipliers = np.array([
+            #     [1, 0, 0],
+            #     [0, 1, 0],
+            #     [-1, 0, 0],
+            #     [0, -1, 0],
+            # ])
+        # print(multipliers)
 
         return multipliers
 

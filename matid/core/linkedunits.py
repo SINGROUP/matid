@@ -506,82 +506,31 @@ class LinkedUnitCollection(dict):
 
     def get_connected_directions(self):
         """During the tracking of the region the information about searches
-        that matched an atom twive but with a negated multiplier are stored.
+        that matched an atom twice but with a negated multiplier are stored.
         """
-        connected_directions = np.array([False, False, False])
-
-        # Find all the nodes that have at least two incoming edges. If there
-        # are two incoming edges with negated multiplier, there is periodicity
-        # in the multiplier direction.
         G = self._search_graph
+        dir_vectors = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        directions = set([0, 1, 2])
         for node in G.nodes():
             node_edges = G.in_edges(node, data=True)
-            multiplier_sum = np.array([0, 0, 0])
-            multiplier_presence = np.array([False, False, False])
-            for edge in node_edges:
-                source = edge[0]
-                dest = edge[1]
-                unit_index_change = np.array(dest) - np.array(source)
-                multiplier = edge[2]["multiplier"]
-                multiplier_sum += multiplier
+            dir_to_remove = set()
+            for direction in directions:
+                positive = False
+                negative = False
+                for edge in node_edges:
+                    multiplier = edge[2]["multiplier"]
+                    if np.array_equal(multiplier, dir_vectors[direction]):
+                        positive = True
+                    if np.array_equal(multiplier, -dir_vectors[direction]):
+                        negative = True
+                    if positive and negative:
+                        break
+                if positive and negative:
+                    dir_to_remove.add(direction)
+            directions -= dir_to_remove
 
-                # Create a mask that selects the index where the move occurred
-                move_mask = multiplier != 0
-
-                # If the movement does not correspond to the change in unit
-                # cell index, then the movement has wrapped across and that
-                # direction is periodic
-                if multiplier[move_mask] != unit_index_change[move_mask]:
-                    multiplier_presence[move_mask] = True
-
-            for i in range(3):
-                if multiplier_presence[i]:
-                    if multiplier_sum[i] == 0:
-                        connected_directions[i] = True
-
-        # For each loop, we calculate the total displacement. If it is nonzero,
-        # the nonzero direction is marked as a connected direction.
-        # cycles = list(nx.simple_cycles(self._search_graph))
-        # loop_multipliers = []
-        # for i_loop, loop in enumerate(cycles):
-            # loop_len = len(loop)
-
-            # # A self-loop can be formed when the found vector corresponds to a
-            # # simulation vector. In this case the loop has only one element,
-            # # and all the edges are valid multipliers.
-            # if loop_len == 1:
-                # source = loop[0]
-                # dest = loop[0]
-                # edges = G[source][dest]
-                # for key, edge in edges.items():
-                    # multiplier = edge["multiplier"]
-                    # loop_multipliers.append(multiplier)
-            # # A loop between two atoms can be formed when there are only two
-            # # repetitions of the cell per simulation cell basis vector. In any
-            # # of the preset multipliers will be valid. Two-element loops within
-            # # the simulation cell cannot be formed because the search never
-            # # come back to an atom without crossing the periodic boundary.
-            # elif loop_len == 2:
-                # source = loop[0]
-                # dest = loop[1]
-                # edges = G[source][dest]
-                # for key, edge in edges.items():
-                    # multiplier = edge["multiplier"]
-                    # if multiplier[0] != 0:
-                        # print(multiplier)
-                        # print(G.nodes[source])
-                        # print(G.nodes[dest])
-                    # loop_multipliers.append(multiplier)
-            # # We can ignore loops with more elements. The two-body loops will
-            # # already tell the directions in which the graph is periodic.
-            # else:
-                # pass
-
-        # loop_multipliers = np.array(loop_multipliers)
-        # indices = np.where(loop_multipliers != 0)[1]
-        # indices = np.unique(indices)
-        # connected_directions[indices] = True
-
+        connected_directions = np.array([True, True, True])
+        connected_directions[list(directions)] = False
         return connected_directions
 
 

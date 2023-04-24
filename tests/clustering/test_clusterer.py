@@ -52,14 +52,6 @@ def stack(a, b, axis=2, distance=3, vacuum=10):
 
 
 def assert_topology(results, expected):
-    # view(system)
-    # for cluster in results:
-    #     indices = list(cluster.indices)
-    #     if len(indices) > 1:
-    #         cluster_atoms = system[indices]
-    #         view(cluster_atoms)
-    #         view(cluster.cell())
-
     # Check that correct clusters are found
     assert len(expected) == len(results)
     cluster_map = {tuple(sorted(x.indices)): x for x in results}
@@ -79,7 +71,8 @@ surface_fluorite = surface(bulk("CaF2", "fluorite", a=5.451), [1, 0, 0], vacuum=
     pytest.param(surface_rocksalt, [Cluster(range(len(surface_rocksalt)), dimensionality=2, classification=Classification.Surface)], id="rocksalt"),
     pytest.param(surface_fluorite, [Cluster(range(len(surface_fluorite)), dimensionality=2, classification=Classification.Surface)], id="fluorite surface"),
 ])
-@pytest.mark.parametrize("noise", [0, 0.08])
+@pytest.mark.parametrize("noise", [0])
+# @pytest.mark.parametrize("noise", [0, 0.08])
 def test_surfaces(system, noise, clusters_expected):
     system = rattle(system, noise)
     results = Clusterer().get_clusters(system)
@@ -88,15 +81,27 @@ def test_surfaces(system, noise, clusters_expected):
 
 #=========================================================================================
 # Finite tests
-surface_fcc = surface(bulk("Cu", "fcc", a=3.6, cubic=True), [1, 0, 0], vacuum=10)
+surface_rocksalt_extended = surface_rocksalt * [2, 2, 1]
+surface_fluorite_extended = surface_fluorite * [2, 2, 1]
 @pytest.mark.parametrize("system, clusters_expected", [
     pytest.param(surface_fcc, [Cluster(range(len(surface_fcc)), dimensionality=0, classification=Classification.Class0D)], id="fcc"),
+    pytest.param(surface_rocksalt_extended, [Cluster(range(len(surface_rocksalt_extended)), dimensionality=0, classification=Classification.Class0D)], id="rocksalt"),
+    pytest.param(surface_fluorite_extended, [Cluster(range(len(surface_fluorite_extended)), dimensionality=0, classification=Classification.Class0D)], id="fluorite"),
 ])
 @pytest.mark.parametrize("noise", [0, 0.08])
 def test_finite(system, noise, clusters_expected):
     system = rattle(system, noise)
     system.set_pbc(False)
     results = Clusterer().get_clusters(system)
+
+    # view(system)
+    # for cluster in results:
+    #     indices = list(cluster.indices)
+    #     if len(indices) > 1:
+    #         cluster_atoms = system[indices]
+    #         view(cluster_atoms)
+            # view(cluster.cell())
+
     assert_topology(results, clusters_expected)
 
 

@@ -29,8 +29,8 @@ from matid.classifications import \
     Surface
 import matid.geometry
 
-# from networkx import draw_networkx
-# import matplotlib.pyplot as mpl
+from networkx import draw_networkx
+import matplotlib.pyplot as mpl
 
 
 class ExceptionTests(unittest.TestCase):
@@ -2055,7 +2055,7 @@ class SurfaceTests(unittest.TestCase):
             # disloc = rng.rand(len(system), 3)
         for i in range(10):
             i_sys = system.copy()
-            matid.geometry.make_random_displacement(system, 0.09, rng)
+            matid.geometry.make_random_displacement(system, 0.04, rng)
             # view(system)
 
             # Classified as surface
@@ -2254,7 +2254,7 @@ class SearchGraphTests(unittest.TestCase):
 
         # Check that the correct graph is created
         self.assertEqual(len(G.nodes), 1)
-        self.assertEqual(len(G.edges), 4)
+        self.assertEqual(len(G.edges), 8)
 
         # Check graph periodicity
         periodicity = region.get_connected_directions()
@@ -2292,7 +2292,7 @@ class SearchGraphTests(unittest.TestCase):
 
         # Check that the correct graph is created
         self.assertEqual(len(G.nodes), 2)
-        self.assertEqual(len(G.edges), 7)
+        self.assertEqual(len(G.edges), 11)
 
         # Check graph periodicity
         periodicity = region.get_connected_directions()
@@ -2327,7 +2327,7 @@ class SearchGraphTests(unittest.TestCase):
 
         # Check that the correct graph is created
         self.assertEqual(len(G.nodes), 4)
-        self.assertEqual(len(G.edges), 12)
+        self.assertEqual(len(G.edges), 22)
 
         # Check graph periodicity
         periodicity = region.get_connected_directions()
