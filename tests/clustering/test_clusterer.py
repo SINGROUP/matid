@@ -51,79 +51,7 @@ def stack(a, b, axis=2, distance=3, vacuum=10):
     return stacked
 
 
-surface_fcc_pristine = surface(bulk("Cu", "fcc", a=3.6, cubic=True), [1, 0, 0], vacuum=10)
-surface_fcc_noisy = rattle(surface_fcc_pristine)
-surface_rocksalt_pristine = surface(bulk("NaCl", "rocksalt", a=5.64, cubic=True), [1, 0, 0], vacuum=10)
-surface_rocksalt_noisy = rattle(surface_rocksalt_pristine)
-surface_fluorite_pristine = surface(bulk("CaF2", "fluorite", a=5.451), [1, 0, 0], vacuum=10)
-surface_fluorite_noisy = rattle(surface_fluorite_pristine)
-surface_1 = surface(Atoms(symbols=["O", "C", "C"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
-surface_2 = surface(Atoms(symbols=["O", "N", "N"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
-stacked_shared_species = stack(
-    surface_1,
-    surface_2,
-    distance=1,
-)
-sparse = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[4, 4, 4], pbc=True)
-sparse *= [4, 4, 4]
-
-@pytest.mark.parametrize("system, clusters_expected", [
-    pytest.param(
-        surface_fcc_pristine,
-        [Cluster(range(len(surface_fcc_pristine)), dimensionality=2, classification=Classification.Surface)],
-        id="fcc surface, pristine"
-    ),
-    pytest.param(
-        surface_fcc_noisy,
-        [Cluster(range(len(surface_fcc_noisy)), dimensionality=2, classification=Classification.Surface)],
-        id="fcc surface, noisy"
-    ),
-    pytest.param(
-        surface_rocksalt_pristine,
-        [Cluster(range(len(surface_rocksalt_pristine)), dimensionality=2, classification=Classification.Surface)],
-        id="rocksalt surface, pristine"
-    ),
-    pytest.param(
-        surface_rocksalt_noisy,
-        [Cluster(range(len(surface_rocksalt_noisy)), dimensionality=2, classification=Classification.Surface)],
-        id="rocksalt surface, noisy"
-    ),
-    pytest.param(
-        surface_fluorite_pristine,
-        [Cluster(range(len(surface_fluorite_pristine)), dimensionality=2, classification=Classification.Surface)],
-        id="fluorite surface, pristine"
-    ),
-    pytest.param(
-        surface_fluorite_noisy,
-        [Cluster(range(len(surface_fluorite_noisy)), dimensionality=2, classification=Classification.Surface)],
-        id="fluorite surface, noisy"
-    ),
-    pytest.param(
-        surface_1,
-        [Cluster(range(9), dimensionality=2, classification=Classification.Surface)],
-        id="stacked, part 1"
-    ),
-    pytest.param(
-        surface_2,
-        [Cluster(range(9), dimensionality=2, classification=Classification.Surface)],
-        id="stacked, part 2"
-    ),
-    pytest.param(
-        stacked_shared_species,
-        [
-            Cluster(range(9), dimensionality=2, classification=Classification.Surface),
-            Cluster(range(9, 18), dimensionality=2, classification=Classification.Surface)
-        ],
-        id="stacked, shared species"
-    ),
-    pytest.param(
-        sparse,
-        [],
-        id="valid region, no clusters due to sparse cell"
-    ),
-])
-def test_clusters(system, clusters_expected):
-    results = Clusterer().get_clusters(system)
+def assert_topology(results, expected):
     # view(system)
     # for cluster in results:
     #     indices = list(cluster.indices)
@@ -133,9 +61,74 @@ def test_clusters(system, clusters_expected):
     #         view(cluster.cell())
 
     # Check that correct clusters are found
-    assert len(clusters_expected) == len(results)
+    assert len(expected) == len(results)
     cluster_map = {tuple(sorted(x.indices)): x for x in results}
-    for cluster_expected in clusters_expected:
+    for cluster_expected in expected:
         cluster = cluster_map[tuple(sorted(cluster_expected.indices))]
         assert cluster.dimensionality() == cluster_expected.dimensionality()
         assert cluster.classification() == cluster_expected.classification()
+
+
+#=========================================================================================
+# Surface tests
+surface_fcc = surface(bulk("Cu", "fcc", a=3.6, cubic=True), [1, 0, 0], vacuum=10)
+surface_rocksalt = surface(bulk("NaCl", "rocksalt", a=5.64, cubic=True), [1, 0, 0], vacuum=10)
+surface_fluorite = surface(bulk("CaF2", "fluorite", a=5.451), [1, 0, 0], vacuum=10)
+@pytest.mark.parametrize("system, clusters_expected", [
+    pytest.param(surface_fcc, [Cluster(range(len(surface_fcc)), dimensionality=2, classification=Classification.Surface)], id="fcc"),
+    pytest.param(surface_rocksalt, [Cluster(range(len(surface_rocksalt)), dimensionality=2, classification=Classification.Surface)], id="rocksalt"),
+    pytest.param(surface_fluorite, [Cluster(range(len(surface_fluorite)), dimensionality=2, classification=Classification.Surface)], id="fluorite surface"),
+])
+@pytest.mark.parametrize("noise", [0, 0.08])
+def test_surfaces(system, noise, clusters_expected):
+    system = rattle(system, noise)
+    results = Clusterer().get_clusters(system)
+    assert_topology(results, clusters_expected)
+
+
+#=========================================================================================
+# Finite tests
+surface_fcc = surface(bulk("Cu", "fcc", a=3.6, cubic=True), [1, 0, 0], vacuum=10)
+@pytest.mark.parametrize("system, clusters_expected", [
+    pytest.param(surface_fcc, [Cluster(range(len(surface_fcc)), dimensionality=0, classification=Classification.Class0D)], id="fcc"),
+])
+@pytest.mark.parametrize("noise", [0, 0.08])
+def test_finite(system, noise, clusters_expected):
+    system = rattle(system, noise)
+    system.set_pbc(False)
+    results = Clusterer().get_clusters(system)
+    assert_topology(results, clusters_expected)
+
+
+#=========================================================================================
+# Stacked tests
+surface_1 = surface(Atoms(symbols=["O", "C", "C"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
+surface_2 = surface(Atoms(symbols=["O", "N", "N"], scaled_positions=[[0, 0, 0], [1/3, 0, 0], [2/3, 0, 0]], cell=[3,1,1], pbc=True), [0, 0, 1], [1, 1, 3], vacuum=10)
+stacked_shared_species = stack(surface_1, surface_2, distance=1)
+@pytest.mark.parametrize("system, clusters_expected", [
+    pytest.param(
+        stacked_shared_species,
+        [
+            Cluster(range(9), dimensionality=2, classification=Classification.Surface),
+            Cluster(range(9, 18), dimensionality=2, classification=Classification.Surface)
+        ],
+        id="stacked, shared species"
+    )
+])
+@pytest.mark.parametrize("noise", [0])
+def test_stacked(system, noise, clusters_expected):
+    system = rattle(system, noise)
+    results = Clusterer().get_clusters(system)
+    assert_topology(results, clusters_expected)
+
+
+#=========================================================================================
+# Misc tests
+sparse = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[4, 4, 4], pbc=True)
+sparse *= [4, 4, 4]
+@pytest.mark.parametrize("system, clusters_expected", [
+    pytest.param(sparse, [], id="valid region, no clusters due to sparse cell"),
+])
+def test_misc(system, clusters_expected):
+    results = Clusterer().get_clusters(system)
+    assert_topology(results, clusters_expected)

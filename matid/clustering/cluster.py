@@ -49,7 +49,7 @@ class Cluster():
     def dimensionality(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> int:
         """Used to fetch the dimensionality of the cluster.
         """
-        if self._dimensionality:
+        if self._dimensionality is not None:
             return self._dimensionality
         indices = list(self.indices)
         return matid.geometry.get_dimensionality(
