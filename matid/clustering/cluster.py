@@ -21,8 +21,11 @@ class Cluster():
     """
     Represents a part of a bigger system.
     """
-    def __init__(self, indices=None, species=None, region=None, dimensionality=None, classification=None, cell=None, system=None, distances=None):
-        self.indices = indices
+    def __init__(self, indices=None, species=None, region=None, dimensionality=None, classification=None, cell=None, system=None, distances=None, bond_threshold=None):
+        if isinstance(indices, list):
+            self.indices = indices
+        else:
+            self.indices = list(indices)
         self.species = species
         self.region = region
         self._dimensionality = dimensionality
@@ -31,9 +34,15 @@ class Cluster():
         self.system = system
         self.distances = distances
         self.merged = False
+        self.bond_threshold = bond_threshold
 
     def __len__(self):
         return len(self.indices)
+
+    def _distance_matrix_radii_mic(self) -> int:
+        """Used to fetch the prototypical cell for this cluster if one exists.
+        """
+        return self.distances.dist_matrix_radii_mic[np.ix_(self.indices, self.indices)]
 
     @lru_cache(maxsize=1)
     def cell(self) -> int:
@@ -46,20 +55,20 @@ class Cluster():
         return None
 
     @lru_cache(maxsize=1)
-    def dimensionality(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> int:
+    def dimensionality(self) -> int:
         """Used to fetch the dimensionality of the cluster.
         """
         if self._dimensionality is not None:
             return self._dimensionality
-        indices = list(self.indices)
+
         return matid.geometry.get_dimensionality(
-            self.system[indices],
-            cluster_threshold,
-            self.distances.dist_matrix_radii_mic[np.ix_(indices, indices)]
+            self.system[self.indices],
+            self.bond_threshold,
+            dist_matrix_radii_mic_1x=self._distance_matrix_radii_mic()
         )
 
     @lru_cache(maxsize=1)
-    def classification(self, cluster_threshold=constants.CLUSTER_THRESHOLD) -> str:
+    def classification(self) -> str:
         """Used to classify this cluster.
         """
         if self._classification:
@@ -72,7 +81,7 @@ class Cluster():
             n_connected_directions = np.sum(region_conn)
 
         # Get the system dimensionality
-        dimensionality = self.dimensionality(cluster_threshold)
+        dimensionality = self.dimensionality()
 
         # 0D structures
         cls = Classification.Unknown

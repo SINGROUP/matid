@@ -104,7 +104,7 @@ def get_dimensionality(
     # 1x1x1 system
     if dist_matrix_radii_mic_1x is None:
         pos_1x = system.get_positions()
-        displacements_mic_1x, dist_matrix_mic_1x = get_displacement_tensor(
+        _, dist_matrix_mic_1x = get_displacement_tensor(
             pos_1x,
             pos_1x,
             cell_1x,
@@ -137,7 +137,7 @@ def get_dimensionality(
             pos_2x = system_2x.get_positions()
             cell_2x = system_2x.get_cell()
             num_2x = system_2x.get_atomic_numbers()
-            displacements_mic_2x, dist_matrix_mic_2x = get_displacement_tensor(
+            _, dist_matrix_mic_2x = get_displacement_tensor(
                 pos_2x,
                 pos_2x,
                 cell_2x,
@@ -1512,7 +1512,6 @@ def get_minimized_cell(system, axis, min_size):
     c_length = np.linalg.norm(c)
     c_norm = c/c_length
     c_comp = rel_pos[:, axis]
-    # print(c_comp)
 
     min_index = np.argmin(c_comp, axis=0)
     max_index = np.argmax(c_comp, axis=0)

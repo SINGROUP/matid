@@ -129,10 +129,32 @@ def test_stacked(system, noise, clusters_expected):
 
 #=========================================================================================
 # Misc tests
+broken = Atoms(
+    symbols=["H", "O", "O", "O", "O", "O", "O", "O"],
+    scaled_positions=[
+        [0, 0, 0],
+        [0.5, 0, 0],
+        [0, 0.5, 0],
+        [0.5, 0.5, 0],
+        [0, 0.0, 0.5],
+        [0.5, 0.0, 0.5],
+        [0, 0.5, 0.5],
+        [0.5, 0.5, 0.5],
+    ],
+    cell=[2, 2, 2],
+    pbc=True
+)
+
+broken *= [1, 1, 3]
+del broken[1:8]
+ase.build.add_vacuum(broken, 10)
+
 sparse = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[4, 4, 4], pbc=True)
-sparse *= [4, 4, 4]
 @pytest.mark.parametrize("system, clusters_expected", [
     pytest.param(sparse, [], id="valid region, no clusters due to sparse cell"),
+    pytest.param(broken, [
+        Cluster(range(1, 17), dimensionality=2, classification=Classification.Surface)
+    ], id="remove unconnected outliers from region"),
 ])
 def test_misc(system, clusters_expected):
     results = Clusterer().get_clusters(system)

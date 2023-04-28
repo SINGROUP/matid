@@ -25,6 +25,77 @@ class Clusterer():
         """
         self.rng = np.random.default_rng(seed)
 
+    def merge_clusters(self, system, clusters, merge_threshold, distances):
+        """
+        Used to merge clusters that have the same species and share atoms.
+        """
+        def merge(system, a, b):
+            """
+            Merges the given two clusters.
+            """
+            # If there are conflicting species in the regions that are merged,
+            # only the species from the larger are kept during the merge. This
+            # helps getting rid of artifical regions at the interface between
+            # two clusters.
+            atomic_numbers = system.get_atomic_numbers()
+            if len(a.indices) > len(b.indices):
+                target = a
+                source = b
+            else:
+                target = b
+                source = a
+            common = set(filter(lambda x: atomic_numbers[x] in target.species, source.indices))
+            final_indices = set(target.indices).union(common)
+
+            # TODO: The merged cluster simply inherits the largest of the two
+            # regions. There currently is no mechanism for mergin two regions
+            # together.
+            sorted_regions = sorted([a.region, b.region], key=lambda x: -1 if x is None else len(x.get_basis_indices()))
+            largest_region = sorted_regions[-1]
+
+            return Cluster(
+                final_indices,
+                target.species,
+                largest_region,
+                system=system,
+                distances=distances,
+                bond_threshold=a.bond_threshold
+            )
+
+        isolated_clusters = []
+        while (True):
+            if len(clusters) == 0 or clusters[0].merged:
+                break
+            i_cluster = clusters.pop(0)
+            i_indices = set(i_cluster.indices)
+
+            # Check overlap with all other non-isolated clusters
+            isolated = True
+            if len(clusters):
+                overlaps = [(j, len(i_indices.intersection(set(j_cluster.indices)))) for j, j_cluster in enumerate(clusters)]
+                overlaps = sorted(overlaps, key=lambda x: x[1], reverse=True)
+                best_overlap = overlaps[0][1]
+                best_grain = overlaps[0][0]
+                target_cluster = clusters[best_grain]
+
+                # Find the biggest overlap and if it is large enough, merge
+                # these clusters together. Large overlap indicates that they are
+                # actually part of the same component that the larger region
+                # represents a better description.
+                best_overlap_score = max(best_overlap/len(i_indices), best_overlap/len(target_cluster.indices))
+
+                if best_overlap_score > merge_threshold:
+                    merged = merge(system, i_cluster, target_cluster)
+                    merged.merged = True
+                    isolated = False
+                    clusters.pop(best_grain)
+                    clusters.append(merged)
+            # Component without enough overlap is saved as it is.
+            if isolated:
+                isolated_clusters.append(i_cluster)
+
+        return isolated_clusters + clusters
+
     def localize_clusters(self, system, clusters, merge_radius, distances):
         """
         Used to resolve overlaps between clusters by assigning the overlapping
@@ -56,84 +127,42 @@ class Clusterer():
                 max_near = 0
                 max_cluster = i_clusters[0]
                 for cluster in i_clusters:
-                    n_near = len(cluster.indices.intersection(surrounding_indices))
+                    n_near = len(set(cluster.indices).intersection(surrounding_indices))
                     if n_near > max_near:
                         max_near = n_near
                         max_cluster = cluster
+
                 for cluster in i_clusters:
+                    ind_set = set(cluster.indices)
                     if cluster != max_cluster:
-                        cluster.indices.remove(i)
+                        ind_set.remove(i)
+                    cluster.indices = list(ind_set)
         return clusters
 
-    def merge_clusters(self, system, clusters, merge_threshold, distances):
+    def clean_clusters(self, clusters):
         """
-        Used to merge clusters that have the same species and share atoms.
+        Cleans out any "dangling" atoms from the cluster by examining chemical
+        connectivity. Required because the periodic search does not care about
+        the chemical connectivity of all cells in the region, only the prototype
+        cell is checked.
+
+        Args:
+            system (ase.Atoms): The original system.
+            clusters (list of Clusters): The clusters to localize.
+
+        Returns:
+            List of Clusters where any outlier atoms have been removed.
         """
-        def merge(system, a, b):
-            """
-            Merges the given two clusters.
-            """
-            # If there are conflicting species in the regions that are merged,
-            # only the species from the larger are kept during the merge. This
-            # helps getting rid of artifical regions at the interface between
-            # two clusters.
-            atomic_numbers = system.get_atomic_numbers()
-            if len(a.indices) > len(b.indices):
-                target = a
-                source = b
-            else:
-                target = b
-                source = a
-            common = set(filter(lambda x: atomic_numbers[x] in target.species, source.indices))
-            final_indices = target.indices.union(common)
-
-            # TODO: The merged cluster simply inherits the largest of the two
-            # regions. There currently is no mechanism for mergin two regions
-            # together.
-            sorted_regions = sorted([a.region, b.region], key=lambda x: -1 if x is None else len(x.get_basis_indices()))
-            largest_region = sorted_regions[-1]
-
-            return Cluster(
-                final_indices,
-                target.species,
-                largest_region,
-                system=system,
-                distances=distances
+        for cluster in clusters:
+            dbscan_clusters = matid.geometry.get_clusters(
+                cluster._distance_matrix_radii_mic(),
+                cluster.bond_threshold,
+                min_samples=1
             )
+            largest_indices = max(dbscan_clusters, key=lambda x: len(x))
+            cluster.indices = np.array(cluster.indices)[largest_indices].tolist()
+        return clusters
 
-        isolated_clusters = []
-        while (True):
-            if len(clusters) == 0 or clusters[0].merged:
-                break
-            i_cluster = clusters.pop(0)
-            i_indices = i_cluster.indices
-
-            # Check overlap with all other non-isolated clusters
-            isolated = True
-            if len(clusters):
-                overlaps = [(j, len(i_indices.intersection(j_cluster.indices))) for j, j_cluster in enumerate(clusters)]
-                overlaps = sorted(overlaps, key=lambda x: x[1], reverse=True)
-                best_overlap = overlaps[0][1]
-                best_grain = overlaps[0][0]
-                target_cluster = clusters[best_grain]
-
-                # Find the biggest overlap and if it is large enough, merge
-                # these clusters together. Large overlap indicates that they are
-                # actually part of the same component that the larger region
-                # represents a better description.
-                best_overlap_score = max(best_overlap/len(i_indices), best_overlap/len(target_cluster.indices))
-
-                if best_overlap_score > merge_threshold:
-                    merged = merge(system, i_cluster, target_cluster)
-                    merged.merged = True
-                    isolated = False
-                    clusters.pop(best_grain)
-                    clusters.append(merged)
-            # Component without enough overlap is saved as it is.
-            if isolated:
-                isolated_clusters.append(i_cluster)
-
-        return isolated_clusters + clusters
 
     def get_clusters(
             self,
@@ -143,7 +172,7 @@ class Clusterer():
             pos_tol=0.7,
             merge_threshold=0.5,
             merge_radius=1,
-            bond_threshold=0.75,
+            bond_threshold=0.65,
             overlap_threshold=-0.1
         ):
         """
@@ -163,9 +192,9 @@ class Clusterer():
                 which cluster is closest. The atomic radii are subtracted from
                 distances. Given in angstroms.
             bond_threshold(float): Used to control the connectivity threshold
-              for accepting clusters. Small values allow only clusters with
-              cells where atoms are tightly connected, large values will also
-              allows "sparser" cells.
+              for defining a chemical connection between atoms. Controls e.g.
+              what types of unit cells are accepted and how outliers are removed
+              from clusters.
 
         Returns:
             A list of Clusters.
@@ -209,6 +238,7 @@ class Clusterer():
                     i_grain,
                     system=system,
                     distances=distances,
+                    bond_threshold=bond_threshold
                 ))
                 indices -= i_indices
 
@@ -220,5 +250,9 @@ class Clusterer():
         # Any remaining overlaps are resolved by assigning atoms to the
         # "nearest" cluster
         clusters = self.localize_clusters(system, clusters, merge_radius, distances)
+
+        # Any atoms that are not chemically connected to the region will be
+        # excluded.
+        clusters = self.clean_clusters(clusters)
 
         return clusters
