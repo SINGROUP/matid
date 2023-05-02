@@ -199,18 +199,22 @@ class Clusterer():
         Returns:
             A list of Clusters.
         """
+        # Copy the system and wrap coordinates.
+        system_copy = system.copy()
+        system_copy.wrap()
+
         # Calculate the distances here once.
-        distances = matid.geometry.get_distances(system)
+        distances = matid.geometry.get_distances(system_copy)
 
         # Iteratively search for new clusters until whole system is covered
         periodic_finder = PeriodicFinder(angle_tol=angle_tol, chem_similarity_threshold=0)
-        indices = set(list(range(len(system))))
+        indices = set(list(range(len(system_copy))))
         clusters = []
         atomic_numbers = system.get_atomic_numbers()
         while len(indices) != 0:
             i_seed = self.rng.choice(list(indices), 1)[0]
             i_grain, mask = periodic_finder.get_region(
-                system,
+                system_copy,
                 seed_index=i_seed,
                 max_cell_size=max_cell_size,
                 pos_tol=pos_tol,
@@ -236,7 +240,7 @@ class Clusterer():
                     i_indices,
                     i_species,
                     i_grain,
-                    system=system,
+                    system=system_copy,
                     distances=distances,
                     bond_threshold=bond_threshold
                 ))
@@ -245,11 +249,11 @@ class Clusterer():
         # Check overlaps of the regions. For large overlaps the grains are
         # merged (the real region was probably cut into pieces by unfortunate
         # selection of the seed atom)
-        clusters = self.merge_clusters(system, clusters, merge_threshold, distances)
+        clusters = self.merge_clusters(system_copy, clusters, merge_threshold, distances)
 
         # Any remaining overlaps are resolved by assigning atoms to the
         # "nearest" cluster
-        clusters = self.localize_clusters(system, clusters, merge_radius, distances)
+        clusters = self.localize_clusters(system_copy, clusters, merge_radius, distances)
 
         # Any atoms that are not chemically connected to the region will be
         # excluded.

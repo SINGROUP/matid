@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 
 from numpy.random import default_rng
 import numpy as np
@@ -124,6 +125,29 @@ def test_stacked(system, noise, clusters_expected):
     #         view(cluster_atoms)
     #         view(cluster.cell())
 
+    assert_topology(results, clusters_expected)
+
+#=========================================================================================
+# Bulk tests
+bulk_one_atom = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[2,2,2], pbc=True)
+bulk_unwrapped = Atoms(symbols=["C"], scaled_positions=[[0, 0, 0]], cell=[2,2,2], pbc=True)
+bulk_unwrapped.translate([-10, -10, -10])
+@pytest.mark.parametrize("system, clusters_expected", [
+    pytest.param(
+        bulk_one_atom,
+        [Cluster([0], dimensionality=3, classification=Classification.Class3D)],
+        id="bulk, only one atom in cluster, still a valid cluster"
+    ),
+    pytest.param(
+        bulk_unwrapped,
+        [Cluster([0], dimensionality=3, classification=Classification.Class3D)],
+        id="bulk, unwrapped coordinates"
+    )
+])
+@pytest.mark.parametrize("noise", [0])
+def test_bulk(system, noise, clusters_expected):
+    system = rattle(system, noise)
+    results = Clusterer().get_clusters(system)
     assert_topology(results, clusters_expected)
 
 
