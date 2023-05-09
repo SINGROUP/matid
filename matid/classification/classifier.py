@@ -174,7 +174,10 @@ class Classifier():
         """
         # We wrap the positions to to be inside the cell.
         system = input_system.copy()
-        system.wrap()
+        try:
+            system.wrap()
+        except Exception:
+            raise ValueError("Cannot process system with zero-volume cell and periodic boundaries.")
         self.system = system
         classification = None
 

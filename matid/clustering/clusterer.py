@@ -201,7 +201,10 @@ class Clusterer():
         """
         # Copy the system and wrap coordinates.
         system_copy = system.copy()
-        system_copy.wrap()
+        try:
+            system_copy.wrap()
+        except Exception:
+            raise ValueError("Cannot process system with zero-volume cell and periodic boundaries.")
 
         # Calculate the distances here once.
         distances = matid.geometry.get_distances(system_copy)
