@@ -377,6 +377,7 @@ class PeriodicFinder():
                 # correct dimensionality, try if two of the cell vectors are
                 # still OK.
                 if dimensionality == 2:
+                    seed_group_index = np.argmin(np.linalg.norm(proto_cell.get_positions(), axis=1))
                     a_thickness = matid.geometry.get_thickness(proto_cell, 0)
                     b_thickness = matid.geometry.get_thickness(proto_cell, 1)
                     c_thickness = matid.geometry.get_thickness(proto_cell, 2)
