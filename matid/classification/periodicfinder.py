@@ -10,7 +10,7 @@ import matid.geometry
 from matid.data import constants
 from matid.core.linkedunits import LinkedUnitCollection, LinkedUnit
 from matid.core.distances import Distances
-from matid.exceptions import SystaxError
+from matid.exceptions import MatIDError
 
 # These are the directions in which the recursive search can progress into. Note
 # that also diagonal directions should be included in order for the search to
@@ -320,6 +320,159 @@ class PeriodicFinder():
             best_adjacency_lists_add.append(i_adjacency_list_add)
             best_adjacency_lists_sub.append(i_adjacency_list_sub)
 
+        # Get graphs for each atom in the prototype cell
+        seed_nodes, seed_group_index, group_data_pbc = self._find_graphs(
+            seed_index,
+            numbers,
+            dim,
+            best_adjacency_lists,
+            neighbour_nodes,
+            neighbour_indices,
+            neighbour_factors
+        )
+
+        # If the seed atom is not in a valid graph, no region could be found.
+        if seed_group_index is None:
+            return None, None, None
+
+        if n_spans == 3:
+            proto_cell, offset = self._find_proto_cell_3d(
+                seed_nodes,
+                best_spans,
+                system,
+                group_data_pbc,
+                seed_group_index,
+                best_adjacency_lists_add,
+                best_adjacency_lists_sub,
+                pos_tol
+            )
+        elif n_spans == 2:
+            # The seed group index can get updated by the cell search
+            proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
+                seed_nodes,
+                best_spans,
+                system,
+                group_data_pbc,
+                seed_group_index,
+                best_adjacency_lists_add,
+                best_adjacency_lists_sub,
+                pos_tol
+            )
+
+            if proto_cell is None:
+                return None, None, None
+
+        two_valid_spans = n_spans == 2
+        if n_spans == 3:
+            # If the max_cell_size is bigger than an interlayer distance
+            # between two 2D sheets, then a wrong cell with a lot of vacuum
+            # might get detected. Here we check that the dimensionality of the
+            # found 3D cell is correct.
+            try:
+                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
+            except MatIDError:
+                return None, None, None
+            if dimensionality != 3:
+                # If the cell has three unit vectors, but does not exhibit the
+                # correct dimensionality, try if two of the cell vectors are
+                # still OK.
+                if dimensionality == 2:
+                    a_thickness = matid.geometry.get_thickness(proto_cell, 0)
+                    b_thickness = matid.geometry.get_thickness(proto_cell, 1)
+                    c_thickness = matid.geometry.get_thickness(proto_cell, 2)
+                    reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
+                    proto_cell = matid.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
+                    i_pbc = [True, True, True]
+                    i_pbc[reduced_dimension] = False
+                    cell_mask = [True, True, True]
+                    cell_mask[reduced_dimension] = False
+                    proto_cell.set_pbc(i_pbc)
+                    best_combo = best_combo[cell_mask]
+                    best_spans = best_spans[cell_mask]
+                    two_valid_spans = True
+                    n_spans = 2
+                else:
+                    return None, None, None
+
+        if two_valid_spans:
+            # If the best 2D vectors consists only of the simulation basis cell
+            # vectors, check that these vectors are below a predefined size.
+            # Otherwise the cell cannot be accepted because there is not enough
+            # statistics about the cell contents to distinguish outliers.
+            if n_periodic_spans > 0:
+                periodic_span_indices = valid_span_indices[-n_periodic_spans:]
+                best_span_ind = valid_span_indices[best_combo]
+                if set(best_span_ind).issubset(set(periodic_span_indices)):
+                    cell_lens = np.linalg.norm(best_spans, axis=1)
+                    if np.any(cell_lens > self.max_2d_single_cell_size):
+                        return None, None, None
+
+            # Check the dimensionality
+            dimensionality, cluster_labels = matid.geometry.get_dimensionality(proto_cell, bond_threshold, return_clusters=True)
+            if dimensionality is None:
+                # If the original system has more than one cluster, the system
+                # has multiple stacked 2D sheets with identical periodicity. In
+                # this case the unit cell should only comprise of atoms in the
+                # cluster where the seed atom is in.
+                for i_index, i_cluster in enumerate(cluster_labels):
+                    try:
+                        seed_group_index = i_cluster.index(seed_group_index)
+                    except ValueError:
+                        pass
+                    else:
+                        cluster_indices = i_cluster
+                        break
+                proto_cell = proto_cell[cluster_indices]
+
+                # Retry to get the dimensionality for the cell in which the
+                # cluster where the seed atom is in has been separated.
+                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
+                if dimensionality is None:
+                    return None, None, None
+                else:
+                    if dimensionality != 2:
+                        return None, None, None
+            else:
+                if dimensionality != 2:
+                    return None, None, None
+
+            # Check the cell thickness. 2D materials that are thicker than a
+            # specified threshold are accepted.
+            proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
+            offset = proto_cell.get_positions()[seed_group_index]
+            thickness = matid.geometry.get_thickness(proto_cell, 2)
+            if thickness > self.max_2d_cell_height:
+                return None, None, None
+
+        # Check that the final proto cell atoms don't overlap
+        if proto_cell is not None:
+            dist_proto_cell = matid.geometry.get_distances(proto_cell).dist_matrix_mic
+            dist_proto_cell = dist_proto_cell[np.triu_indices(dist_proto_cell.shape[0])]
+            if dist_proto_cell.min() < overlap_threshold:
+                return None, None, None
+
+        return proto_cell, offset, n_spans
+
+    def _find_graphs(self, seed_index, numbers, dim, best_adjacency_lists, neighbour_nodes, neighbour_indices, neighbour_factors):
+        """
+        Creates graphs for each atom that is contained in the prototype cell.
+        These graphs represent the connectivity of the atom to other aotm in the
+        neighbourhood using the best basis spans.
+
+        Args:
+            seed_index(int): Index of the seed atom
+            numbers(): Atomic numbers
+            dim(int): Dimensionality of the system
+            best_adjacency_lists
+            neighbour_nodes
+            neighbour_indices
+            neighbour_factors
+
+        Returns:
+            seed_nodes
+            seed_group_index(int): Index of the graph corresponding to the seed atom.
+            group_data_pbc
+        """
         # Create a full periodicity graph for the found basis
         periodicity_graph_pbc = None
         full_adjacency_list_pbc = defaultdict(list)
@@ -433,137 +586,11 @@ class PeriodicFinder():
             group_data_pbc["nodes"].append(nodes)
             group_data_pbc["num"].append(numbers[node_indices][0])
 
-        # If the seed atom is not in a valid graph, no region could be found.
-        if seed_group_index is None:
-            return None, None, None
-
-        if n_spans == 3:
-            proto_cell, offset = self._find_proto_cell_3d(
-                seed_index,
-                seed_nodes,
-                best_combo,
-                best_spans,
-                system,
-                group_data_pbc,
-                seed_group_index,
-                best_adjacency_lists_add,
-                best_adjacency_lists_sub,
-                pos_tol
-            )
-        elif n_spans == 2:
-            # The seed group index can get updated by the cell search
-            proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
-                seed_index,
-                seed_nodes,
-                best_combo,
-                best_spans,
-                system,
-                group_data_pbc,
-                seed_group_index,
-                best_adjacency_lists_add,
-                best_adjacency_lists_sub,
-                pos_tol
-            )
-
-            if proto_cell is None:
-                return None, None, None
-
-        two_valid_spans = n_spans == 2
-        if n_spans == 3:
-            # If the max_cell_size is bigger than an interlayer distance
-            # between two 2D sheets, then a wrong cell with a lot of vacuum
-            # might get detected. Here we check that the dimensionality of the
-            # found 3D cell is correct.
-            try:
-                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
-            except SystaxError:
-                return None, None, None
-            if dimensionality != 3:
-                # If the cell has three unit vectors, but does not exhibit the
-                # correct dimensionality, try if two of the cell vectors are
-                # still OK.
-                if dimensionality == 2:
-                    a_thickness = matid.geometry.get_thickness(proto_cell, 0)
-                    b_thickness = matid.geometry.get_thickness(proto_cell, 1)
-                    c_thickness = matid.geometry.get_thickness(proto_cell, 2)
-                    reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
-                    proto_cell = matid.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
-                    i_pbc = [True, True, True]
-                    i_pbc[reduced_dimension] = False
-                    cell_mask = [True, True, True]
-                    cell_mask[reduced_dimension] = False
-                    proto_cell.set_pbc(i_pbc)
-                    best_combo = best_combo[cell_mask]
-                    best_spans = best_spans[cell_mask]
-                    two_valid_spans = True
-                    n_spans = 2
-                else:
-                    return None, None, None
-
-        if two_valid_spans:
-            # If the best 2D vectors consists only of the simulation basis cell
-            # vectors, check that these vectors are below a predefined size.
-            # Otherwise the cell cannot be accepted because there is not enough
-            # statistics about the cell contents to distinguish outliers.
-            if n_periodic_spans > 0:
-                periodic_span_indices = valid_span_indices[-n_periodic_spans:]
-                best_span_ind = valid_span_indices[best_combo]
-                if set(best_span_ind).issubset(set(periodic_span_indices)):
-                    cell_lens = np.linalg.norm(best_spans, axis=1)
-                    if np.any(cell_lens > self.max_2d_single_cell_size):
-                        return None, None, None
-
-            # Check the dimensionality
-            dimensionality, cluster_labels = matid.geometry.get_dimensionality(proto_cell, bond_threshold, return_clusters=True)
-            if dimensionality is None:
-                # If the original system has more than one cluster, the system
-                # has multiple stacked 2D sheets with identical periodicity. In
-                # this case the unit cell should only comprise of atoms in the
-                # cluster where the seed atom is in.
-                for i_index, i_cluster in enumerate(cluster_labels):
-                    try:
-                        seed_group_index = i_cluster.index(seed_group_index)
-                    except ValueError:
-                        pass
-                    else:
-                        cluster_indices = i_cluster
-                        break
-                proto_cell = proto_cell[cluster_indices]
-
-                # Retry to get the dimensionality for the cell in which the
-                # cluster where the seed atom is in has been separated.
-                dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
-                if dimensionality is None:
-                    return None, None, None
-                else:
-                    if dimensionality != 2:
-                        return None, None, None
-            else:
-                if dimensionality != 2:
-                    return None, None, None
-
-            # Check the cell thickness. 2D materials that are thicker than a
-            # specified threshold are accepted.
-            proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
-            offset = proto_cell.get_positions()[seed_group_index]
-            thickness = matid.geometry.get_thickness(proto_cell, 2)
-            if thickness > self.max_2d_cell_height:
-                return None, None, None
-
-        # Check that the final proto cell atoms don't overlap
-        if proto_cell is not None:
-            dist_proto_cell = matid.geometry.get_distances(proto_cell).dist_matrix_mic
-            dist_proto_cell = dist_proto_cell[np.triu_indices(dist_proto_cell.shape[0])]
-            if dist_proto_cell.min() < overlap_threshold:
-                return None, None, None
-
-        return proto_cell, offset, n_spans
+        return seed_nodes, seed_group_index, group_data_pbc
 
     def _find_proto_cell_3d(
             self,
-            seed_index,
             seed_nodes,
-            best_span_indices,
             best_spans,
             system,
             group_data_pbc,
@@ -742,9 +769,7 @@ class PeriodicFinder():
 
     def _find_proto_cell_2d(
             self,
-            seed_index,
             seed_nodes,
-            best_span_indices,
             best_spans,
             system,
             group_data_pbc,
@@ -766,7 +791,7 @@ class PeriodicFinder():
                 array.
             system(ase.Atoms): Original system
             group_data_pbc():
-            seed_group_index():
+            seed_group_index(): Index of the group in which the seed atom is in.
             adjacency_add():
             adjacency_sub():
 
@@ -774,6 +799,7 @@ class PeriodicFinder():
             unit_cell(ase.Atoms): The unit cell
             offset(np.ndarray): The cartesian offset of the seed atom in the
                 cell.
+            seed_group_index(int): A new index of the seed atom in the cell.
         """
         orig_cell = system.get_cell()
 
@@ -889,8 +915,8 @@ class PeriodicFinder():
                         scaled_pos.append(pos)
                         break
 
-            # The basis location corresponding to this group is only added is
-            # at least one occurrence is found in a cell.
+            # The basis location corresponding to this group is only added if at
+            # least one occurrence is found in a cell.
             if len(scaled_pos) != 0:
                 scaled_pos = np.array(scaled_pos)
 

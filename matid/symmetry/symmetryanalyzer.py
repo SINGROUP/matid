@@ -7,7 +7,7 @@ from operator import attrgetter
 
 from matid.utils.segfault_protect import segfault_protect
 from matid.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
-from matid.exceptions import CellNormalizationError, SystaxError
+from matid.exceptions import CellNormalizationError, MatIDError
 from matid.data.symmetry_data import SPACE_GROUP_INFO, WYCKOFF_SETS
 from matid.data import constants
 from matid.core.system import System
@@ -353,7 +353,7 @@ class SymmetryAnalyzer(object):
                     nonperiodic_axis = i_axis
                     break
             if nonperiodic_axis is None:
-                raise SystaxError(
+                raise MatIDError(
                     "Could not detect the non-periodic direction in the normalized "
                     "2D cell."
                 )
@@ -1184,7 +1184,7 @@ class SymmetryAnalyzer(object):
 
         # If no best transformation was found, then multiple transformation are
         # equal. Ensure this and then choose the first one.
-        error = SystaxError("Could not successfully decide best Wyckoff positions.")
+        error = MatIDError("Could not successfully decide best Wyckoff positions.")
         if len(representations) > 1:
             new_wyckoffs = representations[0]["wyckoff_positions"]
             n_items = len(new_wyckoffs)
