@@ -337,8 +337,10 @@ class PeriodicFinder():
         if seed_group_index is None:
             return None, None, None
 
+        # Notice that the seed group index can get updated by the cell search if
+        # an atom is dropped out of the cell due to appearing too infrequently.
         if n_spans == 3:
-            proto_cell, offset = self._find_proto_cell_3d(
+            proto_cell, offset, seed_group_index = self._find_proto_cell_3d(
                 seed_nodes,
                 best_spans,
                 system,
@@ -349,7 +351,6 @@ class PeriodicFinder():
                 pos_tol
             )
         elif n_spans == 2:
-            # The seed group index can get updated by the cell search
             proto_cell, offset, seed_group_index = self._find_proto_cell_2d(
                 seed_nodes,
                 best_spans,
@@ -779,7 +780,7 @@ class PeriodicFinder():
         )
         offset = proto_cell.get_positions()[seed_group_index]
 
-        return proto_cell, offset
+        return proto_cell, offset, seed_group_index
 
     def _find_proto_cell_2d(
             self,
