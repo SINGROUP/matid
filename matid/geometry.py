@@ -227,7 +227,7 @@ def get_tetrahedra_decomposition(system, max_distance):
 
             # If system is periodic in this direction, calculate the distance
             # between atoms in the periodically repeated images and choose
-            # atoms from the copies that are within a certain range when tha
+            # atoms from the copies that are within a certain range when the
             # radii are taken into account
             disp = np.array(displacements_finite)
             disp += disloc
@@ -627,7 +627,6 @@ def get_displacement_tensor(
         max_distance=None,
         return_factors=False,
         return_distances=False,
-        use_self_distance=True
     ):
     """Given an array of positions, calculates the 3D displacement tensor
     between the positions.
@@ -645,9 +644,6 @@ def get_displacement_tensor(
         mic_copies(np.ndarray): The maximum number of periodic copies to
             consider in each direction. If not specified, the maximum possible
             number of copies is determined and used.
-        use_self_distance(boolean): Determines how the distance from atom to
-            itself is determined. If True, zero is returned, if false, the
-            distance to the closest copy is returned.
 
     Returns:
         np.ndarray: 3D displacement tensor
@@ -1003,118 +999,6 @@ def get_positions_within_basis(
     return indices, cell_pos, factors
 
 
-# def get_positions_within_basis(
-#         system,
-#         basis,
-#         origin,
-#         tolerance_low,
-#         tolerance_high,
-#         mask=[True, True, True],
-#         pbc=True
-#     ):
-#     """Used to return the indices of positions that are inside a certain basis.
-#     Also takes periodic boundaries into account.
-
-#     Args:
-#         system(ASE.Atoms): System from which the positions are searched.
-#         basis(np.ndarray): New basis vectors.
-#         origin(np.ndarray): New origin of the basis in cartesian coordinates.
-#         tolerance(float): The tolerance for the end points of the cell.
-#         mask(sequence of bool): Mask for selecting the basis's to consider.
-#         pbc(sequence of bool): The periodicity of the system.
-
-#     Returns:
-#         sequence of int: Indices of the atoms within this cell in the given
-#             system.
-#         np.ndarray: Relative positions of the found atoms.
-#         np.ndarray: The index of the periodic copy in which the position was
-#             found.
-#     """
-#     # If the search extend beyound the cell boundary and periodic boundaries
-#     # allow, we must divide the search area into multiple regions
-
-#     # Transform positions into the new basis
-#     cart_pos = system.get_positions()
-#     orig_cell = system.get_cell()
-#     pbc = expand_pbc(pbc)
-
-#     # We need to expand the system in different directions to get the
-
-#     # See if the new positions extend beyound the boundaries. The original
-#     # simulation cell is always convex, so we can just check the corners of
-#     # unit cell defined by the basis
-#     max_a = origin + basis[0, :]
-#     max_b = origin + basis[1, :]
-#     max_c = origin + basis[1, :]
-#     max_ab = origin + basis[0, :] + basis[1, :]
-#     max_ac = origin + basis[0, :] + basis[2, :]
-#     max_bc = origin + basis[1, :] + basis[2, :]
-#     max_abc = origin + basis[0, :] + basis[1, :] + basis[2, :]
-#     vectors = np.array((max_a, max_b, max_c, max_ab, max_ac, max_bc, max_abc))
-#     rel_vectors = to_scaled(orig_cell, vectors, wrap=False, pbc=system.get_pbc())
-#     factors = np.floor(rel_vectors).astype(int)
-#     min_factors = np.min(factors, axis=0)
-#     max_factors = np.max(factors, axis=0)
-#     a_range = range(min_factors[0], max_factors[0]+1)
-#     b_range = range(min_factors[1], max_factors[1]+1)
-#     c_range = range(min_factors[2], max_factors[2]+1)
-#     factors = matid.geometry.cartesian((a_range, b_range, c_range))
-
-#     directions = []
-#     for factor in factors:
-#         a_per = factor[0]
-#         b_per = factor[1]
-#         c_per = factor[2]
-#         allow = True
-#         if a_per != 0 and not pbc[0]:
-#             allow = False
-#         if b_per != 0 and not pbc[1]:
-#             allow = False
-#         if c_per != 0 and not pbc[2]:
-#             allow = False
-#         if allow:
-#             directions.append(factor)
-
-#     # If the new cell is overflowing beyound the boundaries of the original
-#     # system, we have to also check the periodic copies.
-#     indices = []
-#     a_prec_low, b_prec_low, c_prec_low = tolerance_low/np.linalg.norm(basis, axis=1)
-#     a_prec_high, b_prec_high, c_prec_high = tolerance_high/np.linalg.norm(basis, axis=1)
-#     orig_basis = system.get_cell()
-#     cell_pos = []
-#     factors = []
-#     for i_dir in directions:
-
-#         vec_new_cart = cart_pos + np.dot(i_dir, orig_basis)
-#         vec_new_rel = change_basis(vec_new_cart - origin, basis)
-
-#         # If no positions are defined, find the atoms within the cell
-#         for i_pos, pos in enumerate(vec_new_rel):
-#             if mask[0]:
-#                 x = 0 - a_prec_low <= pos[0] <= 1 - a_prec_high
-#             else:
-#                 x = True
-#             if mask[1]:
-#                 y = 0 - b_prec_low <= pos[1] <= 1 - b_prec_high
-#             else:
-#                 y = True
-#             if mask[2]:
-#                 z = 0 - c_prec_low <= pos[2] <= 1 - c_prec_high
-#             else:
-#                 z = True
-
-#             if x and y and z:
-#                 indices.append(i_pos)
-#                 cell_pos.append(pos)
-#                 factors.append(i_dir)
-
-#     cell_pos = np.array(cell_pos)
-#     indices = np.array(indices)
-#     factors = np.array(factors)
-
-#     return indices, cell_pos, factors
-
-
 def get_matches(
         system,
         positions,
@@ -1147,7 +1031,7 @@ def get_matches(
     pbc = expand_pbc(pbc)
     scaled_pos2 = to_scaled(cell, positions, wrap=False)
 
-    disp_tensor, factors, dist_matrix = get_displacement_tensor(
+    _, factors, dist_matrix = get_displacement_tensor(
         positions,
         orig_pos,
         cell,
@@ -1690,45 +1574,21 @@ def swap_basis(atoms: Atoms, a: int, b: int):
     atoms.set_pbc(pbc_new)
 
 
-# def get_surface_normal_direction(system):
-    # """Used to estimate a normal vector for a 2D like structure.
+def complete_cell(a, b, length):
+    """Given two basis vectors a and b, creates a third one that is
+    orthogonal and has the length of 2 * maximum 2D cell height.
 
-    # Args:
-        # system (ase.Atoms): The system to examine.
+    Args:
+        a(np.ndarray): First basis vector
+        b(np.ndarray): Second basis vector
+        length(float): Length of the basis
 
-    # Returns:
-        # np.ndarray: The estimated surface normal vector
-    # """
-    # repeated = get_extended_system(system, 15)
-    # # vectors = system.get_cell()
+    Returns:
+        np.ndarray: The third basis vector
+    """
+    c = np.cross(a, b)
+    c_norm = c / np.linalg.norm(c)
+    c_norm = c_norm[None, :]
+    c = c_norm * length
 
-    # # Get the eigenvalues and eigenvectors of the moment of inertia tensor
-    # val, vec = get_moments_of_inertia(repeated)
-    # sorted_indices = np.argsort(val)
-    # val = val[sorted_indices]
-    # vec = vec[sorted_indices]
-
-    # # If the moment of inertia is not significantly bigger in one
-    # # direction, then the system cannot be described as a surface.
-    # moment_limit = 1.5
-    # if val[-1] < moment_limit*val[0] and val[-1] < moment_limit*val[1]:
-        # raise ValueError(
-            # "The given system could not be identified as a surface. Make"
-            # " sure that you provide a surface system with a sufficient"
-            # " vacuum gap between the layers (at least ~8 angstroms of vacuum"
-            # " between layers.)"
-        # )
-
-    # # The biggest component is the orhogonal one
-    # orthogonal_dir = vec[-1]
-
-    # return orthogonal_dir
-
-    # # Find out the cell direction that corresponds to the orthogonal one
-    # # cell = repeated.get_cell()
-    # # dots = np.abs(np.dot(orthogonal_dir, vectors.T))
-    # # orthogonal_vector_index = np.argmax(dots)
-    # # orthogonal_vector = vectors[orthogonal_vector_index]
-    # # orthogonal_dir = orthogonal_vector/np.linalg.norm(orthogonal_vector)
-
-    # return orthogonal_dir
+    return c

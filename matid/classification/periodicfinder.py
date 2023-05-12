@@ -114,6 +114,7 @@ class PeriodicFinder():
             pos_tol
         )
 
+
         # 1D is not handled
         region = None
         if dim != 1 and proto_cell is not None:
@@ -133,6 +134,7 @@ class PeriodicFinder():
             )
 
             i_indices = unit_collection.get_basis_indices()
+
             if len(i_indices) > 0:
                 region = unit_collection
                 region._pos_tol = pos_tol
@@ -364,30 +366,38 @@ class PeriodicFinder():
 
         two_valid_spans = n_spans == 2
         if n_spans == 3:
-            # If the max_cell_size is bigger than an interlayer distance
-            # between two 2D sheets, then a wrong cell with a lot of vacuum
-            # might get detected. Here we check that the dimensionality of the
-            # found 3D cell is correct.
+            # It is possible that a structure with several identical 2D layers
+            # will get detected as a bulk cell. It is tricky to distinguish
+            # between these two cases (e.g. graphite vs. two layers of graphene).
+            # Here dimensionality is used to separate these two cases: if
+            # dimensionality == 3 the 3D cell is accepted, otherwise we try to
+            # extract 2D layers.
             try:
                 dimensionality = matid.geometry.get_dimensionality(proto_cell, bond_threshold)
             except MatIDError:
                 return None, None, None
             if dimensionality != 3:
-                # If the cell has three unit vectors, but does not exhibit the
-                # correct dimensionality, try if two of the cell vectors are
-                # still OK.
+                # Try if the cell can be "reduced" to a 2D material
                 if dimensionality == 2:
-                    seed_group_index = np.argmin(np.linalg.norm(proto_cell.get_positions(), axis=1))
+                    # TODO: The old seed_group_index may not be valid after we rest
+                    # the spans. We have to reset it to the atoms that is
+                    # closest to origin.
+                    # seed_group_index = np.argmin(np.linalg.norm(proto_cell.get_positions(), axis=1))
+                    seed_group_index = 0
                     a_thickness = matid.geometry.get_thickness(proto_cell, 0)
                     b_thickness = matid.geometry.get_thickness(proto_cell, 1)
                     c_thickness = matid.geometry.get_thickness(proto_cell, 2)
                     reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
                     proto_cell = matid.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
+                    # TODO: The third dimension needs to be orthogonal to the two
                     i_pbc = [True, True, True]
                     i_pbc[reduced_dimension] = False
                     cell_mask = [True, True, True]
                     cell_mask[reduced_dimension] = False
                     proto_cell.set_pbc(i_pbc)
+                    # The assumption is that the last basis is the non-periodic
+                    # one, so we swap it.
+                    matid.geometry.swap_basis(proto_cell, reduced_dimension, 2)
                     best_combo = best_combo[cell_mask]
                     best_spans = best_spans[cell_mask]
                     two_valid_spans = True
@@ -804,18 +814,11 @@ class PeriodicFinder():
         """
         orig_cell = system.get_cell()
 
-        # In 2D systems the maximum thickness of the system is defined by
+        # We need to make the third basis vector, In 2D systems the maximum thickness of the system is defined by
         # max_cell_size.
-        cutoff = self.max_cell_size
-
-        # We need to make the third basis vector
         a = best_spans[0]
         b = best_spans[1]
-        c = np.cross(a, b)
-        c_norm = c/np.linalg.norm(c)
-        c_norm = c_norm[None, :]
-        c_test = 2*c_norm*cutoff
-
+        c_test = matid.geometry.complete_cell(a, b, 2*self.max_cell_size)
         basis = np.concatenate((best_spans, c_test), axis=0)
 
         # Find the cells in which the copies of the seed atom are at the
@@ -858,11 +861,9 @@ class PeriodicFinder():
             # Update the third axis for each cell.
             a = cells[i_node, 0]
             b = cells[i_node, 1]
-            c = np.cross(a, b)
-            c_norm = c/np.linalg.norm(c)
+            c_norm = matid.geometry.complete_cell(a, b, 1)
             c_norms[i_node, :] = c_norm
-            c_norm = c_norm[None, :]
-            c = 2*c_norm*cutoff
+            c = 2 * self.max_cell_size * c_norm
             cells[i_node, 2, :] = c
 
         # Find the relative positions of atoms inside the cell
@@ -874,7 +875,7 @@ class PeriodicFinder():
         for i_unit, (i_node, cell) in enumerate(zip(seed_nodes, cells)):
             i_seed, i_seed_factor = i_node
             seed_pos = orig_pos[i_seed]
-            search_offset = -c_norms[i_unit, :]*cutoff
+            search_offset = -c_norms[i_unit, :] * self.max_cell_size
             search_coord = (seed_pos + search_offset)
 
             if i_seed in index_cell_map:
