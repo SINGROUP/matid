@@ -592,7 +592,7 @@ def get_wrapped_positions(scaled_pos, precision=1E-5):
     return scaled_pos
 
 
-def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False, use_self_distance=True):
+def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False):
     """Calculates the distance matrix. If wrap_distances=True, calculates
     the matrix using periodic distances
 
@@ -605,14 +605,11 @@ def get_distance_matrix(pos1, pos2, cell=None, pbc=None, mic=False, use_self_dis
             minimum image convention enabled.
         mic (bool): Whether to apply minimum image convention fo the distances,
             i.e. the distance to the closest periodic image is returned.
-        use_self_distance(boolean): Determines how the distance from atom to
-            itself is determined. If True, zero is returned, if false, the
-            distance to the closest copy is returned.
 
     Returns:
         np.ndarray: A :math:`N_{atoms} \times N_{atoms}` matrix of distances.
     """
-    disp_tensor = get_displacement_tensor(pos1, pos2, cell, pbc, mic, use_self_distance=use_self_distance)
+    disp_tensor = get_displacement_tensor(pos1, pos2, cell, pbc, mic)
     distance_matrix = np.linalg.norm(disp_tensor, axis=2)
 
     return distance_matrix
