@@ -379,25 +379,31 @@ class PeriodicFinder():
             if dimensionality != 3:
                 # Try if the cell can be "reduced" to a 2D material
                 if dimensionality == 2:
-                    # TODO: The old seed_group_index may not be valid after we rest
+                    # TODO: The old seed_group_index may not be valid after we reset
                     # the spans. We have to reset it to the atoms that is
                     # closest to origin.
                     # seed_group_index = np.argmin(np.linalg.norm(proto_cell.get_positions(), axis=1))
                     seed_group_index = 0
-                    a_thickness = matid.geometry.get_thickness(proto_cell, 0)
-                    b_thickness = matid.geometry.get_thickness(proto_cell, 1)
-                    c_thickness = matid.geometry.get_thickness(proto_cell, 2)
-                    reduced_dimension = np.argmin([a_thickness, b_thickness, c_thickness])
-                    proto_cell = matid.geometry.get_minimized_cell(proto_cell, reduced_dimension, 2*self.pos_tol)
-                    # TODO: The third dimension needs to be orthogonal to the two
-                    i_pbc = [True, True, True]
-                    i_pbc[reduced_dimension] = False
+
+                    # Figure out the thinnest basis: it will become the
+                    # non-periodic orthogonal basis TODO: This may not work for
+                    # 2D materials with non-zero thickness.
+                    thicknesses = [matid.geometry.get_thickness(proto_cell, x) for x in range(3)]
+                    reduced_dimension = np.argmin(thicknesses)
+
+                    # Construct new basis out of the two thickest directions +
+                    # new orthogonal basis
+                    new_basis = []
+                    old_basis = proto_cell.get_cell()
+                    for i in range(3):
+                        if i != reduced_dimension:
+                            new_basis.append(old_basis[i, :])
+                    new_basis.append(matid.geometry.complete_cell(new_basis[0], new_basis[1], 1)[0])
+                    proto_cell.set_cell(np.array(new_basis))
+                    proto_cell.set_pbc([True, True, False])
+                    proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
                     cell_mask = [True, True, True]
                     cell_mask[reduced_dimension] = False
-                    proto_cell.set_pbc(i_pbc)
-                    # The assumption is that the last basis is the non-periodic
-                    # one, so we swap it.
-                    matid.geometry.swap_basis(proto_cell, reduced_dimension, 2)
                     best_combo = best_combo[cell_mask]
                     best_spans = best_spans[cell_mask]
                     two_valid_spans = True
@@ -448,7 +454,7 @@ class PeriodicFinder():
                     return None, None, None
 
             # Check the cell thickness. 2D materials that are thicker than a
-            # specified threshold are accepted.
+            # specified threshold are not accepted.
             proto_cell = matid.geometry.get_minimized_cell(proto_cell, 2, 2*self.pos_tol)
             offset = proto_cell.get_positions()[seed_group_index]
             thickness = matid.geometry.get_thickness(proto_cell, 2)
@@ -574,9 +580,7 @@ class PeriodicFinder():
         if len(valid_graphs) == 0:
             return None, None, None
 
-        # Each subgraph represents a group of atoms that repeat periodically in
-        # each cell. Here we calculate a mean position of these atoms in the
-        # cell.
+        # Determine the indices, nodes and numbers for each valid subgraph.
         seed_nodes = None
         seed_group_index = None
         group_data_pbc = {
@@ -584,14 +588,19 @@ class PeriodicFinder():
             "ind": [],
             "nodes": []
         }
-        # Determine the indices, nodes and numbers for each valid subgraph.
         for i_graph, graph in enumerate(valid_graphs):
             nodes = graph.nodes()
             node_indices = [node[0] for node in nodes]
 
-            if seed_index in set(node_indices):
-                seed_group_index = i_graph
-                seed_nodes = nodes
+            # The seed atom index may appear in multiple graphs due to periodic
+            # wrapping. In order to see which graph originated from the seed
+            # atom we have to find the graph which has the seed atom under cell
+            # (0, 0, 0).
+            for atom_index, cell_index in nodes:
+                if atom_index == seed_index and cell_index == (0, 0, 0):
+                    seed_group_index = i_graph
+                    seed_nodes = nodes
+                    break
 
             group_data_pbc["ind"].append(node_indices)
             group_data_pbc["nodes"].append(nodes)
