@@ -379,12 +379,6 @@ class PeriodicFinder():
             if dimensionality != 3:
                 # Try if the cell can be "reduced" to a 2D material
                 if dimensionality == 2:
-                    # TODO: The old seed_group_index may not be valid after we reset
-                    # the spans. We have to reset it to the atoms that is
-                    # closest to origin.
-                    # seed_group_index = np.argmin(np.linalg.norm(proto_cell.get_positions(), axis=1))
-                    seed_group_index = 0
-
                     # Figure out the thinnest basis: it will become the
                     # non-periodic orthogonal basis TODO: This may not work for
                     # 2D materials with non-zero thickness.
