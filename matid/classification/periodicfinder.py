@@ -361,9 +361,8 @@ class PeriodicFinder():
                 best_adjacency_lists_sub,
                 pos_tol
             )
-
-            if proto_cell is None:
-                return None, None, None
+        if proto_cell is None:
+            return None, None, None
 
         two_valid_spans = n_spans == 2
         if n_spans == 3:
@@ -695,12 +694,18 @@ class PeriodicFinder():
             if i_seed in index_cell_map:
                 i_indices, i_pos, i_factors = index_cell_map[i_seed]
             else:
-                i_indices, i_pos, i_factors = matid.geometry.get_positions_within_basis(
-                    system,
-                    cell,
-                    seed_pos,
-                    pos_tol
-                )
+                # If there is a problem in using the given cell to retrieve
+                # positions (e.g. cell is singular), we don't report a prototype
+                # cell
+                try:
+                    i_indices, i_pos, i_factors = matid.geometry.get_positions_within_basis(
+                        system,
+                        cell,
+                        seed_pos,
+                        pos_tol
+                    )
+                except Exception:
+                    return None, None, None
                 index_cell_map[i_seed] = (i_indices, i_pos, i_factors)
 
             # Add the seed node factor
@@ -768,7 +773,7 @@ class PeriodicFinder():
 
         # If no atoms are found in the proto cell, return without results
         if not averaged_rel_pos or not averaged_rel_num:
-            return None, None
+            return None, None, None
 
         averaged_rel_pos = np.array(averaged_rel_pos)
 
