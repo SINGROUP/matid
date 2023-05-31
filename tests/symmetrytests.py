@@ -15,6 +15,8 @@ from matid.symmetry.wyckoffset import WyckoffSet
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
 from matid.utils.segfault_protect import segfault_protect
 
+from conftest import create_graphene
+
 
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
@@ -271,20 +273,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
     """
     def test_graphene_primitive(self):
         # Original system in positions: C: d
-        system = Atoms(
-            symbols=["C", "C"],
-            cell=np.array((
-                [2.4595121467478055, 0.0, 0.0],
-                [-1.2297560733739028, 2.13, 0.0],
-                [0.0, 0.0, 20.0]
-            )),
-            scaled_positions=np.array((
-                [1/3, 2/3, 0.5],
-                [2/3, 1/3, 0.5]
-            )),
-            pbc=[True, True, False]
-        )
-
+        system = create_graphene()
         analyzer = SymmetryAnalyzer(system)
         wyckoff_letters_conv = analyzer.get_wyckoff_letters_conventional()
         wyckoff_letters_assumed = ["c", "c"]
@@ -419,7 +408,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "i")
+                self.assertEqual(wset.wyckoff_letter, "h")
 
     def test_mos2_vacuum(self):
         """Tests a non-flat 2D system with vacuum.
@@ -445,7 +434,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "i")
+                self.assertEqual(wset.wyckoff_letter, "h")
 
 
 class WyckoffTests(unittest.TestCase):

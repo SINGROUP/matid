@@ -1,9 +1,10 @@
-import spglib
-
-import numpy as np
-
+import hashlib
+import base64
 from collections import defaultdict, OrderedDict
 from operator import attrgetter
+
+import spglib
+import numpy as np
 
 from matid.utils.segfault_protect import segfault_protect
 from matid.data.symmetry_data import PROPER_RIGID_TRANSFORMATIONS, IMPROPER_RIGID_TRANSFORMATIONS
@@ -51,6 +52,7 @@ class SymmetryAnalyzer(object):
         # Determine if the system has three periodic directions or two.
         pbc = system.get_pbc()
         n_pbc = np.sum(pbc)
+        self.n_pbc = n_pbc
 
         # Regular bulk structures
         if n_pbc == 3:
@@ -103,6 +105,36 @@ class SymmetryAnalyzer(object):
         self._primitive_equivalent_atoms = None
 
         self._best_transform = None
+
+    def get_material_id(self):
+        """Returns a 28-character identifier for this material. The identifier
+        is calculated by hashing a set of the symmetry properties found in the
+        material, including:
+
+         - Space group number
+         - Wyckoff position letters and the species occupied in them
+        """
+        spg_number = self.get_space_group_number()
+        wyckoff_sets = self.get_wyckoff_sets_conventional()
+        wyckoff_strings = []
+        for group in wyckoff_sets:
+            element = group.element
+            wyckoff_letter = group.wyckoff_letter
+            n_atoms = len(group.indices)
+            i_string = '{} {} {}'.format(element, wyckoff_letter, n_atoms)
+            wyckoff_strings.append(i_string)
+        wyckoff_string = ', '.join(sorted(wyckoff_strings))
+        string = '{} {}'.format(spg_number, wyckoff_string)
+        if self.n_pbc == 2:
+            string = f'2D {string}'
+
+        # Create a SHA-512 hash out of the string
+        hash_value = hashlib.sha512()
+        hash_value.update(string.encode('utf-8'))
+
+        # Make websafe
+        hash_length = 28
+        return base64.b64encode(hash_value.digest(), altchars=b'-_')[:hash_length].decode('utf-8')
 
     def get_space_group_number(self):
         """
@@ -332,13 +364,6 @@ class SymmetryAnalyzer(object):
             # this case.
             spglib_conv_sys = self._get_spglib_conventional_system()
 
-            # Determine if the structure is flat. This will affect the
-            # transformation that are allowed when finding the Wyckoff positions
-            is_flat = False
-            thickness = matid.geometry.get_thickness(self._original_system, i_pbc)
-            if thickness < 0.5*self.symmetry_tol:
-                is_flat = True
-
             # Determine the new non-periodic direction in the normalized cell.
             # The index of the originally non-periodic dimension may not correspond
             # to the one in the normalized system, because the normalized system
@@ -367,7 +392,6 @@ class SymmetryAnalyzer(object):
                 space_group,
                 wyckoff_letters,
                 spglib_conv_sys,
-                is_flat=is_flat,
                 nonperiodic_axis=nonperiodic_axis
             )
 
@@ -993,8 +1017,8 @@ class SymmetryAnalyzer(object):
             space_group,
             old_wyckoff_letters,
             system,
-            is_flat=False,
-            nonperiodic_axis=None):
+            nonperiodic_axis=None
+        ):
         """
         When given a system that has been normalized by spglib, this function
         will find a atomic positions within that cell that are most unique
@@ -1026,8 +1050,6 @@ class SymmetryAnalyzer(object):
             old_wyckoff_letters(list of strings): Wyckoff letters as detected
                 by spglib for the atoms in the given system.
             system(ase.Atoms): The standardized system as given by spglib.
-            is_flat(bool): Whether the structure is flat (near zero thickness)
-                in one non-periodic direction. Applies only for 2D systems.
             nonperiodic_axis(int): The index of a nonperiodic axis in the cell
                 basis. Applies only for 2D systems.
 
@@ -1053,10 +1075,8 @@ class SymmetryAnalyzer(object):
         if proper_rigid_trans is not None:
             transform_list.extend(proper_rigid_trans)
         improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
-        if is_flat:
-            improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
-            if improper_rigid_trans is not None:
-                transform_list.extend(improper_rigid_trans)
+        if improper_rigid_trans is not None:
+            transform_list.extend(improper_rigid_trans)
 
         # Test which transformations are proper rigid transformation for the
         # current cell. TODO: Could the proper rigid transformation be checked
