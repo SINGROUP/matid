@@ -408,7 +408,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "h")
+                self.assertEqual(wset.wyckoff_letter, "i")
 
     def test_mos2_vacuum(self):
         """Tests a non-flat 2D system with vacuum.
@@ -434,7 +434,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "h")
+                self.assertEqual(wset.wyckoff_letter, "i")
 
 
 class WyckoffTests(unittest.TestCase):

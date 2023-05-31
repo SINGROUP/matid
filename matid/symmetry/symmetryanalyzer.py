@@ -364,6 +364,13 @@ class SymmetryAnalyzer(object):
             # this case.
             spglib_conv_sys = self._get_spglib_conventional_system()
 
+            # Determine if the structure is flat. This will affect the
+            # transformation that are allowed when finding the Wyckoff positions
+            is_flat = False
+            thickness = matid.geometry.get_thickness(self._original_system, i_pbc)
+            if thickness < 0.5*self.symmetry_tol:
+                is_flat = True
+
             # Determine the new non-periodic direction in the normalized cell.
             # The index of the originally non-periodic dimension may not correspond
             # to the one in the normalized system, because the normalized system
@@ -392,6 +399,7 @@ class SymmetryAnalyzer(object):
                 space_group,
                 wyckoff_letters,
                 spglib_conv_sys,
+                is_flat=is_flat,
                 nonperiodic_axis=nonperiodic_axis
             )
 
@@ -1017,8 +1025,8 @@ class SymmetryAnalyzer(object):
             space_group,
             old_wyckoff_letters,
             system,
-            nonperiodic_axis=None
-        ):
+            is_flat=False,
+            nonperiodic_axis=None):
         """
         When given a system that has been normalized by spglib, this function
         will find a atomic positions within that cell that are most unique
@@ -1050,6 +1058,8 @@ class SymmetryAnalyzer(object):
             old_wyckoff_letters(list of strings): Wyckoff letters as detected
                 by spglib for the atoms in the given system.
             system(ase.Atoms): The standardized system as given by spglib.
+            is_flat(bool): Whether the structure is flat (near zero thickness)
+                in one non-periodic direction. Applies only for 2D systems.
             nonperiodic_axis(int): The index of a nonperiodic axis in the cell
                 basis. Applies only for 2D systems.
 
@@ -1075,8 +1085,10 @@ class SymmetryAnalyzer(object):
         if proper_rigid_trans is not None:
             transform_list.extend(proper_rigid_trans)
         improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
-        if improper_rigid_trans is not None:
-            transform_list.extend(improper_rigid_trans)
+        if is_flat:
+            improper_rigid_trans = IMPROPER_RIGID_TRANSFORMATIONS.get(space_group)
+            if improper_rigid_trans is not None:
+                transform_list.extend(improper_rigid_trans)
 
         # Test which transformations are proper rigid transformation for the
         # current cell. TODO: Could the proper rigid transformation be checked
@@ -1092,7 +1104,7 @@ class SymmetryAnalyzer(object):
         cell_basis = system.get_cell()
 
         # If the structure is flat, we ignore the non-periodic basis
-        if nonperiodic_axis is not None:
+        if is_flat and nonperiodic_axis is not None:
             dim_mask = np.array((True, True, True))
             dim_mask[nonperiodic_axis] = False
             cart_basis = cart_basis[dim_mask, :]
@@ -1111,7 +1123,7 @@ class SymmetryAnalyzer(object):
             nonaugmented_trans = trans[0:3, 0:3]
 
             # Remove the non-periodic dimension from the transform as well
-            if nonperiodic_axis is not None:
+            if is_flat and nonperiodic_axis is not None:
                 nonaugmented_trans = nonaugmented_trans[dim_mask, :]
                 nonaugmented_trans = nonaugmented_trans[:, dim_mask]
 

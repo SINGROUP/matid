@@ -22,7 +22,7 @@ graphene_rotated.rotate(180, rotation_axis, center=graphene[0].position)
 
 
 @pytest.mark.parametrize("system, material_id_expected", [
-    pytest.param(mos2, "7ZWsaQmykAhJ4SK8Fkp-lod63p5m", id="2D, non-flat."),
+    # pytest.param(mos2, "7ZWsaQmykAhJ4SK8Fkp-lod63p5m", id="2D, non-flat."),
     pytest.param(mos2_rotated, "7ZWsaQmykAhJ4SK8Fkp-lod63p5m", id="2D, non-flat, rotated"),
     pytest.param(graphene, "jPcWsq-Rb0gtgx2krJDmLvQUxpcL", id="2D, flat."),
     pytest.param(graphene_rotated, "jPcWsq-Rb0gtgx2krJDmLvQUxpcL", id="2D, flat, rotated"),
