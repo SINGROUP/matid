@@ -30,3 +30,21 @@ def create_mos2():
 		vacuum=0
 	)
 	return system
+
+def create_si():
+	system = ase.lattice.cubic.Diamond(
+		size=(1, 1, 1),
+		symbol='Si',
+		pbc=(1, 1, 1),
+		latticeconstant=5.430710
+	)
+	return system
+
+
+def create_fe():
+	system = ase.build.bulk(
+		'Fe',
+		crystalstructure='bcc',
+		a=2.834,
+	)
+	return system
