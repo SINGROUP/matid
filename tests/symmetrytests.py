@@ -9,13 +9,14 @@ from ase import Atoms
 import ase.lattice.cubic
 import ase.spacegroup
 import ase.build
+from ase.visualize import view
 
 from matid import SymmetryAnalyzer
 from matid.symmetry.wyckoffset import WyckoffSet
 from matid.data.constants import WYCKOFF_LETTER_POSITIONS
 from matid.utils.segfault_protect import segfault_protect
 
-from conftest import create_graphene
+from conftest import create_graphene, create_si, create_mos2
 
 
 class dotdict(dict):
@@ -53,11 +54,7 @@ class SymmetryAnalyser3DTests(unittest.TestCase):
         """Test that a silicon diamond lattice is characterized correctly.
         """
         # Create the system
-        si = ase.lattice.cubic.Diamond(
-            size=(1, 1, 1),
-            symbol='Si',
-            pbc=(1, 1, 1),
-            latticeconstant=5.430710)
+        si = create_si()
 
         # Apply some noise
         si.rattle(stdev=0.05, seed=42)
@@ -387,16 +384,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
     def test_mos2(self):
         """Tests a non-flat 2D system with vacuum.
         """
-        system = ase.build.mx2(
-            formula="MoS2",
-            kind="2H",
-            a=3.18,
-            thickness=3.19,
-            size=(1, 1, 1),
-            vacuum=0
-        )
-        system.set_pbc([True, True, False])
-
+        system = create_mos2()
         analyzer = SymmetryAnalyzer(system)
         conv_system = analyzer.get_conventional_system()
         prim_system = analyzer.get_primitive_system()
@@ -408,7 +396,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "i")
+                self.assertEqual(wset.wyckoff_letter, "h")
 
     def test_mos2_vacuum(self):
         """Tests a non-flat 2D system with vacuum.
@@ -421,7 +409,6 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             size=(5, 5, 1),
             vacuum=8
         )
-        system.set_pbc([True, True, False])
 
         analyzer = SymmetryAnalyzer(system)
         conv_system = analyzer.get_conventional_system()
@@ -434,7 +421,7 @@ class SymmetryAnalyser2DTests(unittest.TestCase):
             if wset.element == "Mo":
                 self.assertEqual(wset.wyckoff_letter, "a")
             if wset.element == "S":
-                self.assertEqual(wset.wyckoff_letter, "i")
+                self.assertEqual(wset.wyckoff_letter, "h")
 
 
 class WyckoffTests(unittest.TestCase):
@@ -925,9 +912,11 @@ class GroundStateTests(unittest.TestCase):
             self.assertTrue(np.array_equal(conv_pos[3], a1))
 
     def test_transformation_affine(self):
-        """Test a transform where the transformation is a proper rigid
-        transformation in the scaled cell basis, but will be non-rigid in the
-        cartesian basis. This kind of transformations should not be allowed.
+        """This spacegroup (47) has additional affine normalizers that should
+        not be taken into account when determining the conventional system.
+        There are only 8 different possible Euclidean normalizations, whereas
+        there are 48 normalizations if you take into account the affine ones as
+        well.
         """
         system = Atoms(
             cell=[
@@ -960,10 +949,10 @@ class GroundStateTests(unittest.TestCase):
 
     def test_zinc_blende(self):
         """Tests that all different forms of the zinc-blende structure can be
-        normalized to the same structure. The use of improper normalizers
-        from Bilbao is required to achieve this, but the resulting structure
-        must then have a rigid translation in cartesian coordinates to the
-        original system.
+        normalized to the same structure. In order to do this properly we need
+        to also include Euclidean normalizers where the transformation is not a
+        proper rigid rotations, but due to the symmetry of the structure result
+        in a valid transformation.
         """
         # Primitive
         zb_prim = ase.build.bulk("ZnS", crystalstructure="zincblende", a=5.42)
