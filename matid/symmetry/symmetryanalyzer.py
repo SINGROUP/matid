@@ -1023,27 +1023,26 @@ class SymmetryAnalyzer(object):
         (totally unique up to isotropic scaling if no free Wyckoff parameters
         present).
 
-        The function is based on finding a chirality-preesrving Euclidean
-        normalizer (more information on normalizers can be found e.g. in "Space
-        Groups for Solid State Scientists", page 246, ISBN: 9780123946157,
-        normalizers can be found for each space group e.g. at the Bilbao
-        Crystallographic Server) http://www.cryst.ehu.es/), which is essentially
-        a transform that changes Wyckoff positions of atoms within a cell
-        without changing the structure itself. Each of these normalizers can be
-        applied to give a different structural representation of the same
-        material, but with different Wyckoff occupations. The algorithm then
-        goes through each tuple of Wyckoff letter and atomic number (W , Z) in a
-        preset order: the first loop goes through the Wyckoff letters in
-        alphabetical order, and the second loop goes through the atomic numbers
-        from lowest to highest.  Whenever some of the possible representations
-        has a structural component corresponding to the current tuple (W , Z),
-        the number of atoms with this tuple N is calculated. The representation
-        is stored to a map structure that links each N to a list of
-        representations and the highest N is tracked. After all the
-        representations are covered, the candidate list of representations is
-        replaced with the list corresponding to the highest N. The algorithm
-        stops whenever the candidate set contains only one representation, which
-        will be the standard one.
+        The function is based on iterating through chirality-preserving
+        Euclidean normalizers (more information on normalizers can be found e.g.
+        in "Space Groups for Solid State Scientists", page 246, ISBN:
+        9780123946157, normalizers can be found for each space group e.g. at the
+        Bilbao Crystallographic Server) http://www.cryst.ehu.es/), which are
+        essentially transforms that changes Wyckoff positions of atoms within a
+        cell without changing the structure itself. Each of these normalizers
+        can be applied to give a different structural representation of the same
+        material. The algorithm then goes through each tuple of Wyckoff letter
+        and atomic number (W , Z) in a preset order: the first loop goes through
+        the Wyckoff letters in alphabetical order, and the second loop goes
+        through the atomic numbers from lowest to highest. Whenever some of the
+        possible representations has a structural component corresponding to the
+        current tuple (W , Z), the number of atoms with this tuple N is
+        calculated. The representation is stored to a map structure that links
+        each N to a list of representations and the highest N is tracked. After
+        all the representations are covered, the candidate list of
+        representations is replaced with the list corresponding to the highest
+        N. The algorithm stops whenever the candidate set contains only one
+        representation, which will be the standard one.
 
         Args:
             space_group(int): The space group of the system.
