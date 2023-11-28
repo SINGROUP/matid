@@ -1,3 +1,6 @@
+> [!NOTE]
+> This repository contains the old (matid v0.x) version, and is read-only. The new version is being developed [here](https://github.com/nomad-coe/matid).
+
 # MatID
 
 ![Build status](https://github.com/SINGROUP/matid/actions/workflows/build.yml/badge.svg)
@@ -5,9 +8,6 @@
 
 MatID is a python package for identifying and analyzing atomistic systems based
 on their structure.
-
-> [!NOTE]
-> This repository contains the old (matid v0.x) version, and is read-only. The new version is being developed [here](https://github.com/nomad-coe/matid).
 
 
 https://github.com/nomad-coe/matid
